@@ -12,6 +12,9 @@ generated_code = true
 ij_formatter_enabled = false
 ktlint = disabled
 
+[**/main.kt]
+ktlint_standard_filename = disabled
+
 [*.{kt,kts}]
 ij_kotlin_allow_trailing_comma=true
 ij_kotlin_allow_trailing_comma_on_call_site=true
