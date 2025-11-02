@@ -5,8 +5,9 @@ on:
     branches: [ main, master ]
 
 jobs:
-  start:
+  ktlint:
     runs-on: ubuntu-latest
+    needs: setup
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -20,9 +21,5 @@ jobs:
       - name: Make gradlew executable
         run: chmod +x ./gradlew
 
-  ktlint:
-    runs-on: ubuntu-latest
-    needs: start
-    steps:
       - name: Run ktlint
         run: ./gradlew ktlintCheck
