@@ -58,12 +58,15 @@ internal fun RememberNumberScreen(
 ) {
     val focusRequester = remember { FocusRequester() }
     val blurRadius by animateDpAsState(
-        targetValue = when (uiState) {
-            is RememberNumberUiState.Initial,
-            is RememberNumberUiState.Mistake -> 8.dp
-            is RememberNumberUiState.Reading,
-            is RememberNumberUiState.Writing -> 0.dp
-        },
+        targetValue =
+            when (uiState) {
+                is RememberNumberUiState.Initial,
+                is RememberNumberUiState.Mistake,
+                -> 8.dp
+                is RememberNumberUiState.Reading,
+                is RememberNumberUiState.Writing,
+                -> 0.dp
+            },
         animationSpec = tween(durationMillis = 700),
     )
 
@@ -77,10 +80,11 @@ internal fun RememberNumberScreen(
         modifier = modifier.fillMaxSize(),
     ) {
         Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .systemBarsPadding()
-                .blur(blurRadius),
+            modifier =
+                Modifier
+                    .fillMaxSize()
+                    .systemBarsPadding()
+                    .blur(blurRadius),
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
             Text(text = "Score: ${uiState.score}")
@@ -91,25 +95,26 @@ internal fun RememberNumberScreen(
                 value = uiState.text,
                 onValueChange = writeText,
                 maxLength = maxLength,
-                backgroundColor = when (uiState) {
-                    is RememberNumberUiState.Initial,
-                    is RememberNumberUiState.Reading,
+                backgroundColor =
+                    when (uiState) {
+                        is RememberNumberUiState.Initial,
+                        is RememberNumberUiState.Reading,
                         -> { index -> Color.Transparent }
-                    is RememberNumberUiState.Writing -> { index ->
-                        if (index < uiState.text.length) {
-                            Color.LightGray.copy(alpha = 0.3f)
-                        } else {
-                            Color.Transparent
+                        is RememberNumberUiState.Writing -> { index ->
+                            if (index < uiState.text.length) {
+                                Color.LightGray.copy(alpha = 0.3f)
+                            } else {
+                                Color.Transparent
+                            }
                         }
-                    }
-                    is RememberNumberUiState.Mistake -> { index ->
-                        if (uiState.text[index] == uiState.correctText[index]) {
-                            Color.Green.copy(alpha = 0.2f)
-                        } else {
-                            MaterialTheme.colorScheme.errorContainer
+                        is RememberNumberUiState.Mistake -> { index ->
+                            if (uiState.text[index] == uiState.correctText[index]) {
+                                Color.Green.copy(alpha = 0.2f)
+                            } else {
+                                MaterialTheme.colorScheme.errorContainer
+                            }
                         }
-                    }
-                },
+                    },
                 borderColor = { index ->
                     if (index == uiState.text.length && uiState is RememberNumberUiState.Writing) {
                         MaterialTheme.colorScheme.primary
@@ -118,13 +123,13 @@ internal fun RememberNumberScreen(
                     }
                 },
                 showFocusedPlaceholder = uiState is RememberNumberUiState.Writing,
-                modifier = Modifier
-                    .focusRequester(focusRequester)
-                    .focusProperties {
-                        canFocus = uiState is RememberNumberUiState.Writing
-                    }
-                    .padding(horizontal = 32.dp)
-                    .widthIn(max = 600.dp),
+                modifier =
+                    Modifier
+                        .focusRequester(focusRequester)
+                        .focusProperties {
+                            canFocus = uiState is RememberNumberUiState.Writing
+                        }.padding(horizontal = 32.dp)
+                        .widthIn(max = 600.dp),
             )
 
             Spacer(modifier = Modifier.weight(2f))
@@ -132,9 +137,10 @@ internal fun RememberNumberScreen(
 
         if (uiState is RememberNumberUiState.Initial) {
             Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .clickable(onClick = onStartClick),
+                modifier =
+                    Modifier
+                        .fillMaxSize()
+                        .clickable(onClick = onStartClick),
             ) {
                 Text(
                     text = "Start the game!",
@@ -148,17 +154,19 @@ internal fun RememberNumberScreen(
 
         if (uiState is RememberNumberUiState.Mistake) {
             Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .clickable(onClick = onStartClick),
+                modifier =
+                    Modifier
+                        .fillMaxSize()
+                        .clickable(onClick = onStartClick),
             ) {
                 RememberNumberMistakeScore(
                     score = uiState.score,
                     record = uiState.score,
-                    modifier = Modifier
-                        .align(Alignment.TopCenter)
-                        .systemBarsPadding()
-                        .padding(top = 64.dp),
+                    modifier =
+                        Modifier
+                            .align(Alignment.TopCenter)
+                            .systemBarsPadding()
+                            .padding(top = 64.dp),
                 )
 
                 Text(

@@ -11,7 +11,9 @@ import kotlinx.serialization.Serializable
 import org.koin.compose.viewmodel.koinViewModel
 import org.koin.core.parameter.parametersOf
 
-@Serializable data class RememberNumberRoute(val maxLength: Int)
+@Serializable data class RememberNumberRoute(
+    val maxLength: Int,
+)
 
 fun NavController.navigateToRememberNumber(
     maxLength: Int,
@@ -27,9 +29,10 @@ fun NavGraphBuilder.rememberNumberScreen() {
     composable<RememberNumberRoute> { entry ->
         val maxLength = entry.toRoute<RememberNumberRoute>().maxLength
 
-        val viewModel = koinViewModel<RememberNumberViewModel>(
-            parameters = { parametersOf(maxLength) }
-        )
+        val viewModel =
+            koinViewModel<RememberNumberViewModel>(
+                parameters = { parametersOf(maxLength) },
+            )
 
         RememberNumberRoute(
             viewModel = viewModel,

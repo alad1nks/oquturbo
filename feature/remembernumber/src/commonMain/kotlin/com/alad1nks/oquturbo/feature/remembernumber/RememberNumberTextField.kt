@@ -47,10 +47,11 @@ internal fun RememberNumberTextField(
 ) {
     var textFieldValue by remember(value) {
         mutableStateOf(
-            value = TextFieldValue(
-                text = value,
-                selection = TextRange(value.length),
-            )
+            value =
+                TextFieldValue(
+                    text = value,
+                    selection = TextRange(value.length),
+                ),
         )
     }
 
@@ -65,10 +66,11 @@ internal fun RememberNumberTextField(
             onValueChange(filtered)
         },
         modifier = modifier,
-        keyboardOptions = KeyboardOptions(
-            keyboardType = KeyboardType.Number,
-            imeAction = ImeAction.Done,
-        ),
+        keyboardOptions =
+            KeyboardOptions(
+                keyboardType = KeyboardType.Number,
+                imeAction = ImeAction.Done,
+            ),
         decorationBox = {
             Row(
                 horizontalArrangement = Arrangement.spacedBy(12.dp),
@@ -78,16 +80,16 @@ internal fun RememberNumberTextField(
                     val isFocused = index == value.length
 
                     Box(
-                        modifier = Modifier
-                            .weight(1f)
-                            .aspectRatio(1f)
-                            .border(
-                                width = 2.dp,
-                                color = borderColor(index),
-                                shape = RoundedCornerShape(12.dp),
-                            )
-                            .clip(RoundedCornerShape(12.dp))
-                            .background(backgroundColor(index)),
+                        modifier =
+                            Modifier
+                                .weight(1f)
+                                .aspectRatio(1f)
+                                .border(
+                                    width = 2.dp,
+                                    color = borderColor(index),
+                                    shape = RoundedCornerShape(12.dp),
+                                ).clip(RoundedCornerShape(12.dp))
+                                .background(backgroundColor(index)),
                         contentAlignment = Alignment.Center,
                     ) {
                         if (char != null) {
@@ -103,25 +105,25 @@ internal fun RememberNumberTextField(
                     }
                 }
             }
-        }
+        },
     )
 }
 
 @Composable
-private fun FocusedPlaceHolder(
-    modifier: Modifier = Modifier,
-) {
+private fun FocusedPlaceHolder(modifier: Modifier = Modifier) {
     val animateFloatAsState by animateFloatAsState(
         targetValue = 1f,
-        animationSpec = infiniteRepeatable(
-            animation = keyframes {
-                durationMillis = 1000
-                0f at 0 using LinearEasing
-                1f at 500 using LinearEasing
-                0f at 1000 using LinearEasing
-            },
-            repeatMode = RepeatMode.Reverse,
-        )
+        animationSpec =
+            infiniteRepeatable(
+                animation =
+                    keyframes {
+                        durationMillis = 1000
+                        0f at 0 using LinearEasing
+                        1f at 500 using LinearEasing
+                        0f at 1000 using LinearEasing
+                    },
+                repeatMode = RepeatMode.Reverse,
+            ),
     )
 
     AnimatedVisibility(
@@ -129,10 +131,11 @@ private fun FocusedPlaceHolder(
         modifier = modifier,
     ) {
         Box(
-            modifier = Modifier
-                .width(2.dp)
-                .height(32.dp)
-                .background(Color.Black)
+            modifier =
+                Modifier
+                    .width(2.dp)
+                    .height(32.dp)
+                    .background(Color.Black),
         )
     }
 }
