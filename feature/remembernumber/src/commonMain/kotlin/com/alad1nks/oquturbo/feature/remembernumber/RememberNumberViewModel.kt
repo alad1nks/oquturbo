@@ -32,17 +32,19 @@ internal class RememberNumberViewModel(
                             if (text == waitingNumber) {
                                 waitingNumber = generateNumber()
                                 score++
-                                _uiState.value = RememberNumberUiState.Reading(
-                                    text = waitingNumber,
-                                    score = score.toString(),
-                                )
+                                _uiState.value =
+                                    RememberNumberUiState.Reading(
+                                        text = waitingNumber,
+                                        score = score.toString(),
+                                    )
                                 delay = (delay * 95) / 100
                             } else {
-                                _uiState.value = RememberNumberUiState.Mistake(
-                                    text = text,
-                                    score = score.toString(),
-                                    correctText = waitingNumber,
-                                )
+                                _uiState.value =
+                                    RememberNumberUiState.Mistake(
+                                        text = text,
+                                        score = score.toString(),
+                                        correctText = waitingNumber,
+                                    )
                                 delay = 1000
                             }
                             _focusEvent.value = null
@@ -54,10 +56,11 @@ internal class RememberNumberViewModel(
                             delay(700)
                             isFirstNumber = false
                         }
-                        _uiState.value = RememberNumberUiState.Writing(
-                            text = "",
-                            score = uiState.score,
-                        )
+                        _uiState.value =
+                            RememberNumberUiState.Writing(
+                                text = "",
+                                score = uiState.score,
+                            )
                         _focusEvent.value = Unit
                     }
                     is RememberNumberUiState.Mistake -> {}
@@ -70,10 +73,11 @@ internal class RememberNumberViewModel(
         viewModelScope.launch {
             isFirstNumber = true
             waitingNumber = generateNumber()
-            _uiState.value = RememberNumberUiState.Reading(
-                text = waitingNumber,
-                score = "0",
-            )
+            _uiState.value =
+                RememberNumberUiState.Reading(
+                    text = waitingNumber,
+                    score = "0",
+                )
         }
     }
 

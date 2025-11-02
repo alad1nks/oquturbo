@@ -16,7 +16,7 @@ fun App() {
     KoinApplication(
         application = {
             modules(RememberNumberModule)
-        }
+        },
     ) {
         val navController = rememberNavController()
 
