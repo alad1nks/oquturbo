@@ -1,7 +1,10 @@
 package com.alad1nks.oquturbo.feature.remembernumber
 
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -135,47 +138,52 @@ internal fun RememberNumberScreen(
             Spacer(modifier = Modifier.weight(2f))
         }
 
-        if (uiState is RememberNumberUiState.Initial) {
+        AnimatedVisibility(
+            visible = uiState is RememberNumberUiState.Mistake || uiState is RememberNumberUiState.Initial,
+            enter =
+                fadeIn(
+                    animationSpec = tween(durationMillis = 700),
+                ),
+            exit =
+                fadeOut(
+                    animationSpec = tween(durationMillis = 700),
+                ),
+        ) {
             Box(
                 modifier =
                     Modifier
                         .fillMaxSize()
                         .clickable(onClick = onStartClick),
             ) {
-                Text(
-                    text = "Start the game!",
-                    modifier = Modifier.align(Alignment.Center),
-                    fontSize = 48.sp,
-                    textAlign = TextAlign.Center,
-                    lineHeight = 48.sp,
-                )
-            }
-        }
+                if (uiState is RememberNumberUiState.Initial) {
+                    Text(
+                        text = "Start the game!",
+                        modifier = Modifier.align(Alignment.Center),
+                        fontSize = 48.sp,
+                        textAlign = TextAlign.Center,
+                        lineHeight = 48.sp,
+                    )
+                }
 
-        if (uiState is RememberNumberUiState.Mistake) {
-            Box(
-                modifier =
-                    Modifier
-                        .fillMaxSize()
-                        .clickable(onClick = onStartClick),
-            ) {
-                RememberNumberMistakeScore(
-                    score = uiState.score,
-                    record = uiState.score,
-                    modifier =
-                        Modifier
-                            .align(Alignment.TopCenter)
-                            .systemBarsPadding()
-                            .padding(top = 64.dp),
-                )
+                if (uiState is RememberNumberUiState.Mistake) {
+                    RememberNumberMistakeScore(
+                        score = uiState.score,
+                        record = uiState.score,
+                        modifier =
+                            Modifier
+                                .align(Alignment.TopCenter)
+                                .systemBarsPadding()
+                                .padding(top = 64.dp),
+                    )
 
-                Text(
-                    text = "Try Again?",
-                    modifier = Modifier.align(Alignment.Center),
-                    fontSize = 48.sp,
-                    textAlign = TextAlign.Center,
-                    lineHeight = 48.sp,
-                )
+                    Text(
+                        text = "Try Again?",
+                        modifier = Modifier.align(Alignment.Center),
+                        fontSize = 48.sp,
+                        textAlign = TextAlign.Center,
+                        lineHeight = 48.sp,
+                    )
+                }
             }
         }
     }
