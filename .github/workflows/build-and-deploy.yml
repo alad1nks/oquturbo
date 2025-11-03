@@ -30,14 +30,14 @@ jobs:
         if: success()
 
       - name: Rename APK
-        run: mv app/build/outputs/apk/release/composeApp-release-unsigned.apk app/build/outputs/apk/release/oquturbo.apk
+        run: mv composeApp/build/outputs/apk/release/composeApp-release-unsigned.apk composeApp/build/outputs/apk/release/oquturbo.apk
         if: success()
 
       - name: Upload APK to GitHub
         uses: actions/upload-artifact@v4
         with:
           name: app-release-unsigned
-          path: app/build/outputs/apk/release/oquturbo.apk
+          path: composeApp/build/outputs/apk/release/oquturbo.apk
         if: success()
 
   post-build:
