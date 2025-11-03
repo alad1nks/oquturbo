@@ -1,4 +1,4 @@
-package com.alad1nks.oquturbo.feature.remembernumber
+package com.alad1nks.oquturbo.feature.remembernumber.ui
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.LinearEasing

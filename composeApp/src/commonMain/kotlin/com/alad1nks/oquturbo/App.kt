@@ -4,29 +4,33 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.rememberNavController
-import com.alad1nks.oquturbo.feature.remembernumber.di.RememberNumberModule
 import com.alad1nks.oquturbo.feature.remembernumber.navigation.RememberNumberRoute
 import com.alad1nks.oquturbo.feature.remembernumber.navigation.rememberNumberScreen
 import org.jetbrains.compose.ui.tooling.preview.Preview
 import org.koin.compose.KoinApplication
 
 @Composable
-@Preview
-fun App() {
+fun KoinApp() {
     KoinApplication(
         application = {
-            modules(RememberNumberModule)
+            modules(getPlatformModules() + getCommonModules())
         },
     ) {
-        val navController = rememberNavController()
+        App()
+    }
+}
 
-        MaterialTheme {
-            NavHost(
-                navController = navController,
-                startDestination = RememberNumberRoute(4),
-            ) {
-                rememberNumberScreen()
-            }
+@Composable
+@Preview
+fun App() {
+    val navController = rememberNavController()
+
+    MaterialTheme {
+        NavHost(
+            navController = navController,
+            startDestination = RememberNumberRoute(4),
+        ) {
+            rememberNumberScreen()
         }
     }
 }
