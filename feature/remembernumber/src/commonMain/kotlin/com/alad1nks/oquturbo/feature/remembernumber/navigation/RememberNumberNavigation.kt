@@ -5,8 +5,8 @@ import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavOptionsBuilder
 import androidx.navigation.compose.composable
 import androidx.navigation.toRoute
-import com.alad1nks.oquturbo.feature.remembernumber.RememberNumberRoute
-import com.alad1nks.oquturbo.feature.remembernumber.RememberNumberViewModel
+import com.alad1nks.oquturbo.feature.remembernumber.ui.RememberNumberRoute
+import com.alad1nks.oquturbo.feature.remembernumber.ui.RememberNumberViewModel
 import kotlinx.serialization.Serializable
 import org.koin.compose.viewmodel.koinViewModel
 import org.koin.core.parameter.parametersOf

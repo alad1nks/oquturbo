@@ -1,14 +1,17 @@
-package com.alad1nks.oquturbo.feature.remembernumber
+package com.alad1nks.oquturbo.feature.remembernumber.ui
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.alad1nks.oquturbo.feature.remembernumber.data.repository.RememberNumberRepository
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 
 internal class RememberNumberViewModel(
     val maxLength: Int,
+    private val rememberNumberRepository: RememberNumberRepository,
 ) : ViewModel() {
     private var score: Int = 0
     private var waitingNumber: String = ""
@@ -35,17 +38,23 @@ internal class RememberNumberViewModel(
                                 _uiState.value =
                                     RememberNumberUiState.Reading(
                                         text = waitingNumber,
-                                        score = score.toString(),
+                                        score = score,
                                     )
                                 delay = (delay * 95) / 100
                             } else {
+                                val storageRecord = rememberNumberRepository.getRememberNumberRecord().first()
+                                val currentRecord = maxOf(storageRecord, score)
                                 _uiState.value =
                                     RememberNumberUiState.Mistake(
                                         text = text,
-                                        score = score.toString(),
+                                        score = score,
                                         correctText = waitingNumber,
+                                        record = currentRecord,
                                     )
                                 delay = 1000
+                                if (currentRecord > storageRecord) {
+                                    rememberNumberRepository.setRememberNumberRecord(score)
+                                }
                             }
                             _focusEvent.value = null
                         }
@@ -71,12 +80,13 @@ internal class RememberNumberViewModel(
 
     fun start() {
         viewModelScope.launch {
+            score = 0
             isFirstNumber = true
             waitingNumber = generateNumber()
             _uiState.value =
                 RememberNumberUiState.Reading(
                     text = waitingNumber,
-                    score = "0",
+                    score = score,
                 )
         }
     }

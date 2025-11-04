@@ -33,4 +33,7 @@ plugins {
 }
 
 include(":composeApp")
+include(":core:storage:common")
+include(":core:storage:datastore")
+include(":core:storage:web")
 include(":feature:remembernumber")

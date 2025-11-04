@@ -45,6 +45,8 @@ kotlin {
         androidMain.dependencies {
             implementation(compose.preview)
             implementation(libs.androidx.activity.compose)
+
+            implementation(projects.core.storage.datastore)
         }
         commonMain.dependencies {
             implementation(compose.runtime)
@@ -66,9 +68,17 @@ kotlin {
         commonTest.dependencies {
             implementation(libs.kotlin.test)
         }
+        iosMain.dependencies {
+            implementation(projects.core.storage.datastore)
+        }
         jvmMain.dependencies {
             implementation(compose.desktop.currentOs)
-            implementation(libs.kotlinx.coroutinesSwing)
+            implementation(libs.kotlinx.coroutines.swing)
+
+            implementation(projects.core.storage.datastore)
+        }
+        webMain.dependencies {
+            implementation(projects.core.storage.web)
         }
     }
 }

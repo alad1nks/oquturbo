@@ -1,4 +1,4 @@
-package com.alad1nks.oquturbo.feature.remembernumber
+package com.alad1nks.oquturbo.feature.remembernumber.ui
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.animateDpAsState
@@ -168,7 +168,7 @@ internal fun RememberNumberScreen(
                 if (uiState is RememberNumberUiState.Mistake) {
                     RememberNumberMistakeScore(
                         score = uiState.score,
-                        record = uiState.score,
+                        record = uiState.record,
                         modifier =
                             Modifier
                                 .align(Alignment.TopCenter)
@@ -191,8 +191,8 @@ internal fun RememberNumberScreen(
 
 @Composable
 private fun RememberNumberMistakeScore(
-    score: String,
-    record: String,
+    score: Int,
+    record: Int,
     modifier: Modifier = Modifier,
 ) {
     Column(
@@ -234,7 +234,7 @@ private fun RememberNumberScreenInitialPreview() {
 private fun RememberNumberScreenReadingPreview() {
     MaterialTheme {
         RememberNumberScreen(
-            uiState = RememberNumberUiState.Reading(text = "1334", score = "4"),
+            uiState = RememberNumberUiState.Reading(text = "1334", score = 4),
             focusEvent = null,
             maxLength = 4,
             writeText = {},
@@ -248,7 +248,7 @@ private fun RememberNumberScreenReadingPreview() {
 private fun RememberNumberScreenWritingPreview() {
     MaterialTheme {
         RememberNumberScreen(
-            uiState = RememberNumberUiState.Writing(text = "12", score = "4"),
+            uiState = RememberNumberUiState.Writing(text = "12", score = 4),
             focusEvent = null,
             maxLength = 4,
             writeText = {},
@@ -262,7 +262,7 @@ private fun RememberNumberScreenWritingPreview() {
 private fun RememberNumberScreenMistakePreview() {
     MaterialTheme {
         RememberNumberScreen(
-            uiState = RememberNumberUiState.Mistake(text = "1234", score = "4", correctText = "1334"),
+            uiState = RememberNumberUiState.Mistake(text = "1234", score = 4, correctText = "1334", record = 7),
             focusEvent = null,
             maxLength = 4,
             writeText = {},
