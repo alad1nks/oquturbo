@@ -6,11 +6,18 @@ import kotlinx.coroutines.flow.Flow
 internal class RememberNumberRepository(
     private val storage: Storage,
 ) {
-    fun getRememberNumberRecord(): Flow<Int> {
-        return storage.rememberNumberRecord
+    fun getRememberNumberRecord(
+        maxLength: Int,
+        availableDigits: String,
+    ): Flow<Int> {
+        return storage.getRememberNumberRecord(maxLength, availableDigits)
     }
 
-    suspend fun setRememberNumberRecord(value: Int) {
-        storage.setRememberNumberRecord(value)
+    suspend fun setRememberNumberRecord(
+        maxLength: Int,
+        availableDigits: String,
+        record: Int,
+    ) {
+        storage.setRememberNumberRecord(maxLength, availableDigits, record)
     }
 }

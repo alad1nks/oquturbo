@@ -11,6 +11,7 @@ import kotlinx.coroutines.launch
 
 internal class RememberNumberViewModel(
     val maxLength: Int,
+    private val availableDigits: String,
     private val rememberNumberRepository: RememberNumberRepository,
 ) : ViewModel() {
     private var score: Int = 0
@@ -42,7 +43,11 @@ internal class RememberNumberViewModel(
                                     )
                                 delay = (delay * 95) / 100
                             } else {
-                                val storageRecord = rememberNumberRepository.getRememberNumberRecord().first()
+                                val storageRecord =
+                                    rememberNumberRepository.getRememberNumberRecord(
+                                        maxLength = maxLength,
+                                        availableDigits = availableDigits,
+                                    ).first()
                                 val currentRecord = maxOf(storageRecord, score)
                                 _uiState.value =
                                     RememberNumberUiState.Mistake(
@@ -53,7 +58,7 @@ internal class RememberNumberViewModel(
                                     )
                                 delay = 1000
                                 if (currentRecord > storageRecord) {
-                                    rememberNumberRepository.setRememberNumberRecord(score)
+                                    rememberNumberRepository.setRememberNumberRecord(maxLength, availableDigits, score)
                                 }
                             }
                             _focusEvent.value = null
@@ -102,7 +107,7 @@ internal class RememberNumberViewModel(
         val stringBuilder = StringBuilder()
 
         repeat(maxLength) {
-            stringBuilder.append((0..9).random())
+            stringBuilder.append(availableDigits.random())
         }
 
         return stringBuilder.toString()

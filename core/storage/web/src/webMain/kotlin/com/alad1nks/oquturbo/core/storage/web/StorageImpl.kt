@@ -17,11 +17,19 @@ external interface BrowserStorage {
 external val localStorage: BrowserStorage
 
 internal class StorageImpl : Storage {
-    override val rememberNumberRecord: Flow<Int>
-        get() = flowOf(localStorage.getItem(REMEMBER_NUMBER_RECORD)?.toInt() ?: 0)
+    override fun getRememberNumberRecord(
+        maxLength: Int,
+        availableDigits: String,
+    ): Flow<Int> {
+        return flowOf(localStorage.getItem("${REMEMBER_NUMBER_RECORD}_${maxLength}_$availableDigits")?.toInt() ?: 0)
+    }
 
-    override suspend fun setRememberNumberRecord(value: Int) {
-        localStorage.setItem(REMEMBER_NUMBER_RECORD, value.toString())
+    override suspend fun setRememberNumberRecord(
+        maxLength: Int,
+        availableDigits: String,
+        record: Int,
+    ) {
+        localStorage.setItem("${REMEMBER_NUMBER_RECORD}_${maxLength}_$availableDigits", record.toString())
     }
 
     private companion object {

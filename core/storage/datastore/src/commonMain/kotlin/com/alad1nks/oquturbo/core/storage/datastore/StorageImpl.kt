@@ -14,27 +14,34 @@ import kotlinx.coroutines.flow.map
 internal class StorageImpl(
     private val dataStore: DataStore<Preferences>,
 ) : Storage {
-    override val rememberNumberRecord: Flow<Int>
-        get() =
-            dataStore.data
-                .catch { exception ->
-                    if (exception is IOException) {
-                        emit(emptyPreferences())
-                    } else {
-                        throw exception
-                    }
+    override fun getRememberNumberRecord(
+        maxLength: Int,
+        availableDigits: String,
+    ): Flow<Int> {
+        return dataStore.data
+            .catch { exception ->
+                if (exception is IOException) {
+                    emit(emptyPreferences())
+                } else {
+                    throw exception
                 }
-                .map { preferences ->
-                    preferences[REMEMBER_NUMBER_RECORD] ?: 0
-                }
+            }
+            .map { preferences ->
+                preferences[intPreferencesKey("${REMEMBER_NUMBER_RECORD}_${maxLength}_$availableDigits")] ?: 0
+            }
+    }
 
-    override suspend fun setRememberNumberRecord(value: Int) {
+    override suspend fun setRememberNumberRecord(
+        maxLength: Int,
+        availableDigits: String,
+        record: Int,
+    ) {
         dataStore.edit { preferences ->
-            preferences[REMEMBER_NUMBER_RECORD] = value
+            preferences[intPreferencesKey("${REMEMBER_NUMBER_RECORD}_${maxLength}_$availableDigits")] = record
         }
     }
 
     private companion object {
-        val REMEMBER_NUMBER_RECORD = intPreferencesKey("remember_number_record")
+        const val REMEMBER_NUMBER_RECORD = "remember_number_record"
     }
 }

@@ -64,6 +64,7 @@ kotlin {
             implementation(project.dependencies.platform(libs.koin.bom))
 
             implementation(projects.feature.remembernumber)
+            implementation(projects.feature.remembernumbermenu)
         }
         commonTest.dependencies {
             implementation(libs.kotlin.test)

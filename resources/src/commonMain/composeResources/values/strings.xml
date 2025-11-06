@@ -1,0 +1,8 @@
+<resources>
+    <string name="remember_number_menu_item_classic_subtitle">Запоминайте четырехзначные числа за ограниченное время</string>
+    <string name="remember_number_menu_item_classic_title">Классический</string>
+    <string name="remember_number_menu_item_details">Подробнее</string>
+    <string name="remember_number_menu_subtitle">На короткое время показывается число. Введи его после исчезновения. Каждый раз времени даётся всё меньше и меньше</string>
+    <string name="remember_number_menu_title">Выбери режим</string>
+    <string name="remember_number_title">Запомни число</string>
+</resources>
