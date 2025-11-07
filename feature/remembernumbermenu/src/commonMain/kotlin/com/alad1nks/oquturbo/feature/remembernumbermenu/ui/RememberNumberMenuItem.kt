@@ -44,6 +44,7 @@ internal fun RememberNumberMenuItem(
     Column(
         modifier =
             modifier
+                .fillMaxWidth()
                 .clip(shape = shape)
                 .clickable(onClick = onClick)
                 .background(MaterialTheme.colorScheme.surfaceContainer)
@@ -129,7 +130,7 @@ private fun RememberNumberMenuItemPreview() {
                 subtitle = "Remember number",
                 onClick = {},
                 onDetailsClick = {},
-                modifier = Modifier.fillMaxWidth().padding(16.dp),
+                modifier = Modifier.padding(16.dp),
             )
         }
     }
