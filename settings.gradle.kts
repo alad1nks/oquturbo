@@ -33,6 +33,7 @@ plugins {
 }
 
 include(":app-oquturbo")
+include(":app-sansprint")
 include(":core:storage:common")
 include(":core:storage:datastore")
 include(":core:storage:web")
