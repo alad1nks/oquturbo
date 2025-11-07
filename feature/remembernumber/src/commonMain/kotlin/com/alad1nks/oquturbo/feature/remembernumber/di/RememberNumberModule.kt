@@ -7,9 +7,10 @@ import org.koin.dsl.module
 
 val RememberNumberModule =
     module {
-        viewModel { (maxLength: Int) ->
+        viewModel { (maxLength: Int, availableDigits: String) ->
             RememberNumberViewModel(
                 maxLength = maxLength,
+                availableDigits = availableDigits,
                 rememberNumberRepository = get(),
             )
         }
