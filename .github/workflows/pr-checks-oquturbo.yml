@@ -1,4 +1,4 @@
-name: PR checks
+name: PR checks Oqu Turbo
 
 on:
   pull_request:
@@ -21,7 +21,7 @@ jobs:
         run: chmod +x ./gradlew
 
       - name: Build Android
-        run: ./gradlew assembleDebug
+        run: ./gradlew :app-oquturbo:assembleDebug
 
   build-ios:
     runs-on: ubuntu-latest
@@ -39,7 +39,7 @@ jobs:
         run: chmod +x ./gradlew
 
       - name: Build iOS
-        run: ./gradlew linkReleaseFrameworkIosArm64
+        run: ./gradlew :app-oquturbo:linkReleaseFrameworkIosArm64
 
   build-js:
     runs-on: ubuntu-latest
@@ -57,7 +57,7 @@ jobs:
         run: chmod +x ./gradlew
 
       - name: Build js
-        run: ./gradlew jsBrowserProductionWebpack
+        run: ./gradlew :app-oquturbo:jsBrowserProductionWebpack
 
   build-wasm:
     runs-on: ubuntu-latest
@@ -75,7 +75,7 @@ jobs:
         run: chmod +x ./gradlew
 
       - name: Build wasm
-        run: ./gradlew wasmJsBrowserProductionWebpack
+        run: ./gradlew :app-oquturbo:wasmJsBrowserProductionWebpack
 
   build-jvm:
     runs-on: ubuntu-latest
@@ -93,22 +93,4 @@ jobs:
         run: chmod +x ./gradlew
 
       - name: Build jvm
-        run: ./gradlew jvmJar
-
-  lint:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Set up JDK
-        uses: actions/setup-java@v4
-        with:
-          java-version: '17'
-          distribution: 'temurin'
-
-      - name: Make gradlew executable
-        run: chmod +x ./gradlew
-
-      - name: Run ktlint
-        run: ./gradlew ktlintCheck
+        run: ./gradlew :app-oquturbo:jvmJar

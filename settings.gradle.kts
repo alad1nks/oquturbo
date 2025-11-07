@@ -32,7 +32,7 @@ plugins {
     id("org.gradle.toolchains.foojay-resolver-convention") version "1.0.0"
 }
 
-include(":composeApp")
+include(":app-oquturbo")
 include(":core:storage:common")
 include(":core:storage:datastore")
 include(":core:storage:web")
