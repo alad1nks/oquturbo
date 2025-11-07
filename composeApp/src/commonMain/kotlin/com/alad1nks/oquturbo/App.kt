@@ -34,7 +34,7 @@ fun App() {
                 navController = navController,
                 startDestination = RememberNumberMenuRoute,
             ) {
-                rememberNumberScreen()
+                rememberNumberScreen(onBackClick = navController::popBackStack)
                 rememberNumberMenuScreen(
                     showBackButton = true,
                     onBackClick = navController::popBackStack,
