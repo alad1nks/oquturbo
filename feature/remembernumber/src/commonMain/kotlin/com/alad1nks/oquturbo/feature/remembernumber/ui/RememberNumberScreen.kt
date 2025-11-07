@@ -11,8 +11,14 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.foundation.layout.widthIn
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -35,6 +41,7 @@ import org.jetbrains.compose.ui.tooling.preview.Preview
 @Composable
 internal fun RememberNumberRoute(
     viewModel: RememberNumberViewModel,
+    onBackClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val uiState by viewModel.uiState.collectAsState()
@@ -46,10 +53,12 @@ internal fun RememberNumberRoute(
         maxLength = viewModel.maxLength,
         writeText = viewModel::writeText,
         onStartClick = viewModel::start,
+        onBackClick = onBackClick,
         modifier = modifier,
     )
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 internal fun RememberNumberScreen(
     uiState: RememberNumberUiState,
@@ -57,6 +66,7 @@ internal fun RememberNumberScreen(
     maxLength: Int,
     writeText: (String) -> Unit,
     onStartClick: () -> Unit,
+    onBackClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val focusRequester = remember { FocusRequester() }
@@ -186,6 +196,19 @@ internal fun RememberNumberScreen(
                 }
             }
         }
+
+        IconButton(
+            onClick = onBackClick,
+            modifier =
+                Modifier
+                    .padding(start = 4.dp, top = 8.dp)
+                    .statusBarsPadding(),
+        ) {
+            Icon(
+                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                contentDescription = null,
+            )
+        }
     }
 }
 
@@ -225,6 +248,7 @@ private fun RememberNumberScreenInitialPreview() {
             maxLength = 4,
             writeText = {},
             onStartClick = {},
+            onBackClick = {},
         )
     }
 }
@@ -239,6 +263,7 @@ private fun RememberNumberScreenReadingPreview() {
             maxLength = 4,
             writeText = {},
             onStartClick = {},
+            onBackClick = {},
         )
     }
 }
@@ -253,6 +278,7 @@ private fun RememberNumberScreenWritingPreview() {
             maxLength = 4,
             writeText = {},
             onStartClick = {},
+            onBackClick = {},
         )
     }
 }
@@ -267,6 +293,7 @@ private fun RememberNumberScreenMistakePreview() {
             maxLength = 4,
             writeText = {},
             onStartClick = {},
+            onBackClick = {},
         )
     }
 }

@@ -28,7 +28,9 @@ fun NavController.navigateToRememberNumber(
     )
 }
 
-fun NavGraphBuilder.rememberNumberScreen() {
+fun NavGraphBuilder.rememberNumberScreen(
+    onBackClick: () -> Unit,
+) {
     composable<RememberNumberRoute> { entry ->
         val maxLength = entry.toRoute<RememberNumberRoute>().maxLength
         val availableDigits = entry.toRoute<RememberNumberRoute>().availableDigits
@@ -40,6 +42,7 @@ fun NavGraphBuilder.rememberNumberScreen() {
 
         RememberNumberRoute(
             viewModel = viewModel,
+            onBackClick = onBackClick,
         )
     }
 }
