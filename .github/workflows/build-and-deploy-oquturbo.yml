@@ -1,4 +1,4 @@
-name: Android CI
+name: Build and deploy Oqu Turbo
 
 on:
   push:
@@ -30,7 +30,7 @@ jobs:
           echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 -d > oquturbo-release-key.jks
 
       - name: Build APK
-        run: ./gradlew assembleRelease
+        run: ./gradlew :app-oquturbo:assembleRelease
         env:
           SIGNING_KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
           SIGNING_KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
