@@ -1,10 +1,10 @@
 import UIKit
 import SwiftUI
-import ComposeApp
+import AppOquTurbo
 
 struct ComposeView: UIViewControllerRepresentable {
     func makeUIViewController(context: Context) -> UIViewController {
-        MainViewControllerKt.MainViewController()
+        MainViewControllerKt.mainViewController()
     }
 
     func updateUIViewController(_ uiViewController: UIViewController, context: Context) {}
@@ -16,6 +16,3 @@ struct ContentView: View {
             .ignoresSafeArea()
     }
 }
-
-
-
