@@ -5,7 +5,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.PlusOne
+import androidx.compose.material.icons.outlined.Computer
 import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material.icons.outlined.Timer
 import androidx.compose.material3.Text
@@ -54,7 +54,7 @@ internal fun RememberNumberMenuContentColumn(
             Spacer(modifier = Modifier.height(16.dp))
 
             RememberNumberMenuItem(
-                imageVector = Icons.Outlined.PlusOne,
+                imageVector = Icons.Outlined.Computer,
                 title = stringResource(AppResource.String.remember_number_menu_item_binary_title),
                 subtitle = stringResource(AppResource.String.remember_number_menu_item_binary_subtitle),
                 onClick = { onPlayClick(4, "01") },
