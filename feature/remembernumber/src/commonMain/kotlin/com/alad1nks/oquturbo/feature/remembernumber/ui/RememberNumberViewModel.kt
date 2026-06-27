@@ -8,6 +8,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import kotlin.time.Duration.Companion.milliseconds
 
 internal class RememberNumberViewModel(
     val maxLength: Int,
@@ -47,7 +48,7 @@ internal class RememberNumberViewModel(
                                     rememberNumberRepository.getRememberNumberRecord(
                                         maxLength = maxLength,
                                         availableDigits = availableDigits,
-                                    ).first()
+                                    ).first() ?: 0
                                 val currentRecord = maxOf(storageRecord, score)
                                 _uiState.value =
                                     RememberNumberUiState.Mistake(
@@ -65,9 +66,9 @@ internal class RememberNumberViewModel(
                         }
                     }
                     is RememberNumberUiState.Reading -> {
-                        delay(delay)
+                        delay(delay.milliseconds)
                         if (isFirstNumber) {
-                            delay(700)
+                            delay(700.milliseconds)
                             isFirstNumber = false
                         }
                         _uiState.value =

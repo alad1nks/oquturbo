@@ -9,7 +9,7 @@ internal class RememberNumberRepository(
     fun getRememberNumberRecord(
         maxLength: Int,
         availableDigits: String,
-    ): Flow<Int> {
+    ): Flow<Int?> {
         return storage.getRememberNumberRecord(maxLength, availableDigits)
     }
 

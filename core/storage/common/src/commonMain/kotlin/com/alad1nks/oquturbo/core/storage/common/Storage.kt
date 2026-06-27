@@ -6,7 +6,7 @@ interface Storage {
     fun getRememberNumberRecord(
         maxLength: Int,
         availableDigits: String,
-    ): Flow<Int>
+    ): Flow<Int?>
 
     suspend fun setRememberNumberRecord(
         maxLength: Int,
