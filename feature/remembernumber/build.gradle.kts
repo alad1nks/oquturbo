@@ -52,6 +52,7 @@ kotlin {
             implementation(project.dependencies.platform(libs.koin.bom))
 
             implementation(projects.core.storage.common)
+            implementation(projects.resources)
         }
     }
 }

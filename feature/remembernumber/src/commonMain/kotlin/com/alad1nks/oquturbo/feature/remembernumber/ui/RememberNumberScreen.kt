@@ -36,6 +36,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.alad1nks.oquturbo.resources.AppResource
+import org.jetbrains.compose.resources.stringResource
 import org.jetbrains.compose.ui.tooling.preview.Preview
 
 @Composable
@@ -100,7 +102,9 @@ internal fun RememberNumberScreen(
                     .blur(blurRadius),
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
-            Text(text = "Score: ${uiState.score}")
+            Text(
+                text = stringResource(AppResource.String.remember_number_game_score, uiState.score),
+            )
 
             Spacer(modifier = Modifier.weight(1f))
 
@@ -167,7 +171,7 @@ internal fun RememberNumberScreen(
             ) {
                 if (uiState is RememberNumberUiState.Initial) {
                     Text(
-                        text = "Start the game!",
+                        text = stringResource(AppResource.String.remember_number_game_start),
                         modifier = Modifier.align(Alignment.Center),
                         fontSize = 48.sp,
                         textAlign = TextAlign.Center,
@@ -187,7 +191,7 @@ internal fun RememberNumberScreen(
                     )
 
                     Text(
-                        text = "Try Again?",
+                        text = stringResource(AppResource.String.remember_number_game_try_again),
                         modifier = Modifier.align(Alignment.Center),
                         fontSize = 48.sp,
                         textAlign = TextAlign.Center,
@@ -223,14 +227,14 @@ private fun RememberNumberMistakeScore(
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         Text(
-            text = "Score: $score",
+            text = stringResource(AppResource.String.remember_number_game_score, score),
             fontSize = 48.sp,
             textAlign = TextAlign.Center,
             lineHeight = 48.sp,
         )
 
         Text(
-            text = "Record: $record",
+            text = stringResource(AppResource.String.remember_number_game_record, record),
             fontSize = 48.sp,
             textAlign = TextAlign.Center,
             lineHeight = 48.sp,

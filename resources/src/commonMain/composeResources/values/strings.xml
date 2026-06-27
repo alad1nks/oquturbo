@@ -1,4 +1,8 @@
 <resources>
+    <string name="remember_number_game_record">Рекорд: %1$d</string>
+    <string name="remember_number_game_score">Счёт: %1$d</string>
+    <string name="remember_number_game_start">Начать игру!</string>
+    <string name="remember_number_game_try_again">Попробовать снова?</string>
     <string name="remember_number_menu_item_binary_subtitle">Запоминайте строку из нулей и единиц</string>
     <string name="remember_number_menu_item_binary_title">Бинарная строка</string>
     <string name="remember_number_menu_item_classic_subtitle">Запоминайте четырехзначные числа за ограниченное время</string>
