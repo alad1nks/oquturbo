@@ -64,6 +64,7 @@ kotlin {
             implementation(libs.navigation.compose)
             implementation(project.dependencies.platform(libs.koin.bom))
 
+            implementation(projects.core.storage.common)
             implementation(projects.feature.remembernumber)
             implementation(projects.feature.remembernumbermenu)
         }
