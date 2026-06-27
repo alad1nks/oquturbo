@@ -73,7 +73,7 @@ private fun RememberNumberMenuItemIconTitleAndSubtitleRow(
         Icon(
             imageVector = imageVector,
             contentDescription = null,
-            modifier = Modifier.size(40.dp),
+            modifier = Modifier.size(48.dp),
             tint = MaterialTheme.colorScheme.primary,
         )
 
