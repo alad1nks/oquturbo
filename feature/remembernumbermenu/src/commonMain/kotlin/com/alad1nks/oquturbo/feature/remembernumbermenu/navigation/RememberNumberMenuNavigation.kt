@@ -5,7 +5,9 @@ import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavOptionsBuilder
 import androidx.navigation.compose.composable
 import com.alad1nks.oquturbo.feature.remembernumbermenu.ui.RememberNumberMenuRoute
+import com.alad1nks.oquturbo.feature.remembernumbermenu.ui.RememberNumberMenuViewModel
 import kotlinx.serialization.Serializable
+import org.koin.compose.viewmodel.koinViewModel
 
 @Serializable data object RememberNumberMenuRoute
 
@@ -23,8 +25,11 @@ fun NavGraphBuilder.rememberNumberMenuScreen(
     onBackClick: () -> Unit,
     onPlayClick: (Int, String) -> Unit,
 ) {
-    composable<RememberNumberMenuRoute> { entry ->
+    composable<RememberNumberMenuRoute> { _ ->
+        val viewModel = koinViewModel<RememberNumberMenuViewModel>()
+
         RememberNumberMenuRoute(
+            viewModel = viewModel,
             showBackButton = showBackButton,
             onBackClick = onBackClick,
             onPlayClick = onPlayClick,

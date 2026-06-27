@@ -112,7 +112,7 @@ internal fun RememberNumberScreen(
                     when (uiState) {
                         is RememberNumberUiState.Initial,
                         is RememberNumberUiState.Reading,
-                        -> { index -> Color.Transparent }
+                        -> { _ -> Color.Transparent }
                         is RememberNumberUiState.Writing -> { index ->
                             if (index < uiState.text.length) {
                                 Color.LightGray.copy(alpha = 0.3f)
@@ -238,8 +238,8 @@ private fun RememberNumberMistakeScore(
     }
 }
 
-@Composable
 @Preview(showBackground = true)
+@Composable
 private fun RememberNumberScreenInitialPreview() {
     MaterialTheme {
         RememberNumberScreen(
@@ -253,8 +253,8 @@ private fun RememberNumberScreenInitialPreview() {
     }
 }
 
-@Composable
 @Preview(showBackground = true)
+@Composable
 private fun RememberNumberScreenReadingPreview() {
     MaterialTheme {
         RememberNumberScreen(
@@ -268,8 +268,8 @@ private fun RememberNumberScreenReadingPreview() {
     }
 }
 
-@Composable
 @Preview(showBackground = true)
+@Composable
 private fun RememberNumberScreenWritingPreview() {
     MaterialTheme {
         RememberNumberScreen(
@@ -283,8 +283,8 @@ private fun RememberNumberScreenWritingPreview() {
     }
 }
 
-@Composable
 @Preview(showBackground = true)
+@Composable
 private fun RememberNumberScreenMistakePreview() {
     MaterialTheme {
         RememberNumberScreen(

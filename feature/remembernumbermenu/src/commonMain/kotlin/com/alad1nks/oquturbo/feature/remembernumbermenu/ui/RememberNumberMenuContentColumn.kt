@@ -20,6 +20,7 @@ import org.jetbrains.compose.resources.stringResource
 @Composable
 internal fun RememberNumberMenuContentColumn(
     onPlayClick: (Int, String) -> Unit,
+    onCustomClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     LazyColumn(
@@ -48,27 +49,24 @@ internal fun RememberNumberMenuContentColumn(
                 title = stringResource(AppResource.String.remember_number_menu_item_classic_title),
                 subtitle = stringResource(AppResource.String.remember_number_menu_item_classic_subtitle),
                 onClick = { onPlayClick(4, "0123456789") },
-                onDetailsClick = {},
             )
 
             Spacer(modifier = Modifier.height(16.dp))
 
             RememberNumberMenuItem(
                 imageVector = Icons.Outlined.PlusOne,
-                title = stringResource(AppResource.String.remember_number_menu_item_classic_title),
-                subtitle = stringResource(AppResource.String.remember_number_menu_item_classic_subtitle),
+                title = stringResource(AppResource.String.remember_number_menu_item_binary_title),
+                subtitle = stringResource(AppResource.String.remember_number_menu_item_binary_subtitle),
                 onClick = { onPlayClick(4, "01") },
-                onDetailsClick = {},
             )
 
             Spacer(modifier = Modifier.height(16.dp))
 
             RememberNumberMenuItem(
                 imageVector = Icons.Outlined.Settings,
-                title = stringResource(AppResource.String.remember_number_menu_item_classic_title),
-                subtitle = stringResource(AppResource.String.remember_number_menu_item_classic_subtitle),
-                onClick = {},
-                onDetailsClick = {},
+                title = stringResource(AppResource.String.remember_number_menu_item_custom_title),
+                subtitle = stringResource(AppResource.String.remember_number_menu_item_custom_subtitle),
+                onClick = onCustomClick,
             )
 
             Spacer(modifier = Modifier.height(16.dp))

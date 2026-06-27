@@ -17,7 +17,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -27,8 +26,6 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.alad1nks.oquturbo.resources.AppResource
-import org.jetbrains.compose.resources.stringResource
 import org.jetbrains.compose.ui.tooling.preview.Preview
 
 @Composable
@@ -37,7 +34,6 @@ internal fun RememberNumberMenuItem(
     title: String,
     subtitle: String,
     onClick: () -> Unit,
-    onDetailsClick: () -> Unit,
     modifier: Modifier = Modifier,
     shape: Shape = RoundedCornerShape(16.dp),
 ) {
@@ -52,6 +48,7 @@ internal fun RememberNumberMenuItem(
                     start = 16.dp,
                     top = 16.dp,
                     end = 16.dp,
+                    bottom = 32.dp,
                 ),
     ) {
         RememberNumberMenuItemIconTitleAndSubtitleRow(
@@ -59,13 +56,6 @@ internal fun RememberNumberMenuItem(
             title = title,
             subtitle = subtitle,
         )
-
-        TextButton(
-            onClick = onDetailsClick,
-            modifier = Modifier.align(Alignment.End),
-        ) {
-            Text(text = stringResource(AppResource.String.remember_number_menu_item_details))
-        }
     }
 }
 
@@ -129,7 +119,6 @@ private fun RememberNumberMenuItemPreview() {
                 title = "Classic",
                 subtitle = "Remember number",
                 onClick = {},
-                onDetailsClick = {},
                 modifier = Modifier.padding(16.dp),
             )
         }
