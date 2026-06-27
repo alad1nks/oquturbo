@@ -11,20 +11,23 @@ import com.alad1nks.oquturbo.feature.remembernumbermenu.navigation.RememberNumbe
 import com.alad1nks.oquturbo.feature.remembernumbermenu.navigation.rememberNumberMenuScreen
 import org.jetbrains.compose.ui.tooling.preview.Preview
 import org.koin.compose.KoinApplication
+import org.koin.dsl.koinConfiguration
 
 @Composable
 fun KoinApp() {
     KoinApplication(
-        application = {
-            modules(getPlatformModules() + getCommonModules())
+        configuration =
+            koinConfiguration(
+                declaration = { modules(getPlatformModules() + getCommonModules()) },
+            ),
+        content = {
+            App()
         },
-    ) {
-        App()
-    }
+    )
 }
 
-@Composable
 @Preview
+@Composable
 fun App() {
     val navController = rememberNavController()
 
