@@ -1,0 +1,20 @@
+<resources>
+    <string name="remember_number_game_record">Рекорд: %1$d</string>
+    <string name="remember_number_game_score">Ұпай: %1$d</string>
+    <string name="remember_number_game_start">Ойынды бастау!</string>
+    <string name="remember_number_game_try_again">Қайта байқап көресіз бе?</string>
+    <string name="remember_number_menu_item_binary_subtitle">Нөлдер мен бірліктерден тұратын жолды есте сақтаңыз</string>
+    <string name="remember_number_menu_item_binary_title">Екілік жол</string>
+    <string name="remember_number_menu_item_classic_subtitle">Төрт таңбалы сандарды шектеулі уақыт ішінде есте сақтаңыз</string>
+    <string name="remember_number_menu_item_classic_title">Классикалық</string>
+    <string name="remember_number_menu_item_custom_dialog_available_digits">Қолжетімді цифрлар</string>
+    <string name="remember_number_menu_item_custom_dialog_cancel_button">Бас тарту</string>
+    <string name="remember_number_menu_item_custom_dialog_length">Жол ұзындығы</string>
+    <string name="remember_number_menu_item_custom_dialog_play_button">Ойнау</string>
+    <string name="remember_number_menu_item_custom_dialog_title">Ойын баптаулары</string>
+    <string name="remember_number_menu_item_custom_subtitle">Өз ережелеріңіз бойынша жасалған жолды есте сақтаңыз</string>
+    <string name="remember_number_menu_item_custom_title">Пайдаланушы режимі</string>
+    <string name="remember_number_menu_subtitle">Сан қысқа уақытқа көрсетіледі. Ол жоғалғаннан кейін санды енгізіңіз. Әр раунд сайын берілетін уақыт азая береді</string>
+    <string name="remember_number_menu_title">Режимді таңдаңыз</string>
+    <string name="remember_number_title">Сан спринт</string>
+</resources>
