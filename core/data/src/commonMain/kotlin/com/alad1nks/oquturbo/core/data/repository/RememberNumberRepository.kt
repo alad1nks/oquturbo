@@ -1,9 +1,9 @@
-package com.alad1nks.oquturbo.feature.remembernumber.data.repository
+package com.alad1nks.oquturbo.core.data.repository
 
 import com.alad1nks.oquturbo.core.storage.common.Storage
 import kotlinx.coroutines.flow.Flow
 
-internal class RememberNumberRepository(
+class RememberNumberRepository(
     private val storage: Storage,
 ) {
     fun getRememberNumberRecord(

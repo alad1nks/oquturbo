@@ -34,9 +34,11 @@ plugins {
 
 include(":app-oquturbo")
 include(":app-sansprint")
+include(":core:data")
 include(":core:storage:common")
 include(":core:storage:datastore")
 include(":core:storage:web")
+include(":feature:main")
 include(":feature:remembernumber")
 include(":feature:remembernumbermenu")
 include(":resources")

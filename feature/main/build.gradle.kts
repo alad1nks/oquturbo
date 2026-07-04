@@ -52,13 +52,14 @@ kotlin {
             implementation(project.dependencies.platform(libs.koin.bom))
 
             implementation(projects.core.data)
+            implementation(projects.core.storage.common)
             implementation(projects.resources)
         }
     }
 }
 
 android {
-    namespace = "com.alad1nks.oquturbo.feature.remembernumber"
+    namespace = "com.alad1nks.oquturbo.feature.main"
     compileSdk =
         libs.versions.android.compileSdk
             .get()

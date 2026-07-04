@@ -4,7 +4,9 @@ import com.alad1nks.oquturbo.feature.remembernumbermenu.ui.RememberNumberMenuVie
 import org.koin.core.module.dsl.viewModel
 import org.koin.dsl.module
 
-val RememberNumberMenuModule =
+fun rememberNumberMenuModule(showThemeIcon: Boolean) =
     module {
-        viewModel { RememberNumberMenuViewModel() }
+        viewModel {
+            RememberNumberMenuViewModel(showThemeIcon, get())
+        }
     }

@@ -47,11 +47,12 @@ kotlin {
             implementation(libs.koin.core)
             implementation(libs.koin.compose)
             implementation(libs.koin.compose.viewmodel)
+            implementation(libs.kotlinx.coroutines.core)
             implementation(libs.kotlinx.serialization.json)
             implementation(libs.navigation.compose)
             implementation(project.dependencies.platform(libs.koin.bom))
 
-            implementation(projects.core.storage.common)
+            implementation(projects.core.data)
             implementation(projects.resources)
         }
     }

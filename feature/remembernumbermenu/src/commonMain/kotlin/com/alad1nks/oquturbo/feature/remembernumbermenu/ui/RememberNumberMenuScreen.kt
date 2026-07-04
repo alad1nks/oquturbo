@@ -39,6 +39,7 @@ internal fun RememberNumberMenuRoute(
         onCustomSettingsLengthChange = viewModel::changeCustomSettingsLength,
         onCustomSettingsDigitSelect = viewModel::selectCustomSettingsDigit,
         closeItemCustomOptionsDialog = viewModel::closeItemCustomOptionsDialog,
+        onDarkThemeChange = viewModel::changeDarkTheme,
         modifier = modifier,
     )
 }
@@ -54,13 +55,14 @@ private fun RememberNumberMenuScreen(
     onCustomSettingsLengthChange: (Int) -> Unit,
     onCustomSettingsDigitSelect: (Int, Boolean) -> Unit,
     closeItemCustomOptionsDialog: () -> Unit,
+    onDarkThemeChange: (Boolean) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    if (uiState is RememberNumberMenuUiState.CustomOptionsDialog) {
+    if (uiState.customOptionsDialog.show) {
         RememberNumberMenuCustomOptionsDialog(
-            length = uiState.maxLength,
+            length = uiState.customOptionsDialog.maxLength,
             onLengthChange = onCustomSettingsLengthChange,
-            digitsAvailability = uiState.digitsAvailability,
+            digitsAvailability = uiState.customOptionsDialog.digitsAvailability,
             onDigitSelect = onCustomSettingsDigitSelect,
             onDismissRequest = closeItemCustomOptionsDialog,
             onPlayClick = onPlayClick,
@@ -86,6 +88,14 @@ private fun RememberNumberMenuScreen(
                     }
                 }
             },
+            actions = {
+                if (uiState.themeIcon.show) {
+                    RememberNumberMenuThemeIcon(
+                        darkTheme = uiState.themeIcon.darkTheme,
+                        onChange = onDarkThemeChange,
+                    )
+                }
+            },
             colors =
                 TopAppBarDefaults.topAppBarColors(
                     containerColor = MaterialTheme.colorScheme.primaryContainer,
@@ -104,7 +114,7 @@ private fun RememberNumberMenuScreen(
 private fun RememberNumberMenuScreenPreview() {
     Scaffold {
         RememberNumberMenuScreen(
-            uiState = RememberNumberMenuUiState.Default,
+            uiState = RememberNumberMenuUiState(),
             showBackButton = true,
             onBackClick = {},
             onPlayClick = { _, _ -> },
@@ -112,6 +122,7 @@ private fun RememberNumberMenuScreenPreview() {
             onCustomSettingsLengthChange = {},
             onCustomSettingsDigitSelect = { _, _ -> },
             closeItemCustomOptionsDialog = {},
+            onDarkThemeChange = {},
         )
     }
 }
@@ -124,7 +135,7 @@ private fun RememberNumberMenuScreenPreview() {
 private fun RememberNumberMenuScreenPreviewTablet() {
     Scaffold {
         RememberNumberMenuScreen(
-            uiState = RememberNumberMenuUiState.Default,
+            uiState = RememberNumberMenuUiState(),
             showBackButton = true,
             onBackClick = {},
             onPlayClick = { _, _ -> },
@@ -132,6 +143,7 @@ private fun RememberNumberMenuScreenPreviewTablet() {
             onCustomSettingsLengthChange = {},
             onCustomSettingsDigitSelect = { _, _ -> },
             closeItemCustomOptionsDialog = {},
+            onDarkThemeChange = {},
         )
     }
 }
@@ -141,7 +153,10 @@ private fun RememberNumberMenuScreenPreviewTablet() {
 private fun RememberNumberMenuScreenDialogPreview() {
     Scaffold {
         RememberNumberMenuScreen(
-            uiState = RememberNumberMenuUiState.CustomOptionsDialog(),
+            uiState =
+                RememberNumberMenuUiState(
+                    customOptionsDialog = RememberNumberMenuUiState.CustomOptionsDialog(show = true),
+                ),
             showBackButton = true,
             onBackClick = {},
             onPlayClick = { _, _ -> },
@@ -149,6 +164,7 @@ private fun RememberNumberMenuScreenDialogPreview() {
             onCustomSettingsLengthChange = {},
             onCustomSettingsDigitSelect = { _, _ -> },
             closeItemCustomOptionsDialog = {},
+            onDarkThemeChange = {},
         )
     }
 }
@@ -161,7 +177,10 @@ private fun RememberNumberMenuScreenDialogPreview() {
 private fun RememberNumberMenuScreenDialogPreviewTablet() {
     Scaffold {
         RememberNumberMenuScreen(
-            uiState = RememberNumberMenuUiState.CustomOptionsDialog(),
+            uiState =
+                RememberNumberMenuUiState(
+                    customOptionsDialog = RememberNumberMenuUiState.CustomOptionsDialog(show = true),
+                ),
             showBackButton = true,
             onBackClick = {},
             onPlayClick = { _, _ -> },
@@ -169,6 +188,7 @@ private fun RememberNumberMenuScreenDialogPreviewTablet() {
             onCustomSettingsLengthChange = {},
             onCustomSettingsDigitSelect = { _, _ -> },
             closeItemCustomOptionsDialog = {},
+            onDarkThemeChange = {},
         )
     }
 }

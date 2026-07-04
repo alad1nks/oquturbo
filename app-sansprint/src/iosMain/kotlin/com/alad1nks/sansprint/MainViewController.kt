@@ -2,4 +2,4 @@ package com.alad1nks.sansprint
 
 import androidx.compose.ui.window.ComposeUIViewController
 
-fun mainViewController() = ComposeUIViewController { KoinApp() }
+fun mainViewController() = ComposeUIViewController { App() }
