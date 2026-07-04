@@ -1,4 +1,4 @@
-name: Build and deploy Oqu Turbo
+name: Build and deploy San Sprint
 
 on:
   push:
@@ -27,25 +27,25 @@ jobs:
 
       - name: Decode Keystore
         run: |
-          echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 -d > release-key.jks
+          echo "${{ secrets.SANSPRINT_KEYSTORE_BASE64 }}" | base64 -d > release-key.jks
 
       - name: Build APK
-        run: ./gradlew :app-oquturbo:assembleRelease
+        run: ./gradlew :app-sansprint:assembleRelease
         env:
-          SIGNING_KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
-          SIGNING_KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
-          SIGNING_STORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          SIGNING_KEY_ALIAS: ${{ secrets.SANSPRINT_KEY_ALIAS }}
+          SIGNING_KEY_PASSWORD: ${{ secrets.SANSPRINT_KEY_PASSWORD }}
+          SIGNING_STORE_PASSWORD: ${{ secrets.SANSPRINT_KEYSTORE_PASSWORD }}
         if: success()
 
       - name: Rename APK
-        run: mv app-oquturbo/build/outputs/apk/release/app-oquturbo-release.apk app-oquturbo/build/outputs/apk/release/oquturbo.apk
+        run: mv app-sansprint/build/outputs/apk/release/app-sansprint-release.apk app-sansprint/build/outputs/apk/release/sansprint.apk
         if: success()
 
       - name: Upload APK to GitHub
         uses: actions/upload-artifact@v4
         with:
           name: app-release
-          path: app-oquturbo/build/outputs/apk/release/oquturbo.apk
+          path: app-sansprint/build/outputs/apk/release/sansprint.apk
         if: success()
 
   post-build:
@@ -68,12 +68,12 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: app-release
-          path: oquturbo
+          path: sansprint
 
       - name: Commit APK
         run: |
           git config --local user.name 'alad1nks'
           git config --local user.email 'alad1nks@users.noreply.github.com'
-          git add oquturbo/*.apk
+          git add sansprint/*.apk
           git commit -m 'Add generated APK file'
           git push
