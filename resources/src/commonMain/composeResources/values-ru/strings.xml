@@ -1,0 +1,20 @@
+<resources>
+    <string name="remember_number_game_record">Рекорд: %1$d</string>
+    <string name="remember_number_game_score">Счёт: %1$d</string>
+    <string name="remember_number_game_start">Начать игру!</string>
+    <string name="remember_number_game_try_again">Попробовать снова?</string>
+    <string name="remember_number_menu_item_binary_subtitle">Запоминайте строку из нулей и единиц</string>
+    <string name="remember_number_menu_item_binary_title">Бинарная строка</string>
+    <string name="remember_number_menu_item_classic_subtitle">Запоминайте четырехзначные числа за ограниченное время</string>
+    <string name="remember_number_menu_item_classic_title">Классический</string>
+    <string name="remember_number_menu_item_custom_dialog_available_digits">Доступные цифры</string>
+    <string name="remember_number_menu_item_custom_dialog_cancel_button">Отмена</string>
+    <string name="remember_number_menu_item_custom_dialog_length">Длина строки</string>
+    <string name="remember_number_menu_item_custom_dialog_play_button">Играть</string>
+    <string name="remember_number_menu_item_custom_dialog_title">Настройки игры</string>
+    <string name="remember_number_menu_item_custom_subtitle">Запоминайте строку, созданную по Вашим правилам</string>
+    <string name="remember_number_menu_item_custom_title">Пользователский</string>
+    <string name="remember_number_menu_subtitle">На короткое время показывается число. Введи его после исчезновения. Каждый раз времени даётся всё меньше и меньше</string>
+    <string name="remember_number_menu_title">Выбери режим</string>
+    <string name="remember_number_title">Числовой спринт</string>
+</resources>
