@@ -17,6 +17,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -97,7 +98,6 @@ internal fun RememberNumberTextField(
                                 text = char.toString(),
                                 fontSize = 24.sp,
                                 fontWeight = FontWeight.Bold,
-                                color = Color.Black,
                             )
                         } else if (isFocused && showFocusedPlaceholder) {
                             FocusedPlaceHolder()
@@ -135,7 +135,7 @@ private fun FocusedPlaceHolder(modifier: Modifier = Modifier) {
                 Modifier
                     .width(2.dp)
                     .height(32.dp)
-                    .background(Color.Black),
+                    .background(MaterialTheme.colorScheme.onSurface),
         )
     }
 }

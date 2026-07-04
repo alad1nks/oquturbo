@@ -2,7 +2,7 @@ package com.alad1nks.oquturbo.feature.remembernumber.ui
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.alad1nks.oquturbo.feature.remembernumber.data.repository.RememberNumberRepository
+import com.alad1nks.oquturbo.core.data.repository.RememberNumberRepository
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow

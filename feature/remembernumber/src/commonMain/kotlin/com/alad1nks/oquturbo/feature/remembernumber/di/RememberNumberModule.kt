@@ -1,6 +1,5 @@
 package com.alad1nks.oquturbo.feature.remembernumber.di
 
-import com.alad1nks.oquturbo.feature.remembernumber.data.repository.RememberNumberRepository
 import com.alad1nks.oquturbo.feature.remembernumber.ui.RememberNumberViewModel
 import org.koin.core.module.dsl.viewModel
 import org.koin.dsl.module
@@ -13,8 +12,5 @@ val RememberNumberModule =
                 availableDigits = availableDigits,
                 rememberNumberRepository = get(),
             )
-        }
-        single {
-            RememberNumberRepository(get())
         }
     }

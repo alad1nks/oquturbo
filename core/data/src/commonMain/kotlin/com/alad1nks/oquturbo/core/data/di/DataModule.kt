@@ -1,0 +1,11 @@
+package com.alad1nks.oquturbo.core.data.di
+
+import com.alad1nks.oquturbo.core.data.repository.RememberNumberRepository
+import com.alad1nks.oquturbo.core.data.repository.SettingsRepository
+import org.koin.dsl.module
+
+val DataModule =
+    module {
+        single { RememberNumberRepository(get()) }
+        single { SettingsRepository(get()) }
+    }
