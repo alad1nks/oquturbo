@@ -37,14 +37,14 @@ jobs:
         if: success()
 
       - name: Rename AAB
-        run: mv androidApp/build/outputs/bundle/release/androidApp-release.aab androidApp/build/outputs/bundle/release/sansprint.aab
+        run: mv app-sansprint/build/outputs/bundle/release/app-sansprint-release.aab app-sansprint/build/outputs/bundle/release/sansprint.aab
         if: success()
 
       - name: Upload AAB to GitHub
         uses: actions/upload-artifact@v4
         with:
           name: app-release
-          path: androidApp/build/outputs/bundle/release/sansprint.aab
+          path: app-sansprint/build/outputs/bundle/release/sansprint.aab
         if: success()
 
   post-build:
