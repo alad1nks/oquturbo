@@ -18,11 +18,11 @@ To build and run the development version of the Android app, use the run configu
 in your IDE’s toolbar or build it directly from the terminal:
 - on macOS/Linux
   ```shell
-  ./gradlew :composeApp:assembleDebug
+  ./gradlew :app:oquturbo:shared:assembleDebug
   ```
 - on Windows
   ```shell
-  .\gradlew.bat :composeApp:assembleDebug
+  .\gradlew.bat :app:oquturbo:shared:assembleDebug
   ```
 
 ### Build and Run Desktop (JVM) Application
@@ -31,11 +31,11 @@ To build and run the development version of the desktop app, use the run configu
 in your IDE’s toolbar or run it directly from the terminal:
 - on macOS/Linux
   ```shell
-  ./gradlew :composeApp:run
+  ./gradlew :app:oquturbo:shared:run
   ```
 - on Windows
   ```shell
-  .\gradlew.bat :composeApp:run
+  .\gradlew.bat :app:oquturbo:shared:run
   ```
 
 ### Build and Run Web Application
@@ -45,20 +45,20 @@ in your IDE's toolbar or run it directly from the terminal:
 - for the Wasm target (faster, modern browsers):
   - on macOS/Linux
     ```shell
-    ./gradlew :composeApp:wasmJsBrowserDevelopmentRun
+    ./gradlew :app:oquturbo:shared:wasmJsBrowserDevelopmentRun
     ```
   - on Windows
     ```shell
-    .\gradlew.bat :composeApp:wasmJsBrowserDevelopmentRun
+    .\gradlew.bat :app:oquturbo:shared:wasmJsBrowserDevelopmentRun
     ```
 - for the JS target (slower, supports older browsers):
   - on macOS/Linux
     ```shell
-    ./gradlew :composeApp:jsBrowserDevelopmentRun
+    ./gradlew :app:oquturbo:shared:jsBrowserDevelopmentRun
     ```
   - on Windows
     ```shell
-    .\gradlew.bat :composeApp:jsBrowserDevelopmentRun
+    .\gradlew.bat :app:oquturbo:shared:jsBrowserDevelopmentRun
     ```
 
 ### Build and Run iOS Application

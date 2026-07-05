@@ -32,8 +32,8 @@ plugins {
     id("org.gradle.toolchains.foojay-resolver-convention") version "1.0.0"
 }
 
-include(":app-oquturbo")
-include(":app-sansprint")
+include(":app:oquturbo:shared")
+include(":app:sansprint:shared")
 include(":core:data")
 include(":core:storage:common")
 include(":core:storage:datastore")
