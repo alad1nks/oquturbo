@@ -30,7 +30,7 @@ jobs:
           echo "${{ secrets.SANSPRINT_KEYSTORE_BASE64 }}" | base64 -d > release-key.jks
 
       - name: Build APK
-        run: ./gradlew :app-sansprint:assembleRelease
+        run: ./gradlew :app:sansprint:androidApp:assembleRelease
         env:
           SIGNING_KEY_ALIAS: ${{ secrets.SANSPRINT_KEY_ALIAS }}
           SIGNING_KEY_PASSWORD: ${{ secrets.SANSPRINT_KEY_PASSWORD }}
@@ -38,14 +38,14 @@ jobs:
         if: success()
 
       - name: Rename APK
-        run: mv app-sansprint/build/outputs/apk/release/app-sansprint-release.apk app-sansprint/build/outputs/apk/release/sansprint.apk
+        run: mv app/sansprint/androidApp/build/outputs/apk/release/androidApp-release.apk app/sansprint/androidApp/build/outputs/apk/release/sansprint.apk
         if: success()
 
       - name: Upload APK to GitHub
         uses: actions/upload-artifact@v4
         with:
           name: app-release
-          path: app-sansprint/build/outputs/apk/release/sansprint.apk
+          path: app/sansprint/androidApp/build/outputs/apk/release/sansprint.apk
         if: success()
 
   post-build:

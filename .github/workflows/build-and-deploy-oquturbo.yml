@@ -30,7 +30,7 @@ jobs:
           echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 -d > release-key.jks
 
       - name: Build APK
-        run: ./gradlew :app:oquturbo:shared:assembleRelease
+        run: ./gradlew :app:oquturbo:androidApp:assembleRelease
         env:
           SIGNING_KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
           SIGNING_KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
@@ -38,14 +38,14 @@ jobs:
         if: success()
 
       - name: Rename APK
-        run: mv app/oquturbo/shared/build/outputs/apk/release/shared-release.apk app/oquturbo/shared/build/outputs/apk/release/oquturbo.apk
+        run: mv app/oquturbo/androidApp/build/outputs/apk/release/androidApp-release.apk app/oquturbo/androidApp/build/outputs/apk/release/oquturbo.apk
         if: success()
 
       - name: Upload APK to GitHub
         uses: actions/upload-artifact@v4
         with:
           name: app-release
-          path: app/oquturbo/shared/build/outputs/apk/release/oquturbo.apk
+          path: app/oquturbo/androidApp/build/outputs/apk/release/oquturbo.apk
         if: success()
 
   post-build:

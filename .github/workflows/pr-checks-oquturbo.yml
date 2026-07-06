@@ -21,7 +21,7 @@ jobs:
         run: chmod +x ./gradlew
 
       - name: Build Android
-        run: ./gradlew :app:oquturbo:shared:assembleDebug
+        run: ./gradlew :app:oquturbo:androidApp:assembleDebug
 
   build-ios:
     runs-on: ubuntu-latest
