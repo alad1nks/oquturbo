@@ -29,7 +29,7 @@ jobs:
         run: ./gradlew test
 
       - name: Build AAB
-        run: ./gradlew :app:oquturbo:shared:bundleRelease
+        run: ./gradlew :app:oquturbo:androidApp:bundleRelease
         env:
           SIGNING_KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
           SIGNING_KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
@@ -37,14 +37,14 @@ jobs:
         if: success()
 
       - name: Rename AAB
-        run: mv app/oquturbo/shared/build/outputs/bundle/release/shared-release.aab app/oquturbo/shared/build/outputs/bundle/release/oquturbo.aab
+        run: mv app/oquturbo/androidApp/build/outputs/bundle/release/androidApp-release.aab app/oquturbo/androidApp/build/outputs/bundle/release/oquturbo.aab
         if: success()
 
       - name: Upload AAB to GitHub
         uses: actions/upload-artifact@v4
         with:
           name: app-release
-          path: app/oquturbo/shared/build/outputs/bundle/release/oquturbo.aab
+          path: app/oquturbo/androidApp/build/outputs/bundle/release/oquturbo.aab
         if: success()
 
   post-build:
