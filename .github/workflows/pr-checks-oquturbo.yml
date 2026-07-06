@@ -57,7 +57,7 @@ jobs:
         run: chmod +x ./gradlew
 
       - name: Build js
-        run: ./gradlew :app:oquturbo:webApp:jsBrowserProductionWebpack
+        run: ./gradlew :app:oquturbo:webApp:jsJar
 
   build-wasm:
     runs-on: ubuntu-latest
@@ -75,7 +75,7 @@ jobs:
         run: chmod +x ./gradlew
 
       - name: Build wasm
-        run: ./gradlew :app:oquturbo:webApp:wasmJsBrowserProductionWebpack
+        run: ./gradlew :app:oquturbo:webApp:wasmJsJar
 
   build-jvm:
     runs-on: ubuntu-latest
@@ -93,4 +93,4 @@ jobs:
         run: chmod +x ./gradlew
 
       - name: Build jvm
-        run: ./gradlew :app:oquturbo:desktopApp:jvmJar
+        run: ./gradlew :app:oquturbo:desktopApp:jar
