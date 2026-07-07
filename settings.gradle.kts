@@ -33,9 +33,13 @@ plugins {
 }
 
 include(":app:oquturbo:androidApp")
+include(":app:oquturbo:desktopApp")
 include(":app:oquturbo:shared")
+include(":app:oquturbo:webApp")
 include(":app:sansprint:androidApp")
+include(":app:sansprint:desktopApp")
 include(":app:sansprint:shared")
+include(":app:sansprint:webApp")
 include(":core:data")
 include(":core:storage:common")
 include(":core:storage:datastore")

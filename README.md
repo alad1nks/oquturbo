@@ -1,15 +1,15 @@
 This is a Kotlin Multiplatform project targeting Android, iOS, Web, Desktop (JVM).
 
-* [/composeApp](./composeApp/src) is for code that will be shared across your Compose Multiplatform applications.
+* [/composeApp](./app/oquturbo/shared/src) is for code that will be shared across your Compose Multiplatform applications.
   It contains several subfolders:
-  - [commonMain](./composeApp/src/commonMain/kotlin) is for code that’s common for all targets.
+  - [commonMain](./app/oquturbo/shared/src/commonMain/kotlin) is for code that’s common for all targets.
   - Other folders are for Kotlin code that will be compiled for only the platform indicated in the folder name.
     For example, if you want to use Apple’s CoreCrypto for the iOS part of your Kotlin app,
-    the [iosMain](./composeApp/src/iosMain/kotlin) folder would be the right place for such calls.
-    Similarly, if you want to edit the Desktop (JVM) specific part, the [jvmMain](./composeApp/src/jvmMain/kotlin)
+    the [iosMain](./app/oquturbo/shared/src/iosMain/kotlin) folder would be the right place for such calls.
+    Similarly, if you want to edit the Desktop (JVM) specific part, the [jvmMain](./app/oquturbo/shared/src/jvmMain/kotlin)
     folder is the appropriate location.
 
-* [/iosApp](./iosApp/iosApp) contains iOS applications. Even if you’re sharing your UI with Compose Multiplatform,
+* [/iosApp](./app/oquturbo/iosApp/iosApp) contains iOS applications. Even if you’re sharing your UI with Compose Multiplatform,
   you need this entry point for your iOS app. This is also where you should add SwiftUI code for your project.
 
 ### Build and Run Android Application
@@ -18,11 +18,11 @@ To build and run the development version of the Android app, use the run configu
 in your IDE’s toolbar or build it directly from the terminal:
 - on macOS/Linux
   ```shell
-  ./gradlew :app:oquturbo:shared:assembleDebug
+  ./gradlew :app:oquturbo:androidApp:assembleDebug
   ```
 - on Windows
   ```shell
-  .\gradlew.bat :app:oquturbo:shared:assembleDebug
+  .\gradlew.bat :app:oquturbo:androidApp:assembleDebug
   ```
 
 ### Build and Run Desktop (JVM) Application
@@ -31,11 +31,11 @@ To build and run the development version of the desktop app, use the run configu
 in your IDE’s toolbar or run it directly from the terminal:
 - on macOS/Linux
   ```shell
-  ./gradlew :app:oquturbo:shared:run
+  ./gradlew :app:oquturbo:desktopApp:run
   ```
 - on Windows
   ```shell
-  .\gradlew.bat :app:oquturbo:shared:run
+  .\gradlew.bat :app:oquturbo:desktopApp:run
   ```
 
 ### Build and Run Web Application
@@ -45,26 +45,26 @@ in your IDE's toolbar or run it directly from the terminal:
 - for the Wasm target (faster, modern browsers):
   - on macOS/Linux
     ```shell
-    ./gradlew :app:oquturbo:shared:wasmJsBrowserDevelopmentRun
+    ./gradlew :app:oquturbo:webApp:wasmJsBrowserDevelopmentRun
     ```
   - on Windows
     ```shell
-    .\gradlew.bat :app:oquturbo:shared:wasmJsBrowserDevelopmentRun
+    .\gradlew.bat :app:oquturbo:webApp:wasmJsBrowserDevelopmentRun
     ```
 - for the JS target (slower, supports older browsers):
   - on macOS/Linux
     ```shell
-    ./gradlew :app:oquturbo:shared:jsBrowserDevelopmentRun
+    ./gradlew :app:oquturbo:webApp:jsBrowserDevelopmentRun
     ```
   - on Windows
     ```shell
-    .\gradlew.bat :app:oquturbo:shared:jsBrowserDevelopmentRun
+    .\gradlew.bat :app:oquturbo:webApp:jsBrowserDevelopmentRun
     ```
 
 ### Build and Run iOS Application
 
 To build and run the development version of the iOS app, use the run configuration from the run widget
-in your IDE’s toolbar or open the [/iosApp](./iosApp) directory in Xcode and run it from there.
+in your IDE’s toolbar or open the [/iosApp](./app/oquturbo/iosApp) directory in Xcode and run it from there.
 
 ---
 

@@ -1,4 +1,3 @@
-import org.jetbrains.compose.desktop.application.dsl.TargetFormat
 import org.jetbrains.kotlin.gradle.ExperimentalWasmDsl
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
@@ -55,8 +54,6 @@ kotlin {
 
     sourceSets {
         androidMain.dependencies {
-            implementation(libs.androidx.activity.compose)
-
             implementation(projects.core.storage.datastore)
         }
         commonMain.dependencies {
@@ -87,25 +84,10 @@ kotlin {
             implementation(projects.core.storage.datastore)
         }
         jvmMain.dependencies {
-            implementation(compose.desktop.currentOs)
-            implementation(libs.kotlinx.coroutines.swing)
-
             implementation(projects.core.storage.datastore)
         }
         webMain.dependencies {
             implementation(projects.core.storage.web)
-        }
-    }
-}
-
-compose.desktop {
-    application {
-        mainClass = "com.alad1nks.sansprint.MainKt"
-
-        nativeDistributions {
-            targetFormats(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb)
-            packageName = "com.alad1nks.sansprint"
-            packageVersion = "1.0.0"
         }
     }
 }
