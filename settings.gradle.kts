@@ -32,6 +32,10 @@ plugins {
     id("org.gradle.toolchains.foojay-resolver-convention") version "1.0.0"
 }
 
+include(":app:kenkoz:androidApp")
+include(":app:kenkoz:desktopApp")
+include(":app:kenkoz:shared")
+include(":app:kenkoz:webApp")
 include(":app:oquturbo:androidApp")
 include(":app:oquturbo:desktopApp")
 include(":app:oquturbo:shared")
