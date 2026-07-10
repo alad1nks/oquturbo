@@ -1,4 +1,4 @@
-package com.alad1nks.oquturbo.feature.remembernumbermenu.ui
+package com.alad1nks.oquturbo.core.designsystem.component
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -29,7 +29,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
 @Composable
-internal fun RememberNumberMenuItem(
+fun GameMenuItem(
     imageVector: ImageVector,
     title: String,
     subtitle: String,
@@ -51,7 +51,7 @@ internal fun RememberNumberMenuItem(
                     bottom = 32.dp,
                 ),
     ) {
-        RememberNumberMenuItemIconTitleAndSubtitleRow(
+        GameMenuItemIconTitleAndSubtitleRow(
             imageVector = imageVector,
             title = title,
             subtitle = subtitle,
@@ -60,7 +60,7 @@ internal fun RememberNumberMenuItem(
 }
 
 @Composable
-private fun RememberNumberMenuItemIconTitleAndSubtitleRow(
+private fun GameMenuItemIconTitleAndSubtitleRow(
     imageVector: ImageVector,
     title: String,
     subtitle: String,
@@ -79,7 +79,7 @@ private fun RememberNumberMenuItemIconTitleAndSubtitleRow(
 
         Spacer(modifier = Modifier.width(16.dp))
 
-        RememberNumberMenuItemTitleAndSubtitleColumn(
+        GameMenuItemItemTitleAndSubtitleColumn(
             title = title,
             subtitle = subtitle,
         )
@@ -87,7 +87,7 @@ private fun RememberNumberMenuItemIconTitleAndSubtitleRow(
 }
 
 @Composable
-private fun RememberNumberMenuItemTitleAndSubtitleColumn(
+private fun GameMenuItemItemTitleAndSubtitleColumn(
     title: String,
     subtitle: String,
     modifier: Modifier = Modifier,
@@ -111,13 +111,13 @@ private fun RememberNumberMenuItemTitleAndSubtitleColumn(
 
 @Preview
 @Composable
-private fun RememberNumberMenuItemPreview() {
+private fun GameMenuItemItemPreview() {
     MaterialTheme {
         Surface {
-            RememberNumberMenuItem(
+            GameMenuItem(
                 imageVector = Icons.Outlined.Timer,
-                title = "Classic",
-                subtitle = "Remember number",
+                title = "Game Title",
+                subtitle = "Game Subtitle",
                 onClick = {},
                 modifier = Modifier.padding(16.dp),
             )

@@ -14,6 +14,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.alad1nks.oquturbo.core.designsystem.component.GameMenuItem
 import com.alad1nks.oquturbo.resources.AppResource
 import org.jetbrains.compose.resources.stringResource
 
@@ -44,7 +45,7 @@ internal fun RememberNumberMenuContentColumn(
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            RememberNumberMenuItem(
+            GameMenuItem(
                 imageVector = Icons.Outlined.Timer,
                 title = stringResource(AppResource.String.remember_number_menu_item_classic_title),
                 subtitle = stringResource(AppResource.String.remember_number_menu_item_classic_subtitle),
@@ -53,7 +54,7 @@ internal fun RememberNumberMenuContentColumn(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            RememberNumberMenuItem(
+            GameMenuItem(
                 imageVector = Icons.Outlined.Computer,
                 title = stringResource(AppResource.String.remember_number_menu_item_binary_title),
                 subtitle = stringResource(AppResource.String.remember_number_menu_item_binary_subtitle),
@@ -62,7 +63,7 @@ internal fun RememberNumberMenuContentColumn(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            RememberNumberMenuItem(
+            GameMenuItem(
                 imageVector = Icons.Outlined.Settings,
                 title = stringResource(AppResource.String.remember_number_menu_item_custom_title),
                 subtitle = stringResource(AppResource.String.remember_number_menu_item_custom_subtitle),
