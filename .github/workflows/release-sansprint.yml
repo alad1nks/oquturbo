@@ -44,7 +44,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: app-release
-          path: mv app/sansprint/androidApp/build/outputs/bundle/release/sansprint.aab
+          path: app/sansprint/androidApp/build/outputs/bundle/release/sansprint.aab
         if: success()
 
   post-build:
