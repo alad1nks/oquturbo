@@ -1,6 +1,9 @@
 package com.alad1nks.oquturbo.resources
 
 import oquturbo.resources.generated.resources.Res
+import oquturbo.resources.generated.resources.baspa_categories_matching
+import oquturbo.resources.generated.resources.baspa_categories_other
+import oquturbo.resources.generated.resources.baspa_equations
 import oquturbo.resources.generated.resources.baspa_game_menu_categories_subtitle
 import oquturbo.resources.generated.resources.baspa_game_menu_categories_title
 import oquturbo.resources.generated.resources.baspa_game_menu_letter_subtitle
@@ -17,6 +20,23 @@ import oquturbo.resources.generated.resources.baspa_game_menu_true_false_subtitl
 import oquturbo.resources.generated.resources.baspa_game_menu_true_false_title
 import oquturbo.resources.generated.resources.baspa_game_menu_word_length_subtitle
 import oquturbo.resources.generated.resources.baspa_game_menu_word_length_title
+import oquturbo.resources.generated.resources.baspa_game_record
+import oquturbo.resources.generated.resources.baspa_game_rule_categories
+import oquturbo.resources.generated.resources.baspa_game_rule_color
+import oquturbo.resources.generated.resources.baspa_game_rule_length
+import oquturbo.resources.generated.resources.baspa_game_rule_letter
+import oquturbo.resources.generated.resources.baspa_game_rule_math
+import oquturbo.resources.generated.resources.baspa_game_rule_seen
+import oquturbo.resources.generated.resources.baspa_game_rule_true
+import oquturbo.resources.generated.resources.baspa_game_score
+import oquturbo.resources.generated.resources.baspa_game_speed
+import oquturbo.resources.generated.resources.baspa_game_tap_hint
+import oquturbo.resources.generated.resources.baspa_game_try_again
+import oquturbo.resources.generated.resources.baspa_length_matching
+import oquturbo.resources.generated.resources.baspa_length_other
+import oquturbo.resources.generated.resources.baspa_letter_matching
+import oquturbo.resources.generated.resources.baspa_letter_other
+import oquturbo.resources.generated.resources.baspa_statements
 import oquturbo.resources.generated.resources.baspa_title
 import oquturbo.resources.generated.resources.kenkoz_game_back
 import oquturbo.resources.generated.resources.kenkoz_game_characters
@@ -67,11 +87,31 @@ import oquturbo.resources.generated.resources.remember_number_title
 
 object AppResource {
     object Array {
+        val baspa_categories_matching = Res.array.baspa_categories_matching
+        val baspa_categories_other = Res.array.baspa_categories_other
+        val baspa_equations = Res.array.baspa_equations
+        val baspa_length_matching = Res.array.baspa_length_matching
+        val baspa_length_other = Res.array.baspa_length_other
+        val baspa_letter_matching = Res.array.baspa_letter_matching
+        val baspa_letter_other = Res.array.baspa_letter_other
+        val baspa_statements = Res.array.baspa_statements
         val kenkoz_game_difference_pairs = Res.array.kenkoz_game_difference_pairs
         val kenkoz_game_words = Res.array.kenkoz_game_words
     }
 
     object String {
+        val baspa_game_record = Res.string.baspa_game_record
+        val baspa_game_rule_categories = Res.string.baspa_game_rule_categories
+        val baspa_game_rule_color = Res.string.baspa_game_rule_color
+        val baspa_game_rule_length = Res.string.baspa_game_rule_length
+        val baspa_game_rule_letter = Res.string.baspa_game_rule_letter
+        val baspa_game_rule_math = Res.string.baspa_game_rule_math
+        val baspa_game_rule_seen = Res.string.baspa_game_rule_seen
+        val baspa_game_rule_true = Res.string.baspa_game_rule_true
+        val baspa_game_score = Res.string.baspa_game_score
+        val baspa_game_speed = Res.string.baspa_game_speed
+        val baspa_game_tap_hint = Res.string.baspa_game_tap_hint
+        val baspa_game_try_again = Res.string.baspa_game_try_again
         val baspa_game_menu_categories_subtitle = Res.string.baspa_game_menu_categories_subtitle
         val baspa_game_menu_categories_title = Res.string.baspa_game_menu_categories_title
         val baspa_game_menu_letter_subtitle = Res.string.baspa_game_menu_letter_subtitle

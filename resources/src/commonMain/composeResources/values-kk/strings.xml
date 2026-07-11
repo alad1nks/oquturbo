@@ -1,4 +1,24 @@
 <resources>
+    <string name="baspa_game_record">Рекорд: %1$d</string>
+    <string name="baspa_game_rule_categories">Тек жануарларды басыңыз</string>
+    <string name="baspa_game_rule_color">Тек қызыл мәтінді басыңыз</string>
+    <string name="baspa_game_rule_length">Тек бес әріптен тұратын сөздерді басыңыз</string>
+    <string name="baspa_game_rule_letter">А әрпі бар сөздерді ғана басыңыз</string>
+    <string name="baspa_game_rule_math">Тек дұрыс мысалдарды басыңыз</string>
+    <string name="baspa_game_rule_seen">Бұрын кездескен сөздерді ғана басыңыз</string>
+    <string name="baspa_game_rule_true">Тек дұрыс тұжырымдарды басыңыз</string>
+    <string name="baspa_game_score">Ұпай: %1$d</string>
+    <string name="baspa_game_speed">Жылдамдық: %1$s сек</string>
+    <string name="baspa_game_tap_hint">Сәйкес келсе, экранды басыңыз</string>
+    <string name="baspa_game_try_again">Қайта байқап көресіз бе?</string>
+    <string-array name="baspa_categories_matching"><item>МЫСЫҚ</item><item>ЖОЛБАРЫС</item><item>ИТ</item><item>АРЫСТАН</item></string-array>
+    <string-array name="baspa_categories_other"><item>ҮСТЕЛ</item><item>ШАМ</item><item>ОРЫНДЫҚ</item><item>ҮЙ</item></string-array>
+    <string-array name="baspa_letter_matching"><item>АЛМА</item><item>БАЛА</item><item>ДАЛА</item><item>ҚАЛА</item></string-array>
+    <string-array name="baspa_letter_other"><item>ҮЙ</item><item>КӨЛ</item><item>ЖЕЛ</item><item>ОРМАН</item></string-array>
+    <string-array name="baspa_length_matching"><item>МЫСЫҚ</item><item>КІТАП</item><item>ТЕҢІЗ</item><item>ЖАРЫҚ</item></string-array>
+    <string-array name="baspa_length_other"><item>ИТ</item><item>ВЕЛОСИПЕД</item><item>ҮЙ</item><item>БАЛМҰЗДАҚ</item></string-array>
+    <string-array name="baspa_statements"><item>Су дымқыл|true</item><item>Мысық ұша алады|false</item><item>Күн — жұлдыз|true</item><item>Ай Күннен үлкен|false</item></string-array>
+    <string-array name="baspa_equations"><item>2 + 2 = 4|true</item><item>8 × 7 = 60|false</item><item>9 − 3 = 6|true</item><item>5 × 5 = 20|false</item></string-array>
     <string name="baspa_game_menu_categories_subtitle">Тек берілген санаттағы сөздерді таңдаңыз</string>
     <string name="baspa_game_menu_categories_title">Санаттар</string>
     <string name="baspa_game_menu_letter_subtitle">Берілген әріп ережесіне сәйкес сөздерді табыңыз</string>

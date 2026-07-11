@@ -6,10 +6,11 @@ Kotlin Multiplatform/Compose Multiplatform repository with four products: `oqutu
 
 ## Modules and ownership
 
-`settings.gradle.kts` declares 29 modules:
+`settings.gradle.kts` declares 30 modules:
 
 - `app:<product>:{androidApp,desktopApp,shared,webApp}` for each product. Platform launchers delegate to `shared`; `shared/App.kt` assembles the product navigation graph and DI modules.
 - `feature:main`: Koin root, app theme, root `Scaffold`, and `NavHost`.
+- `feature:baspagame`: Baspa game modes, timed state machine, UI, navigation, and DI.
 - `feature:baspagamemenu`: Baspa start menu and its navigation destination.
 - `feature:kenkozgame`: KenKoz game modes, state machine, UI, navigation, and DI.
 - `feature:kenkozgamemenu`: KenKoz start menu and its navigation destination.

@@ -1,4 +1,24 @@
 <resources>
+    <string name="baspa_game_record">Рекорд: %1$d</string>
+    <string name="baspa_game_rule_categories">Нажимай только на животных</string>
+    <string name="baspa_game_rule_color">Нажимай только на красный текст</string>
+    <string name="baspa_game_rule_length">Нажимай только на слова из пяти букв</string>
+    <string name="baspa_game_rule_letter">Нажимай только на слова с буквой А</string>
+    <string name="baspa_game_rule_math">Нажимай только на верные примеры</string>
+    <string name="baspa_game_rule_seen">Нажимай только на слова, которые уже встречались</string>
+    <string name="baspa_game_rule_true">Нажимай только на верные утверждения</string>
+    <string name="baspa_game_score">Счёт: %1$d</string>
+    <string name="baspa_game_speed">Скорость: %1$s сек</string>
+    <string name="baspa_game_tap_hint">Тапни по экрану, если подходит</string>
+    <string name="baspa_game_try_again">Попробовать снова?</string>
+    <string-array name="baspa_categories_matching"><item>КОТ</item><item>ТИГР</item><item>СОБАКА</item><item>ЛЕВ</item></string-array>
+    <string-array name="baspa_categories_other"><item>СТОЛ</item><item>ЛАМПА</item><item>СТУЛ</item><item>ДОМ</item></string-array>
+    <string-array name="baspa_letter_matching"><item>РАК</item><item>МАМА</item><item>ТРАВА</item><item>ЛАМПА</item></string-array>
+    <string-array name="baspa_letter_other"><item>КОТ</item><item>ДОМ</item><item>ЛЕС</item><item>ВЕТЕР</item></string-array>
+    <string-array name="baspa_length_matching"><item>КОШКА</item><item>ТРАВА</item><item>РЕЧКА</item><item>КНИГА</item></string-array>
+    <string-array name="baspa_length_other"><item>КОТ</item><item>ВЕЛОСИПЕД</item><item>ДОМ</item><item>СОЛНЦЕВОРОТ</item></string-array>
+    <string-array name="baspa_statements"><item>Вода мокрая|true</item><item>Кошка умеет летать|false</item><item>Солнце — звезда|true</item><item>Луна больше Солнца|false</item></string-array>
+    <string-array name="baspa_equations"><item>2 + 2 = 4|true</item><item>8 × 7 = 60|false</item><item>9 − 3 = 6|true</item><item>5 × 5 = 20|false</item></string-array>
     <string name="baspa_game_menu_categories_subtitle">Нажимайте только на слова из указанной категории</string>
     <string name="baspa_game_menu_categories_title">Категории</string>
     <string name="baspa_game_menu_letter_subtitle">Ищите слова, подходящие под заданное правило с буквой</string>
