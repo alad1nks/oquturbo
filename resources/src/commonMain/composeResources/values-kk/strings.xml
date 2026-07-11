@@ -1,7 +1,7 @@
 <resources>
     <string name="baspa_game_record">Рекорд: %1$d</string>
     <string name="baspa_game_record_label">Рекорд</string>
-    <string name="baspa_game_rule_categories">Тек жануарларды басыңыз</string>
+    <string name="baspa_game_rule_categories">Тек %1$s басыңыз</string>
     <string name="baspa_game_rule_color">Тек қызыл мәтінді басыңыз</string>
     <string name="baspa_game_rule_length">Тек бес әріптен тұратын сөздерді басыңыз</string>
     <string name="baspa_game_rule_letter">А әрпі бар сөздерді ғана басыңыз</string>
@@ -14,8 +14,7 @@
     <string name="baspa_game_tap_hint">Сәйкес келсе, экранды басыңыз</string>
     <string name="baspa_game_start">Start Game!</string>
     <string name="baspa_game_try_again">Қайта байқап көресіз бе?</string>
-    <string-array name="baspa_categories_matching"><item>МЫСЫҚ</item><item>ЖОЛБАРЫС</item><item>ИТ</item><item>АРЫСТАН</item></string-array>
-    <string-array name="baspa_categories_other"><item>ҮСТЕЛ</item><item>ШАМ</item><item>ОРЫНДЫҚ</item><item>ҮЙ</item></string-array>
+    <string-array name="baspa_categories"><item>animals|жануарларды|МЫСЫҚ,ИТ,ЖОЛБАРЫС,АРЫСТАН,ЖЫЛҚЫ</item><item>fruits|жемістерді|АЛМА,АЛМҰРТ,БАНАН,АПЕЛЬСИН,ЛИМОН</item><item>vehicles|көліктерді|КӨЛІК,АВТОБУС,ПОЙЫЗ,ҰШАҚ,ВЕЛОСИПЕД</item><item>professions|мамандықтарды|ДӘРІГЕР,МҰҒАЛІМ,ЖҮРГІЗУШІ,АСПАЗ,ҰШҚЫШ</item><item>clothes|киімдерді|КӨЙЛЕК,ПАЛЬТО,БӨРІК,ЖЕЙДЕ,ШҰЛЫҚ</item></string-array>
     <string-array name="baspa_letter_matching"><item>АЛМА</item><item>БАЛА</item><item>ДАЛА</item><item>ҚАЛА</item></string-array>
     <string-array name="baspa_letter_other"><item>ҮЙ</item><item>КӨЛ</item><item>ЖЕЛ</item><item>ОРМАН</item></string-array>
     <string-array name="baspa_length_matching"><item>МЫСЫҚ</item><item>КІТАП</item><item>ТЕҢІЗ</item><item>ЖАРЫҚ</item></string-array>

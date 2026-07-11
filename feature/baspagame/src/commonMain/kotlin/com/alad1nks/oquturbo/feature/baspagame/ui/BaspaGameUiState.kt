@@ -5,6 +5,8 @@ import com.alad1nks.oquturbo.feature.baspagame.model.BaspaGameMode
 internal data class BaspaGameUiState(
     val mode: BaspaGameMode,
     val stimulus: String = "",
+    val categoryName: String = "",
+    val categoryId: String = "animals",
     val shouldTap: Boolean = false,
     val score: Int = 0,
     val record: Int = 0,

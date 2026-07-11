@@ -1,8 +1,7 @@
 package com.alad1nks.oquturbo.resources
 
 import oquturbo.resources.generated.resources.Res
-import oquturbo.resources.generated.resources.baspa_categories_matching
-import oquturbo.resources.generated.resources.baspa_categories_other
+import oquturbo.resources.generated.resources.baspa_categories
 import oquturbo.resources.generated.resources.baspa_equations
 import oquturbo.resources.generated.resources.baspa_game_menu_categories_subtitle
 import oquturbo.resources.generated.resources.baspa_game_menu_categories_title
@@ -88,8 +87,7 @@ import oquturbo.resources.generated.resources.remember_number_title
 
 object AppResource {
     object Array {
-        val baspa_categories_matching = Res.array.baspa_categories_matching
-        val baspa_categories_other = Res.array.baspa_categories_other
+        val baspa_categories = Res.array.baspa_categories
         val baspa_equations = Res.array.baspa_equations
         val baspa_length_matching = Res.array.baspa_length_matching
         val baspa_length_other = Res.array.baspa_length_other

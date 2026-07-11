@@ -1,6 +1,6 @@
 <resources>
     <string name="baspa_game_record_label">Record</string>
-    <string name="baspa_game_rule_categories">Tap only animals</string>
+    <string name="baspa_game_rule_categories">Tap only %1$s</string>
     <string name="baspa_game_rule_color">Tap only red text</string>
     <string name="baspa_game_rule_length">Tap only five-letter words</string>
     <string name="baspa_game_rule_letter">Tap only words containing A</string>
@@ -12,8 +12,7 @@
     <string name="baspa_game_tap_hint">Tap the screen if it matches</string>
     <string name="baspa_game_start">Start Game!</string>
     <string name="baspa_game_try_again">Try again?</string>
-    <string-array name="baspa_categories_matching"><item>CAT</item><item>TIGER</item><item>DOG</item><item>LION</item></string-array>
-    <string-array name="baspa_categories_other"><item>TABLE</item><item>LAMP</item><item>CHAIR</item><item>HOUSE</item></string-array>
+    <string-array name="baspa_categories"><item>animals|animals|CAT,DOG,TIGER,LION,HORSE</item><item>fruits|fruits|APPLE,PEAR,BANANA,ORANGE,LEMON</item><item>vehicles|vehicles|CAR,BUS,TRAIN,PLANE,BICYCLE</item><item>professions|professions|DOCTOR,TEACHER,DRIVER,COOK,PILOT</item><item>clothes|clothes|SHIRT,COAT,HAT,DRESS,SOCKS</item></string-array>
     <string-array name="baspa_letter_matching"><item>APPLE</item><item>CAR</item><item>MAMA</item><item>ROAD</item></string-array>
     <string-array name="baspa_letter_other"><item>HOME</item><item>FOREST</item><item>LIGHT</item><item>WIND</item></string-array>
     <string-array name="baspa_length_matching"><item>APPLE</item><item>GRASS</item><item>RIVER</item><item>TIGER</item></string-array>
@@ -36,7 +35,7 @@
     <string name="baspa_game_menu_true_false_title">True or False</string>
     <string name="baspa_game_menu_word_length_subtitle">Find words with the requested number of letters</string>
     <string name="baspa_game_menu_word_length_title">Word Length</string>
-    <string name="baspa_title">Don\'t Press</string>
+    <string name="baspa_title">Don't Tap</string>
     <string name="kenkoz_game_back">Back</string>
     <string name="kenkoz_game_characters">ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789</string>
     <string name="kenkoz_game_direction_bottom">below</string>

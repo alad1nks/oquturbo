@@ -1,7 +1,7 @@
 <resources>
     <string name="baspa_game_record">Рекорд: %1$d</string>
     <string name="baspa_game_record_label">Рекорд</string>
-    <string name="baspa_game_rule_categories">Нажимай только на животных</string>
+    <string name="baspa_game_rule_categories">Нажимай только на %1$s</string>
     <string name="baspa_game_rule_color">Нажимай только на красный текст</string>
     <string name="baspa_game_rule_length">Нажимай только на слова из пяти букв</string>
     <string name="baspa_game_rule_letter">Нажимай только на слова с буквой А</string>
@@ -14,8 +14,7 @@
     <string name="baspa_game_tap_hint">Тапни по экрану, если подходит</string>
     <string name="baspa_game_start">Start Game!</string>
     <string name="baspa_game_try_again">Попробовать снова?</string>
-    <string-array name="baspa_categories_matching"><item>КОТ</item><item>ТИГР</item><item>СОБАКА</item><item>ЛЕВ</item></string-array>
-    <string-array name="baspa_categories_other"><item>СТОЛ</item><item>ЛАМПА</item><item>СТУЛ</item><item>ДОМ</item></string-array>
+    <string-array name="baspa_categories"><item>animals|животных|КОТ,СОБАКА,ТИГР,ЛЕВ,ЛОШАДЬ</item><item>fruits|фрукты|ЯБЛОКО,ГРУША,БАНАН,АПЕЛЬСИН,ЛИМОН</item><item>vehicles|транспорт|МАШИНА,АВТОБУС,ПОЕЗД,САМОЛЁТ,ВЕЛОСИПЕД</item><item>professions|профессии|ВРАЧ,УЧИТЕЛЬ,ВОДИТЕЛЬ,ПОВАР,ПИЛОТ</item><item>clothes|одежду|РУБАШКА,ПАЛЬТО,ШАПКА,ПЛАТЬЕ,НОСКИ</item></string-array>
     <string-array name="baspa_letter_matching"><item>РАК</item><item>МАМА</item><item>ТРАВА</item><item>ЛАМПА</item></string-array>
     <string-array name="baspa_letter_other"><item>КОТ</item><item>ДОМ</item><item>ЛЕС</item><item>ВЕТЕР</item></string-array>
     <string-array name="baspa_length_matching"><item>КОШКА</item><item>ТРАВА</item><item>РЕЧКА</item><item>КНИГА</item></string-array>
