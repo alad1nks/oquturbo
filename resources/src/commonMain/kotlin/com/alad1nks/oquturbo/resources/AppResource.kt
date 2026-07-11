@@ -34,8 +34,7 @@ import oquturbo.resources.generated.resources.baspa_game_tap_hint
 import oquturbo.resources.generated.resources.baspa_game_try_again
 import oquturbo.resources.generated.resources.baspa_length_matching
 import oquturbo.resources.generated.resources.baspa_length_other
-import oquturbo.resources.generated.resources.baspa_letter_matching
-import oquturbo.resources.generated.resources.baspa_letter_other
+import oquturbo.resources.generated.resources.baspa_letters
 import oquturbo.resources.generated.resources.baspa_statements
 import oquturbo.resources.generated.resources.baspa_title
 import oquturbo.resources.generated.resources.kenkoz_game_back
@@ -91,8 +90,7 @@ object AppResource {
         val baspa_equations = Res.array.baspa_equations
         val baspa_length_matching = Res.array.baspa_length_matching
         val baspa_length_other = Res.array.baspa_length_other
-        val baspa_letter_matching = Res.array.baspa_letter_matching
-        val baspa_letter_other = Res.array.baspa_letter_other
+        val baspa_letters = Res.array.baspa_letters
         val baspa_statements = Res.array.baspa_statements
         val kenkoz_game_difference_pairs = Res.array.kenkoz_game_difference_pairs
         val kenkoz_game_words = Res.array.kenkoz_game_words

@@ -7,6 +7,7 @@ internal data class BaspaGameUiState(
     val stimulus: String = "",
     val categoryName: String = "",
     val categoryId: String = "animals",
+    val letter: String = "",
     val shouldTap: Boolean = false,
     val score: Int = 0,
     val record: Int = 0,
