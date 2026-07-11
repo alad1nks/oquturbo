@@ -20,7 +20,7 @@ import oquturbo.resources.generated.resources.baspa_game_menu_true_false_subtitl
 import oquturbo.resources.generated.resources.baspa_game_menu_true_false_title
 import oquturbo.resources.generated.resources.baspa_game_menu_word_length_subtitle
 import oquturbo.resources.generated.resources.baspa_game_menu_word_length_title
-import oquturbo.resources.generated.resources.baspa_game_record
+import oquturbo.resources.generated.resources.baspa_game_record_label
 import oquturbo.resources.generated.resources.baspa_game_rule_categories
 import oquturbo.resources.generated.resources.baspa_game_rule_color
 import oquturbo.resources.generated.resources.baspa_game_rule_length
@@ -28,8 +28,9 @@ import oquturbo.resources.generated.resources.baspa_game_rule_letter
 import oquturbo.resources.generated.resources.baspa_game_rule_math
 import oquturbo.resources.generated.resources.baspa_game_rule_seen
 import oquturbo.resources.generated.resources.baspa_game_rule_true
-import oquturbo.resources.generated.resources.baspa_game_score
+import oquturbo.resources.generated.resources.baspa_game_score_label
 import oquturbo.resources.generated.resources.baspa_game_speed
+import oquturbo.resources.generated.resources.baspa_game_start
 import oquturbo.resources.generated.resources.baspa_game_tap_hint
 import oquturbo.resources.generated.resources.baspa_game_try_again
 import oquturbo.resources.generated.resources.baspa_length_matching
@@ -100,7 +101,7 @@ object AppResource {
     }
 
     object String {
-        val baspa_game_record = Res.string.baspa_game_record
+        val baspa_game_record_label = Res.string.baspa_game_record_label
         val baspa_game_rule_categories = Res.string.baspa_game_rule_categories
         val baspa_game_rule_color = Res.string.baspa_game_rule_color
         val baspa_game_rule_length = Res.string.baspa_game_rule_length
@@ -108,9 +109,10 @@ object AppResource {
         val baspa_game_rule_math = Res.string.baspa_game_rule_math
         val baspa_game_rule_seen = Res.string.baspa_game_rule_seen
         val baspa_game_rule_true = Res.string.baspa_game_rule_true
-        val baspa_game_score = Res.string.baspa_game_score
+        val baspa_game_score_label = Res.string.baspa_game_score_label
         val baspa_game_speed = Res.string.baspa_game_speed
         val baspa_game_tap_hint = Res.string.baspa_game_tap_hint
+        val baspa_game_start = Res.string.baspa_game_start
         val baspa_game_try_again = Res.string.baspa_game_try_again
         val baspa_game_menu_categories_subtitle = Res.string.baspa_game_menu_categories_subtitle
         val baspa_game_menu_categories_title = Res.string.baspa_game_menu_categories_title

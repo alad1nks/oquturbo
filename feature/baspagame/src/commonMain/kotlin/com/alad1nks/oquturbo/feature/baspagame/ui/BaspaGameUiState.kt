@@ -9,10 +9,10 @@ internal data class BaspaGameUiState(
     val score: Int = 0,
     val record: Int = 0,
     val intervalMillis: Long = 2_000L,
-    val phase: Phase = Phase.Playing,
+    val phase: Phase = Phase.Initial,
     val accent: Accent = Accent.Default,
 ) {
-    enum class Phase { Playing, Mistake }
+    enum class Phase { Initial, Playing, Paused, Mistake }
 
     enum class Accent { Default, Target, Other }
 }
