@@ -27,7 +27,7 @@ internal class BaspaGameViewModel(
     init {
         viewModelScope.launch {
             _uiState.update { it.copy(record = repository.getRecord(mode.name).first() ?: 0) }
-            nextRound()
+            showNextStimulus()
         }
     }
 
@@ -36,24 +36,55 @@ internal class BaspaGameViewModel(
         if (_uiState.value.shouldTap) success() else mistake()
     }
 
+    fun togglePause() {
+        when (_uiState.value.phase) {
+            BaspaGameUiState.Phase.Initial -> {
+                _uiState.update { it.copy(phase = BaspaGameUiState.Phase.Playing) }
+                startTimer()
+            }
+            BaspaGameUiState.Phase.Playing -> {
+                timerJob?.cancel()
+                _uiState.update { it.copy(phase = BaspaGameUiState.Phase.Paused) }
+            }
+            BaspaGameUiState.Phase.Paused -> {
+                _uiState.update { it.copy(phase = BaspaGameUiState.Phase.Playing) }
+                if (_uiState.value.stimulus.isEmpty()) scheduleNextRound() else startTimer()
+            }
+            BaspaGameUiState.Phase.Mistake -> Unit
+        }
+    }
+
     fun restart() {
         seenWords.clear()
         _uiState.update {
             it.copy(score = 0, intervalMillis = INITIAL_INTERVAL_MILLIS, phase = BaspaGameUiState.Phase.Playing)
         }
-        nextRound()
+        scheduleNextRound()
     }
 
-    private fun nextRound() {
-        timerJob?.cancel()
+    private fun showNextStimulus() {
         val stimulus = createStimulus()
         _uiState.update {
             it.copy(stimulus = stimulus.text, shouldTap = stimulus.shouldTap, accent = stimulus.accent)
         }
+        if (_uiState.value.phase == BaspaGameUiState.Phase.Playing) startTimer()
+    }
+
+    private fun scheduleNextRound() {
+        timerJob?.cancel()
+        _uiState.update { it.copy(stimulus = "") }
+        timerJob =
+            viewModelScope.launch {
+                delay(WORDS_GAP_MILLIS.milliseconds)
+                if (_uiState.value.phase == BaspaGameUiState.Phase.Playing) showNextStimulus()
+            }
+    }
+
+    private fun startTimer() {
         timerJob =
             viewModelScope.launch {
                 delay(_uiState.value.intervalMillis.milliseconds)
-                if (_uiState.value.shouldTap) mistake() else nextRound()
+                if (_uiState.value.shouldTap) mistake() else scheduleNextRound()
             }
     }
 
@@ -72,7 +103,7 @@ internal class BaspaGameViewModel(
         if (newRecord > oldRecord) {
             viewModelScope.launch { repository.setRecord(mode.name, newRecord) }
         }
-        nextRound()
+        scheduleNextRound()
     }
 
     private fun mistake() {
@@ -134,5 +165,6 @@ internal class BaspaGameViewModel(
     private companion object {
         const val INITIAL_INTERVAL_MILLIS = 2_000L
         const val SPEED_FACTOR_PERCENT = 95L
+        const val WORDS_GAP_MILLIS = 300L
     }
 }

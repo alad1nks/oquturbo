@@ -1,5 +1,5 @@
 <resources>
-    <string name="baspa_game_record">Record: %1$d</string>
+    <string name="baspa_game_record_label">Record</string>
     <string name="baspa_game_rule_categories">Tap only animals</string>
     <string name="baspa_game_rule_color">Tap only red text</string>
     <string name="baspa_game_rule_length">Tap only five-letter words</string>
@@ -7,9 +7,10 @@
     <string name="baspa_game_rule_math">Tap only correct equations</string>
     <string name="baspa_game_rule_seen">Tap only words you have seen before</string>
     <string name="baspa_game_rule_true">Tap only true statements</string>
-    <string name="baspa_game_score">Score: %1$d</string>
+    <string name="baspa_game_score_label">Score</string>
     <string name="baspa_game_speed">Speed: %1$s sec</string>
     <string name="baspa_game_tap_hint">Tap the screen if it matches</string>
+    <string name="baspa_game_start">Start Game!</string>
     <string name="baspa_game_try_again">Try again?</string>
     <string-array name="baspa_categories_matching"><item>CAT</item><item>TIGER</item><item>DOG</item><item>LION</item></string-array>
     <string-array name="baspa_categories_other"><item>TABLE</item><item>LAMP</item><item>CHAIR</item><item>HOUSE</item></string-array>

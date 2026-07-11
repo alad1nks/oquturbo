@@ -1,5 +1,6 @@
 <resources>
     <string name="baspa_game_record">Рекорд: %1$d</string>
+    <string name="baspa_game_record_label">Рекорд</string>
     <string name="baspa_game_rule_categories">Тек жануарларды басыңыз</string>
     <string name="baspa_game_rule_color">Тек қызыл мәтінді басыңыз</string>
     <string name="baspa_game_rule_length">Тек бес әріптен тұратын сөздерді басыңыз</string>
@@ -8,8 +9,10 @@
     <string name="baspa_game_rule_seen">Бұрын кездескен сөздерді ғана басыңыз</string>
     <string name="baspa_game_rule_true">Тек дұрыс тұжырымдарды басыңыз</string>
     <string name="baspa_game_score">Ұпай: %1$d</string>
+    <string name="baspa_game_score_label">Ұпай</string>
     <string name="baspa_game_speed">Жылдамдық: %1$s сек</string>
     <string name="baspa_game_tap_hint">Сәйкес келсе, экранды басыңыз</string>
+    <string name="baspa_game_start">Start Game!</string>
     <string name="baspa_game_try_again">Қайта байқап көресіз бе?</string>
     <string-array name="baspa_categories_matching"><item>МЫСЫҚ</item><item>ЖОЛБАРЫС</item><item>ИТ</item><item>АРЫСТАН</item></string-array>
     <string-array name="baspa_categories_other"><item>ҮСТЕЛ</item><item>ШАМ</item><item>ОРЫНДЫҚ</item><item>ҮЙ</item></string-array>
