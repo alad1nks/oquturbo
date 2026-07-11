@@ -3,7 +3,7 @@
     <string name="baspa_game_record_label">Рекорд</string>
     <string name="baspa_game_rule_categories">Тек %1$s басыңыз</string>
     <string name="baspa_game_rule_color">Тек қызыл мәтінді басыңыз</string>
-    <string name="baspa_game_rule_length">Тек бес әріптен тұратын сөздерді басыңыз</string>
+    <string name="baspa_game_rule_length">Тек %1$d әріптен тұратын сөздерді басыңыз</string>
     <string name="baspa_game_rule_letter">%1$s әрпі бар сөздерді ғана басыңыз</string>
     <string name="baspa_game_rule_math">Тек дұрыс мысалдарды басыңыз</string>
     <string name="baspa_game_rule_seen">Бұрын кездескен сөздерді ғана басыңыз</string>
@@ -15,9 +15,9 @@
     <string name="baspa_game_start">Start Game!</string>
     <string name="baspa_game_try_again">Қайта байқап көресіз бе?</string>
     <string-array name="baspa_categories"><item>animals|жануарларды|МЫСЫҚ,ИТ,ЖОЛБАРЫС,АРЫСТАН,ЖЫЛҚЫ</item><item>fruits|жемістерді|АЛМА,АЛМҰРТ,БАНАН,АПЕЛЬСИН,ЛИМОН</item><item>vehicles|көліктерді|КӨЛІК,АВТОБУС,ПОЙЫЗ,ҰШАҚ,ВЕЛОСИПЕД</item><item>professions|мамандықтарды|ДӘРІГЕР,МҰҒАЛІМ,ЖҮРГІЗУШІ,АСПАЗ,ҰШҚЫШ</item><item>clothes|киімдерді|КӨЙЛЕК,ПАЛЬТО,БӨРІК,ЖЕЙДЕ,ШҰЛЫҚ</item></string-array>
-    <string-array name="baspa_letters"><item>А|АЛМА,БАНАН,МАШИНА,АСПАЗ,ШАПАН|ИТ,ҮЙ,ПОЙЫЗ,ҰШҚЫШ,ШҰЛЫҚ</item><item>Қ|МЫСЫҚ,ҰШАҚ,ШҰЛЫҚ,ҚАЛАМ,ҚАСЫҚ|ИТ,АЛМА,БАНАН,ПОЙЫЗ,АСПАЗ</item><item>М|МЫСЫҚ,АЛМА,МҰҒАЛІМ,МАШИНА,ЛИМОН|ИТ,ҰШАҚ,ПОЙЫЗ,АСПАЗ,ШҰЛЫҚ</item><item>С|МЫСЫҚ,АСПАЗ,АВТОБУС,САҒАТ,САБЫН|ИТ,АЛМА,ПОЙЫЗ,ҰШАҚ,ШҰЛЫҚ</item><item>Т|ИТ,ЖОЛБАРЫС,АВТОБУС,ПАЛЬТО,ДӘПТЕР|АЛМА,ҰШАҚ,ПОЙЫЗ,АСПАЗ,ШҰЛЫҚ</item></string-array>
-    <string-array name="baspa_length_matching"><item>МЫСЫҚ</item><item>КІТАП</item><item>ТЕҢІЗ</item><item>ЖАРЫҚ</item></string-array>
-    <string-array name="baspa_length_other"><item>ИТ</item><item>ВЕЛОСИПЕД</item><item>ҮЙ</item><item>БАЛМҰЗДАҚ</item></string-array>
+    <string-array name="baspa_letters"><item>А</item><item>Қ</item><item>М</item><item>С</item><item>Т</item></string-array>
+    <string-array name="baspa_word_lengths"><item>2</item><item>4</item><item>5</item></string-array>
+    <string-array name="baspa_all_words"><item>ИТ</item><item>ҮЙ</item><item>АТ</item><item>ОҚ</item><item>СУ</item><item>АЛМА</item><item>ҰШАҚ</item><item>ҚАЛА</item><item>БАЛА</item><item>ДАЛА</item><item>МЫСЫҚ</item><item>ПОЙЫЗ</item><item>ЛИМОН</item><item>АСПАЗ</item><item>САҒАТ</item><item>БАНАН</item><item>МАШИНА</item><item>ШАПАН</item><item>ШҰЛЫҚ</item><item>ҚАЛАМ</item><item>ҚАСЫҚ</item><item>МҰҒАЛІМ</item><item>АВТОБУС</item><item>САБЫН</item><item>ПАЛЬТО</item><item>ДӘПТЕР</item></string-array>
     <string-array name="baspa_statements"><item>Су дымқыл|true</item><item>Мысық ұша алады|false</item><item>Күн — жұлдыз|true</item><item>Ай Күннен үлкен|false</item></string-array>
     <string-array name="baspa_equations"><item>2 + 2 = 4|true</item><item>8 × 7 = 60|false</item><item>9 − 3 = 6|true</item><item>5 × 5 = 20|false</item></string-array>
     <string name="baspa_game_menu_categories_subtitle">Тек берілген санаттағы сөздерді таңдаңыз</string>

@@ -2,7 +2,7 @@
     <string name="baspa_game_record_label">Record</string>
     <string name="baspa_game_rule_categories">Tap only %1$s</string>
     <string name="baspa_game_rule_color">Tap only red text</string>
-    <string name="baspa_game_rule_length">Tap only five-letter words</string>
+    <string name="baspa_game_rule_length">Tap only words with %1$d letters</string>
     <string name="baspa_game_rule_letter">Tap only words containing %1$s</string>
     <string name="baspa_game_rule_math">Tap only correct equations</string>
     <string name="baspa_game_rule_seen">Tap only words you have seen before</string>
@@ -13,9 +13,9 @@
     <string name="baspa_game_start">Start Game!</string>
     <string name="baspa_game_try_again">Try again?</string>
     <string-array name="baspa_categories"><item>animals|animals|CAT,DOG,TIGER,LION,HORSE</item><item>fruits|fruits|APPLE,PEAR,BANANA,ORANGE,LEMON</item><item>vehicles|vehicles|CAR,BUS,TRAIN,PLANE,BICYCLE</item><item>professions|professions|DOCTOR,TEACHER,DRIVER,COOK,PILOT</item><item>clothes|clothes|SHIRT,COAT,HAT,DRESS,SOCKS</item></string-array>
-    <string-array name="baspa_letters"><item>A|CAT,APPLE,TRAIN,LAMP,GRASS|DOG,HOUSE,WIND,FOREST,LEMON</item><item>E|LEMON,TIGER,TEACHER,DRESS,HORSE|CAT,DOG,TRAIN,BUS,PILOT</item><item>S|BUS,DRESS,SOCKS,HOUSE,HORSE|CAT,DOG,TRAIN,APPLE,LEMON</item><item>T|CAT,TIGER,TRAIN,TEACHER,COAT|DOG,BUS,PLANE,APPLE,LEMON</item><item>R|TRAIN,DRIVER,PEAR,SHIRT,HORSE|CAT,DOG,BUS,PLANE,APPLE</item></string-array>
-    <string-array name="baspa_length_matching"><item>APPLE</item><item>GRASS</item><item>RIVER</item><item>TIGER</item></string-array>
-    <string-array name="baspa_length_other"><item>CAT</item><item>BICYCLE</item><item>HOME</item><item>LIGHTNING</item></string-array>
+    <string-array name="baspa_letters"><item>A</item><item>E</item><item>S</item><item>T</item><item>R</item></string-array>
+    <string-array name="baspa_word_lengths"><item>3</item><item>4</item><item>5</item><item>6</item></string-array>
+    <string-array name="baspa_all_words"><item>CAT</item><item>DOG</item><item>BUS</item><item>HAT</item><item>CAR</item><item>LION</item><item>PEAR</item><item>COAT</item><item>COOK</item><item>HOME</item><item>APPLE</item><item>TIGER</item><item>TRAIN</item><item>HORSE</item><item>PLANE</item><item>BANANA</item><item>ORANGE</item><item>DOCTOR</item><item>DRIVER</item><item>SHIRTS</item><item>TEACHER</item><item>BICYCLE</item><item>FOREST</item><item>LEMON</item><item>DRESS</item><item>SOCKS</item></string-array>
     <string-array name="baspa_statements"><item>Water is wet|true</item><item>Cats can fly|false</item><item>The Sun is a star|true</item><item>The Moon is bigger than the Sun|false</item></string-array>
     <string-array name="baspa_equations"><item>2 + 2 = 4|true</item><item>8 × 7 = 60|false</item><item>9 − 3 = 6|true</item><item>5 × 5 = 20|false</item></string-array>
     <string name="baspa_game_menu_categories_subtitle">Tap only words from the requested category</string>
