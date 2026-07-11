@@ -7,7 +7,12 @@ import org.koin.dsl.module
 
 val KenKozGameModule =
     module {
-        viewModel { (mode: KenKozGameMode) ->
-            KenKozGameViewModel(mode)
+        viewModel { parameters ->
+            val mode = parameters.get<KenKozGameMode>(0)
+            val characters = parameters.get<List<String>>(1)
+            val words = parameters.get<List<String>>(2)
+            val differencePairs = parameters.get<List<Pair<String, String>>>(3)
+
+            KenKozGameViewModel(mode, characters, words, differencePairs)
         }
     }
