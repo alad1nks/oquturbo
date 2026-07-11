@@ -16,10 +16,14 @@ import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Checkroom
+import androidx.compose.material.icons.filled.DirectionsCar
 import androidx.compose.material.icons.filled.EmojiEvents
 import androidx.compose.material.icons.filled.Pause
 import androidx.compose.material.icons.filled.Pets
 import androidx.compose.material.icons.filled.PlayArrow
+import androidx.compose.material.icons.filled.Restaurant
+import androidx.compose.material.icons.filled.Work
 import androidx.compose.material.icons.outlined.Bolt
 import androidx.compose.material.icons.outlined.TouchApp
 import androidx.compose.material3.Card
@@ -36,6 +40,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.blur
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
@@ -80,7 +85,7 @@ private fun BaspaGameScreen(
                     .padding(24.dp),
         ) {
             ScoreHeader(uiState, onPauseClick, Modifier.align(Alignment.TopCenter))
-            RuleCard(uiState.mode, Modifier.align(Alignment.TopCenter).padding(top = 140.dp))
+            RuleCard(uiState, Modifier.align(Alignment.TopCenter).padding(top = 140.dp))
 
             Text(
                 text = uiState.stimulus,
@@ -256,8 +261,13 @@ private fun ScoreHeader(
 }
 
 @Composable
-private fun RuleCard(mode: BaspaGameMode, modifier: Modifier = Modifier) {
-    val rule = stringResource(mode.ruleResource())
+private fun RuleCard(uiState: BaspaGameUiState, modifier: Modifier = Modifier) {
+    val rule =
+        if (uiState.mode == BaspaGameMode.Categories) {
+            stringResource(uiState.mode.ruleResource(), uiState.categoryName)
+        } else {
+            stringResource(uiState.mode.ruleResource())
+        }
     Card(
         modifier = modifier.fillMaxWidth(),
         shape = RoundedCornerShape(28.dp),
@@ -273,7 +283,7 @@ private fun RuleCard(mode: BaspaGameMode, modifier: Modifier = Modifier) {
         ) {
             Surface(shape = RoundedCornerShape(50), color = MaterialTheme.colorScheme.primaryContainer) {
                 Icon(
-                    Icons.Filled.Pets,
+                    categoryIcon(uiState.categoryId),
                     contentDescription = null,
                     modifier = Modifier.padding(16.dp).size(36.dp),
                     tint = MaterialTheme.colorScheme.primary,
@@ -287,6 +297,15 @@ private fun RuleCard(mode: BaspaGameMode, modifier: Modifier = Modifier) {
         }
     }
 }
+
+private fun categoryIcon(categoryId: String): ImageVector =
+    when (categoryId) {
+        "fruits" -> Icons.Filled.Restaurant
+        "vehicles" -> Icons.Filled.DirectionsCar
+        "professions" -> Icons.Filled.Work
+        "clothes" -> Icons.Filled.Checkroom
+        else -> Icons.Filled.Pets
+    }
 
 @Composable
 private fun highlightedRule(rule: String) =

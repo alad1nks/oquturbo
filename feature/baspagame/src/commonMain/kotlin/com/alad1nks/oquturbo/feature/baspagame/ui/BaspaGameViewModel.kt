@@ -23,10 +23,17 @@ internal class BaspaGameViewModel(
     val uiState = _uiState.asStateFlow()
     private val seenWords = mutableListOf<String>()
     private var timerJob: Job? = null
+    private var categoryIndex = content.categories.indices.random()
 
     init {
         viewModelScope.launch {
-            _uiState.update { it.copy(record = repository.getRecord(mode.name).first() ?: 0) }
+            _uiState.update {
+                it.copy(
+                    record = repository.getRecord(mode.name).first() ?: 0,
+                    categoryName = content.categories[categoryIndex].name,
+                    categoryId = content.categories[categoryIndex].id,
+                )
+            }
             showNextStimulus()
         }
     }
@@ -48,7 +55,11 @@ internal class BaspaGameViewModel(
             }
             BaspaGameUiState.Phase.Paused -> {
                 _uiState.update { it.copy(phase = BaspaGameUiState.Phase.Playing) }
-                if (_uiState.value.stimulus.isEmpty()) scheduleNextRound() else startTimer()
+                if (_uiState.value.stimulus.isEmpty()) {
+                    scheduleNextRound()
+                } else {
+                    startTimer()
+                }
             }
             BaspaGameUiState.Phase.Mistake -> Unit
         }
@@ -56,8 +67,15 @@ internal class BaspaGameViewModel(
 
     fun restart() {
         seenWords.clear()
+        categoryIndex = content.categories.indices.random()
         _uiState.update {
-            it.copy(score = 0, intervalMillis = INITIAL_INTERVAL_MILLIS, phase = BaspaGameUiState.Phase.Playing)
+            it.copy(
+                score = 0,
+                categoryName = content.categories[categoryIndex].name,
+                categoryId = content.categories[categoryIndex].id,
+                intervalMillis = INITIAL_INTERVAL_MILLIS,
+                phase = BaspaGameUiState.Phase.Playing,
+            )
         }
         scheduleNextRound()
     }
@@ -70,13 +88,15 @@ internal class BaspaGameViewModel(
         if (_uiState.value.phase == BaspaGameUiState.Phase.Playing) startTimer()
     }
 
-    private fun scheduleNextRound() {
+    private fun scheduleNextRound(delayMillis: Long = WORDS_GAP_MILLIS) {
         timerJob?.cancel()
         _uiState.update { it.copy(stimulus = "") }
         timerJob =
             viewModelScope.launch {
-                delay(WORDS_GAP_MILLIS.milliseconds)
-                if (_uiState.value.phase == BaspaGameUiState.Phase.Playing) showNextStimulus()
+                delay(delayMillis.milliseconds)
+                if (_uiState.value.phase == BaspaGameUiState.Phase.Playing) {
+                    showNextStimulus()
+                }
             }
     }
 
@@ -103,7 +123,12 @@ internal class BaspaGameViewModel(
         if (newRecord > oldRecord) {
             viewModelScope.launch { repository.setRecord(mode.name, newRecord) }
         }
-        scheduleNextRound()
+        if (mode == BaspaGameMode.Categories && newScore % CATEGORY_CHANGE_SCORE == 0) {
+            changeCategory()
+            scheduleNextRound(CATEGORY_CHANGE_GAP_MILLIS)
+        } else {
+            scheduleNextRound()
+        }
     }
 
     private fun mistake() {
@@ -113,10 +138,10 @@ internal class BaspaGameViewModel(
 
     private fun createStimulus(): Stimulus {
         return when (mode) {
-            BaspaGameMode.Categories,
             BaspaGameMode.Letter,
             BaspaGameMode.WordLength,
             -> matchingOrOtherWord()
+            BaspaGameMode.Categories -> categoryWord()
             BaspaGameMode.TextColor -> {
                 val shouldTap = listOf(true, false).random()
                 Stimulus(
@@ -137,6 +162,27 @@ internal class BaspaGameViewModel(
             text = if (shouldTap) content.matchingWords.random() else content.otherWords.random(),
             shouldTap = shouldTap,
         )
+    }
+
+    private fun categoryWord(): Stimulus {
+        val shouldTap = listOf(true, false).random()
+        val currentCategory = content.categories[categoryIndex]
+        val otherWords = content.categories.filterIndexed { index, _ -> index != categoryIndex }.flatMap { it.words }
+        return Stimulus(
+            text = if (shouldTap) currentCategory.words.random() else otherWords.random(),
+            shouldTap = shouldTap,
+        )
+    }
+
+    private fun changeCategory() {
+        val previousIndex = categoryIndex
+        categoryIndex = content.categories.indices.filterNot { it == previousIndex }.random()
+        _uiState.update {
+            it.copy(
+                categoryName = content.categories[categoryIndex].name,
+                categoryId = content.categories[categoryIndex].id,
+            )
+        }
     }
 
     private fun speedReadingStimulus(): Stimulus {
@@ -166,5 +212,7 @@ internal class BaspaGameViewModel(
         const val INITIAL_INTERVAL_MILLIS = 2_000L
         const val SPEED_FACTOR_PERCENT = 95L
         const val WORDS_GAP_MILLIS = 300L
+        const val CATEGORY_CHANGE_GAP_MILLIS = 1_000L
+        const val CATEGORY_CHANGE_SCORE = 10
     }
 }

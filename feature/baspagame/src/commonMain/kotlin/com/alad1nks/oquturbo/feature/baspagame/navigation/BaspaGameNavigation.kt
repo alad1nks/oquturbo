@@ -6,6 +6,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.toRoute
 import com.alad1nks.oquturbo.feature.baspagame.model.BaspaGameContent
 import com.alad1nks.oquturbo.feature.baspagame.model.BaspaGameMode
+import com.alad1nks.oquturbo.feature.baspagame.model.Category
 import com.alad1nks.oquturbo.feature.baspagame.ui.BaspaGameRoute
 import com.alad1nks.oquturbo.feature.baspagame.ui.BaspaGameViewModel
 import com.alad1nks.oquturbo.resources.AppResource
@@ -35,8 +36,9 @@ fun NavGraphBuilder.baspaGameScreen(onBackClick: () -> Unit) {
 
 @androidx.compose.runtime.Composable
 private fun baspaGameContent(mode: BaspaGameMode): BaspaGameContent {
-    val matchingResource: StringArrayResource
-    val otherResource: StringArrayResource
+    val categories = stringArrayResource(AppResource.Array.baspa_categories).map(String::toCategory)
+    val matchingResource: StringArrayResource?
+    val otherResource: StringArrayResource?
     when (mode) {
         BaspaGameMode.Letter -> {
             matchingResource = AppResource.Array.baspa_letter_matching
@@ -47,16 +49,23 @@ private fun baspaGameContent(mode: BaspaGameMode): BaspaGameContent {
             otherResource = AppResource.Array.baspa_length_other
         }
         else -> {
-            matchingResource = AppResource.Array.baspa_categories_matching
-            otherResource = AppResource.Array.baspa_categories_other
+            matchingResource = null
+            otherResource = null
         }
     }
     return BaspaGameContent(
-        matchingWords = stringArrayResource(matchingResource),
-        otherWords = stringArrayResource(otherResource),
+        categories = categories,
+        matchingWords = matchingResource?.let { stringArrayResource(it) } ?: categories.flatMap { it.words },
+        otherWords = otherResource?.let { stringArrayResource(it) }.orEmpty(),
         statements = stringArrayResource(AppResource.Array.baspa_statements).map(String::toBooleanPair),
         equations = stringArrayResource(AppResource.Array.baspa_equations).map(String::toBooleanPair),
     )
+}
+
+private fun String.toCategory(): Category {
+    val parts = split('|', limit = 3)
+    require(parts.size == 3) { "Invalid Baspa category item: $this" }
+    return Category(parts[0], parts[1], parts[2].split(',').map(String::trim).filter(String::isNotEmpty))
 }
 
 private fun String.toBooleanPair(): Pair<String, Boolean> {
