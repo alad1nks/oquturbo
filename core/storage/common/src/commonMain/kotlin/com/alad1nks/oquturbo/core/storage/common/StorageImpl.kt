@@ -9,6 +9,10 @@ internal class StorageImpl(
         return appPreferences.getBoolean(DARK_THEME)
     }
 
+    override fun getKenKozGameRecord(mode: String): Flow<Int?> {
+        return appPreferences.getInt("${KENKOZ_GAME_RECORD}_$mode")
+    }
+
     override fun getRememberNumberRecord(
         maxLength: Int,
         availableDigits: String,
@@ -18,6 +22,13 @@ internal class StorageImpl(
 
     override suspend fun setDarkTheme(value: Boolean) {
         appPreferences.setBoolean(DARK_THEME, value)
+    }
+
+    override suspend fun setKenKozGameRecord(
+        mode: String,
+        record: Int,
+    ) {
+        appPreferences.setInt("${KENKOZ_GAME_RECORD}_$mode", record)
     }
 
     override suspend fun setRememberNumberRecord(
@@ -30,6 +41,7 @@ internal class StorageImpl(
 
     private companion object {
         const val DARK_THEME = "dark_theme"
+        const val KENKOZ_GAME_RECORD = "kenkoz_game_record"
         const val REMEMBER_NUMBER_RECORD = "remember_number_record"
     }
 }

@@ -9,6 +9,7 @@
     <string name="kenkoz_game_question_difference">Өзгеше сөз қай жерде болды?</string>
     <string name="kenkoz_game_question_first_word">Қай сөз бірінші болды?</string>
     <string name="kenkoz_game_question_word">Қай сөз %1$s болды?</string>
+    <string name="kenkoz_game_record">Рекорд: %1$d</string>
     <string name="kenkoz_game_score">Ұпай</string>
     <string name="kenkoz_game_score_value">Ұпай: %1$d</string>
     <string name="kenkoz_game_start">Ойынды бастау!</string>

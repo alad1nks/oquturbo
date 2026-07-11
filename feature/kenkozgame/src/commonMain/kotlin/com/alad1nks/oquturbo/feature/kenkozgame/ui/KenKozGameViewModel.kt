@@ -2,11 +2,13 @@ package com.alad1nks.oquturbo.feature.kenkozgame.ui
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.alad1nks.oquturbo.core.data.repository.KenKozGameRepository
 import com.alad1nks.oquturbo.feature.kenkozgame.model.KenKozGameMode
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlin.time.Duration.Companion.milliseconds
@@ -16,6 +18,7 @@ internal class KenKozGameViewModel(
     private val characters: List<String>,
     private val words: List<String>,
     private val differencePairs: List<Pair<String, String>>,
+    private val kenKozGameRepository: KenKozGameRepository,
 ) : ViewModel() {
     private val _uiState = MutableStateFlow(KenKozGameUiState(mode = mode))
     val uiState = _uiState.asStateFlow()
@@ -40,6 +43,18 @@ internal class KenKozGameViewModel(
         } else {
             roundJob?.cancel()
             _uiState.update { it.copy(phase = KenKozGameUiState.Phase.Mistake) }
+            updateRecord(state.score)
+        }
+    }
+
+    private fun updateRecord(score: Int) {
+        viewModelScope.launch {
+            val storedRecord = kenKozGameRepository.getRecord(mode.name).first() ?: 0
+            val currentRecord = maxOf(storedRecord, score)
+            _uiState.update { it.copy(record = currentRecord) }
+            if (currentRecord > storedRecord) {
+                kenKozGameRepository.setRecord(mode.name, currentRecord)
+            }
         }
     }
 

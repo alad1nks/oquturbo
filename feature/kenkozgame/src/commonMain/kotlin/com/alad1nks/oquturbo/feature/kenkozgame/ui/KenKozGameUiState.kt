@@ -5,6 +5,7 @@ import com.alad1nks.oquturbo.feature.kenkozgame.model.KenKozGameMode
 internal data class KenKozGameUiState(
     val mode: KenKozGameMode,
     val score: Int = 0,
+    val record: Int = 0,
     val phase: Phase = Phase.Initial,
     val items: List<String> = emptyList(),
     val answers: List<String> = emptyList(),

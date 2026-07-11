@@ -9,6 +9,7 @@
     <string name="kenkoz_game_question_difference">Where was the different word?</string>
     <string name="kenkoz_game_question_first_word">Which word was first?</string>
     <string name="kenkoz_game_question_word">Which word was %1$s?</string>
+    <string name="kenkoz_game_record">Record: %1$d</string>
     <string name="kenkoz_game_score">Score</string>
     <string name="kenkoz_game_score_value">Score: %1$d</string>
     <string name="kenkoz_game_start">Start Game!</string>
