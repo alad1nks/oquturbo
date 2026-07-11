@@ -1,4 +1,21 @@
 <resources>
+    <string name="baspa_game_menu_categories_subtitle">Нажимайте только на слова из указанной категории</string>
+    <string name="baspa_game_menu_categories_title">Категории</string>
+    <string name="baspa_game_menu_letter_subtitle">Ищите слова, подходящие под заданное правило с буквой</string>
+    <string name="baspa_game_menu_letter_title">Буква</string>
+    <string name="baspa_game_menu_math_subtitle">Определяйте, правильно ли решён пример</string>
+    <string name="baspa_game_menu_math_title">Математика</string>
+    <string name="baspa_game_menu_speed_reading_subtitle">Замечайте слова, которые уже встречались</string>
+    <string name="baspa_game_menu_speed_reading_title">Скорочтение</string>
+    <string name="baspa_game_menu_subtitle">Тренируйте внимание, реакцию и скорость чтения</string>
+    <string name="baspa_game_menu_text_color_subtitle">Реагируйте на цвет текста или значение слова</string>
+    <string name="baspa_game_menu_text_color_title">Цвет текста</string>
+    <string name="baspa_game_menu_title">Выбери режим</string>
+    <string name="baspa_game_menu_true_false_subtitle">Определяйте, верно ли утверждение</string>
+    <string name="baspa_game_menu_true_false_title">Правда или ложь</string>
+    <string name="baspa_game_menu_word_length_subtitle">Ищите слова с заданным количеством букв</string>
+    <string name="baspa_game_menu_word_length_title">Длина слова</string>
+    <string name="baspa_title">Не нажимай</string>
     <string name="kenkoz_game_back">Назад</string>
     <string name="kenkoz_game_characters">АБВГДЕЁЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯ0123456789</string>
     <string name="kenkoz_game_direction_bottom">снизу</string>

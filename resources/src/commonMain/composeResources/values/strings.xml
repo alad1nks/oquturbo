@@ -1,4 +1,21 @@
 <resources>
+    <string name="baspa_game_menu_categories_subtitle">Tap only words from the requested category</string>
+    <string name="baspa_game_menu_categories_title">Categories</string>
+    <string name="baspa_game_menu_letter_subtitle">Find words that match the requested letter rule</string>
+    <string name="baspa_game_menu_letter_title">Letter</string>
+    <string name="baspa_game_menu_math_subtitle">Decide whether the equation is correct</string>
+    <string name="baspa_game_menu_math_title">Math</string>
+    <string name="baspa_game_menu_speed_reading_subtitle">Notice words that have already appeared</string>
+    <string name="baspa_game_menu_speed_reading_title">Speed Reading</string>
+    <string name="baspa_game_menu_subtitle">Train attention, reaction, and reading speed</string>
+    <string name="baspa_game_menu_text_color_subtitle">Respond according to the color or meaning of the word</string>
+    <string name="baspa_game_menu_text_color_title">Text Color</string>
+    <string name="baspa_game_menu_title">Choose a Mode</string>
+    <string name="baspa_game_menu_true_false_subtitle">Decide whether a statement is true or false</string>
+    <string name="baspa_game_menu_true_false_title">True or False</string>
+    <string name="baspa_game_menu_word_length_subtitle">Find words with the requested number of letters</string>
+    <string name="baspa_game_menu_word_length_title">Word Length</string>
+    <string name="baspa_title">Don\'t Press</string>
     <string name="kenkoz_game_back">Back</string>
     <string name="kenkoz_game_characters">ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789</string>
     <string name="kenkoz_game_direction_bottom">below</string>

@@ -2,14 +2,15 @@
 
 ## Project
 
-Kotlin Multiplatform/Compose Multiplatform repository with three products: `oquturbo`, `sansprint`, and `kenkoz`. Each has Android, iOS, Desktop (JVM), and Web entry points; Web is built for JS and Wasm. The three `iosApp` directories are Xcode projects, not Gradle modules.
+Kotlin Multiplatform/Compose Multiplatform repository with four products: `oquturbo`, `sansprint`, `kenkoz`, and `baspa`. Each Gradle product has Android, Desktop (JVM), shared, and Web entry points; Web is built for JS and Wasm. OquTurbo, SanSprint, and KenKoz also have Xcode projects.
 
 ## Modules and ownership
 
-`settings.gradle.kts` declares 24 modules:
+`settings.gradle.kts` declares 29 modules:
 
 - `app:<product>:{androidApp,desktopApp,shared,webApp}` for each product. Platform launchers delegate to `shared`; `shared/App.kt` assembles the product navigation graph and DI modules.
 - `feature:main`: Koin root, app theme, root `Scaffold`, and `NavHost`.
+- `feature:baspagamemenu`: Baspa start menu and its navigation destination.
 - `feature:kenkozgame`: KenKoz game modes, state machine, UI, navigation, and DI.
 - `feature:kenkozgamemenu`: KenKoz start menu and its navigation destination.
 - `feature:remembernumber`, `feature:remembernumbermenu`: feature UI, ViewModel/state, navigation, and DI.
@@ -45,7 +46,7 @@ platform app -> app:<product>:shared -> feature -> core:data -> core:storage:com
 - Shared/core/feature/resource modules generally target Android, `iosArm64`, `iosSimulatorArm64`, JVM, JS browser, and Wasm browser as declared in their build files.
 - Exception: `core:storage:datastore` targets Android/iOS/JVM only; `core:storage:web` targets JS/Wasm only.
 - Add platform behavior through the existing `expect`/`actual` pattern when a common API needs different implementations.
-- iOS Kotlin entry points are `shared/src/iosMain/.../MainViewController.kt`; Swift/Xcode files live under `app/<product>/iosApp`.
+- iOS Kotlin entry points are `shared/src/iosMain/.../MainViewController.kt`. Swift/Xcode wrappers currently exist for OquTurbo, SanSprint, and KenKoz, but not Baspa.
 
 ## UI, navigation, and resources
 
@@ -57,7 +58,7 @@ platform app -> app:<product>:shared -> feature -> core:data -> core:storage:com
 
 ## Commands
 
-Use the checked-in wrapper and replace `<product>` with `oquturbo`, `sansprint`, or `kenkoz`. These tasks were confirmed from Gradle; the README documents the OquTurbo run commands.
+Use the checked-in wrapper and replace `<product>` with `oquturbo`, `sansprint`, `kenkoz`, or `baspa`. The README documents the OquTurbo run commands.
 
 ```shell
 ./gradlew ktlintCheck
