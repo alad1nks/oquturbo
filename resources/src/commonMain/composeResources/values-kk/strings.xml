@@ -1,4 +1,21 @@
 <resources>
+    <string name="baspa_game_menu_categories_subtitle">Тек берілген санаттағы сөздерді таңдаңыз</string>
+    <string name="baspa_game_menu_categories_title">Санаттар</string>
+    <string name="baspa_game_menu_letter_subtitle">Берілген әріп ережесіне сәйкес сөздерді табыңыз</string>
+    <string name="baspa_game_menu_letter_title">Әріп</string>
+    <string name="baspa_game_menu_math_subtitle">Мысалдың дұрыс шешілгенін анықтаңыз</string>
+    <string name="baspa_game_menu_math_title">Математика</string>
+    <string name="baspa_game_menu_speed_reading_subtitle">Бұрын кездескен сөздерді байқаңыз</string>
+    <string name="baspa_game_menu_speed_reading_title">Жылдам оқу</string>
+    <string name="baspa_game_menu_subtitle">Зейін, реакция және оқу жылдамдығын жаттықтырыңыз</string>
+    <string name="baspa_game_menu_text_color_subtitle">Мәтіннің түсіне немесе сөздің мағынасына жауап беріңіз</string>
+    <string name="baspa_game_menu_text_color_title">Мәтін түсі</string>
+    <string name="baspa_game_menu_title">Режимді таңдаңыз</string>
+    <string name="baspa_game_menu_true_false_subtitle">Тұжырымның дұрыс екенін анықтаңыз</string>
+    <string name="baspa_game_menu_true_false_title">Шын немесе жалған</string>
+    <string name="baspa_game_menu_word_length_subtitle">Берілген әріп саны бар сөздерді табыңыз</string>
+    <string name="baspa_game_menu_word_length_title">Сөз ұзындығы</string>
+    <string name="baspa_title">Баспа</string>
     <string name="kenkoz_game_back">Артқа</string>
     <string name="kenkoz_game_characters">АӘБВГҒДЕЁЖЗИЙКҚЛМНҢОӨПРСТУҰҮФХҺЦЧШЩЪЫІЬЭЮЯ0123456789</string>
     <string name="kenkoz_game_direction_bottom">төменде</string>

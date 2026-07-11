@@ -1,6 +1,23 @@
 package com.alad1nks.oquturbo.resources
 
 import oquturbo.resources.generated.resources.Res
+import oquturbo.resources.generated.resources.baspa_game_menu_categories_subtitle
+import oquturbo.resources.generated.resources.baspa_game_menu_categories_title
+import oquturbo.resources.generated.resources.baspa_game_menu_letter_subtitle
+import oquturbo.resources.generated.resources.baspa_game_menu_letter_title
+import oquturbo.resources.generated.resources.baspa_game_menu_math_subtitle
+import oquturbo.resources.generated.resources.baspa_game_menu_math_title
+import oquturbo.resources.generated.resources.baspa_game_menu_speed_reading_subtitle
+import oquturbo.resources.generated.resources.baspa_game_menu_speed_reading_title
+import oquturbo.resources.generated.resources.baspa_game_menu_subtitle
+import oquturbo.resources.generated.resources.baspa_game_menu_text_color_subtitle
+import oquturbo.resources.generated.resources.baspa_game_menu_text_color_title
+import oquturbo.resources.generated.resources.baspa_game_menu_title
+import oquturbo.resources.generated.resources.baspa_game_menu_true_false_subtitle
+import oquturbo.resources.generated.resources.baspa_game_menu_true_false_title
+import oquturbo.resources.generated.resources.baspa_game_menu_word_length_subtitle
+import oquturbo.resources.generated.resources.baspa_game_menu_word_length_title
+import oquturbo.resources.generated.resources.baspa_title
 import oquturbo.resources.generated.resources.kenkoz_game_back
 import oquturbo.resources.generated.resources.kenkoz_game_characters
 import oquturbo.resources.generated.resources.kenkoz_game_difference_pairs
@@ -55,6 +72,23 @@ object AppResource {
     }
 
     object String {
+        val baspa_game_menu_categories_subtitle = Res.string.baspa_game_menu_categories_subtitle
+        val baspa_game_menu_categories_title = Res.string.baspa_game_menu_categories_title
+        val baspa_game_menu_letter_subtitle = Res.string.baspa_game_menu_letter_subtitle
+        val baspa_game_menu_letter_title = Res.string.baspa_game_menu_letter_title
+        val baspa_game_menu_math_subtitle = Res.string.baspa_game_menu_math_subtitle
+        val baspa_game_menu_math_title = Res.string.baspa_game_menu_math_title
+        val baspa_game_menu_speed_reading_subtitle = Res.string.baspa_game_menu_speed_reading_subtitle
+        val baspa_game_menu_speed_reading_title = Res.string.baspa_game_menu_speed_reading_title
+        val baspa_game_menu_subtitle = Res.string.baspa_game_menu_subtitle
+        val baspa_game_menu_text_color_subtitle = Res.string.baspa_game_menu_text_color_subtitle
+        val baspa_game_menu_text_color_title = Res.string.baspa_game_menu_text_color_title
+        val baspa_game_menu_title = Res.string.baspa_game_menu_title
+        val baspa_game_menu_true_false_subtitle = Res.string.baspa_game_menu_true_false_subtitle
+        val baspa_game_menu_true_false_title = Res.string.baspa_game_menu_true_false_title
+        val baspa_game_menu_word_length_subtitle = Res.string.baspa_game_menu_word_length_subtitle
+        val baspa_game_menu_word_length_title = Res.string.baspa_game_menu_word_length_title
+        val baspa_title = Res.string.baspa_title
         val kenkoz_game_back = Res.string.kenkoz_game_back
         val kenkoz_game_characters = Res.string.kenkoz_game_characters
         val kenkoz_game_direction_bottom = Res.string.kenkoz_game_direction_bottom
