@@ -126,6 +126,7 @@ internal class BaspaGameViewModel(
 
     private fun success() {
         timerJob?.cancel()
+        if (mode == BaspaGameMode.SpeedReading) seenWords.clear()
         val newScore = _uiState.value.score + 1
         val oldRecord = _uiState.value.record
         val newRecord = maxOf(oldRecord, newScore)
