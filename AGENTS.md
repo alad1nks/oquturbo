@@ -6,7 +6,7 @@ Kotlin Multiplatform/Compose Multiplatform repository with three products: `oqut
 
 ## Modules and ownership
 
-`settings.gradle.kts` declares 21 modules:
+`settings.gradle.kts` declares 22 modules:
 
 - `app:<product>:{androidApp,desktopApp,shared,webApp}` for each product. Platform launchers delegate to `shared`; `shared/App.kt` assembles the product navigation graph and DI modules.
 - `feature:main`: Koin root, app theme, root `Scaffold`, and `NavHost`.
@@ -15,10 +15,11 @@ Kotlin Multiplatform/Compose Multiplatform repository with three products: `oqut
 - `core:storage:common`: storage contracts and `StorageImpl`.
 - `core:storage:datastore`: Android/iOS/JVM DataStore implementation.
 - `core:storage:web`: JS/Wasm `localStorage` implementation.
-- `core:designsystem`: shared Compose components.
+- `core:designsystem`: basic UI primitives.
+- `core:ui`: compound UI components.
 - `resources`: shared Compose resources and strings.
 
-`core/ui` and `feature/kenkozgamemenu` are directories only; they have no build files and are not included modules.
+`feature/kenkozgamemenu` is a directory only; it has no build file and is not an included module.
 
 ## Stack and existing patterns
 
@@ -48,7 +49,7 @@ platform app -> app:<product>:shared -> feature -> core:data -> core:storage:com
 
 ## UI, navigation, and resources
 
-- Shared Compose screens live in feature `commonMain`; reusable cross-feature components live in `core:designsystem`.
+- Shared Compose screens live in feature `commonMain`; basic primitives belong in `core:designsystem`, while compound reusable components belong in `core:ui`.
 - Keep the current route/screen split: route composables connect ViewModels, while screen/component composables accept state and callbacks.
 - Product graphs and start destinations are defined in `app/<product>/shared/App.kt`; leaf UI receives navigation callbacks rather than a `NavController`.
 - Shared UI strings live in `resources/src/commonMain/composeResources/values*/strings.xml` for default, Russian, and Kazakh locales. Use `AppResource.String` with `stringResource` and update matching keys in all three files.

@@ -1,4 +1,4 @@
-package com.alad1nks.oquturbo.core.designsystem.component
+package com.alad1nks.oquturbo.core.ui.component
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
