@@ -42,7 +42,8 @@ private fun baspaGameContent(): BaspaGameContent {
         letters = stringArrayResource(AppResource.Array.baspa_letters),
         wordLengths = stringArrayResource(AppResource.Array.baspa_word_lengths).map(String::toInt),
         colors = stringArrayResource(AppResource.Array.baspa_colors).map(String::toGameColor),
-        allWords = stringArrayResource(AppResource.Array.baspa_all_words),
+        allWords =
+            (stringArrayResource(AppResource.Array.baspa_all_words) + categories.flatMap { it.words }).distinct(),
         statements = stringArrayResource(AppResource.Array.baspa_statements).map(String::toBooleanPair),
         equations = stringArrayResource(AppResource.Array.baspa_equations).map(String::toBooleanPair),
     )
