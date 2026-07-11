@@ -7,6 +7,7 @@ import androidx.navigation.toRoute
 import com.alad1nks.oquturbo.feature.baspagame.model.BaspaGameContent
 import com.alad1nks.oquturbo.feature.baspagame.model.BaspaGameMode
 import com.alad1nks.oquturbo.feature.baspagame.model.Category
+import com.alad1nks.oquturbo.feature.baspagame.model.LetterChallenge
 import com.alad1nks.oquturbo.feature.baspagame.ui.BaspaGameRoute
 import com.alad1nks.oquturbo.feature.baspagame.ui.BaspaGameViewModel
 import com.alad1nks.oquturbo.resources.AppResource
@@ -40,10 +41,6 @@ private fun baspaGameContent(mode: BaspaGameMode): BaspaGameContent {
     val matchingResource: StringArrayResource?
     val otherResource: StringArrayResource?
     when (mode) {
-        BaspaGameMode.Letter -> {
-            matchingResource = AppResource.Array.baspa_letter_matching
-            otherResource = AppResource.Array.baspa_letter_other
-        }
         BaspaGameMode.WordLength -> {
             matchingResource = AppResource.Array.baspa_length_matching
             otherResource = AppResource.Array.baspa_length_other
@@ -55,10 +52,21 @@ private fun baspaGameContent(mode: BaspaGameMode): BaspaGameContent {
     }
     return BaspaGameContent(
         categories = categories,
+        letters = stringArrayResource(AppResource.Array.baspa_letters).map(String::toLetterChallenge),
         matchingWords = matchingResource?.let { stringArrayResource(it) } ?: categories.flatMap { it.words },
         otherWords = otherResource?.let { stringArrayResource(it) }.orEmpty(),
         statements = stringArrayResource(AppResource.Array.baspa_statements).map(String::toBooleanPair),
         equations = stringArrayResource(AppResource.Array.baspa_equations).map(String::toBooleanPair),
+    )
+}
+
+private fun String.toLetterChallenge(): LetterChallenge {
+    val parts = split('|', limit = 3)
+    require(parts.size == 3) { "Invalid Baspa letter item: $this" }
+    return LetterChallenge(
+        letter = parts[0],
+        matchingWords = parts[1].split(',').map(String::trim).filter(String::isNotEmpty),
+        otherWords = parts[2].split(',').map(String::trim).filter(String::isNotEmpty),
     )
 }
 

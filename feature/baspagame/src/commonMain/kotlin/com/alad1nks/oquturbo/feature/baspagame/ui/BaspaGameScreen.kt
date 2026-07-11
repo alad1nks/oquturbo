@@ -23,6 +23,7 @@ import androidx.compose.material.icons.filled.Pause
 import androidx.compose.material.icons.filled.Pets
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Restaurant
+import androidx.compose.material.icons.filled.SortByAlpha
 import androidx.compose.material.icons.filled.Work
 import androidx.compose.material.icons.outlined.Bolt
 import androidx.compose.material.icons.outlined.TouchApp
@@ -263,10 +264,10 @@ private fun ScoreHeader(
 @Composable
 private fun RuleCard(uiState: BaspaGameUiState, modifier: Modifier = Modifier) {
     val rule =
-        if (uiState.mode == BaspaGameMode.Categories) {
-            stringResource(uiState.mode.ruleResource(), uiState.categoryName)
-        } else {
-            stringResource(uiState.mode.ruleResource())
+        when (uiState.mode) {
+            BaspaGameMode.Categories -> stringResource(uiState.mode.ruleResource(), uiState.categoryName)
+            BaspaGameMode.Letter -> stringResource(uiState.mode.ruleResource(), uiState.letter)
+            else -> stringResource(uiState.mode.ruleResource())
         }
     Card(
         modifier = modifier.fillMaxWidth(),
@@ -283,7 +284,7 @@ private fun RuleCard(uiState: BaspaGameUiState, modifier: Modifier = Modifier) {
         ) {
             Surface(shape = RoundedCornerShape(50), color = MaterialTheme.colorScheme.primaryContainer) {
                 Icon(
-                    categoryIcon(uiState.categoryId),
+                    ruleIcon(uiState),
                     contentDescription = null,
                     modifier = Modifier.padding(16.dp).size(36.dp),
                     tint = MaterialTheme.colorScheme.primary,
@@ -298,14 +299,16 @@ private fun RuleCard(uiState: BaspaGameUiState, modifier: Modifier = Modifier) {
     }
 }
 
-private fun categoryIcon(categoryId: String): ImageVector =
-    when (categoryId) {
+private fun ruleIcon(uiState: BaspaGameUiState): ImageVector {
+    if (uiState.mode == BaspaGameMode.Letter) return Icons.Filled.SortByAlpha
+    return when (uiState.categoryId) {
         "fruits" -> Icons.Filled.Restaurant
         "vehicles" -> Icons.Filled.DirectionsCar
         "professions" -> Icons.Filled.Work
         "clothes" -> Icons.Filled.Checkroom
         else -> Icons.Filled.Pets
     }
+}
 
 @Composable
 private fun highlightedRule(rule: String) =

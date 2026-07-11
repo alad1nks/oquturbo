@@ -4,7 +4,7 @@
     <string name="baspa_game_rule_categories">Нажимай только на %1$s</string>
     <string name="baspa_game_rule_color">Нажимай только на красный текст</string>
     <string name="baspa_game_rule_length">Нажимай только на слова из пяти букв</string>
-    <string name="baspa_game_rule_letter">Нажимай только на слова с буквой А</string>
+    <string name="baspa_game_rule_letter">Нажимай только на слова с буквой %1$s</string>
     <string name="baspa_game_rule_math">Нажимай только на верные примеры</string>
     <string name="baspa_game_rule_seen">Нажимай только на слова, которые уже встречались</string>
     <string name="baspa_game_rule_true">Нажимай только на верные утверждения</string>
@@ -15,8 +15,7 @@
     <string name="baspa_game_start">Start Game!</string>
     <string name="baspa_game_try_again">Попробовать снова?</string>
     <string-array name="baspa_categories"><item>animals|животных|КОТ,СОБАКА,ТИГР,ЛЕВ,ЛОШАДЬ</item><item>fruits|фрукты|ЯБЛОКО,ГРУША,БАНАН,АПЕЛЬСИН,ЛИМОН</item><item>vehicles|транспорт|МАШИНА,АВТОБУС,ПОЕЗД,САМОЛЁТ,ВЕЛОСИПЕД</item><item>professions|профессии|ВРАЧ,УЧИТЕЛЬ,ВОДИТЕЛЬ,ПОВАР,ПИЛОТ</item><item>clothes|одежду|РУБАШКА,ПАЛЬТО,ШАПКА,ПЛАТЬЕ,НОСКИ</item></string-array>
-    <string-array name="baspa_letter_matching"><item>РАК</item><item>МАМА</item><item>ТРАВА</item><item>ЛАМПА</item></string-array>
-    <string-array name="baspa_letter_other"><item>КОТ</item><item>ДОМ</item><item>ЛЕС</item><item>ВЕТЕР</item></string-array>
+    <string-array name="baspa_letters"><item>А|КОШКА,БАНАН,МАШИНА,ВРАЧ,РУБАШКА|КОТ,ЛЕВ,ПОЕЗД,ПИЛОТ,НОСКИ</item><item>О|КОТ,СОБАКА,ЛОШАДЬ,ПОВАР,ПАЛЬТО|ТИГР,ЛЕВ,БАНАН,ВРАЧ,ПИЛОТ</item><item>М|МАШИНА,САМОЛЁТ,ЛИМОН,КОМАР,МОРЕ|КОТ,ЛЕВ,ГРУША,ВРАЧ,НОСКИ</item><item>К|КОТ,КОШКА,ЯБЛОКО,РУБАШКА,НОСКИ|ТИГР,ЛЕВ,БАНАН,ВРАЧ,ПИЛОТ</item><item>С|СОБАКА,САМОЛЁТ,АВТОБУС,НОСКИ,АПЕЛЬСИН|КОТ,ЛЕВ,БАНАН,ВРАЧ,ПИЛОТ</item></string-array>
     <string-array name="baspa_length_matching"><item>КОШКА</item><item>ТРАВА</item><item>РЕЧКА</item><item>КНИГА</item></string-array>
     <string-array name="baspa_length_other"><item>КОТ</item><item>ВЕЛОСИПЕД</item><item>ДОМ</item><item>СОЛНЦЕВОРОТ</item></string-array>
     <string-array name="baspa_statements"><item>Вода мокрая|true</item><item>Кошка умеет летать|false</item><item>Солнце — звезда|true</item><item>Луна больше Солнца|false</item></string-array>

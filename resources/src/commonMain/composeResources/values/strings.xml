@@ -3,7 +3,7 @@
     <string name="baspa_game_rule_categories">Tap only %1$s</string>
     <string name="baspa_game_rule_color">Tap only red text</string>
     <string name="baspa_game_rule_length">Tap only five-letter words</string>
-    <string name="baspa_game_rule_letter">Tap only words containing A</string>
+    <string name="baspa_game_rule_letter">Tap only words containing %1$s</string>
     <string name="baspa_game_rule_math">Tap only correct equations</string>
     <string name="baspa_game_rule_seen">Tap only words you have seen before</string>
     <string name="baspa_game_rule_true">Tap only true statements</string>
@@ -13,8 +13,7 @@
     <string name="baspa_game_start">Start Game!</string>
     <string name="baspa_game_try_again">Try again?</string>
     <string-array name="baspa_categories"><item>animals|animals|CAT,DOG,TIGER,LION,HORSE</item><item>fruits|fruits|APPLE,PEAR,BANANA,ORANGE,LEMON</item><item>vehicles|vehicles|CAR,BUS,TRAIN,PLANE,BICYCLE</item><item>professions|professions|DOCTOR,TEACHER,DRIVER,COOK,PILOT</item><item>clothes|clothes|SHIRT,COAT,HAT,DRESS,SOCKS</item></string-array>
-    <string-array name="baspa_letter_matching"><item>APPLE</item><item>CAR</item><item>MAMA</item><item>ROAD</item></string-array>
-    <string-array name="baspa_letter_other"><item>HOME</item><item>FOREST</item><item>LIGHT</item><item>WIND</item></string-array>
+    <string-array name="baspa_letters"><item>A|CAT,APPLE,TRAIN,LAMP,GRASS|DOG,HOUSE,WIND,FOREST,LEMON</item><item>E|LEMON,TIGER,TEACHER,DRESS,HORSE|CAT,DOG,TRAIN,BUS,PILOT</item><item>S|BUS,DRESS,SOCKS,HOUSE,HORSE|CAT,DOG,TRAIN,APPLE,LEMON</item><item>T|CAT,TIGER,TRAIN,TEACHER,COAT|DOG,BUS,PLANE,APPLE,LEMON</item><item>R|TRAIN,DRIVER,PEAR,SHIRT,HORSE|CAT,DOG,BUS,PLANE,APPLE</item></string-array>
     <string-array name="baspa_length_matching"><item>APPLE</item><item>GRASS</item><item>RIVER</item><item>TIGER</item></string-array>
     <string-array name="baspa_length_other"><item>CAT</item><item>BICYCLE</item><item>HOME</item><item>LIGHTNING</item></string-array>
     <string-array name="baspa_statements"><item>Water is wet|true</item><item>Cats can fly|false</item><item>The Sun is a star|true</item><item>The Moon is bigger than the Sun|false</item></string-array>

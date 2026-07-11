@@ -24,6 +24,7 @@ internal class BaspaGameViewModel(
     private val seenWords = mutableListOf<String>()
     private var timerJob: Job? = null
     private var categoryIndex = content.categories.indices.random()
+    private var letterIndex = content.letters.indices.random()
 
     init {
         viewModelScope.launch {
@@ -32,6 +33,7 @@ internal class BaspaGameViewModel(
                     record = repository.getRecord(mode.name).first() ?: 0,
                     categoryName = content.categories[categoryIndex].name,
                     categoryId = content.categories[categoryIndex].id,
+                    letter = content.letters[letterIndex].letter,
                 )
             }
             showNextStimulus()
@@ -68,11 +70,13 @@ internal class BaspaGameViewModel(
     fun restart() {
         seenWords.clear()
         categoryIndex = content.categories.indices.random()
+        letterIndex = content.letters.indices.random()
         _uiState.update {
             it.copy(
                 score = 0,
                 categoryName = content.categories[categoryIndex].name,
                 categoryId = content.categories[categoryIndex].id,
+                letter = content.letters[letterIndex].letter,
                 intervalMillis = INITIAL_INTERVAL_MILLIS,
                 phase = BaspaGameUiState.Phase.Playing,
             )
@@ -123,9 +127,9 @@ internal class BaspaGameViewModel(
         if (newRecord > oldRecord) {
             viewModelScope.launch { repository.setRecord(mode.name, newRecord) }
         }
-        if (mode == BaspaGameMode.Categories && newScore % CATEGORY_CHANGE_SCORE == 0) {
-            changeCategory()
-            scheduleNextRound(CATEGORY_CHANGE_GAP_MILLIS)
+        if (newScore % CHALLENGE_CHANGE_SCORE == 0 && mode in challengeChangingModes) {
+            if (mode == BaspaGameMode.Categories) changeCategory() else changeLetter()
+            scheduleNextRound(CHALLENGE_CHANGE_GAP_MILLIS)
         } else {
             scheduleNextRound()
         }
@@ -138,10 +142,10 @@ internal class BaspaGameViewModel(
 
     private fun createStimulus(): Stimulus {
         return when (mode) {
-            BaspaGameMode.Letter,
             BaspaGameMode.WordLength,
             -> matchingOrOtherWord()
             BaspaGameMode.Categories -> categoryWord()
+            BaspaGameMode.Letter -> letterWord()
             BaspaGameMode.TextColor -> {
                 val shouldTap = listOf(true, false).random()
                 Stimulus(
@@ -174,6 +178,15 @@ internal class BaspaGameViewModel(
         )
     }
 
+    private fun letterWord(): Stimulus {
+        val challenge = content.letters[letterIndex]
+        val shouldTap = listOf(true, false).random()
+        return Stimulus(
+            text = if (shouldTap) challenge.matchingWords.random() else challenge.otherWords.random(),
+            shouldTap = shouldTap,
+        )
+    }
+
     private fun changeCategory() {
         val previousIndex = categoryIndex
         categoryIndex = content.categories.indices.filterNot { it == previousIndex }.random()
@@ -183,6 +196,12 @@ internal class BaspaGameViewModel(
                 categoryId = content.categories[categoryIndex].id,
             )
         }
+    }
+
+    private fun changeLetter() {
+        val previousIndex = letterIndex
+        letterIndex = content.letters.indices.filterNot { it == previousIndex }.random()
+        _uiState.update { it.copy(letter = content.letters[letterIndex].letter) }
     }
 
     private fun speedReadingStimulus(): Stimulus {
@@ -212,7 +231,8 @@ internal class BaspaGameViewModel(
         const val INITIAL_INTERVAL_MILLIS = 2_000L
         const val SPEED_FACTOR_PERCENT = 95L
         const val WORDS_GAP_MILLIS = 300L
-        const val CATEGORY_CHANGE_GAP_MILLIS = 1_000L
-        const val CATEGORY_CHANGE_SCORE = 10
+        const val CHALLENGE_CHANGE_GAP_MILLIS = 1_000L
+        const val CHALLENGE_CHANGE_SCORE = 10
+        val challengeChangingModes = setOf(BaspaGameMode.Categories, BaspaGameMode.Letter)
     }
 }
