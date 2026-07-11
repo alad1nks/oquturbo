@@ -267,6 +267,7 @@ private fun RuleCard(uiState: BaspaGameUiState, modifier: Modifier = Modifier) {
         when (uiState.mode) {
             BaspaGameMode.Categories -> stringResource(uiState.mode.ruleResource(), uiState.categoryName)
             BaspaGameMode.Letter -> stringResource(uiState.mode.ruleResource(), uiState.letter)
+            BaspaGameMode.WordLength -> stringResource(uiState.mode.ruleResource(), uiState.wordLength)
             else -> stringResource(uiState.mode.ruleResource())
         }
     Card(
@@ -300,7 +301,9 @@ private fun RuleCard(uiState: BaspaGameUiState, modifier: Modifier = Modifier) {
 }
 
 private fun ruleIcon(uiState: BaspaGameUiState): ImageVector {
-    if (uiState.mode == BaspaGameMode.Letter) return Icons.Filled.SortByAlpha
+    if (uiState.mode == BaspaGameMode.Letter || uiState.mode == BaspaGameMode.WordLength) {
+        return Icons.Filled.SortByAlpha
+    }
     return when (uiState.categoryId) {
         "fruits" -> Icons.Filled.Restaurant
         "vehicles" -> Icons.Filled.DirectionsCar

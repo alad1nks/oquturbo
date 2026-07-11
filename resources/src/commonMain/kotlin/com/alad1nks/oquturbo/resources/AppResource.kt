@@ -1,6 +1,7 @@
 package com.alad1nks.oquturbo.resources
 
 import oquturbo.resources.generated.resources.Res
+import oquturbo.resources.generated.resources.baspa_all_words
 import oquturbo.resources.generated.resources.baspa_categories
 import oquturbo.resources.generated.resources.baspa_equations
 import oquturbo.resources.generated.resources.baspa_game_menu_categories_subtitle
@@ -32,11 +33,10 @@ import oquturbo.resources.generated.resources.baspa_game_speed
 import oquturbo.resources.generated.resources.baspa_game_start
 import oquturbo.resources.generated.resources.baspa_game_tap_hint
 import oquturbo.resources.generated.resources.baspa_game_try_again
-import oquturbo.resources.generated.resources.baspa_length_matching
-import oquturbo.resources.generated.resources.baspa_length_other
 import oquturbo.resources.generated.resources.baspa_letters
 import oquturbo.resources.generated.resources.baspa_statements
 import oquturbo.resources.generated.resources.baspa_title
+import oquturbo.resources.generated.resources.baspa_word_lengths
 import oquturbo.resources.generated.resources.kenkoz_game_back
 import oquturbo.resources.generated.resources.kenkoz_game_characters
 import oquturbo.resources.generated.resources.kenkoz_game_difference_pairs
@@ -86,10 +86,10 @@ import oquturbo.resources.generated.resources.remember_number_title
 
 object AppResource {
     object Array {
+        val baspa_all_words = Res.array.baspa_all_words
         val baspa_categories = Res.array.baspa_categories
         val baspa_equations = Res.array.baspa_equations
-        val baspa_length_matching = Res.array.baspa_length_matching
-        val baspa_length_other = Res.array.baspa_length_other
+        val baspa_word_lengths = Res.array.baspa_word_lengths
         val baspa_letters = Res.array.baspa_letters
         val baspa_statements = Res.array.baspa_statements
         val kenkoz_game_difference_pairs = Res.array.kenkoz_game_difference_pairs

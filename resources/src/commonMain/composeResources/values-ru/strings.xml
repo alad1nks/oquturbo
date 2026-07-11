@@ -3,7 +3,7 @@
     <string name="baspa_game_record_label">Рекорд</string>
     <string name="baspa_game_rule_categories">Нажимай только на %1$s</string>
     <string name="baspa_game_rule_color">Нажимай только на красный текст</string>
-    <string name="baspa_game_rule_length">Нажимай только на слова из пяти букв</string>
+    <string name="baspa_game_rule_length">Нажимай только на слова из %1$d букв</string>
     <string name="baspa_game_rule_letter">Нажимай только на слова с буквой %1$s</string>
     <string name="baspa_game_rule_math">Нажимай только на верные примеры</string>
     <string name="baspa_game_rule_seen">Нажимай только на слова, которые уже встречались</string>
@@ -15,9 +15,9 @@
     <string name="baspa_game_start">Start Game!</string>
     <string name="baspa_game_try_again">Попробовать снова?</string>
     <string-array name="baspa_categories"><item>animals|животных|КОТ,СОБАКА,ТИГР,ЛЕВ,ЛОШАДЬ</item><item>fruits|фрукты|ЯБЛОКО,ГРУША,БАНАН,АПЕЛЬСИН,ЛИМОН</item><item>vehicles|транспорт|МАШИНА,АВТОБУС,ПОЕЗД,САМОЛЁТ,ВЕЛОСИПЕД</item><item>professions|профессии|ВРАЧ,УЧИТЕЛЬ,ВОДИТЕЛЬ,ПОВАР,ПИЛОТ</item><item>clothes|одежду|РУБАШКА,ПАЛЬТО,ШАПКА,ПЛАТЬЕ,НОСКИ</item></string-array>
-    <string-array name="baspa_letters"><item>А|КОШКА,БАНАН,МАШИНА,ВРАЧ,РУБАШКА|КОТ,ЛЕВ,ПОЕЗД,ПИЛОТ,НОСКИ</item><item>О|КОТ,СОБАКА,ЛОШАДЬ,ПОВАР,ПАЛЬТО|ТИГР,ЛЕВ,БАНАН,ВРАЧ,ПИЛОТ</item><item>М|МАШИНА,САМОЛЁТ,ЛИМОН,КОМАР,МОРЕ|КОТ,ЛЕВ,ГРУША,ВРАЧ,НОСКИ</item><item>К|КОТ,КОШКА,ЯБЛОКО,РУБАШКА,НОСКИ|ТИГР,ЛЕВ,БАНАН,ВРАЧ,ПИЛОТ</item><item>С|СОБАКА,САМОЛЁТ,АВТОБУС,НОСКИ,АПЕЛЬСИН|КОТ,ЛЕВ,БАНАН,ВРАЧ,ПИЛОТ</item></string-array>
-    <string-array name="baspa_length_matching"><item>КОШКА</item><item>ТРАВА</item><item>РЕЧКА</item><item>КНИГА</item></string-array>
-    <string-array name="baspa_length_other"><item>КОТ</item><item>ВЕЛОСИПЕД</item><item>ДОМ</item><item>СОЛНЦЕВОРОТ</item></string-array>
+    <string-array name="baspa_letters"><item>А</item><item>О</item><item>М</item><item>К</item><item>С</item></string-array>
+    <string-array name="baspa_word_lengths"><item>3</item><item>4</item><item>5</item><item>6</item></string-array>
+    <string-array name="baspa_all_words"><item>КОТ</item><item>ЛЕВ</item><item>СОК</item><item>ЛУК</item><item>ДОМ</item><item>ТИГР</item><item>ВРАЧ</item><item>СТОЛ</item><item>ПЛЕД</item><item>МОРЕ</item><item>КОШКА</item><item>БАНАН</item><item>ПИЛОТ</item><item>ПОВАР</item><item>НОСКИ</item><item>СОБАКА</item><item>ЛОШАДЬ</item><item>ЛИМОНЫ</item><item>ПАЛЬТО</item><item>ПЛАТЬЕ</item><item>МАШИНА</item><item>УЧИТЕЛЬ</item><item>ВЕЛОСИПЕД</item><item>ЯБЛОКО</item><item>САМОЛЁТ</item><item>АВТОБУС</item><item>АПЕЛЬСИН</item><item>РУБАШКА</item></string-array>
     <string-array name="baspa_statements"><item>Вода мокрая|true</item><item>Кошка умеет летать|false</item><item>Солнце — звезда|true</item><item>Луна больше Солнца|false</item></string-array>
     <string-array name="baspa_equations"><item>2 + 2 = 4|true</item><item>8 × 7 = 60|false</item><item>9 − 3 = 6|true</item><item>5 × 5 = 20|false</item></string-array>
     <string name="baspa_game_menu_categories_subtitle">Нажимайте только на слова из указанной категории</string>

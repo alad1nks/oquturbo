@@ -8,6 +8,7 @@ internal data class BaspaGameUiState(
     val categoryName: String = "",
     val categoryId: String = "animals",
     val letter: String = "",
+    val wordLength: Int = 0,
     val shouldTap: Boolean = false,
     val score: Int = 0,
     val record: Int = 0,
