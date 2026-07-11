@@ -2,12 +2,14 @@ package com.alad1nks.kenkoz.shared
 
 import com.alad1nks.oquturbo.core.data.di.DataModule
 import com.alad1nks.oquturbo.core.storage.common.di.StorageCommonModule
+import com.alad1nks.oquturbo.feature.kenkozgame.di.KenKozGameModule
 import com.alad1nks.oquturbo.feature.main.di.MainModule
 import org.koin.core.module.Module
 
 fun getCommonModules(): List<Module> {
     return listOf(
         DataModule,
+        KenKozGameModule,
         MainModule,
         StorageCommonModule,
     )

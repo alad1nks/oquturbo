@@ -1,4 +1,17 @@
 <resources>
+    <string name="kenkoz_game_back">Назад</string>
+    <string name="kenkoz_game_direction_bottom">снизу</string>
+    <string name="kenkoz_game_direction_left">слева</string>
+    <string name="kenkoz_game_direction_right">справа</string>
+    <string name="kenkoz_game_direction_top">сверху</string>
+    <string name="kenkoz_game_question_character">Какой символ был %1$s?</string>
+    <string name="kenkoz_game_question_difference">Где находилось отличающееся слово?</string>
+    <string name="kenkoz_game_question_first_word">Какое слово было первым?</string>
+    <string name="kenkoz_game_question_word">Какое слово было %1$s?</string>
+    <string name="kenkoz_game_score">Счёт</string>
+    <string name="kenkoz_game_score_value">Счёт: %1$d</string>
+    <string name="kenkoz_game_start">Начать игру!</string>
+    <string name="kenkoz_game_try_again">Попробовать снова?</string>
     <string name="kenkoz_game_menu_item_characters_subtitle">Тренируйте внимание на отдельных символах</string>
     <string name="kenkoz_game_menu_item_characters_title">Символы</string>
     <string name="kenkoz_game_menu_item_find_difference_subtitle">Найдите элемент, который отличается от остальных</string>

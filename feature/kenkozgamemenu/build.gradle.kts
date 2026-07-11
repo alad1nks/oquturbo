@@ -55,6 +55,7 @@ kotlin {
             implementation(libs.navigation.compose)
 
             implementation(projects.core.ui)
+            implementation(projects.feature.kenkozgame)
             implementation(projects.resources)
         }
     }

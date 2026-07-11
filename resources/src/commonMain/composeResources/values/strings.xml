@@ -1,4 +1,17 @@
 <resources>
+    <string name="kenkoz_game_back">Back</string>
+    <string name="kenkoz_game_direction_bottom">below</string>
+    <string name="kenkoz_game_direction_left">on the left</string>
+    <string name="kenkoz_game_direction_right">on the right</string>
+    <string name="kenkoz_game_direction_top">on top</string>
+    <string name="kenkoz_game_question_character">Which character was %1$s?</string>
+    <string name="kenkoz_game_question_difference">Where was the different word?</string>
+    <string name="kenkoz_game_question_first_word">Which word was first?</string>
+    <string name="kenkoz_game_question_word">Which word was %1$s?</string>
+    <string name="kenkoz_game_score">Score</string>
+    <string name="kenkoz_game_score_value">Score: %1$d</string>
+    <string name="kenkoz_game_start">Start Game!</string>
+    <string name="kenkoz_game_try_again">Try Again?</string>
     <string name="kenkoz_game_menu_item_characters_subtitle">Train attention with individual characters</string>
     <string name="kenkoz_game_menu_item_characters_title">Characters</string>
     <string name="kenkoz_game_menu_item_find_difference_subtitle">Find the item that differs from the others</string>

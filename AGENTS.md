@@ -6,11 +6,12 @@ Kotlin Multiplatform/Compose Multiplatform repository with three products: `oqut
 
 ## Modules and ownership
 
-`settings.gradle.kts` declares 23 modules:
+`settings.gradle.kts` declares 24 modules:
 
 - `app:<product>:{androidApp,desktopApp,shared,webApp}` for each product. Platform launchers delegate to `shared`; `shared/App.kt` assembles the product navigation graph and DI modules.
 - `feature:main`: Koin root, app theme, root `Scaffold`, and `NavHost`.
-- `feature:kenkozgamemenu`: static KenKoz start menu and its navigation destination.
+- `feature:kenkozgame`: KenKoz game modes, state machine, UI, navigation, and DI.
+- `feature:kenkozgamemenu`: KenKoz start menu and its navigation destination.
 - `feature:remembernumber`, `feature:remembernumbermenu`: feature UI, ViewModel/state, navigation, and DI.
 - `core:data`: repositories.
 - `core:storage:common`: storage contracts and `StorageImpl`.

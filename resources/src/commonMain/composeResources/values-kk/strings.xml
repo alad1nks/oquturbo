@@ -1,4 +1,17 @@
 <resources>
+    <string name="kenkoz_game_back">Артқа</string>
+    <string name="kenkoz_game_direction_bottom">төменде</string>
+    <string name="kenkoz_game_direction_left">сол жақта</string>
+    <string name="kenkoz_game_direction_right">оң жақта</string>
+    <string name="kenkoz_game_direction_top">жоғарыда</string>
+    <string name="kenkoz_game_question_character">Қай таңба %1$s болды?</string>
+    <string name="kenkoz_game_question_difference">Өзгеше сөз қай жерде болды?</string>
+    <string name="kenkoz_game_question_first_word">Қай сөз бірінші болды?</string>
+    <string name="kenkoz_game_question_word">Қай сөз %1$s болды?</string>
+    <string name="kenkoz_game_score">Ұпай</string>
+    <string name="kenkoz_game_score_value">Ұпай: %1$d</string>
+    <string name="kenkoz_game_start">Ойынды бастау!</string>
+    <string name="kenkoz_game_try_again">Қайта байқап көресіз бе?</string>
     <string name="kenkoz_game_menu_item_characters_subtitle">Жеке таңбалар арқылы зейініңізді жаттықтырыңыз</string>
     <string name="kenkoz_game_menu_item_characters_title">Таңбалар</string>
     <string name="kenkoz_game_menu_item_find_difference_subtitle">Басқалардан ерекшеленетін элементті табыңыз</string>
