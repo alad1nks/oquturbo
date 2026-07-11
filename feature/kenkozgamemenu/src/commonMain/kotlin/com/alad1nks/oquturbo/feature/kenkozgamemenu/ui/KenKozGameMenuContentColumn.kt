@@ -16,11 +16,13 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.alad1nks.oquturbo.core.ui.component.GameMenuItem
+import com.alad1nks.oquturbo.feature.kenkozgame.model.KenKozGameMode
 import com.alad1nks.oquturbo.resources.AppResource
 import org.jetbrains.compose.resources.stringResource
 
 @Composable
 internal fun KenKozGameMenuContentColumn(
+    onModeClick: (KenKozGameMode) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     LazyColumn(
@@ -46,7 +48,7 @@ internal fun KenKozGameMenuContentColumn(
                 imageVector = Icons.Outlined.TextFields,
                 title = stringResource(AppResource.String.kenkoz_game_menu_item_characters_title),
                 subtitle = stringResource(AppResource.String.kenkoz_game_menu_item_characters_subtitle),
-                onClick = {},
+                onClick = { onModeClick(KenKozGameMode.Characters) },
             )
 
             Spacer(modifier = Modifier.height(16.dp))
@@ -55,7 +57,7 @@ internal fun KenKozGameMenuContentColumn(
                 imageVector = Icons.AutoMirrored.Outlined.Article,
                 title = stringResource(AppResource.String.kenkoz_game_menu_item_words_title),
                 subtitle = stringResource(AppResource.String.kenkoz_game_menu_item_words_subtitle),
-                onClick = {},
+                onClick = { onModeClick(KenKozGameMode.Words) },
             )
 
             Spacer(modifier = Modifier.height(16.dp))
@@ -64,7 +66,7 @@ internal fun KenKozGameMenuContentColumn(
                 imageVector = Icons.Outlined.Difference,
                 title = stringResource(AppResource.String.kenkoz_game_menu_item_find_difference_title),
                 subtitle = stringResource(AppResource.String.kenkoz_game_menu_item_find_difference_subtitle),
-                onClick = {},
+                onClick = { onModeClick(KenKozGameMode.FindDifference) },
             )
 
             Spacer(modifier = Modifier.height(16.dp))
@@ -73,7 +75,7 @@ internal fun KenKozGameMenuContentColumn(
                 imageVector = Icons.Outlined.ViewWeek,
                 title = stringResource(AppResource.String.kenkoz_game_menu_item_wide_line_title),
                 subtitle = stringResource(AppResource.String.kenkoz_game_menu_item_wide_line_subtitle),
-                onClick = {},
+                onClick = { onModeClick(KenKozGameMode.WideLine) },
             )
 
             Spacer(modifier = Modifier.height(16.dp))

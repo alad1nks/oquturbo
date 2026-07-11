@@ -11,12 +11,14 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
+import com.alad1nks.oquturbo.feature.kenkozgame.model.KenKozGameMode
 import com.alad1nks.oquturbo.resources.AppResource
 import org.jetbrains.compose.resources.stringResource
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 internal fun KenKozGameMenuScreen(
+    onModeClick: (KenKozGameMode) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Column(
@@ -32,7 +34,7 @@ internal fun KenKozGameMenuScreen(
                 ),
         )
 
-        KenKozGameMenuContentColumn()
+        KenKozGameMenuContentColumn(onModeClick = onModeClick)
     }
 }
 
@@ -40,6 +42,6 @@ internal fun KenKozGameMenuScreen(
 @Composable
 private fun KenKozGameMenuScreenPreview() {
     Scaffold {
-        KenKozGameMenuScreen()
+        KenKozGameMenuScreen(onModeClick = {})
     }
 }
