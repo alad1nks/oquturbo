@@ -2,6 +2,8 @@ package com.alad1nks.oquturbo.resources
 
 import oquturbo.resources.generated.resources.Res
 import oquturbo.resources.generated.resources.kenkoz_game_back
+import oquturbo.resources.generated.resources.kenkoz_game_characters
+import oquturbo.resources.generated.resources.kenkoz_game_difference_pairs
 import oquturbo.resources.generated.resources.kenkoz_game_direction_bottom
 import oquturbo.resources.generated.resources.kenkoz_game_direction_left
 import oquturbo.resources.generated.resources.kenkoz_game_direction_right
@@ -24,6 +26,7 @@ import oquturbo.resources.generated.resources.kenkoz_game_score
 import oquturbo.resources.generated.resources.kenkoz_game_score_value
 import oquturbo.resources.generated.resources.kenkoz_game_start
 import oquturbo.resources.generated.resources.kenkoz_game_try_again
+import oquturbo.resources.generated.resources.kenkoz_game_words
 import oquturbo.resources.generated.resources.kenkoz_title
 import oquturbo.resources.generated.resources.remember_number_game_record
 import oquturbo.resources.generated.resources.remember_number_game_score
@@ -45,8 +48,14 @@ import oquturbo.resources.generated.resources.remember_number_menu_title
 import oquturbo.resources.generated.resources.remember_number_title
 
 object AppResource {
+    object Array {
+        val kenkoz_game_difference_pairs = Res.array.kenkoz_game_difference_pairs
+        val kenkoz_game_words = Res.array.kenkoz_game_words
+    }
+
     object String {
         val kenkoz_game_back = Res.string.kenkoz_game_back
+        val kenkoz_game_characters = Res.string.kenkoz_game_characters
         val kenkoz_game_direction_bottom = Res.string.kenkoz_game_direction_bottom
         val kenkoz_game_direction_left = Res.string.kenkoz_game_direction_left
         val kenkoz_game_direction_right = Res.string.kenkoz_game_direction_right
