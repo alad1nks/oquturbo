@@ -7,6 +7,7 @@ import androidx.navigation.toRoute
 import com.alad1nks.oquturbo.feature.baspagame.model.BaspaGameContent
 import com.alad1nks.oquturbo.feature.baspagame.model.BaspaGameMode
 import com.alad1nks.oquturbo.feature.baspagame.model.Category
+import com.alad1nks.oquturbo.feature.baspagame.model.GameColor
 import com.alad1nks.oquturbo.feature.baspagame.ui.BaspaGameRoute
 import com.alad1nks.oquturbo.feature.baspagame.ui.BaspaGameViewModel
 import com.alad1nks.oquturbo.resources.AppResource
@@ -40,10 +41,17 @@ private fun baspaGameContent(): BaspaGameContent {
         categories = categories,
         letters = stringArrayResource(AppResource.Array.baspa_letters),
         wordLengths = stringArrayResource(AppResource.Array.baspa_word_lengths).map(String::toInt),
+        colors = stringArrayResource(AppResource.Array.baspa_colors).map(String::toGameColor),
         allWords = stringArrayResource(AppResource.Array.baspa_all_words),
         statements = stringArrayResource(AppResource.Array.baspa_statements).map(String::toBooleanPair),
         equations = stringArrayResource(AppResource.Array.baspa_equations).map(String::toBooleanPair),
     )
+}
+
+private fun String.toGameColor(): GameColor {
+    val parts = split('|', limit = 3)
+    require(parts.size == 3) { "Invalid Baspa color item: $this" }
+    return GameColor(id = parts[0], name = parts[1], word = parts[2])
 }
 
 private fun String.toCategory(): Category {

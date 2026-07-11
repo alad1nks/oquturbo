@@ -26,6 +26,7 @@ internal class BaspaGameViewModel(
     private var categoryIndex = content.categories.indices.random()
     private var letterIndex = content.letters.indices.random()
     private var wordLengthIndex = content.wordLengths.indices.random()
+    private var colorIndex = content.colors.indices.random()
 
     init {
         viewModelScope.launch {
@@ -36,6 +37,7 @@ internal class BaspaGameViewModel(
                     categoryId = content.categories[categoryIndex].id,
                     letter = content.letters[letterIndex],
                     wordLength = content.wordLengths[wordLengthIndex],
+                    targetColorName = content.colors[colorIndex].name,
                 )
             }
             showNextStimulus()
@@ -74,6 +76,7 @@ internal class BaspaGameViewModel(
         categoryIndex = content.categories.indices.random()
         letterIndex = content.letters.indices.random()
         wordLengthIndex = content.wordLengths.indices.random()
+        colorIndex = content.colors.indices.random()
         _uiState.update {
             it.copy(
                 score = 0,
@@ -81,6 +84,7 @@ internal class BaspaGameViewModel(
                 categoryId = content.categories[categoryIndex].id,
                 letter = content.letters[letterIndex],
                 wordLength = content.wordLengths[wordLengthIndex],
+                targetColorName = content.colors[colorIndex].name,
                 intervalMillis = INITIAL_INTERVAL_MILLIS,
                 phase = BaspaGameUiState.Phase.Playing,
             )
@@ -91,7 +95,11 @@ internal class BaspaGameViewModel(
     private fun showNextStimulus() {
         val stimulus = createStimulus()
         _uiState.update {
-            it.copy(stimulus = stimulus.text, shouldTap = stimulus.shouldTap, accent = stimulus.accent)
+            it.copy(
+                stimulus = stimulus.text,
+                shouldTap = stimulus.shouldTap,
+                stimulusColorId = stimulus.colorId,
+            )
         }
         if (_uiState.value.phase == BaspaGameUiState.Phase.Playing) startTimer()
     }
@@ -136,6 +144,7 @@ internal class BaspaGameViewModel(
                 BaspaGameMode.Categories -> changeCategory()
                 BaspaGameMode.Letter -> changeLetter()
                 BaspaGameMode.WordLength -> changeWordLength()
+                BaspaGameMode.TextColor -> changeTextColor()
                 else -> Unit
             }
             scheduleNextRound(CHALLENGE_CHANGE_GAP_MILLIS)
@@ -155,11 +164,18 @@ internal class BaspaGameViewModel(
             BaspaGameMode.Letter -> letterWord()
             BaspaGameMode.WordLength -> wordLengthWord()
             BaspaGameMode.TextColor -> {
+                val targetColor = content.colors[colorIndex]
                 val shouldTap = listOf(true, false).random()
+                val displayedColor =
+                    if (shouldTap) {
+                        targetColor
+                    } else {
+                        content.colors.filterNot { it.id == targetColor.id }.random()
+                    }
                 Stimulus(
-                    text = content.allWords.random(),
+                    text = content.colors.random().word,
                     shouldTap = shouldTap,
-                    accent = if (shouldTap) BaspaGameUiState.Accent.Target else BaspaGameUiState.Accent.Other,
+                    colorId = displayedColor.id,
                 )
             }
             BaspaGameMode.TrueFalse -> content.statements.random().toStimulus()
@@ -220,6 +236,12 @@ internal class BaspaGameViewModel(
         _uiState.update { it.copy(wordLength = content.wordLengths[wordLengthIndex]) }
     }
 
+    private fun changeTextColor() {
+        val previousIndex = colorIndex
+        colorIndex = content.colors.indices.filterNot { it == previousIndex }.random()
+        _uiState.update { it.copy(targetColorName = content.colors[colorIndex].name) }
+    }
+
     private fun speedReadingStimulus(): Stimulus {
         val allWords = content.allWords
         val repeat = seenWords.isNotEmpty() && listOf(true, false).random()
@@ -240,7 +262,7 @@ internal class BaspaGameViewModel(
     private data class Stimulus(
         val text: String,
         val shouldTap: Boolean,
-        val accent: BaspaGameUiState.Accent = BaspaGameUiState.Accent.Default,
+        val colorId: String = "",
     )
 
     private companion object {
@@ -250,6 +272,11 @@ internal class BaspaGameViewModel(
         const val CHALLENGE_CHANGE_GAP_MILLIS = 1_000L
         const val CHALLENGE_CHANGE_SCORE = 10
         val challengeChangingModes =
-            setOf(BaspaGameMode.Categories, BaspaGameMode.Letter, BaspaGameMode.WordLength)
+            setOf(
+                BaspaGameMode.Categories,
+                BaspaGameMode.Letter,
+                BaspaGameMode.WordLength,
+                BaspaGameMode.TextColor,
+            )
     }
 }

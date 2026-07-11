@@ -3,6 +3,7 @@ package com.alad1nks.oquturbo.resources
 import oquturbo.resources.generated.resources.Res
 import oquturbo.resources.generated.resources.baspa_all_words
 import oquturbo.resources.generated.resources.baspa_categories
+import oquturbo.resources.generated.resources.baspa_colors
 import oquturbo.resources.generated.resources.baspa_equations
 import oquturbo.resources.generated.resources.baspa_game_menu_categories_subtitle
 import oquturbo.resources.generated.resources.baspa_game_menu_categories_title
@@ -86,6 +87,7 @@ import oquturbo.resources.generated.resources.remember_number_title
 
 object AppResource {
     object Array {
+        val baspa_colors = Res.array.baspa_colors
         val baspa_all_words = Res.array.baspa_all_words
         val baspa_categories = Res.array.baspa_categories
         val baspa_equations = Res.array.baspa_equations

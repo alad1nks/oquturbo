@@ -19,6 +19,7 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Checkroom
 import androidx.compose.material.icons.filled.DirectionsCar
 import androidx.compose.material.icons.filled.EmojiEvents
+import androidx.compose.material.icons.filled.Palette
 import androidx.compose.material.icons.filled.Pause
 import androidx.compose.material.icons.filled.Pets
 import androidx.compose.material.icons.filled.PlayArrow
@@ -268,6 +269,7 @@ private fun RuleCard(uiState: BaspaGameUiState, modifier: Modifier = Modifier) {
             BaspaGameMode.Categories -> stringResource(uiState.mode.ruleResource(), uiState.categoryName)
             BaspaGameMode.Letter -> stringResource(uiState.mode.ruleResource(), uiState.letter)
             BaspaGameMode.WordLength -> stringResource(uiState.mode.ruleResource(), uiState.wordLength)
+            BaspaGameMode.TextColor -> stringResource(uiState.mode.ruleResource(), uiState.targetColorName)
             else -> stringResource(uiState.mode.ruleResource())
         }
     Card(
@@ -304,6 +306,7 @@ private fun ruleIcon(uiState: BaspaGameUiState): ImageVector {
     if (uiState.mode == BaspaGameMode.Letter || uiState.mode == BaspaGameMode.WordLength) {
         return Icons.Filled.SortByAlpha
     }
+    if (uiState.mode == BaspaGameMode.TextColor) return Icons.Filled.Palette
     return when (uiState.categoryId) {
         "fruits" -> Icons.Filled.Restaurant
         "vehicles" -> Icons.Filled.DirectionsCar
@@ -342,10 +345,13 @@ private fun BaspaGameMode.ruleResource(): StringResource =
 
 @Composable
 private fun stimulusColor(uiState: BaspaGameUiState): Color =
-    when (uiState.accent) {
-        BaspaGameUiState.Accent.Target -> Color.Red
-        BaspaGameUiState.Accent.Other -> Color.Blue
-        BaspaGameUiState.Accent.Default -> MaterialTheme.colorScheme.primary
+    when (uiState.stimulusColorId) {
+        "red" -> Color.Red
+        "blue" -> Color.Blue
+        "green" -> Color.Green
+        "yellow" -> Color.Yellow
+        "purple" -> Color(0xFF8E24AA)
+        else -> MaterialTheme.colorScheme.primary
     }
 
 @Preview
