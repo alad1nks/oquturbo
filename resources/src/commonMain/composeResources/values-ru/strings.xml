@@ -1,4 +1,15 @@
 <resources>
+    <string name="kenkoz_game_menu_item_characters_subtitle">Тренируйте внимание на отдельных символах</string>
+    <string name="kenkoz_game_menu_item_characters_title">Символы</string>
+    <string name="kenkoz_game_menu_item_find_difference_subtitle">Найдите элемент, который отличается от остальных</string>
+    <string name="kenkoz_game_menu_item_find_difference_title">Найди отличие</string>
+    <string name="kenkoz_game_menu_item_wide_line_subtitle">Тренируйтесь охватывать взглядом широкую строку</string>
+    <string name="kenkoz_game_menu_item_wide_line_title">Широкая строка</string>
+    <string name="kenkoz_game_menu_item_words_subtitle">Тренируйте внимание и скорость чтения на словах</string>
+    <string name="kenkoz_game_menu_item_words_title">Слова</string>
+    <string name="kenkoz_game_menu_subtitle">Тренируйте внимание и скорость чтения</string>
+    <string name="kenkoz_game_menu_title">Выбери режим</string>
+    <string name="kenkoz_title">Широкий взгляд</string>
     <string name="remember_number_game_record">Рекорд: %1$d</string>
     <string name="remember_number_game_score">Счёт: %1$d</string>
     <string name="remember_number_game_start">Начать игру!</string>

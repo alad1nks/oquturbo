@@ -2,6 +2,8 @@ package com.alad1nks.kenkoz.shared
 
 import androidx.compose.runtime.Composable
 import androidx.navigation.compose.rememberNavController
+import com.alad1nks.oquturbo.feature.kenkozgamemenu.navigation.KenKozGameMenuRoute
+import com.alad1nks.oquturbo.feature.kenkozgamemenu.navigation.kenKozGameMenuScreen
 import com.alad1nks.oquturbo.feature.main.ui.MainScreen
 
 @Composable
@@ -11,8 +13,9 @@ fun App() {
     MainScreen(
         commonModules = getCommonModules(),
         platformModules = getPlatformModules(),
-        startDestination = "",
+        startDestination = KenKozGameMenuRoute,
         navController = navController,
     ) {
+        kenKozGameMenuScreen()
     }
 }

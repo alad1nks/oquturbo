@@ -1,4 +1,15 @@
 <resources>
+    <string name="kenkoz_game_menu_item_characters_subtitle">Train attention with individual characters</string>
+    <string name="kenkoz_game_menu_item_characters_title">Characters</string>
+    <string name="kenkoz_game_menu_item_find_difference_subtitle">Find the item that differs from the others</string>
+    <string name="kenkoz_game_menu_item_find_difference_title">Find the Difference</string>
+    <string name="kenkoz_game_menu_item_wide_line_subtitle">Practice reading a wide line at a glance</string>
+    <string name="kenkoz_game_menu_item_wide_line_title">Wide Line</string>
+    <string name="kenkoz_game_menu_item_words_subtitle">Train attention and reading speed with words</string>
+    <string name="kenkoz_game_menu_item_words_title">Words</string>
+    <string name="kenkoz_game_menu_subtitle">Train your attention and reading speed</string>
+    <string name="kenkoz_game_menu_title">Choose a Mode</string>
+    <string name="kenkoz_title">Wide Eye</string>
     <string name="remember_number_game_record">Record: %1$d</string>
     <string name="remember_number_game_score">Score: %1$d</string>
     <string name="remember_number_game_start">Start Game!</string>

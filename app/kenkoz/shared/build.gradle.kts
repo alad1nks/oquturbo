@@ -73,6 +73,7 @@ kotlin {
 
             implementation(projects.core.data)
             implementation(projects.core.storage.common)
+            implementation(projects.feature.kenkozgamemenu)
             implementation(projects.feature.main)
         }
         commonTest.dependencies {
