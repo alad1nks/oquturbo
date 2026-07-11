@@ -174,7 +174,12 @@ internal class BaspaGameViewModel(
                         content.colors.filterNot { it.id == targetColor.id }.random()
                     }
                 Stimulus(
-                    text = content.colors.random().word,
+                    text =
+                        if (listOf(true, false).random()) {
+                            content.colors.random().word
+                        } else {
+                            content.allWords.random()
+                        },
                     shouldTap = shouldTap,
                     colorId = displayedColor.id,
                 )

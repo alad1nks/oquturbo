@@ -19,12 +19,16 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Checkroom
 import androidx.compose.material.icons.filled.DirectionsCar
 import androidx.compose.material.icons.filled.EmojiEvents
+import androidx.compose.material.icons.filled.Forest
+import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Palette
 import androidx.compose.material.icons.filled.Pause
 import androidx.compose.material.icons.filled.Pets
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Restaurant
+import androidx.compose.material.icons.filled.School
 import androidx.compose.material.icons.filled.SortByAlpha
+import androidx.compose.material.icons.filled.SportsSoccer
 import androidx.compose.material.icons.filled.Work
 import androidx.compose.material.icons.outlined.Bolt
 import androidx.compose.material.icons.outlined.TouchApp
@@ -312,6 +316,11 @@ private fun ruleIcon(uiState: BaspaGameUiState): ImageVector {
         "vehicles" -> Icons.Filled.DirectionsCar
         "professions" -> Icons.Filled.Work
         "clothes" -> Icons.Filled.Checkroom
+        "nature" -> Icons.Filled.Forest
+        "food" -> Icons.Filled.Restaurant
+        "home" -> Icons.Filled.Home
+        "sports" -> Icons.Filled.SportsSoccer
+        "school" -> Icons.Filled.School
         else -> Icons.Filled.Pets
     }
 }
