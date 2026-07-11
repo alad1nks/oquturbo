@@ -9,14 +9,13 @@ internal data class BaspaGameUiState(
     val categoryId: String = "animals",
     val letter: String = "",
     val wordLength: Int = 0,
+    val targetColorName: String = "",
+    val stimulusColorId: String = "",
     val shouldTap: Boolean = false,
     val score: Int = 0,
     val record: Int = 0,
     val intervalMillis: Long = 2_000L,
     val phase: Phase = Phase.Initial,
-    val accent: Accent = Accent.Default,
 ) {
     enum class Phase { Initial, Playing, Paused, Mistake }
-
-    enum class Accent { Default, Target, Other }
 }

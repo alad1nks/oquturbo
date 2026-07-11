@@ -1,7 +1,7 @@
 <resources>
     <string name="baspa_game_record_label">Record</string>
     <string name="baspa_game_rule_categories">Tap only %1$s</string>
-    <string name="baspa_game_rule_color">Tap only red text</string>
+    <string name="baspa_game_rule_color">Tap only %1$s text</string>
     <string name="baspa_game_rule_length">Tap only words with %1$d letters</string>
     <string name="baspa_game_rule_letter">Tap only words containing %1$s</string>
     <string name="baspa_game_rule_math">Tap only correct equations</string>
@@ -15,6 +15,7 @@
     <string-array name="baspa_categories"><item>animals|animals|CAT,DOG,TIGER,LION,HORSE</item><item>fruits|fruits|APPLE,PEAR,BANANA,ORANGE,LEMON</item><item>vehicles|vehicles|CAR,BUS,TRAIN,PLANE,BICYCLE</item><item>professions|professions|DOCTOR,TEACHER,DRIVER,COOK,PILOT</item><item>clothes|clothes|SHIRT,COAT,HAT,DRESS,SOCKS</item></string-array>
     <string-array name="baspa_letters"><item>A</item><item>E</item><item>S</item><item>T</item><item>R</item></string-array>
     <string-array name="baspa_word_lengths"><item>3</item><item>4</item><item>5</item><item>6</item></string-array>
+    <string-array name="baspa_colors"><item>red|red|RED</item><item>blue|blue|BLUE</item><item>green|green|GREEN</item><item>yellow|yellow|YELLOW</item><item>purple|purple|PURPLE</item></string-array>
     <string-array name="baspa_all_words"><item>CAT</item><item>DOG</item><item>BUS</item><item>HAT</item><item>CAR</item><item>LION</item><item>PEAR</item><item>COAT</item><item>COOK</item><item>HOME</item><item>APPLE</item><item>TIGER</item><item>TRAIN</item><item>HORSE</item><item>PLANE</item><item>BANANA</item><item>ORANGE</item><item>DOCTOR</item><item>DRIVER</item><item>SHIRTS</item><item>TEACHER</item><item>BICYCLE</item><item>FOREST</item><item>LEMON</item><item>DRESS</item><item>SOCKS</item></string-array>
     <string-array name="baspa_statements"><item>Water is wet|true</item><item>Cats can fly|false</item><item>The Sun is a star|true</item><item>The Moon is bigger than the Sun|false</item></string-array>
     <string-array name="baspa_equations"><item>2 + 2 = 4|true</item><item>8 × 7 = 60|false</item><item>9 − 3 = 6|true</item><item>5 × 5 = 20|false</item></string-array>

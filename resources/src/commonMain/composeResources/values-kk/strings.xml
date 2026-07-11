@@ -2,7 +2,7 @@
     <string name="baspa_game_record">Рекорд: %1$d</string>
     <string name="baspa_game_record_label">Рекорд</string>
     <string name="baspa_game_rule_categories">Тек %1$s басыңыз</string>
-    <string name="baspa_game_rule_color">Тек қызыл мәтінді басыңыз</string>
+    <string name="baspa_game_rule_color">Тек %1$s мәтінді басыңыз</string>
     <string name="baspa_game_rule_length">Тек %1$d әріптен тұратын сөздерді басыңыз</string>
     <string name="baspa_game_rule_letter">%1$s әрпі бар сөздерді ғана басыңыз</string>
     <string name="baspa_game_rule_math">Тек дұрыс мысалдарды басыңыз</string>
@@ -17,6 +17,7 @@
     <string-array name="baspa_categories"><item>animals|жануарларды|МЫСЫҚ,ИТ,ЖОЛБАРЫС,АРЫСТАН,ЖЫЛҚЫ</item><item>fruits|жемістерді|АЛМА,АЛМҰРТ,БАНАН,АПЕЛЬСИН,ЛИМОН</item><item>vehicles|көліктерді|КӨЛІК,АВТОБУС,ПОЙЫЗ,ҰШАҚ,ВЕЛОСИПЕД</item><item>professions|мамандықтарды|ДӘРІГЕР,МҰҒАЛІМ,ЖҮРГІЗУШІ,АСПАЗ,ҰШҚЫШ</item><item>clothes|киімдерді|КӨЙЛЕК,ПАЛЬТО,БӨРІК,ЖЕЙДЕ,ШҰЛЫҚ</item></string-array>
     <string-array name="baspa_letters"><item>А</item><item>Қ</item><item>М</item><item>С</item><item>Т</item></string-array>
     <string-array name="baspa_word_lengths"><item>2</item><item>4</item><item>5</item></string-array>
+    <string-array name="baspa_colors"><item>red|қызыл|ҚЫЗЫЛ</item><item>blue|көк|КӨК</item><item>green|жасыл|ЖАСЫЛ</item><item>yellow|сары|САРЫ</item><item>purple|күлгін|КҮЛГІН</item></string-array>
     <string-array name="baspa_all_words"><item>ИТ</item><item>ҮЙ</item><item>АТ</item><item>ОҚ</item><item>СУ</item><item>АЛМА</item><item>ҰШАҚ</item><item>ҚАЛА</item><item>БАЛА</item><item>ДАЛА</item><item>МЫСЫҚ</item><item>ПОЙЫЗ</item><item>ЛИМОН</item><item>АСПАЗ</item><item>САҒАТ</item><item>БАНАН</item><item>МАШИНА</item><item>ШАПАН</item><item>ШҰЛЫҚ</item><item>ҚАЛАМ</item><item>ҚАСЫҚ</item><item>МҰҒАЛІМ</item><item>АВТОБУС</item><item>САБЫН</item><item>ПАЛЬТО</item><item>ДӘПТЕР</item></string-array>
     <string-array name="baspa_statements"><item>Су дымқыл|true</item><item>Мысық ұша алады|false</item><item>Күн — жұлдыз|true</item><item>Ай Күннен үлкен|false</item></string-array>
     <string-array name="baspa_equations"><item>2 + 2 = 4|true</item><item>8 × 7 = 60|false</item><item>9 − 3 = 6|true</item><item>5 × 5 = 20|false</item></string-array>
