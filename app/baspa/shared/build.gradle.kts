@@ -69,6 +69,7 @@ kotlin {
 
             implementation(projects.core.data)
             implementation(projects.core.storage.common)
+            implementation(projects.feature.baspagame)
             implementation(projects.feature.baspagamemenu)
             implementation(projects.feature.main)
         }

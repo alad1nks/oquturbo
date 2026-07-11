@@ -5,6 +5,8 @@ import kotlinx.coroutines.flow.Flow
 interface Storage {
     fun getDarkTheme(): Flow<Boolean?>
 
+    fun getBaspaGameRecord(mode: String): Flow<Int?>
+
     fun getKenKozGameRecord(mode: String): Flow<Int?>
 
     fun getRememberNumberRecord(
@@ -13,6 +15,11 @@ interface Storage {
     ): Flow<Int?>
 
     suspend fun setDarkTheme(value: Boolean)
+
+    suspend fun setBaspaGameRecord(
+        mode: String,
+        record: Int,
+    )
 
     suspend fun setKenKozGameRecord(
         mode: String,

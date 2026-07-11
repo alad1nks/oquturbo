@@ -9,6 +9,10 @@ internal class StorageImpl(
         return appPreferences.getBoolean(DARK_THEME)
     }
 
+    override fun getBaspaGameRecord(mode: String): Flow<Int?> {
+        return appPreferences.getInt("${BASPA_GAME_RECORD}_$mode")
+    }
+
     override fun getKenKozGameRecord(mode: String): Flow<Int?> {
         return appPreferences.getInt("${KENKOZ_GAME_RECORD}_$mode")
     }
@@ -22,6 +26,13 @@ internal class StorageImpl(
 
     override suspend fun setDarkTheme(value: Boolean) {
         appPreferences.setBoolean(DARK_THEME, value)
+    }
+
+    override suspend fun setBaspaGameRecord(
+        mode: String,
+        record: Int,
+    ) {
+        appPreferences.setInt("${BASPA_GAME_RECORD}_$mode", record)
     }
 
     override suspend fun setKenKozGameRecord(
@@ -40,6 +51,7 @@ internal class StorageImpl(
     }
 
     private companion object {
+        const val BASPA_GAME_RECORD = "baspa_game_record"
         const val DARK_THEME = "dark_theme"
         const val KENKOZ_GAME_RECORD = "kenkoz_game_record"
         const val REMEMBER_NUMBER_RECORD = "remember_number_record"
