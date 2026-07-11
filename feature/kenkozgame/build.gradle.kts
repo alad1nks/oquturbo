@@ -56,6 +56,7 @@ kotlin {
             implementation(libs.navigation.compose)
             implementation(project.dependencies.platform(libs.koin.bom))
 
+            implementation(projects.core.data)
             implementation(projects.resources)
         }
     }

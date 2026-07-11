@@ -134,16 +134,14 @@ private fun KenKozGameScreen(
                 }
 
                 if (uiState.phase == KenKozGameUiState.Phase.Mistake) {
-                    Text(
-                        text = stringResource(AppResource.String.kenkoz_game_score_value, uiState.score),
+                    KenKozGameMistakeScore(
+                        score = uiState.score,
+                        record = uiState.record,
                         modifier =
                             Modifier
                                 .align(Alignment.TopCenter)
                                 .systemBarsPadding()
                                 .padding(top = 64.dp),
-                        fontSize = 48.sp,
-                        textAlign = TextAlign.Center,
-                        lineHeight = 48.sp,
                     )
 
                     Text(
@@ -169,6 +167,31 @@ private fun KenKozGameScreen(
                 contentDescription = stringResource(AppResource.String.kenkoz_game_back),
             )
         }
+    }
+}
+
+@Composable
+private fun KenKozGameMistakeScore(
+    score: Int,
+    record: Int,
+    modifier: Modifier = Modifier,
+) {
+    Column(
+        modifier = modifier,
+        horizontalAlignment = Alignment.CenterHorizontally,
+    ) {
+        Text(
+            text = stringResource(AppResource.String.kenkoz_game_score_value, score),
+            fontSize = 48.sp,
+            textAlign = TextAlign.Center,
+            lineHeight = 48.sp,
+        )
+        Text(
+            text = stringResource(AppResource.String.kenkoz_game_record, record),
+            fontSize = 48.sp,
+            textAlign = TextAlign.Center,
+            lineHeight = 48.sp,
+        )
     }
 }
 
@@ -376,6 +399,7 @@ private fun KenKozGameScreenMistakePreview() {
             KenKozGameUiState(
                 mode = KenKozGameMode.Words,
                 score = 4,
+                record = 7,
                 phase = KenKozGameUiState.Phase.Mistake,
             ),
         onBackClick = {},

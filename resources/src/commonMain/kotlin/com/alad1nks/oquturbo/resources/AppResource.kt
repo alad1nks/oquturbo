@@ -22,6 +22,7 @@ import oquturbo.resources.generated.resources.kenkoz_game_question_character
 import oquturbo.resources.generated.resources.kenkoz_game_question_difference
 import oquturbo.resources.generated.resources.kenkoz_game_question_first_word
 import oquturbo.resources.generated.resources.kenkoz_game_question_word
+import oquturbo.resources.generated.resources.kenkoz_game_record
 import oquturbo.resources.generated.resources.kenkoz_game_score
 import oquturbo.resources.generated.resources.kenkoz_game_score_value
 import oquturbo.resources.generated.resources.kenkoz_game_start
@@ -75,6 +76,7 @@ object AppResource {
         val kenkoz_game_question_difference = Res.string.kenkoz_game_question_difference
         val kenkoz_game_question_first_word = Res.string.kenkoz_game_question_first_word
         val kenkoz_game_question_word = Res.string.kenkoz_game_question_word
+        val kenkoz_game_record = Res.string.kenkoz_game_record
         val kenkoz_game_score = Res.string.kenkoz_game_score
         val kenkoz_game_score_value = Res.string.kenkoz_game_score_value
         val kenkoz_game_start = Res.string.kenkoz_game_start

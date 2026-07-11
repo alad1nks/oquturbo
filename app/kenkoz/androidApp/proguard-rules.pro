@@ -1,0 +1,1 @@
+-keep class com.alad1nks.oquturbo.feature.kenkozgame.model.KenKozGameMode
