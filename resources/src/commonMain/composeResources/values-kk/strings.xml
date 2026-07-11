@@ -1,4 +1,15 @@
 <resources>
+    <string name="kenkoz_game_menu_item_characters_subtitle">Жеке таңбалар арқылы зейініңізді жаттықтырыңыз</string>
+    <string name="kenkoz_game_menu_item_characters_title">Таңбалар</string>
+    <string name="kenkoz_game_menu_item_find_difference_subtitle">Басқалардан ерекшеленетін элементті табыңыз</string>
+    <string name="kenkoz_game_menu_item_find_difference_title">Айырмашылықты тап</string>
+    <string name="kenkoz_game_menu_item_wide_line_subtitle">Кең жолды бір қарағанда оқуға жаттығыңыз</string>
+    <string name="kenkoz_game_menu_item_wide_line_title">Кең жол</string>
+    <string name="kenkoz_game_menu_item_words_subtitle">Сөздер арқылы зейін мен оқу жылдамдығын жаттықтырыңыз</string>
+    <string name="kenkoz_game_menu_item_words_title">Сөздер</string>
+    <string name="kenkoz_game_menu_subtitle">Зейін мен оқу жылдамдығын жаттықтырыңыз</string>
+    <string name="kenkoz_game_menu_title">Режимді таңдаңыз</string>
+    <string name="kenkoz_title">Кең көз</string>
     <string name="remember_number_game_record">Рекорд: %1$d</string>
     <string name="remember_number_game_score">Ұпай: %1$d</string>
     <string name="remember_number_game_start">Ойынды бастау!</string>

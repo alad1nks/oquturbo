@@ -6,10 +6,11 @@ Kotlin Multiplatform/Compose Multiplatform repository with three products: `oqut
 
 ## Modules and ownership
 
-`settings.gradle.kts` declares 22 modules:
+`settings.gradle.kts` declares 23 modules:
 
 - `app:<product>:{androidApp,desktopApp,shared,webApp}` for each product. Platform launchers delegate to `shared`; `shared/App.kt` assembles the product navigation graph and DI modules.
 - `feature:main`: Koin root, app theme, root `Scaffold`, and `NavHost`.
+- `feature:kenkozgamemenu`: static KenKoz start menu and its navigation destination.
 - `feature:remembernumber`, `feature:remembernumbermenu`: feature UI, ViewModel/state, navigation, and DI.
 - `core:data`: repositories.
 - `core:storage:common`: storage contracts and `StorageImpl`.
@@ -18,8 +19,6 @@ Kotlin Multiplatform/Compose Multiplatform repository with three products: `oqut
 - `core:designsystem`: basic UI primitives.
 - `core:ui`: compound UI components.
 - `resources`: shared Compose resources and strings.
-
-`feature/kenkozgamemenu` is a directory only; it has no build file and is not an included module.
 
 ## Stack and existing patterns
 
@@ -87,7 +86,6 @@ Android release tasks use `release-key.jks` and the environment variables `SIGNI
 
 ## Known limitations
 
-- `kenkoz/shared/App.kt` uses `startDestination = ""` and registers no destinations.
 - Desktop DataStore writes all products to `${java.io.tmpdir}/oquturbo.preferences_pb`; products can share data and the file is temporary.
 - `RememberNumberViewModel` calls `availableDigits.random()` without validating route arguments.
 - `feature:main/MainScreen.kt` starts Koin inside Compose and ignores the root `Scaffold` content padding.
