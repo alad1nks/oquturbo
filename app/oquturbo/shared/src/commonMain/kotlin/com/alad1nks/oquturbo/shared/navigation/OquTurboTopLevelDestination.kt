@@ -10,6 +10,7 @@ import androidx.compose.material.icons.outlined.Games
 import androidx.compose.material.icons.outlined.Home
 import androidx.compose.material.icons.outlined.Person
 import androidx.compose.ui.graphics.vector.ImageVector
+import com.alad1nks.oquturbo.feature.home.navigation.HomeRoute
 import com.alad1nks.oquturbo.feature.remembernumbermenu.navigation.RememberNumberMenuRoute
 import com.alad1nks.oquturbo.resources.AppResource
 import kotlinx.serialization.ExperimentalSerializationApi
