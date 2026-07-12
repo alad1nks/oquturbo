@@ -1,12 +1,19 @@
 <resources>
     <string name="baspa_game_record_label">Record</string>
     <string name="baspa_game_rule_categories">Tap only %1$s</string>
+    <string name="baspa_game_rule_categories_accent">%1$s</string>
     <string name="baspa_game_rule_color">Tap only %1$s text</string>
+    <string name="baspa_game_rule_color_accent">%1$s</string>
     <string name="baspa_game_rule_length">Tap only words with %1$d letters</string>
+    <string name="baspa_game_rule_length_accent">%1$d letters</string>
     <string name="baspa_game_rule_letter">Tap only words containing %1$s</string>
+    <string name="baspa_game_rule_letter_accent">%1$s</string>
     <string name="baspa_game_rule_math">Tap only correct equations</string>
+    <string name="baspa_game_rule_math_accent">correct equations</string>
     <string name="baspa_game_rule_seen">Tap only words you have seen before</string>
+    <string name="baspa_game_rule_seen_accent">you have seen before</string>
     <string name="baspa_game_rule_true">Tap only true statements</string>
+    <string name="baspa_game_rule_true_accent">true statements</string>
     <string name="baspa_game_score_label">Score</string>
     <string name="baspa_game_speed">Speed: %1$s sec</string>
     <string name="baspa_game_tap_hint">Tap the screen if it matches</string>

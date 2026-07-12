@@ -23,12 +23,19 @@ import oquturbo.resources.generated.resources.baspa_game_menu_word_length_subtit
 import oquturbo.resources.generated.resources.baspa_game_menu_word_length_title
 import oquturbo.resources.generated.resources.baspa_game_record_label
 import oquturbo.resources.generated.resources.baspa_game_rule_categories
+import oquturbo.resources.generated.resources.baspa_game_rule_categories_accent
 import oquturbo.resources.generated.resources.baspa_game_rule_color
+import oquturbo.resources.generated.resources.baspa_game_rule_color_accent
 import oquturbo.resources.generated.resources.baspa_game_rule_length
+import oquturbo.resources.generated.resources.baspa_game_rule_length_accent
 import oquturbo.resources.generated.resources.baspa_game_rule_letter
+import oquturbo.resources.generated.resources.baspa_game_rule_letter_accent
 import oquturbo.resources.generated.resources.baspa_game_rule_math
+import oquturbo.resources.generated.resources.baspa_game_rule_math_accent
 import oquturbo.resources.generated.resources.baspa_game_rule_seen
+import oquturbo.resources.generated.resources.baspa_game_rule_seen_accent
 import oquturbo.resources.generated.resources.baspa_game_rule_true
+import oquturbo.resources.generated.resources.baspa_game_rule_true_accent
 import oquturbo.resources.generated.resources.baspa_game_score_label
 import oquturbo.resources.generated.resources.baspa_game_speed
 import oquturbo.resources.generated.resources.baspa_game_start
@@ -101,12 +108,19 @@ object AppResource {
     object String {
         val baspa_game_record_label = Res.string.baspa_game_record_label
         val baspa_game_rule_categories = Res.string.baspa_game_rule_categories
+        val baspa_game_rule_categories_accent = Res.string.baspa_game_rule_categories_accent
         val baspa_game_rule_color = Res.string.baspa_game_rule_color
+        val baspa_game_rule_color_accent = Res.string.baspa_game_rule_color_accent
         val baspa_game_rule_length = Res.string.baspa_game_rule_length
+        val baspa_game_rule_length_accent = Res.string.baspa_game_rule_length_accent
         val baspa_game_rule_letter = Res.string.baspa_game_rule_letter
+        val baspa_game_rule_letter_accent = Res.string.baspa_game_rule_letter_accent
         val baspa_game_rule_math = Res.string.baspa_game_rule_math
+        val baspa_game_rule_math_accent = Res.string.baspa_game_rule_math_accent
         val baspa_game_rule_seen = Res.string.baspa_game_rule_seen
+        val baspa_game_rule_seen_accent = Res.string.baspa_game_rule_seen_accent
         val baspa_game_rule_true = Res.string.baspa_game_rule_true
+        val baspa_game_rule_true_accent = Res.string.baspa_game_rule_true_accent
         val baspa_game_score_label = Res.string.baspa_game_score_label
         val baspa_game_speed = Res.string.baspa_game_speed
         val baspa_game_tap_hint = Res.string.baspa_game_tap_hint

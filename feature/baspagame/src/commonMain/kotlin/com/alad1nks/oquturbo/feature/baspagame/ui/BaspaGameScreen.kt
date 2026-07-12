@@ -29,6 +29,7 @@ import androidx.compose.material.icons.filled.Restaurant
 import androidx.compose.material.icons.filled.School
 import androidx.compose.material.icons.filled.SortByAlpha
 import androidx.compose.material.icons.filled.SportsSoccer
+import androidx.compose.material.icons.filled.Straighten
 import androidx.compose.material.icons.filled.Work
 import androidx.compose.material.icons.outlined.Bolt
 import androidx.compose.material.icons.outlined.TouchApp
@@ -97,8 +98,8 @@ private fun BaspaGameScreen(
                 text = uiState.stimulus,
                 modifier = Modifier.align(Alignment.Center),
                 color = stimulusColor(uiState),
-                fontSize = 64.sp,
-                lineHeight = 64.sp,
+                fontSize = if (uiState.mode.usesCompactStimulusText()) 40.sp else 56.sp,
+                lineHeight = if (uiState.mode.usesCompactStimulusText()) 48.sp else 56.sp,
                 fontWeight = FontWeight.Black,
                 textAlign = TextAlign.Center,
             )
@@ -140,10 +141,11 @@ private fun BaspaGameScreen(
                 Card(
                     shape = RoundedCornerShape(28.dp),
                     colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerHigh),
+                    modifier = Modifier.padding(horizontal = 16.dp),
                 ) {
                     Text(
                         text = stringResource(AppResource.String.baspa_game_try_again),
-                        modifier = Modifier.padding(horizontal = 36.dp, vertical = 28.dp),
+                        modifier = Modifier.padding(horizontal = 32.dp, vertical = 24.dp),
                         fontSize = 48.sp,
                         lineHeight = 48.sp,
                         textAlign = TextAlign.Center,
@@ -276,6 +278,14 @@ private fun RuleCard(uiState: BaspaGameUiState, modifier: Modifier = Modifier) {
             BaspaGameMode.TextColor -> stringResource(uiState.mode.ruleResource(), uiState.targetColorName)
             else -> stringResource(uiState.mode.ruleResource())
         }
+    val accent =
+        when (uiState.mode) {
+            BaspaGameMode.Categories -> stringResource(uiState.mode.ruleAccentResource(), uiState.categoryName)
+            BaspaGameMode.Letter -> stringResource(uiState.mode.ruleAccentResource(), uiState.letter)
+            BaspaGameMode.WordLength -> stringResource(uiState.mode.ruleAccentResource(), uiState.wordLength)
+            BaspaGameMode.TextColor -> stringResource(uiState.mode.ruleAccentResource(), uiState.targetColorName)
+            else -> stringResource(uiState.mode.ruleAccentResource())
+        }
     Card(
         modifier = modifier.fillMaxWidth(),
         shape = RoundedCornerShape(28.dp),
@@ -293,13 +303,13 @@ private fun RuleCard(uiState: BaspaGameUiState, modifier: Modifier = Modifier) {
                 Icon(
                     ruleIcon(uiState),
                     contentDescription = null,
-                    modifier = Modifier.padding(16.dp).size(36.dp),
+                    modifier = Modifier.padding(16.dp).size(28.dp),
                     tint = MaterialTheme.colorScheme.primary,
                 )
             }
             Text(
-                text = highlightedRule(rule),
-                style = MaterialTheme.typography.headlineSmall,
+                text = highlightedRule(rule, accent),
+                style = MaterialTheme.typography.titleLarge,
                 fontWeight = FontWeight.Medium,
             )
         }
@@ -309,6 +319,9 @@ private fun RuleCard(uiState: BaspaGameUiState, modifier: Modifier = Modifier) {
 private fun ruleIcon(uiState: BaspaGameUiState): ImageVector {
     if (uiState.mode == BaspaGameMode.Letter || uiState.mode == BaspaGameMode.WordLength) {
         return Icons.Filled.SortByAlpha
+    }
+    if (uiState.mode == BaspaGameMode.WordLength) {
+        return Icons.Filled.Straighten
     }
     if (uiState.mode == BaspaGameMode.TextColor) return Icons.Filled.Palette
     return when (uiState.categoryId) {
@@ -326,18 +339,17 @@ private fun ruleIcon(uiState: BaspaGameUiState): ImageVector {
 }
 
 @Composable
-private fun highlightedRule(rule: String) =
+private fun highlightedRule(rule: String, accent: String) =
     buildAnnotatedString {
-        val splitIndex = rule.lastIndexOf(' ')
-        if (splitIndex < 0) {
-            withStyle(
-                SpanStyle(color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold),
-            ) { append(rule) }
+        val accentStart = rule.lastIndexOf(accent)
+        if (accentStart < 0) {
+            append(rule)
         } else {
-            append(rule.substring(0, splitIndex + 1))
+            append(rule.substring(0, accentStart))
             withStyle(SpanStyle(color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold)) {
-                append(rule.substring(splitIndex + 1))
+                append(accent)
             }
+            append(rule.substring(accentStart + accent.length))
         }
     }
 
@@ -351,6 +363,20 @@ private fun BaspaGameMode.ruleResource(): StringResource =
         BaspaGameMode.Math -> AppResource.String.baspa_game_rule_math
         BaspaGameMode.SpeedReading -> AppResource.String.baspa_game_rule_seen
     }
+
+private fun BaspaGameMode.ruleAccentResource(): StringResource =
+    when (this) {
+        BaspaGameMode.Categories -> AppResource.String.baspa_game_rule_categories_accent
+        BaspaGameMode.Letter -> AppResource.String.baspa_game_rule_letter_accent
+        BaspaGameMode.WordLength -> AppResource.String.baspa_game_rule_length_accent
+        BaspaGameMode.TextColor -> AppResource.String.baspa_game_rule_color_accent
+        BaspaGameMode.TrueFalse -> AppResource.String.baspa_game_rule_true_accent
+        BaspaGameMode.Math -> AppResource.String.baspa_game_rule_math_accent
+        BaspaGameMode.SpeedReading -> AppResource.String.baspa_game_rule_seen_accent
+    }
+
+private fun BaspaGameMode.usesCompactStimulusText(): Boolean =
+    this == BaspaGameMode.TrueFalse || this == BaspaGameMode.Math
 
 @Composable
 private fun stimulusColor(uiState: BaspaGameUiState): Color =

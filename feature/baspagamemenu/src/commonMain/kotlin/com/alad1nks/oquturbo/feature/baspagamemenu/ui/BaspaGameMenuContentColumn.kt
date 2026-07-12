@@ -8,10 +8,10 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.FactCheck
 import androidx.compose.material.icons.outlined.Calculate
 import androidx.compose.material.icons.outlined.Category
-import androidx.compose.material.icons.outlined.FormatSize
 import androidx.compose.material.icons.outlined.Palette
+import androidx.compose.material.icons.outlined.SortByAlpha
 import androidx.compose.material.icons.outlined.Speed
-import androidx.compose.material.icons.outlined.TextFields
+import androidx.compose.material.icons.outlined.Straighten
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -52,13 +52,13 @@ internal fun BaspaGameMenuContentColumn(
                 { onModeClick(BaspaGameMode.Categories) },
             )
             BaspaGameMenuItem(
-                Icons.Outlined.TextFields,
+                Icons.Outlined.SortByAlpha,
                 AppResource.String.baspa_game_menu_letter_title,
                 AppResource.String.baspa_game_menu_letter_subtitle,
                 { onModeClick(BaspaGameMode.Letter) },
             )
             BaspaGameMenuItem(
-                Icons.Outlined.FormatSize,
+                Icons.Outlined.Straighten,
                 AppResource.String.baspa_game_menu_word_length_title,
                 AppResource.String.baspa_game_menu_word_length_subtitle,
                 { onModeClick(BaspaGameMode.WordLength) },
