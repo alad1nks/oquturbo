@@ -19,6 +19,8 @@ fun App() {
         navController = navController,
     ) {
         kenKozGameMenuScreen(onModeClick = navController::navigateToKenKozGame)
-        kenKozGameScreen(onBackClick = navController::popBackStack)
+        kenKozGameScreen {
+            navController.popBackStack(route = KenKozGameMenuRoute, inclusive = false)
+        }
     }
 }

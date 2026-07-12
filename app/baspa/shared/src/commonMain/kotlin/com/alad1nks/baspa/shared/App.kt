@@ -18,6 +18,8 @@ fun App() {
         navController = navController,
     ) {
         baspaGameMenuScreen(navController::navigateToBaspaGame)
-        baspaGameScreen(navController::popBackStack)
+        baspaGameScreen {
+            navController.popBackStack(route = BaspaGameMenuRoute, inclusive = false)
+        }
     }
 }
