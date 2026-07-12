@@ -53,7 +53,7 @@ internal class BaspaGameViewModel(
         when (_uiState.value.phase) {
             BaspaGameUiState.Phase.Initial -> {
                 _uiState.update { it.copy(phase = BaspaGameUiState.Phase.Playing) }
-                startTimer()
+                scheduleNextRound()
             }
             BaspaGameUiState.Phase.Playing -> {
                 timerJob?.cancel()
