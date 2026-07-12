@@ -1,1 +1,1 @@
-# Add Baspa-specific ProGuard rules here when needed.
+-keep class com.alad1nks.oquturbo.feature.baspagame.model.BaspaGameMode
