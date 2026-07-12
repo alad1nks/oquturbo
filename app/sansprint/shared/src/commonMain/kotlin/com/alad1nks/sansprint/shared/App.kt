@@ -18,11 +18,13 @@ fun App() {
         startDestination = RememberNumberMenuRoute,
         navController = navController,
     ) {
-        rememberNumberScreen(onBackClick = navController::popBackStack)
         rememberNumberMenuScreen(
             showBackButton = false,
-            onBackClick = navController::popBackStack,
+            onBackClick = {},
             onPlayClick = navController::navigateToRememberNumber,
         )
+        rememberNumberScreen {
+            navController.popBackStack(route = RememberNumberMenuRoute, inclusive = false)
+        }
     }
 }
