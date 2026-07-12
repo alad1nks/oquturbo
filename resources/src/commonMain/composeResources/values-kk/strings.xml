@@ -1,4 +1,8 @@
 <resources>
+    <string name="oquturbo_navigation_home">Басты бет</string>
+    <string name="oquturbo_navigation_games">Ойындар</string>
+    <string name="oquturbo_navigation_stats">Статистика</string>
+    <string name="oquturbo_navigation_profile">Профиль</string>
     <string name="baspa_game_record">Рекорд: %1$d</string>
     <string name="baspa_game_record_label">Рекорд</string>
     <string name="baspa_game_rule_categories">Тек %1$s басыңыз</string>

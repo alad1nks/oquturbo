@@ -1,30 +1,47 @@
 package com.alad1nks.oquturbo.shared
 
 import androidx.compose.runtime.Composable
-import androidx.navigation.compose.rememberNavController
 import com.alad1nks.oquturbo.feature.main.ui.MainScreen
 import com.alad1nks.oquturbo.feature.remembernumber.navigation.navigateToRememberNumber
 import com.alad1nks.oquturbo.feature.remembernumber.navigation.rememberNumberScreen
 import com.alad1nks.oquturbo.feature.remembernumbermenu.navigation.RememberNumberMenuRoute
 import com.alad1nks.oquturbo.feature.remembernumbermenu.navigation.rememberNumberMenuScreen
+import com.alad1nks.oquturbo.shared.navigation.HomeRoute
+import com.alad1nks.oquturbo.shared.navigation.homeScreen
+import com.alad1nks.oquturbo.shared.navigation.profileScreen
+import com.alad1nks.oquturbo.shared.navigation.statsScreen
+import com.alad1nks.oquturbo.shared.ui.OquTurboNavigationBar
+import com.alad1nks.oquturbo.shared.ui.rememberOquTurboAppState
 
 @Composable
 fun App() {
-    val navController = rememberNavController()
+    val appState = rememberOquTurboAppState()
 
     MainScreen(
         commonModules = getCommonModules(),
         platformModules = getPlatformModules(),
-        startDestination = RememberNumberMenuRoute,
-        navController = navController,
+        startDestination = HomeRoute,
+        navController = appState.navController,
+        bottomBar = {
+            if (appState.shouldShowNavigationBar) {
+                OquTurboNavigationBar(
+                    destinations = appState.topLevelDestinations,
+                    currentDestination = appState.currentDestination,
+                    onNavigateToDestination = appState::navigateToTopLevelDestination,
+                )
+            }
+        },
     ) {
+        homeScreen()
         rememberNumberMenuScreen(
-            showBackButton = true,
-            onBackClick = navController::popBackStack,
-            onPlayClick = navController::navigateToRememberNumber,
+            showBackButton = false,
+            onBackClick = {},
+            onPlayClick = appState.navController::navigateToRememberNumber,
         )
+        statsScreen()
+        profileScreen()
         rememberNumberScreen {
-            navController.popBackStack(route = RememberNumberMenuRoute, inclusive = false)
+            appState.navController.popBackStack(route = RememberNumberMenuRoute, inclusive = false)
         }
     }
 }

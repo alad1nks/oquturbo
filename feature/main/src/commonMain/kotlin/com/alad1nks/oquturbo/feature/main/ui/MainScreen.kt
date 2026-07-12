@@ -1,5 +1,9 @@
 package com.alad1nks.oquturbo.feature.main.ui
 
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.consumeWindowInsets
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.darkColorScheme
@@ -7,6 +11,7 @@ import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.Modifier
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
@@ -22,6 +27,7 @@ fun MainScreen(
     platformModules: List<Module>,
     startDestination: Any,
     navController: NavHostController,
+    bottomBar: @Composable () -> Unit = {},
     navGraphBuilder: NavGraphBuilder.() -> Unit,
 ) {
     KoinApplication(
@@ -39,10 +45,14 @@ fun MainScreen(
         MaterialTheme(
             colorScheme = if (darkTheme) darkColorScheme() else lightColorScheme(),
         ) {
-            Scaffold {
+            Scaffold(
+                contentWindowInsets = WindowInsets(0, 0, 0, 0),
+                bottomBar = bottomBar,
+            ) { padding ->
                 NavHost(
                     navController = navController,
                     startDestination = startDestination,
+                    modifier = Modifier.fillMaxSize().padding(padding).consumeWindowInsets(padding),
                     builder = navGraphBuilder,
                 )
             }
