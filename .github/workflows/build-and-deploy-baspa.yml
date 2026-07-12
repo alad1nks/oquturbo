@@ -1,13 +1,13 @@
-name: Build and deploy sansprint
+name: Build and deploy baspa
 
 on:
   push:
     branches:
       - main
     paths:
-      - 'app/sansprint/**'
-      - 'feature/remembernumber/**'
-      - 'feature/remembernumbermenu/**'
+      - 'app/baspa/**'
+      - 'feature/baspagame/**'
+      - 'feature/baspagamemenu/**'
       - 'feature/main/**'
       - 'core/**'
       - 'resources/**'
@@ -41,25 +41,25 @@ jobs:
 
       - name: Decode Keystore
         run: |
-          echo "${{ secrets.SANSPRINT_KEYSTORE_BASE64 }}" | base64 -d > release-key.jks
+          echo "${{ secrets.BASPA_KEYSTORE_BASE64 }}" | base64 -d > release-key.jks
 
       - name: Build APK
-        run: ./gradlew :app:sansprint:androidApp:assembleRelease
+        run: ./gradlew :app:baspa:androidApp:assembleRelease
         env:
-          SIGNING_KEY_ALIAS: ${{ secrets.SANSPRINT_KEY_ALIAS }}
-          SIGNING_KEY_PASSWORD: ${{ secrets.SANSPRINT_KEY_PASSWORD }}
-          SIGNING_STORE_PASSWORD: ${{ secrets.SANSPRINT_KEYSTORE_PASSWORD }}
+          SIGNING_KEY_ALIAS: ${{ secrets.BASPA_KEY_ALIAS }}
+          SIGNING_KEY_PASSWORD: ${{ secrets.BASPA_KEY_PASSWORD }}
+          SIGNING_STORE_PASSWORD: ${{ secrets.BASPA_KEYSTORE_PASSWORD }}
         if: success()
 
       - name: Rename APK
-        run: mv app/sansprint/androidApp/build/outputs/apk/release/androidApp-release.apk app/sansprint/androidApp/build/outputs/apk/release/sansprint.apk
+        run: mv app/baspa/androidApp/build/outputs/apk/release/androidApp-release.apk app/baspa/androidApp/build/outputs/apk/release/baspa.apk
         if: success()
 
       - name: Upload APK to GitHub
         uses: actions/upload-artifact@v4
         with:
           name: app-release
-          path: app/sansprint/androidApp/build/outputs/apk/release/sansprint.apk
+          path: app/baspa/androidApp/build/outputs/apk/release/baspa.apk
         if: success()
 
   post-build:
@@ -82,12 +82,12 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: app-release
-          path: sansprint
+          path: baspa
 
       - name: Commit APK
         run: |
           git config --local user.name 'alad1nks'
           git config --local user.email 'alad1nks@users.noreply.github.com'
-          git add sansprint/*.apk
+          git add baspa/*.apk
           git commit -m 'Add generated APK file'
           git push

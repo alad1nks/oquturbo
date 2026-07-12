@@ -1,8 +1,8 @@
-name: Release oquturbo
+name: Release baspa
 
 on:
   push:
-    branches: [ release/oquturbo/* ]
+    branches: [ release/baspa/* ]
 
 jobs:
   build:
@@ -23,28 +23,28 @@ jobs:
 
       - name: Decode Keystore
         run: |
-          echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 -d > release-key.jks
+          echo "${{ secrets.BASPA_KEYSTORE_BASE64 }}" | base64 -d > release-key.jks
 
       - name: Run local tests
         run: ./gradlew test
 
       - name: Build AAB
-        run: ./gradlew :app:oquturbo:androidApp:bundleRelease
+        run: ./gradlew :app:baspa:androidApp:bundleRelease
         env:
-          SIGNING_KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
-          SIGNING_KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
-          SIGNING_STORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          SIGNING_KEY_ALIAS: ${{ secrets.BASPA_KEY_ALIAS }}
+          SIGNING_KEY_PASSWORD: ${{ secrets.BASPA_KEY_PASSWORD }}
+          SIGNING_STORE_PASSWORD: ${{ secrets.BASPA_KEYSTORE_PASSWORD }}
         if: success()
 
       - name: Rename AAB
-        run: mv app/oquturbo/androidApp/build/outputs/bundle/release/androidApp-release.aab app/oquturbo/androidApp/build/outputs/bundle/release/oquturbo.aab
+        run: mv app/baspa/androidApp/build/outputs/bundle/release/androidApp-release.aab app/baspa/androidApp/build/outputs/bundle/release/baspa.aab
         if: success()
 
       - name: Upload AAB to GitHub
         uses: actions/upload-artifact@v4
         with:
           name: app-release
-          path: app/oquturbo/androidApp/build/outputs/bundle/release/oquturbo.aab
+          path: app/baspa/androidApp/build/outputs/bundle/release/baspa.aab
         if: success()
 
   post-build:
@@ -66,12 +66,12 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: app-release
-          path: oquturbo
+          path: baspa
 
       - name: Commit AAB
         run: |
           git config --local user.name 'alad1nks'
           git config --local user.email 'alad1nks@users.noreply.github.com'
-          git add oquturbo/*.aab
+          git add baspa/*.aab
           git commit -m 'Add generated AAB file'
           git push

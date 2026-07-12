@@ -1,8 +1,22 @@
-name: PR checks San Sprint
+name: PR checks sansprint
 
 on:
   pull_request:
     branches: [ main, master ]
+    paths:
+      - 'app/sansprint/**'
+      - 'feature/remembernumber/**'
+      - 'feature/remembernumbermenu/**'
+      - 'feature/main/**'
+      - 'core/**'
+      - 'resources/**'
+      - '.github/workflows/**'
+      - 'build.gradle.kts'
+      - 'settings.gradle.kts'
+      - 'gradle.properties'
+      - 'gradle/**'
+      - 'gradlew'
+      - 'gradlew.bat'
 
 jobs:
   build-android:
