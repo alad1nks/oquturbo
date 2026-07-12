@@ -1,8 +1,22 @@
-name: PR checks oquturbo
+name: PR checks baspa
 
 on:
   pull_request:
     branches: [ main, master ]
+    paths:
+      - 'app/baspa/**'
+      - 'feature/baspagame/**'
+      - 'feature/baspagamemenu/**'
+      - 'feature/main/**'
+      - 'core/**'
+      - 'resources/**'
+      - '.github/workflows/**'
+      - 'build.gradle.kts'
+      - 'settings.gradle.kts'
+      - 'gradle.properties'
+      - 'gradle/**'
+      - 'gradlew'
+      - 'gradlew.bat'
 
 jobs:
   build-android:
@@ -21,7 +35,7 @@ jobs:
         run: chmod +x ./gradlew
 
       - name: Build Android
-        run: ./gradlew :app:oquturbo:androidApp:assembleDebug
+        run: ./gradlew :app:baspa:androidApp:assembleDebug
 
   build-ios:
     runs-on: ubuntu-latest
@@ -39,7 +53,7 @@ jobs:
         run: chmod +x ./gradlew
 
       - name: Build iOS
-        run: ./gradlew :app:oquturbo:shared:linkReleaseFrameworkIosArm64
+        run: ./gradlew :app:baspa:shared:linkReleaseFrameworkIosArm64
 
   build-js:
     runs-on: ubuntu-latest
@@ -57,7 +71,7 @@ jobs:
         run: chmod +x ./gradlew
 
       - name: Build js
-        run: ./gradlew :app:oquturbo:webApp:jsJar
+        run: ./gradlew :app:baspa:webApp:jsJar
 
   build-wasm:
     runs-on: ubuntu-latest
@@ -75,7 +89,7 @@ jobs:
         run: chmod +x ./gradlew
 
       - name: Build wasm
-        run: ./gradlew :app:oquturbo:webApp:wasmJsJar
+        run: ./gradlew :app:baspa:webApp:wasmJsJar
 
   build-jvm:
     runs-on: ubuntu-latest
@@ -93,4 +107,4 @@ jobs:
         run: chmod +x ./gradlew
 
       - name: Build jvm
-        run: ./gradlew :app:oquturbo:desktopApp:jar
+        run: ./gradlew :app:baspa:desktopApp:jar

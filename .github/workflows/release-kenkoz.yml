@@ -1,4 +1,4 @@
-name: Release Ken Koz
+name: Release kenkoz
 
 on:
   push:

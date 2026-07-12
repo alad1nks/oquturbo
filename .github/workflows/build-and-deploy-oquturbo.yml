@@ -1,4 +1,4 @@
-name: Build and deploy Oqu Turbo
+name: Build and deploy oquturbo
 
 on:
   push:

@@ -1,4 +1,4 @@
-name: Release San Sprint
+name: Release sansprint
 
 on:
   push:

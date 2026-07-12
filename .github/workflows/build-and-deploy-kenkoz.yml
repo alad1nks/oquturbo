@@ -1,9 +1,23 @@
-name: Build and deploy Ken Koz
+name: Build and deploy kenkoz
 
 on:
   push:
     branches:
       - main
+    paths:
+      - 'app/kenkoz/**'
+      - 'feature/kenkozgame/**'
+      - 'feature/kenkozgamemenu/**'
+      - 'feature/main/**'
+      - 'core/**'
+      - 'resources/**'
+      - '.github/workflows/**'
+      - 'build.gradle.kts'
+      - 'settings.gradle.kts'
+      - 'gradle.properties'
+      - 'gradle/**'
+      - 'gradlew'
+      - 'gradlew.bat'
 
 jobs:
   build:
