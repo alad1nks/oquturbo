@@ -91,7 +91,10 @@ private fun BaspaGameScreen(
                 Modifier
                     .blur(blurRadius)
                     .fillMaxSize()
-                    .clickable(onClick = if (uiState.phase == BaspaGameUiState.Phase.Mistake) onRestart else onTap)
+                    .clickable(
+                        enabled = uiState.phase == BaspaGameUiState.Phase.Playing && uiState.stimulus.isNotEmpty(),
+                        onClick = onTap,
+                    )
                     .systemBarsPadding()
                     .padding(24.dp),
         ) {
