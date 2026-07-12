@@ -10,8 +10,8 @@ import androidx.compose.material.icons.outlined.Games
 import androidx.compose.material.icons.outlined.Home
 import androidx.compose.material.icons.outlined.Person
 import androidx.compose.ui.graphics.vector.ImageVector
+import com.alad1nks.oquturbo.feature.games.navigation.GamesRoute
 import com.alad1nks.oquturbo.feature.home.navigation.HomeRoute
-import com.alad1nks.oquturbo.feature.remembernumbermenu.navigation.RememberNumberMenuRoute
 import com.alad1nks.oquturbo.resources.AppResource
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.serializer
@@ -33,7 +33,7 @@ internal enum class OquTurboTopLevelDestination(
         selectedIcon = Icons.Filled.Games,
         unselectedIcon = Icons.Outlined.Games,
         labelStringResource = AppResource.String.oquturbo_navigation_games,
-        route = RememberNumberMenuRoute,
+        route = GamesRoute,
     ),
     STATS(
         selectedIcon = Icons.Filled.BarChart,
@@ -53,7 +53,7 @@ internal enum class OquTurboTopLevelDestination(
 internal fun OquTurboTopLevelDestination.routeSerialName(): String =
     when (route) {
         HomeRoute -> serializer<HomeRoute>().descriptor.serialName
-        RememberNumberMenuRoute -> serializer<RememberNumberMenuRoute>().descriptor.serialName
+        GamesRoute -> serializer<GamesRoute>().descriptor.serialName
         StatsRoute -> serializer<StatsRoute>().descriptor.serialName
         ProfileRoute -> serializer<ProfileRoute>().descriptor.serialName
         else -> error("Unsupported top-level route: $route")

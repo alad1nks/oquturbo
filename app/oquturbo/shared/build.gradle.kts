@@ -74,7 +74,12 @@ kotlin {
 
             implementation(projects.core.data)
             implementation(projects.core.storage.common)
+            implementation(projects.feature.baspagame)
+            implementation(projects.feature.baspagamemenu)
+            implementation(projects.feature.games)
             implementation(projects.feature.home)
+            implementation(projects.feature.kenkozgame)
+            implementation(projects.feature.kenkozgamemenu)
             implementation(projects.feature.main)
             implementation(projects.feature.remembernumber)
             implementation(projects.feature.remembernumbermenu)
