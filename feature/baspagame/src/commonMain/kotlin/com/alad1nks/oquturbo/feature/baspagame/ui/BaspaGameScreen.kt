@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.outlined.FactCheck
 import androidx.compose.material.icons.filled.Checkroom
 import androidx.compose.material.icons.filled.DirectionsCar
 import androidx.compose.material.icons.filled.EmojiEvents
@@ -32,6 +33,9 @@ import androidx.compose.material.icons.filled.SportsSoccer
 import androidx.compose.material.icons.filled.Straighten
 import androidx.compose.material.icons.filled.Work
 import androidx.compose.material.icons.outlined.Bolt
+import androidx.compose.material.icons.outlined.Calculate
+import androidx.compose.material.icons.outlined.Category
+import androidx.compose.material.icons.outlined.Speed
 import androidx.compose.material.icons.outlined.TouchApp
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -317,24 +321,28 @@ private fun RuleCard(uiState: BaspaGameUiState, modifier: Modifier = Modifier) {
 }
 
 private fun ruleIcon(uiState: BaspaGameUiState): ImageVector {
-    if (uiState.mode == BaspaGameMode.Letter || uiState.mode == BaspaGameMode.WordLength) {
-        return Icons.Filled.SortByAlpha
-    }
-    if (uiState.mode == BaspaGameMode.WordLength) {
-        return Icons.Filled.Straighten
-    }
-    if (uiState.mode == BaspaGameMode.TextColor) return Icons.Filled.Palette
-    return when (uiState.categoryId) {
-        "fruits" -> Icons.Filled.Restaurant
-        "vehicles" -> Icons.Filled.DirectionsCar
-        "professions" -> Icons.Filled.Work
-        "clothes" -> Icons.Filled.Checkroom
-        "nature" -> Icons.Filled.Forest
-        "food" -> Icons.Filled.Restaurant
-        "home" -> Icons.Filled.Home
-        "sports" -> Icons.Filled.SportsSoccer
-        "school" -> Icons.Filled.School
-        else -> Icons.Filled.Pets
+    return when (uiState.mode) {
+        BaspaGameMode.Categories -> {
+            when (uiState.categoryId) {
+                "fruits" -> Icons.Filled.Restaurant
+                "vehicles" -> Icons.Filled.DirectionsCar
+                "professions" -> Icons.Filled.Work
+                "clothes" -> Icons.Filled.Checkroom
+                "nature" -> Icons.Filled.Forest
+                "food" -> Icons.Filled.Restaurant
+                "home" -> Icons.Filled.Home
+                "sports" -> Icons.Filled.SportsSoccer
+                "school" -> Icons.Filled.School
+                "animals" -> Icons.Filled.Pets
+                else -> Icons.Outlined.Category
+            }
+        }
+        BaspaGameMode.Letter -> Icons.Filled.SortByAlpha
+        BaspaGameMode.WordLength -> Icons.Filled.Straighten
+        BaspaGameMode.TextColor -> Icons.Filled.Palette
+        BaspaGameMode.TrueFalse -> Icons.AutoMirrored.Outlined.FactCheck
+        BaspaGameMode.Math -> Icons.Outlined.Calculate
+        BaspaGameMode.SpeedReading -> Icons.Outlined.Speed
     }
 }
 
