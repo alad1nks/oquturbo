@@ -73,6 +73,10 @@ import oquturbo.resources.generated.resources.kenkoz_game_start
 import oquturbo.resources.generated.resources.kenkoz_game_try_again
 import oquturbo.resources.generated.resources.kenkoz_game_words
 import oquturbo.resources.generated.resources.kenkoz_title
+import oquturbo.resources.generated.resources.oquturbo_navigation_games
+import oquturbo.resources.generated.resources.oquturbo_navigation_home
+import oquturbo.resources.generated.resources.oquturbo_navigation_profile
+import oquturbo.resources.generated.resources.oquturbo_navigation_stats
 import oquturbo.resources.generated.resources.remember_number_game_record
 import oquturbo.resources.generated.resources.remember_number_game_score
 import oquturbo.resources.generated.resources.remember_number_game_start
@@ -106,6 +110,10 @@ object AppResource {
     }
 
     object String {
+        val oquturbo_navigation_home = Res.string.oquturbo_navigation_home
+        val oquturbo_navigation_games = Res.string.oquturbo_navigation_games
+        val oquturbo_navigation_stats = Res.string.oquturbo_navigation_stats
+        val oquturbo_navigation_profile = Res.string.oquturbo_navigation_profile
         val baspa_game_record_label = Res.string.baspa_game_record_label
         val baspa_game_rule_categories = Res.string.baspa_game_rule_categories
         val baspa_game_rule_categories_accent = Res.string.baspa_game_rule_categories_accent

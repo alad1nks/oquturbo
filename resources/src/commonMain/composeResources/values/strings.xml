@@ -1,4 +1,8 @@
 <resources>
+    <string name="oquturbo_navigation_home">Home</string>
+    <string name="oquturbo_navigation_games">Games</string>
+    <string name="oquturbo_navigation_stats">Stats</string>
+    <string name="oquturbo_navigation_profile">Profile</string>
     <string name="baspa_game_record_label">Record</string>
     <string name="baspa_game_rule_categories">Tap only %1$s</string>
     <string name="baspa_game_rule_categories_accent">%1$s</string>
