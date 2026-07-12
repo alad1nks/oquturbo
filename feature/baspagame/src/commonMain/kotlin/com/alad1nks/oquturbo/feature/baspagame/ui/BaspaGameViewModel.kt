@@ -45,7 +45,7 @@ internal class BaspaGameViewModel(
     }
 
     fun tap() {
-        if (_uiState.value.phase != BaspaGameUiState.Phase.Playing) return
+        if (_uiState.value.phase != BaspaGameUiState.Phase.Playing || _uiState.value.stimulus.isEmpty()) return
         if (_uiState.value.shouldTap) success() else mistake()
     }
 
