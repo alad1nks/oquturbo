@@ -15,16 +15,9 @@ import kotlinx.serialization.Serializable
 import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.stringResource
 
-@Serializable data object HomeRoute
-
 @Serializable data object StatsRoute
 
 @Serializable data object ProfileRoute
-
-internal fun NavGraphBuilder.homeScreen() =
-    composable<HomeRoute> {
-        OquTurboTopLevelScreen(AppResource.String.oquturbo_navigation_home)
-    }
 
 internal fun NavGraphBuilder.statsScreen() =
     composable<StatsRoute> {

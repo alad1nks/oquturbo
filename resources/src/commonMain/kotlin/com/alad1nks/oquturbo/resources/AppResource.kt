@@ -45,6 +45,13 @@ import oquturbo.resources.generated.resources.baspa_letters
 import oquturbo.resources.generated.resources.baspa_statements
 import oquturbo.resources.generated.resources.baspa_title
 import oquturbo.resources.generated.resources.baspa_word_lengths
+import oquturbo.resources.generated.resources.home_overall_level
+import oquturbo.resources.generated.resources.home_rank
+import oquturbo.resources.generated.resources.home_rank_master
+import oquturbo.resources.generated.resources.home_recent_records
+import oquturbo.resources.generated.resources.home_start_training
+import oquturbo.resources.generated.resources.home_title
+import oquturbo.resources.generated.resources.home_today_training
 import oquturbo.resources.generated.resources.kenkoz_game_back
 import oquturbo.resources.generated.resources.kenkoz_game_characters
 import oquturbo.resources.generated.resources.kenkoz_game_difference_pairs
@@ -110,6 +117,13 @@ object AppResource {
     }
 
     object String {
+        val home_title = Res.string.home_title
+        val home_overall_level = Res.string.home_overall_level
+        val home_rank = Res.string.home_rank
+        val home_rank_master = Res.string.home_rank_master
+        val home_start_training = Res.string.home_start_training
+        val home_today_training = Res.string.home_today_training
+        val home_recent_records = Res.string.home_recent_records
         val oquturbo_navigation_home = Res.string.oquturbo_navigation_home
         val oquturbo_navigation_games = Res.string.oquturbo_navigation_games
         val oquturbo_navigation_stats = Res.string.oquturbo_navigation_stats

@@ -1,4 +1,11 @@
 <resources>
+    <string name="home_title">Turbo Reading</string>
+    <string name="home_overall_level">Общий уровень: %1$d</string>
+    <string name="home_rank">Ранг: %1$s</string>
+    <string name="home_rank_master">Мастер</string>
+    <string name="home_start_training">Начать тренировку</string>
+    <string name="home_today_training">Сегодня в тренировке</string>
+    <string name="home_recent_records">Последние рекорды</string>
     <string name="oquturbo_navigation_home">Главная</string>
     <string name="oquturbo_navigation_games">Игры</string>
     <string name="oquturbo_navigation_stats">Статистика</string>
