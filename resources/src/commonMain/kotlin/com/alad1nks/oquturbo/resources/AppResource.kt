@@ -45,6 +45,28 @@ import oquturbo.resources.generated.resources.baspa_letters
 import oquturbo.resources.generated.resources.baspa_statements
 import oquturbo.resources.generated.resources.baspa_title
 import oquturbo.resources.generated.resources.baspa_word_lengths
+import oquturbo.resources.generated.resources.games_coming_soon_title
+import oquturbo.resources.generated.resources.games_dont_tap_description
+import oquturbo.resources.generated.resources.games_dual_focus_description
+import oquturbo.resources.generated.resources.games_dual_focus_title
+import oquturbo.resources.generated.resources.games_memory_grid_description
+import oquturbo.resources.generated.resources.games_memory_grid_title
+import oquturbo.resources.generated.resources.games_modes_count
+import oquturbo.resources.generated.resources.games_motivation_subtitle
+import oquturbo.resources.generated.resources.games_motivation_title
+import oquturbo.resources.generated.resources.games_number_sprint_description
+import oquturbo.resources.generated.resources.games_settings_content_description
+import oquturbo.resources.generated.resources.games_skill_attention
+import oquturbo.resources.generated.resources.games_skill_memory
+import oquturbo.resources.generated.resources.games_skill_reaction
+import oquturbo.resources.generated.resources.games_skill_reading
+import oquturbo.resources.generated.resources.games_skill_vision
+import oquturbo.resources.generated.resources.games_skills_title
+import oquturbo.resources.generated.resources.games_soon
+import oquturbo.resources.generated.resources.games_subtitle
+import oquturbo.resources.generated.resources.games_wide_eye_description
+import oquturbo.resources.generated.resources.games_word_flow_description
+import oquturbo.resources.generated.resources.games_word_flow_title
 import oquturbo.resources.generated.resources.home_overall_level
 import oquturbo.resources.generated.resources.home_rank
 import oquturbo.resources.generated.resources.home_rank_master
@@ -124,6 +146,28 @@ object AppResource {
         val home_start_training = Res.string.home_start_training
         val home_today_training = Res.string.home_today_training
         val home_recent_records = Res.string.home_recent_records
+        val games_subtitle = Res.string.games_subtitle
+        val games_settings_content_description = Res.string.games_settings_content_description
+        val games_skills_title = Res.string.games_skills_title
+        val games_skill_memory = Res.string.games_skill_memory
+        val games_skill_attention = Res.string.games_skill_attention
+        val games_skill_reaction = Res.string.games_skill_reaction
+        val games_skill_reading = Res.string.games_skill_reading
+        val games_skill_vision = Res.string.games_skill_vision
+        val games_number_sprint_description = Res.string.games_number_sprint_description
+        val games_wide_eye_description = Res.string.games_wide_eye_description
+        val games_dont_tap_description = Res.string.games_dont_tap_description
+        val games_modes_count = Res.string.games_modes_count
+        val games_coming_soon_title = Res.string.games_coming_soon_title
+        val games_memory_grid_title = Res.string.games_memory_grid_title
+        val games_memory_grid_description = Res.string.games_memory_grid_description
+        val games_dual_focus_title = Res.string.games_dual_focus_title
+        val games_dual_focus_description = Res.string.games_dual_focus_description
+        val games_word_flow_title = Res.string.games_word_flow_title
+        val games_word_flow_description = Res.string.games_word_flow_description
+        val games_soon = Res.string.games_soon
+        val games_motivation_title = Res.string.games_motivation_title
+        val games_motivation_subtitle = Res.string.games_motivation_subtitle
         val oquturbo_navigation_home = Res.string.oquturbo_navigation_home
         val oquturbo_navigation_games = Res.string.oquturbo_navigation_games
         val oquturbo_navigation_stats = Res.string.oquturbo_navigation_stats

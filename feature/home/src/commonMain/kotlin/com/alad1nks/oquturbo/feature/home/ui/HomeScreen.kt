@@ -34,6 +34,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
@@ -129,6 +130,7 @@ private fun LevelProgress(
             progress = { level.coerceIn(0, 100) / 100f },
             modifier = Modifier.fillMaxWidth().height(10.dp).clip(RoundedCornerShape(5.dp)),
             trackColor = MaterialTheme.colorScheme.surfaceVariant,
+            strokeCap = StrokeCap.Butt,
         )
     }
 }

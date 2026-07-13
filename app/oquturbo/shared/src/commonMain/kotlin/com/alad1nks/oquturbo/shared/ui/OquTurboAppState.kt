@@ -8,10 +8,10 @@ import androidx.navigation.NavHostController
 import androidx.navigation.NavOptionsBuilder
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import com.alad1nks.oquturbo.feature.games.navigation.GamesRoute
+import com.alad1nks.oquturbo.feature.games.navigation.navigateToGames
 import com.alad1nks.oquturbo.feature.home.navigation.HomeRoute
 import com.alad1nks.oquturbo.feature.home.navigation.navigateToHome
-import com.alad1nks.oquturbo.feature.remembernumbermenu.navigation.RememberNumberMenuRoute
-import com.alad1nks.oquturbo.feature.remembernumbermenu.navigation.navigateToRememberNumberMenu
 import com.alad1nks.oquturbo.shared.navigation.OquTurboTopLevelDestination
 import com.alad1nks.oquturbo.shared.navigation.ProfileRoute
 import com.alad1nks.oquturbo.shared.navigation.StatsRoute
@@ -46,7 +46,7 @@ internal class OquTurboAppState(
 
         when (destination.route) {
             HomeRoute -> navController.navigateToHome(navOptions)
-            RememberNumberMenuRoute -> navController.navigateToRememberNumberMenu(navOptions)
+            GamesRoute -> navController.navigateToGames(navOptions)
             StatsRoute -> navController.navigate(StatsRoute, navOptions)
             ProfileRoute -> navController.navigate(ProfileRoute, navOptions)
         }
