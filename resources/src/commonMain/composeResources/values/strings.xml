@@ -32,6 +32,8 @@
     <string name="oquturbo_navigation_games">Games</string>
     <string name="oquturbo_navigation_stats">Stats</string>
     <string name="oquturbo_navigation_profile">Profile</string>
+    <string name="oquturbo_stats_subtitle">Your training history and progress will appear here</string>
+    <string name="oquturbo_profile_subtitle">Your preferences and achievements will live here</string>
     <string name="baspa_game_record_label">Record</string>
     <string name="baspa_game_rule_categories">Tap only %1$s</string>
     <string name="baspa_game_rule_categories_accent">%1$s</string>
@@ -51,6 +53,7 @@
     <string name="baspa_game_speed">Speed: %1$s sec</string>
     <string name="baspa_game_tap_hint">Tap the screen if it matches</string>
     <string name="baspa_game_start">Start Game!</string>
+    <string name="baspa_game_continue">Continue</string>
     <string name="baspa_game_try_again">Try again?</string>
     <string-array name="baspa_categories"><item>animals|animals|CAT,DOG,TIGER,LION,HORSE,WOLF,BEAR,FOX,RABBIT,MOUSE</item><item>fruits|fruits|APPLE,PEAR,BANANA,ORANGE,LEMON,PEACH,PLUM,CHERRY,MANGO,GRAPE</item><item>vehicles|vehicles|CAR,BUS,TRAIN,PLANE,BICYCLE,TRUCK,BOAT,TRAM,METRO,SCOOTER</item><item>professions|professions|DOCTOR,TEACHER,DRIVER,COOK,PILOT,BUILDER,ARTIST,FARMER,LAWYER,ACTOR</item><item>clothes|clothes|SHIRT,COAT,HAT,DRESS,SOCKS,JACKET,SKIRT,SHOES,GLOVES,SCARF</item><item>nature|nature|FOREST,RIVER,MOUNTAIN,SEA,CLOUD,RAIN,SNOW,WIND,STONE,FLOWER</item><item>food|food|BREAD,SOUP,CHEESE,RICE,PASTA,SALAD,CAKE,PIZZA,MEAT,FISH</item><item>home|home items|TABLE,CHAIR,LAMP,SOFA,BED,CLOCK,MIRROR,CUP,PLATE,SPOON</item><item>sports|sports|FOOTBALL,TENNIS,HOCKEY,BOXING,SKIING,RUNNING,SWIMMING,CHESS,GOLF,RUGBY</item><item>school|school items|BOOK,PEN,PENCIL,RULER,ERASER,DESK,BOARD,MAP,GLOBE,NOTEBOOK</item></string-array>
     <string-array name="baspa_letters"><item>A</item><item>E</item><item>S</item><item>T</item><item>R</item></string-array>

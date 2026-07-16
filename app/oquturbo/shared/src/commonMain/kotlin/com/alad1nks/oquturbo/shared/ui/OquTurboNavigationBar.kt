@@ -1,10 +1,15 @@
 package com.alad1nks.oquturbo.shared.ui
 
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
+import androidx.compose.material3.NavigationBarItemDefaults
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.unit.dp
 import androidx.navigation.NavDestination
 import com.alad1nks.oquturbo.shared.navigation.OquTurboTopLevelDestination
 import com.alad1nks.oquturbo.shared.navigation.routeSerialName
@@ -16,20 +21,37 @@ internal fun OquTurboNavigationBar(
     currentDestination: NavDestination?,
     onNavigateToDestination: (OquTurboTopLevelDestination) -> Unit,
 ) {
-    NavigationBar {
-        destinations.forEach { destination ->
-            val selected = currentDestination?.route == destination.routeSerialName()
-            NavigationBarItem(
-                selected = selected,
-                onClick = { onNavigateToDestination(destination) },
-                icon = {
-                    Icon(
-                        imageVector = if (selected) destination.selectedIcon else destination.unselectedIcon,
-                        contentDescription = null,
-                    )
-                },
-                label = { Text(stringResource(destination.labelStringResource)) },
-            )
+    Surface(
+        color = MaterialTheme.colorScheme.surface,
+        tonalElevation = 2.dp,
+        shadowElevation = 10.dp,
+    ) {
+        NavigationBar(
+            containerColor = Color.Transparent,
+            tonalElevation = 0.dp,
+        ) {
+            destinations.forEach { destination ->
+                val selected = currentDestination?.route == destination.routeSerialName()
+                NavigationBarItem(
+                    selected = selected,
+                    onClick = { onNavigateToDestination(destination) },
+                    icon = {
+                        Icon(
+                            imageVector = if (selected) destination.selectedIcon else destination.unselectedIcon,
+                            contentDescription = null,
+                        )
+                    },
+                    label = { Text(stringResource(destination.labelStringResource)) },
+                    colors =
+                        NavigationBarItemDefaults.colors(
+                            selectedIconColor = MaterialTheme.colorScheme.primary,
+                            selectedTextColor = MaterialTheme.colorScheme.primary,
+                            indicatorColor = MaterialTheme.colorScheme.primaryContainer,
+                            unselectedIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                            unselectedTextColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                        ),
+                )
+            }
         }
     }
 }

@@ -8,11 +8,14 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.layout.widthIn
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material3.BasicAlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Slider
 import androidx.compose.material3.Surface
@@ -29,6 +32,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.alad1nks.oquturbo.core.designsystem.theme.OquTurboTheme
 import com.alad1nks.oquturbo.resources.AppResource
 import org.jetbrains.compose.resources.stringResource
 
@@ -52,14 +56,17 @@ internal fun RememberNumberMenuCustomOptionsDialog(
         Surface(
             modifier =
                 Modifier
-                    .fillMaxWidth()
-                    .padding(16.dp),
-            shape = RoundedCornerShape(28.dp),
-            tonalElevation = 6.dp,
+                    .padding(16.dp)
+                    .widthIn(max = 560.dp)
+                    .fillMaxWidth(),
+            shape = MaterialTheme.shapes.extraLarge,
+            color = MaterialTheme.colorScheme.surfaceContainerHigh,
+            contentColor = MaterialTheme.colorScheme.onSurface,
+            tonalElevation = 3.dp,
         ) {
             Column(
-                modifier = Modifier.padding(20.dp),
-                verticalArrangement = Arrangement.spacedBy(20.dp),
+                modifier = Modifier.padding(24.dp),
+                verticalArrangement = Arrangement.spacedBy(24.dp),
             ) {
                 Text(
                     text = stringResource(AppResource.String.remember_number_menu_item_custom_dialog_title),
@@ -92,6 +99,17 @@ internal fun RememberNumberMenuCustomOptionsDialog(
                                 selected = isAvailable,
                                 onClick = { onDigitSelect(index, !isAvailable) },
                                 label = { Text(text = index.toString()) },
+                                leadingIcon =
+                                    if (isAvailable) {
+                                        {
+                                            Icon(
+                                                imageVector = Icons.Default.Check,
+                                                contentDescription = null,
+                                            )
+                                        }
+                                    } else {
+                                        null
+                                    },
                             )
                         }
                     }
@@ -110,11 +128,18 @@ internal fun RememberNumberMenuCustomOptionsDialog(
                             style = MaterialTheme.typography.titleMedium,
                         )
 
-                        Text(
-                            text = length.toString(),
-                            style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.Bold,
-                        )
+                        Surface(
+                            shape = MaterialTheme.shapes.medium,
+                            color = MaterialTheme.colorScheme.secondaryContainer,
+                            contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
+                        ) {
+                            Text(
+                                text = length.toString(),
+                                modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
+                                style = MaterialTheme.typography.titleMedium,
+                                fontWeight = FontWeight.Bold,
+                            )
+                        }
                     }
 
                     Slider(
@@ -128,8 +153,16 @@ internal fun RememberNumberMenuCustomOptionsDialog(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.SpaceBetween,
                     ) {
-                        Text(lengthMin.toString())
-                        Text(lengthMax.toString())
+                        Text(
+                            text = lengthMin.toString(),
+                            style = MaterialTheme.typography.labelMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                        Text(
+                            text = lengthMax.toString(),
+                            style = MaterialTheme.typography.labelMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
                     }
                 }
 
@@ -186,12 +219,14 @@ private fun RememberNumberMenuCustomOptionsDialogPreview() {
     var maxLength by remember { mutableIntStateOf(4) }
     val digitsAvailability = remember { SnapshotStateList(10) { true } }
 
-    RememberNumberMenuCustomOptionsDialog(
-        length = maxLength,
-        onLengthChange = { maxLength = it },
-        digitsAvailability = digitsAvailability,
-        onDigitSelect = { index, isAvailable -> digitsAvailability[index] = isAvailable },
-        onDismissRequest = {},
-        onPlayClick = { _, _ -> },
-    )
+    OquTurboTheme {
+        RememberNumberMenuCustomOptionsDialog(
+            length = maxLength,
+            onLengthChange = { maxLength = it },
+            digitsAvailability = digitsAvailability,
+            onDigitSelect = { index, isAvailable -> digitsAvailability[index] = isAvailable },
+            onDismissRequest = {},
+            onPlayClick = { _, _ -> },
+        )
+    }
 }

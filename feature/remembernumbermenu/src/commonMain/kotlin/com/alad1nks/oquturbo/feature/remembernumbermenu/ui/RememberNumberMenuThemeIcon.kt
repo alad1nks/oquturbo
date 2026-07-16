@@ -8,6 +8,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
+import com.alad1nks.oquturbo.core.designsystem.theme.OquTurboTheme
 
 @Composable
 internal fun RememberNumberMenuThemeIcon(
@@ -29,17 +30,21 @@ internal fun RememberNumberMenuThemeIcon(
 @Preview
 @Composable
 private fun RememberNumberMenuThemeIconLightPreview() {
-    RememberNumberMenuThemeIcon(
-        darkTheme = false,
-        onChange = {},
-    )
+    OquTurboTheme {
+        RememberNumberMenuThemeIcon(
+            darkTheme = false,
+            onChange = {},
+        )
+    }
 }
 
 @Preview
 @Composable
 private fun RememberNumberMenuThemeIconDarkPreview() {
-    RememberNumberMenuThemeIcon(
-        darkTheme = true,
-        onChange = {},
-    )
+    OquTurboTheme(darkTheme = true) {
+        RememberNumberMenuThemeIcon(
+            darkTheme = true,
+            onChange = {},
+        )
+    }
 }
