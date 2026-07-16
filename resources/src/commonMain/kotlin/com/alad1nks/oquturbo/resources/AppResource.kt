@@ -5,6 +5,7 @@ import oquturbo.resources.generated.resources.baspa_all_words
 import oquturbo.resources.generated.resources.baspa_categories
 import oquturbo.resources.generated.resources.baspa_colors
 import oquturbo.resources.generated.resources.baspa_equations
+import oquturbo.resources.generated.resources.baspa_game_continue
 import oquturbo.resources.generated.resources.baspa_game_menu_categories_subtitle
 import oquturbo.resources.generated.resources.baspa_game_menu_categories_title
 import oquturbo.resources.generated.resources.baspa_game_menu_letter_subtitle
@@ -106,6 +107,8 @@ import oquturbo.resources.generated.resources.oquturbo_navigation_games
 import oquturbo.resources.generated.resources.oquturbo_navigation_home
 import oquturbo.resources.generated.resources.oquturbo_navigation_profile
 import oquturbo.resources.generated.resources.oquturbo_navigation_stats
+import oquturbo.resources.generated.resources.oquturbo_profile_subtitle
+import oquturbo.resources.generated.resources.oquturbo_stats_subtitle
 import oquturbo.resources.generated.resources.remember_number_game_record
 import oquturbo.resources.generated.resources.remember_number_game_score
 import oquturbo.resources.generated.resources.remember_number_game_start
@@ -172,6 +175,8 @@ object AppResource {
         val oquturbo_navigation_games = Res.string.oquturbo_navigation_games
         val oquturbo_navigation_stats = Res.string.oquturbo_navigation_stats
         val oquturbo_navigation_profile = Res.string.oquturbo_navigation_profile
+        val oquturbo_stats_subtitle = Res.string.oquturbo_stats_subtitle
+        val oquturbo_profile_subtitle = Res.string.oquturbo_profile_subtitle
         val baspa_game_record_label = Res.string.baspa_game_record_label
         val baspa_game_rule_categories = Res.string.baspa_game_rule_categories
         val baspa_game_rule_categories_accent = Res.string.baspa_game_rule_categories_accent
@@ -191,6 +196,7 @@ object AppResource {
         val baspa_game_speed = Res.string.baspa_game_speed
         val baspa_game_tap_hint = Res.string.baspa_game_tap_hint
         val baspa_game_start = Res.string.baspa_game_start
+        val baspa_game_continue = Res.string.baspa_game_continue
         val baspa_game_try_again = Res.string.baspa_game_try_again
         val baspa_game_menu_categories_subtitle = Res.string.baspa_game_menu_categories_subtitle
         val baspa_game_menu_categories_title = Res.string.baspa_game_menu_categories_title

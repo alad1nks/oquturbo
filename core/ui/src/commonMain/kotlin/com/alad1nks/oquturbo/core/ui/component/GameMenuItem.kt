@@ -1,17 +1,17 @@
 package com.alad1nks.oquturbo.core.ui.component
 
-import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material.icons.outlined.Timer
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -20,13 +20,12 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
+import com.alad1nks.oquturbo.core.designsystem.theme.OquTurboTheme
 
 @Composable
 fun GameMenuItem(
@@ -35,76 +34,79 @@ fun GameMenuItem(
     subtitle: String,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
-    shape: Shape = RoundedCornerShape(16.dp),
+    shape: Shape = RoundedCornerShape(24.dp),
 ) {
-    Column(
-        modifier =
-            modifier
-                .fillMaxWidth()
-                .clip(shape = shape)
-                .clickable(onClick = onClick)
-                .background(MaterialTheme.colorScheme.surfaceContainer)
-                .padding(
-                    start = 16.dp,
-                    top = 16.dp,
-                    end = 16.dp,
-                    bottom = 32.dp,
-                ),
+    Surface(
+        onClick = onClick,
+        modifier = modifier.fillMaxWidth(),
+        shape = shape,
+        color = MaterialTheme.colorScheme.surfaceContainer,
+        contentColor = MaterialTheme.colorScheme.onSurface,
+        tonalElevation = 1.dp,
     ) {
-        GameMenuItemIconTitleAndSubtitleRow(
-            imageVector = imageVector,
-            title = title,
-            subtitle = subtitle,
-        )
+        Row(
+            modifier = Modifier.padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            GameMenuItemIcon(imageVector = imageVector)
+            Spacer(modifier = Modifier.width(16.dp))
+            GameMenuItemTitleAndSubtitle(
+                title = title,
+                subtitle = subtitle,
+                modifier = Modifier.weight(1f),
+            )
+            Spacer(modifier = Modifier.width(12.dp))
+            Icon(
+                imageVector = Icons.Filled.ChevronRight,
+                contentDescription = null,
+                modifier = Modifier.size(24.dp),
+                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
     }
 }
 
 @Composable
-private fun GameMenuItemIconTitleAndSubtitleRow(
+private fun GameMenuItemIcon(
     imageVector: ImageVector,
-    title: String,
-    subtitle: String,
     modifier: Modifier = Modifier,
 ) {
-    Row(
-        modifier = modifier,
-        verticalAlignment = Alignment.CenterVertically,
+    Surface(
+        modifier = modifier.size(56.dp),
+        shape = RoundedCornerShape(18.dp),
+        color = MaterialTheme.colorScheme.primaryContainer,
+        contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
     ) {
-        Icon(
-            imageVector = imageVector,
-            contentDescription = null,
-            modifier = Modifier.size(48.dp),
-            tint = MaterialTheme.colorScheme.primary,
-        )
-
-        Spacer(modifier = Modifier.width(16.dp))
-
-        GameMenuItemItemTitleAndSubtitleColumn(
-            title = title,
-            subtitle = subtitle,
-        )
+        Box(contentAlignment = Alignment.Center) {
+            Icon(
+                imageVector = imageVector,
+                contentDescription = null,
+                modifier = Modifier.size(28.dp),
+            )
+        }
     }
 }
 
 @Composable
-private fun GameMenuItemItemTitleAndSubtitleColumn(
+private fun GameMenuItemTitleAndSubtitle(
     title: String,
     subtitle: String,
     modifier: Modifier = Modifier,
 ) {
     Column(
         modifier = modifier,
+        verticalArrangement = Arrangement.spacedBy(4.dp),
     ) {
         Text(
             text = title,
-            fontWeight = FontWeight.Medium,
-            fontSize = 24.sp,
+            style = MaterialTheme.typography.titleMedium,
+            fontWeight = FontWeight.SemiBold,
+            color = MaterialTheme.colorScheme.onSurface,
         )
-
-        Spacer(modifier = Modifier.height(4.dp))
-
         Text(
             text = subtitle,
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
     }
 }
@@ -112,7 +114,7 @@ private fun GameMenuItemItemTitleAndSubtitleColumn(
 @Preview
 @Composable
 private fun GameMenuItemItemPreview() {
-    MaterialTheme {
+    OquTurboTheme {
         Surface {
             GameMenuItem(
                 imageVector = Icons.Outlined.Timer,

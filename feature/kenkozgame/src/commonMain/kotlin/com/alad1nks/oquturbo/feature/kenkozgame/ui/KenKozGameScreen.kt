@@ -7,28 +7,32 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.systemBarsPadding
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.PlayArrow
+import androidx.compose.material.icons.filled.Replay
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
+import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -39,7 +43,12 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
+import com.alad1nks.oquturbo.core.designsystem.theme.OquTurboTheme
+import com.alad1nks.oquturbo.core.ui.component.AppBackButton
+import com.alad1nks.oquturbo.core.ui.component.GameResultCard
+import com.alad1nks.oquturbo.core.ui.component.GameScoreBadge
+import com.alad1nks.oquturbo.core.ui.component.GameStateOverlay
+import com.alad1nks.oquturbo.core.ui.component.appBackground
 import com.alad1nks.oquturbo.feature.kenkozgame.model.KenKozGameMode
 import com.alad1nks.oquturbo.resources.AppResource
 import org.jetbrains.compose.resources.stringResource
@@ -69,183 +78,211 @@ private fun KenKozGameScreen(
     onAnswerClick: (String) -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    val showStateOverlay =
+        uiState.phase == KenKozGameUiState.Phase.Initial ||
+            uiState.phase == KenKozGameUiState.Phase.Mistake
     val blurRadius by animateDpAsState(
-        targetValue =
-            when (uiState.phase) {
-                KenKozGameUiState.Phase.Initial,
-                KenKozGameUiState.Phase.Mistake,
-                -> 8.dp
-                KenKozGameUiState.Phase.Showing,
-                KenKozGameUiState.Phase.Answering,
-                -> 0.dp
-            },
+        targetValue = if (showStateOverlay) 8.dp else 0.dp,
         animationSpec = tween(durationMillis = 700),
     )
+    val backContentDescription = stringResource(AppResource.String.kenkoz_game_back)
 
-    Box(modifier = modifier.fillMaxSize()) {
+    Box(modifier = modifier.fillMaxSize().appBackground()) {
         Column(
             modifier =
                 Modifier
+                    .align(Alignment.TopCenter)
+                    .widthIn(max = 760.dp)
                     .fillMaxSize()
                     .systemBarsPadding()
                     .padding(horizontal = 20.dp, vertical = 16.dp)
                     .blur(blurRadius),
         ) {
-            GameScore(score = uiState.score)
+            GameHud(
+                score = uiState.score,
+                onBackClick = onBackClick,
+                backContentDescription = backContentDescription,
+                showBackButton = !showStateOverlay,
+            )
 
             Box(
-                modifier = Modifier.fillMaxWidth().weight(1f),
+                modifier =
+                    Modifier
+                        .fillMaxWidth()
+                        .weight(1f)
+                        .padding(top = 16.dp),
                 contentAlignment = Alignment.Center,
             ) {
-                if (uiState.phase == KenKozGameUiState.Phase.Showing) {
-                    GameItems(uiState)
+                when (uiState.phase) {
+                    KenKozGameUiState.Phase.Showing -> GameStage(uiState = uiState)
+                    KenKozGameUiState.Phase.Answering ->
+                        QuestionCard(
+                            uiState = uiState,
+                            onAnswerClick = onAnswerClick,
+                        )
+                    KenKozGameUiState.Phase.Initial,
+                    KenKozGameUiState.Phase.Mistake,
+                    -> Unit
                 }
-            }
-
-            if (uiState.phase == KenKozGameUiState.Phase.Answering) {
-                QuestionCard(
-                    uiState = uiState,
-                    onAnswerClick = onAnswerClick,
-                )
             }
         }
 
         AnimatedVisibility(
-            visible =
-                uiState.phase == KenKozGameUiState.Phase.Initial ||
-                    uiState.phase == KenKozGameUiState.Phase.Mistake,
+            visible = showStateOverlay,
+            modifier = Modifier.fillMaxSize(),
             enter = fadeIn(animationSpec = tween(durationMillis = 700)),
             exit = fadeOut(animationSpec = tween(durationMillis = 700)),
         ) {
-            Box(
-                modifier =
-                    Modifier
-                        .fillMaxSize()
-                        .clickable(onClick = onStartClick),
-            ) {
-                if (uiState.phase == KenKozGameUiState.Phase.Initial) {
-                    Text(
-                        text = stringResource(AppResource.String.kenkoz_game_start),
-                        modifier = Modifier.align(Alignment.Center),
-                        fontSize = 48.sp,
-                        textAlign = TextAlign.Center,
-                        lineHeight = 48.sp,
-                    )
-                }
-
-                if (uiState.phase == KenKozGameUiState.Phase.Mistake) {
-                    KenKozGameMistakeScore(
-                        score = uiState.score,
-                        record = uiState.record,
-                        modifier =
-                            Modifier
-                                .align(Alignment.TopCenter)
-                                .systemBarsPadding()
-                                .padding(top = 64.dp),
-                    )
-
-                    Text(
-                        text = stringResource(AppResource.String.kenkoz_game_try_again),
-                        modifier = Modifier.align(Alignment.Center),
-                        fontSize = 48.sp,
-                        textAlign = TextAlign.Center,
-                        lineHeight = 48.sp,
-                    )
-                }
-            }
+            GameStateOverlay(
+                title =
+                    stringResource(
+                        if (uiState.phase == KenKozGameUiState.Phase.Mistake) {
+                            AppResource.String.kenkoz_game_try_again
+                        } else {
+                            AppResource.String.kenkoz_game_start
+                        },
+                    ),
+                supportingText =
+                    if (uiState.phase == KenKozGameUiState.Phase.Initial) {
+                        stringResource(AppResource.String.kenkoz_game_menu_subtitle)
+                    } else {
+                        null
+                    },
+                icon =
+                    if (uiState.phase == KenKozGameUiState.Phase.Mistake) {
+                        Icons.Filled.Replay
+                    } else {
+                        Icons.Filled.PlayArrow
+                    },
+                onClick = onStartClick,
+                extraContent = {
+                    if (uiState.phase == KenKozGameUiState.Phase.Mistake) {
+                        GameResultCard(
+                            primaryText = stringResource(AppResource.String.kenkoz_game_score_value, uiState.score),
+                            secondaryText = stringResource(AppResource.String.kenkoz_game_record, uiState.record),
+                            modifier = Modifier.fillMaxWidth(),
+                        )
+                    }
+                },
+            )
         }
 
-        IconButton(
-            onClick = onBackClick,
-            modifier =
-                Modifier
-                    .padding(start = 4.dp, top = 8.dp)
-                    .statusBarsPadding(),
-        ) {
-            Icon(
-                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                contentDescription = stringResource(AppResource.String.kenkoz_game_back),
+        if (showStateOverlay) {
+            AppBackButton(
+                onClick = onBackClick,
+                contentDescription = backContentDescription,
+                modifier =
+                    Modifier
+                        .align(Alignment.TopStart)
+                        .statusBarsPadding()
+                        .padding(start = 12.dp, top = 8.dp),
             )
         }
     }
 }
 
 @Composable
-private fun KenKozGameMistakeScore(
+private fun GameHud(
     score: Int,
-    record: Int,
-    modifier: Modifier = Modifier,
+    onBackClick: () -> Unit,
+    backContentDescription: String,
+    showBackButton: Boolean,
 ) {
-    Column(
-        modifier = modifier,
-        horizontalAlignment = Alignment.CenterHorizontally,
-    ) {
-        Text(
-            text = stringResource(AppResource.String.kenkoz_game_score_value, score),
-            fontSize = 48.sp,
-            textAlign = TextAlign.Center,
-            lineHeight = 48.sp,
-        )
-        Text(
-            text = stringResource(AppResource.String.kenkoz_game_record, record),
-            fontSize = 48.sp,
-            textAlign = TextAlign.Center,
-            lineHeight = 48.sp,
-        )
-    }
-}
-
-@Composable
-private fun GameScore(score: Int) {
     Row(
         modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.End,
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically,
     ) {
-        Column(horizontalAlignment = Alignment.End) {
-            Text(
-                text = stringResource(AppResource.String.kenkoz_game_score),
-                style = MaterialTheme.typography.titleMedium,
+        if (showBackButton) {
+            AppBackButton(
+                onClick = onBackClick,
+                contentDescription = backContentDescription,
             )
-            Text(
-                text = score.toString(),
-                color = MaterialTheme.colorScheme.primary,
-                fontSize = 36.sp,
-                fontWeight = FontWeight.Bold,
+        } else {
+            Spacer(modifier = Modifier.size(48.dp))
+        }
+        GameScoreBadge(
+            label = stringResource(AppResource.String.kenkoz_game_score),
+            value = score.toString(),
+        )
+    }
+}
+
+@Composable
+private fun GameStage(uiState: KenKozGameUiState) {
+    BoxWithConstraints(
+        modifier = Modifier.fillMaxSize(),
+        contentAlignment = Alignment.Center,
+    ) {
+        val stageWidth = minOf(maxWidth, 640.dp)
+        val stageHeight =
+            if (uiState.mode == KenKozGameMode.WideLine) {
+                minOf(maxHeight, 240.dp)
+            } else {
+                minOf(maxWidth, maxHeight, 380.dp)
+            }
+
+        Surface(
+            modifier =
+                if (uiState.mode == KenKozGameMode.WideLine) {
+                    Modifier.size(width = stageWidth, height = stageHeight)
+                } else {
+                    Modifier.size(stageHeight)
+                },
+            shape = RoundedCornerShape(28.dp),
+            color = MaterialTheme.colorScheme.surfaceContainerLow,
+            tonalElevation = 1.dp,
+        ) {
+            if (uiState.mode == KenKozGameMode.WideLine) {
+                WideLineItems(items = uiState.items)
+            } else {
+                RadialItems(items = uiState.items)
+            }
+        }
+    }
+}
+
+@Composable
+private fun WideLineItems(items: List<String>) {
+    Row(
+        modifier = Modifier.fillMaxSize().padding(horizontal = 16.dp),
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        items.forEach { item ->
+            GameItemText(
+                text = item,
+                modifier = Modifier.weight(1f),
+                compact = true,
             )
         }
     }
 }
 
 @Composable
-private fun GameItems(uiState: KenKozGameUiState) {
-    if (uiState.mode == KenKozGameMode.WideLine) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceEvenly,
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            uiState.items.forEach { GameItemText(it) }
-        }
-    } else {
+private fun RadialItems(items: List<String>) {
+    Box(
+        modifier = Modifier.fillMaxSize().padding(28.dp),
+        contentAlignment = Alignment.Center,
+    ) {
+        GameItemText(items.getOrElse(0) { "" }, Modifier.align(Alignment.TopCenter))
+        GameItemText(items.getOrElse(1) { "" }, Modifier.align(Alignment.CenterStart))
+        GameItemText(items.getOrElse(2) { "" }, Modifier.align(Alignment.CenterEnd))
+        GameItemText(items.getOrElse(3) { "" }, Modifier.align(Alignment.BottomCenter))
+
         Box(
-            modifier = Modifier.fillMaxWidth().padding(horizontal = 32.dp).size(320.dp),
+            modifier =
+                Modifier
+                    .size(52.dp)
+                    .border(2.dp, MaterialTheme.colorScheme.primary, CircleShape),
             contentAlignment = Alignment.Center,
         ) {
-            GameItemText(uiState.items.getOrElse(0) { "" }, Modifier.align(Alignment.TopCenter))
-            GameItemText(uiState.items.getOrElse(1) { "" }, Modifier.align(Alignment.CenterStart))
-            GameItemText(uiState.items.getOrElse(2) { "" }, Modifier.align(Alignment.CenterEnd))
-            GameItemText(uiState.items.getOrElse(3) { "" }, Modifier.align(Alignment.BottomCenter))
             Box(
                 modifier =
                     Modifier
-                        .size(48.dp)
-                        .border(2.dp, MaterialTheme.colorScheme.primary, CircleShape),
-                contentAlignment = Alignment.Center,
-            ) {
-                Box(
-                    modifier = Modifier.size(12.dp).background(MaterialTheme.colorScheme.primary, CircleShape),
-                )
-            }
+                        .size(12.dp)
+                        .background(MaterialTheme.colorScheme.primary, CircleShape),
+            )
         }
     }
 }
@@ -254,12 +291,13 @@ private fun GameItems(uiState: KenKozGameUiState) {
 private fun GameItemText(
     text: String,
     modifier: Modifier = Modifier,
+    compact: Boolean = false,
 ) {
     Text(
         text = text,
         modifier = modifier,
-        color = MaterialTheme.colorScheme.onBackground,
-        fontSize = 28.sp,
+        color = MaterialTheme.colorScheme.onSurface,
+        style = if (compact) MaterialTheme.typography.titleLarge else MaterialTheme.typography.headlineMedium,
         fontWeight = FontWeight.Bold,
         textAlign = TextAlign.Center,
     )
@@ -271,9 +309,10 @@ private fun QuestionCard(
     onAnswerClick: (String) -> Unit,
 ) {
     Card(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier.widthIn(max = 640.dp).fillMaxWidth(),
         shape = RoundedCornerShape(28.dp),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer),
+        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
     ) {
         Column(
             modifier = Modifier.fillMaxWidth().padding(20.dp),
@@ -293,24 +332,23 @@ private fun QuestionCard(
                     horizontalArrangement = Arrangement.spacedBy(12.dp),
                 ) {
                     rowAnswers.forEach { answer ->
-                        TextButton(
+                        FilledTonalButton(
                             onClick = { onAnswerClick(answer) },
-                            modifier =
-                                Modifier
-                                    .weight(1f)
-                                    .background(
-                                        MaterialTheme.colorScheme.surfaceContainerHigh,
-                                        RoundedCornerShape(18.dp),
-                                    )
-                                    .padding(vertical = 12.dp),
+                            modifier = Modifier.weight(1f).heightIn(min = 56.dp),
+                            shape = RoundedCornerShape(18.dp),
+                            contentPadding = PaddingValues(horizontal = 12.dp, vertical = 14.dp),
                         ) {
                             Text(
                                 text = answerLabel(uiState.mode, answer),
-                                color = MaterialTheme.colorScheme.onSurface,
-                                fontSize = 22.sp,
-                                fontWeight = FontWeight.Bold,
+                                style = MaterialTheme.typography.titleMedium,
+                                fontWeight = FontWeight.SemiBold,
+                                textAlign = TextAlign.Center,
                             )
                         }
+                    }
+
+                    if (rowAnswers.size == 1) {
+                        Spacer(modifier = Modifier.weight(1f))
                     }
                 }
             }
@@ -363,47 +401,53 @@ private fun directionLabel(direction: KenKozGameUiState.Direction): String {
 @Preview
 @Composable
 private fun KenKozGameScreenInitialPreview() {
-    KenKozGameScreen(
-        uiState = KenKozGameUiState(mode = KenKozGameMode.Words),
-        onBackClick = {},
-        onStartClick = {},
-        onAnswerClick = {},
-    )
+    OquTurboTheme {
+        KenKozGameScreen(
+            uiState = KenKozGameUiState(mode = KenKozGameMode.Words),
+            onBackClick = {},
+            onStartClick = {},
+            onAnswerClick = {},
+        )
+    }
 }
 
 @Preview
 @Composable
 private fun KenKozGameScreenAnsweringPreview() {
-    KenKozGameScreen(
-        uiState =
-            KenKozGameUiState(
-                mode = KenKozGameMode.Words,
-                score = 27,
-                phase = KenKozGameUiState.Phase.Answering,
-                items = listOf("море", "свет", "дом", "лес"),
-                answers = listOf("море", "дом", "свет", "лес"),
-                correctAnswer = "дом",
-                questionDirection = KenKozGameUiState.Direction.Right,
-            ),
-        onBackClick = {},
-        onStartClick = {},
-        onAnswerClick = {},
-    )
+    OquTurboTheme {
+        KenKozGameScreen(
+            uiState =
+                KenKozGameUiState(
+                    mode = KenKozGameMode.Words,
+                    score = 27,
+                    phase = KenKozGameUiState.Phase.Answering,
+                    items = listOf("море", "свет", "дом", "лес"),
+                    answers = listOf("море", "дом", "свет", "лес"),
+                    correctAnswer = "дом",
+                    questionDirection = KenKozGameUiState.Direction.Right,
+                ),
+            onBackClick = {},
+            onStartClick = {},
+            onAnswerClick = {},
+        )
+    }
 }
 
 @Preview
 @Composable
 private fun KenKozGameScreenMistakePreview() {
-    KenKozGameScreen(
-        uiState =
-            KenKozGameUiState(
-                mode = KenKozGameMode.Words,
-                score = 4,
-                record = 7,
-                phase = KenKozGameUiState.Phase.Mistake,
-            ),
-        onBackClick = {},
-        onStartClick = {},
-        onAnswerClick = {},
-    )
+    OquTurboTheme {
+        KenKozGameScreen(
+            uiState =
+                KenKozGameUiState(
+                    mode = KenKozGameMode.Words,
+                    score = 4,
+                    record = 7,
+                    phase = KenKozGameUiState.Phase.Mistake,
+                ),
+            onBackClick = {},
+            onStartClick = {},
+            onAnswerClick = {},
+        )
+    }
 }

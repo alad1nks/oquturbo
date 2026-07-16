@@ -5,17 +5,19 @@ import androidx.compose.animation.core.tween
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.systemBarsPadding
-import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.outlined.FactCheck
 import androidx.compose.material.icons.filled.Checkroom
 import androidx.compose.material.icons.filled.DirectionsCar
@@ -26,6 +28,7 @@ import androidx.compose.material.icons.filled.Palette
 import androidx.compose.material.icons.filled.Pause
 import androidx.compose.material.icons.filled.Pets
 import androidx.compose.material.icons.filled.PlayArrow
+import androidx.compose.material.icons.filled.Replay
 import androidx.compose.material.icons.filled.Restaurant
 import androidx.compose.material.icons.filled.School
 import androidx.compose.material.icons.filled.SortByAlpha
@@ -51,6 +54,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.blur
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
@@ -60,6 +64,11 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.alad1nks.oquturbo.core.designsystem.theme.OquTurboTheme
+import com.alad1nks.oquturbo.core.ui.component.AppBackButton
+import com.alad1nks.oquturbo.core.ui.component.GameResultCard
+import com.alad1nks.oquturbo.core.ui.component.GameStateOverlay
+import com.alad1nks.oquturbo.core.ui.component.appBackground
 import com.alad1nks.oquturbo.feature.baspagame.model.BaspaGameMode
 import com.alad1nks.oquturbo.resources.AppResource
 import org.jetbrains.compose.resources.StringResource
@@ -83,9 +92,8 @@ private fun BaspaGameScreen(
         targetValue = if (uiState.phase == BaspaGameUiState.Phase.Playing) 0.dp else 8.dp,
         animationSpec = tween(durationMillis = 700),
     )
-    Box(
-        modifier = Modifier.fillMaxSize(),
-    ) {
+
+    Box(modifier = Modifier.fillMaxSize().appBackground()) {
         Box(
             modifier =
                 Modifier
@@ -94,150 +102,205 @@ private fun BaspaGameScreen(
                     .clickable(
                         enabled = uiState.phase == BaspaGameUiState.Phase.Playing && uiState.stimulus.isNotEmpty(),
                         onClick = onTap,
-                    )
-                    .systemBarsPadding()
-                    .padding(24.dp),
+                    ).systemBarsPadding(),
         ) {
-            ScoreHeader(uiState, onPauseClick, Modifier.align(Alignment.TopCenter))
-            RuleCard(uiState, Modifier.align(Alignment.TopCenter).padding(top = 140.dp))
-
-            Text(
-                text = uiState.stimulus,
-                modifier = Modifier.align(Alignment.Center),
-                color = stimulusColor(uiState),
-                fontSize = if (uiState.mode.usesCompactStimulusText()) 40.sp else 56.sp,
-                lineHeight = if (uiState.mode.usesCompactStimulusText()) 48.sp else 56.sp,
-                fontWeight = FontWeight.Black,
-                textAlign = TextAlign.Center,
-            )
-
-            Column(
-                modifier = Modifier.align(Alignment.BottomCenter),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.spacedBy(28.dp),
+            BoxWithConstraints(
+                modifier =
+                    Modifier
+                        .align(Alignment.Center)
+                        .widthIn(max = 760.dp)
+                        .fillMaxSize()
+                        .padding(24.dp),
             ) {
-                Icon(
-                    Icons.Outlined.TouchApp,
-                    contentDescription = null,
-                    modifier = Modifier.size(64.dp),
-                    tint = MaterialTheme.colorScheme.primary,
-                )
-                Text(
-                    text = stringResource(AppResource.String.baspa_game_tap_hint),
-                    style = MaterialTheme.typography.headlineSmall,
-                    textAlign = TextAlign.Center,
-                )
-                Card(shape = RoundedCornerShape(24.dp)) {
-                    Row(
-                        modifier = Modifier.padding(horizontal = 28.dp, vertical = 20.dp),
-                        horizontalArrangement = Arrangement.spacedBy(12.dp),
-                        verticalAlignment = Alignment.CenterVertically,
+                val compactLayout = maxHeight < 600.dp
+                Column(
+                    modifier = Modifier.fillMaxSize(),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                ) {
+                    ScoreHeader(
+                        uiState = uiState,
+                        onPauseClick = onPauseClick,
+                        showPauseButton = uiState.phase == BaspaGameUiState.Phase.Playing,
+                    )
+                    Spacer(modifier = Modifier.height(if (compactLayout) 8.dp else 20.dp))
+                    RuleCard(uiState)
+                    Box(
+                        modifier = Modifier.fillMaxWidth().weight(1f),
+                        contentAlignment = Alignment.Center,
                     ) {
-                        Icon(Icons.Outlined.Bolt, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
-                        Text(stringResource(AppResource.String.baspa_game_speed, uiState.intervalMillis / 1000.0))
+                        Text(
+                            text = uiState.stimulus,
+                            color = stimulusColor(uiState),
+                            fontSize = if (uiState.mode.usesCompactStimulusText()) 40.sp else 56.sp,
+                            lineHeight = if (uiState.mode.usesCompactStimulusText()) 48.sp else 56.sp,
+                            fontWeight = FontWeight.Black,
+                            textAlign = TextAlign.Center,
+                        )
+                    }
+                    if (compactLayout) {
+                        CompactGameHint(uiState = uiState)
+                    } else {
+                        GameHint(uiState = uiState)
                     }
                 }
             }
         }
 
-        if (uiState.phase == BaspaGameUiState.Phase.Mistake) {
-            Box(
-                modifier = Modifier.fillMaxSize().clickable(onClick = onRestart),
-                contentAlignment = Alignment.Center,
-            ) {
-                Card(
-                    shape = RoundedCornerShape(28.dp),
-                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerHigh),
-                    modifier = Modifier.padding(horizontal = 16.dp),
-                ) {
-                    Text(
-                        text = stringResource(AppResource.String.baspa_game_try_again),
-                        modifier = Modifier.padding(horizontal = 32.dp, vertical = 24.dp),
-                        fontSize = 48.sp,
-                        lineHeight = 48.sp,
-                        textAlign = TextAlign.Center,
-                    )
-                }
-                BackButton(onBackClick, Modifier.align(Alignment.TopStart))
+        when (uiState.phase) {
+            BaspaGameUiState.Phase.Initial -> {
+                GameStateOverlay(
+                    title = stringResource(AppResource.String.baspa_game_start),
+                    icon = Icons.Filled.PlayArrow,
+                    onClick = onPauseClick,
+                )
+                GameBackButton(
+                    onClick = onBackClick,
+                    modifier = Modifier.align(Alignment.TopStart),
+                )
             }
-        }
-
-        if (uiState.phase == BaspaGameUiState.Phase.Initial) {
-            Box(
-                modifier = Modifier.fillMaxSize().clickable(onClick = onPauseClick),
-                contentAlignment = Alignment.Center,
-            ) {
-                Card(
-                    shape = RoundedCornerShape(28.dp),
-                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerHigh),
-                ) {
-                    Text(
-                        text = stringResource(AppResource.String.baspa_game_start),
-                        modifier = Modifier.padding(horizontal = 36.dp, vertical = 28.dp),
-                        fontSize = 48.sp,
-                        lineHeight = 48.sp,
-                        textAlign = TextAlign.Center,
-                    )
-                }
-                BackButton(onBackClick, Modifier.align(Alignment.TopStart))
+            BaspaGameUiState.Phase.Paused -> {
+                GameStateOverlay(
+                    title = stringResource(AppResource.String.baspa_game_continue),
+                    icon = Icons.Filled.PlayArrow,
+                    onClick = onPauseClick,
+                )
+                GameBackButton(
+                    onClick = onBackClick,
+                    modifier = Modifier.align(Alignment.TopStart),
+                )
             }
-        }
-
-        if (uiState.phase == BaspaGameUiState.Phase.Paused) {
-            Box(
-                modifier = Modifier.fillMaxSize().clickable(onClick = onPauseClick),
-            ) {
-                Card(
-                    shape = RoundedCornerShape(28.dp),
-                    colors =
-                        CardDefaults.cardColors(
-                            containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
-                        ),
-                    modifier = Modifier.align(Alignment.Center),
-                ) {
-                    Icon(
-                        Icons.Filled.PlayArrow,
-                        contentDescription = null,
-                        modifier = Modifier.padding(horizontal = 36.dp, vertical = 28.dp).size(88.dp),
-                    )
-                }
-                BackButton(onBackClick, Modifier.align(Alignment.TopStart))
+            BaspaGameUiState.Phase.Mistake -> {
+                GameStateOverlay(
+                    title = stringResource(AppResource.String.baspa_game_try_again),
+                    icon = Icons.Filled.Replay,
+                    onClick = onRestart,
+                    extraContent = {
+                        GameResultCard(
+                            primaryText =
+                                "${stringResource(AppResource.String.baspa_game_score_label)}: ${uiState.score}",
+                            secondaryText =
+                                "${stringResource(AppResource.String.baspa_game_record_label)}: ${uiState.record}",
+                        )
+                    },
+                )
+                GameBackButton(
+                    onClick = onBackClick,
+                    modifier = Modifier.align(Alignment.TopStart),
+                )
             }
+            BaspaGameUiState.Phase.Playing -> Unit
         }
     }
 }
 
 @Composable
-private fun BackButton(onClick: () -> Unit, modifier: Modifier = Modifier) {
-    IconButton(
-        onClick = onClick,
-        modifier = modifier.padding(start = 4.dp, top = 8.dp).statusBarsPadding(),
+private fun GameHint(uiState: BaspaGameUiState) {
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(14.dp),
     ) {
         Icon(
-            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+            imageVector = Icons.Outlined.TouchApp,
             contentDescription = null,
-            modifier = Modifier.size(40.dp),
+            modifier = Modifier.size(48.dp),
+            tint = MaterialTheme.colorScheme.primary,
         )
+        Text(
+            text = stringResource(AppResource.String.baspa_game_tap_hint),
+            style = MaterialTheme.typography.titleMedium,
+            textAlign = TextAlign.Center,
+        )
+        SpeedBadge(uiState = uiState)
     }
+}
+
+@Composable
+private fun CompactGameHint(uiState: BaspaGameUiState) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(10.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Icon(
+            imageVector = Icons.Outlined.TouchApp,
+            contentDescription = null,
+            modifier = Modifier.size(28.dp),
+            tint = MaterialTheme.colorScheme.primary,
+        )
+        Text(
+            text = stringResource(AppResource.String.baspa_game_tap_hint),
+            modifier = Modifier.weight(1f),
+            style = MaterialTheme.typography.bodyMedium,
+        )
+        SpeedBadge(uiState = uiState, compact = true)
+    }
+}
+
+@Composable
+private fun SpeedBadge(
+    uiState: BaspaGameUiState,
+    compact: Boolean = false,
+) {
+    Card(shape = MaterialTheme.shapes.medium) {
+        Row(
+            modifier =
+                Modifier.padding(
+                    horizontal = if (compact) 12.dp else 20.dp,
+                    vertical = if (compact) 8.dp else 14.dp,
+                ),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Icon(
+                imageVector = Icons.Outlined.Bolt,
+                contentDescription = null,
+                modifier = Modifier.size(if (compact) 18.dp else 24.dp),
+                tint = MaterialTheme.colorScheme.primary,
+            )
+            Text(
+                text = stringResource(AppResource.String.baspa_game_speed, uiState.intervalMillis / 1000.0),
+                style = if (compact) MaterialTheme.typography.labelMedium else MaterialTheme.typography.bodyMedium,
+            )
+        }
+    }
+}
+
+@Composable
+private fun GameBackButton(
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    AppBackButton(
+        onClick = onClick,
+        contentDescription = stringResource(AppResource.String.kenkoz_game_back),
+        modifier = modifier.statusBarsPadding().padding(start = 8.dp, top = 8.dp),
+    )
 }
 
 @Composable
 private fun ScoreHeader(
     uiState: BaspaGameUiState,
     onPauseClick: () -> Unit,
+    showPauseButton: Boolean,
     modifier: Modifier = Modifier,
 ) {
-    Box(
-        modifier = modifier.fillMaxWidth(),
-    ) {
-        Surface(
-            modifier = Modifier.align(Alignment.CenterStart),
-            shape = RoundedCornerShape(20.dp),
-            color = MaterialTheme.colorScheme.primaryContainer,
-        ) {
-            IconButton(onClick = onPauseClick, modifier = Modifier.size(64.dp)) {
-                Icon(Icons.Filled.Pause, contentDescription = null, modifier = Modifier.size(32.dp))
+    Box(modifier = modifier.fillMaxWidth()) {
+        if (showPauseButton) {
+            Surface(
+                modifier = Modifier.align(Alignment.CenterStart),
+                shape = MaterialTheme.shapes.medium,
+                color = MaterialTheme.colorScheme.primaryContainer,
+            ) {
+                IconButton(onClick = onPauseClick, modifier = Modifier.size(52.dp)) {
+                    Icon(
+                        imageVector = Icons.Filled.Pause,
+                        contentDescription = null,
+                        modifier = Modifier.size(26.dp),
+                    )
+                }
             }
+        } else {
+            Spacer(modifier = Modifier.align(Alignment.CenterStart).size(52.dp))
         }
 
         Column(
@@ -245,29 +308,40 @@ private fun ScoreHeader(
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
             Text(
-                stringResource(AppResource.String.baspa_game_score_label),
-                style = MaterialTheme.typography.titleMedium,
+                text = stringResource(AppResource.String.baspa_game_score_label),
+                style = MaterialTheme.typography.labelLarge,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
-            Text(uiState.score.toString(), fontSize = 56.sp, fontWeight = FontWeight.Black)
+            Text(
+                text = uiState.score.toString(),
+                style = MaterialTheme.typography.displaySmall,
+                fontWeight = FontWeight.Black,
+                color = MaterialTheme.colorScheme.primary,
+            )
         }
 
         Row(
             modifier = Modifier.align(Alignment.CenterEnd),
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(10.dp),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
         ) {
             Column(horizontalAlignment = Alignment.End) {
                 Text(
-                    stringResource(AppResource.String.baspa_game_record_label),
-                    style = MaterialTheme.typography.titleMedium,
+                    text = stringResource(AppResource.String.baspa_game_record_label),
+                    style = MaterialTheme.typography.labelMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
-                Text(uiState.record.toString(), fontSize = 30.sp, fontWeight = FontWeight.Bold)
+                Text(
+                    text = uiState.record.toString(),
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.Bold,
+                )
             }
-            Surface(shape = RoundedCornerShape(20.dp), color = MaterialTheme.colorScheme.primaryContainer) {
+            Surface(shape = MaterialTheme.shapes.medium, color = MaterialTheme.colorScheme.primaryContainer) {
                 Icon(
-                    Icons.Filled.EmojiEvents,
+                    imageVector = Icons.Filled.EmojiEvents,
                     contentDescription = null,
-                    modifier = Modifier.padding(14.dp).size(32.dp),
+                    modifier = Modifier.padding(12.dp).size(26.dp),
                     tint = MaterialTheme.colorScheme.primary,
                 )
             }
@@ -295,36 +369,36 @@ private fun RuleCard(uiState: BaspaGameUiState, modifier: Modifier = Modifier) {
         }
     Card(
         modifier = modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(28.dp),
+        shape = MaterialTheme.shapes.large,
         colors =
             CardDefaults.cardColors(
-                containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.45f),
+                containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.58f),
             ),
     ) {
         Row(
-            modifier = Modifier.padding(24.dp),
+            modifier = Modifier.padding(18.dp),
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(20.dp),
+            horizontalArrangement = Arrangement.spacedBy(16.dp),
         ) {
-            Surface(shape = RoundedCornerShape(50), color = MaterialTheme.colorScheme.primaryContainer) {
+            Surface(shape = MaterialTheme.shapes.medium, color = MaterialTheme.colorScheme.primaryContainer) {
                 Icon(
-                    ruleIcon(uiState),
+                    imageVector = ruleIcon(uiState),
                     contentDescription = null,
-                    modifier = Modifier.padding(16.dp).size(28.dp),
+                    modifier = Modifier.padding(13.dp).size(26.dp),
                     tint = MaterialTheme.colorScheme.primary,
                 )
             }
             Text(
                 text = highlightedRule(rule, accent),
-                style = MaterialTheme.typography.titleLarge,
+                style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Medium,
             )
         }
     }
 }
 
-private fun ruleIcon(uiState: BaspaGameUiState): ImageVector {
-    return when (uiState.mode) {
+private fun ruleIcon(uiState: BaspaGameUiState): ImageVector =
+    when (uiState.mode) {
         BaspaGameMode.Categories -> {
             when (uiState.categoryId) {
                 "fruits" -> Icons.Filled.Restaurant
@@ -347,7 +421,6 @@ private fun ruleIcon(uiState: BaspaGameUiState): ImageVector {
         BaspaGameMode.Math -> Icons.Outlined.Calculate
         BaspaGameMode.SpeedReading -> Icons.Outlined.Speed
     }
-}
 
 @Composable
 private fun highlightedRule(rule: String, accent: String) =
@@ -392,18 +465,25 @@ private fun BaspaGameMode.usesCompactStimulusText(): Boolean =
 @Composable
 private fun stimulusColor(uiState: BaspaGameUiState): Color =
     when (uiState.stimulusColorId) {
-        "red" -> Color.Red
-        "blue" -> Color.Blue
-        "green" -> Color.Green
-        "yellow" -> Color.Yellow
-        "purple" -> Color(0xFF8E24AA)
+        "red" -> themeAwareColor(light = Color(0xFFB71C1C), dark = Color(0xFFFF8A80))
+        "blue" -> themeAwareColor(light = Color(0xFF0D47A1), dark = Color(0xFF82B1FF))
+        "green" -> themeAwareColor(light = Color(0xFF1B5E20), dark = Color(0xFF69F0AE))
+        "yellow" -> themeAwareColor(light = Color(0xFF745900), dark = Color(0xFFFFD740))
+        "purple" -> themeAwareColor(light = Color(0xFF6A1B9A), dark = Color(0xFFD1A7FF))
         else -> MaterialTheme.colorScheme.primary
     }
+
+@Composable
+private fun themeAwareColor(
+    light: Color,
+    dark: Color,
+): Color =
+    if (MaterialTheme.colorScheme.background.luminance() < 0.5f) dark else light
 
 @Preview
 @Composable
 private fun BaspaGameScreenPreview() {
-    Surface {
+    OquTurboTheme {
         BaspaGameScreen(
             BaspaGameUiState(BaspaGameMode.Categories, "КОШКА", score = 24, record = 57),
             {},

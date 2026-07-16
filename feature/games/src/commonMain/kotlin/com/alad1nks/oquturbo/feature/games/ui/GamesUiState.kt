@@ -13,12 +13,12 @@ internal data class GamesUiState(
             GameSummary(
                 game = TrainingGame.WideEye,
                 skills = listOf(Skill.Attention, Skill.Vision),
-                modesCount = 2,
+                modesCount = 4,
             ),
             GameSummary(
                 game = TrainingGame.DontTap,
                 skills = listOf(Skill.Attention, Skill.Reaction),
-                modesCount = 2,
+                modesCount = 7,
             ),
         ),
     val upcomingGames: List<UpcomingGame> = UpcomingGame.entries,

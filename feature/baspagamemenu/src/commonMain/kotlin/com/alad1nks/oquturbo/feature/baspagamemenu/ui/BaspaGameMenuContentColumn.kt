@@ -1,8 +1,10 @@
 package com.alad1nks.oquturbo.feature.baspagamemenu.ui
 
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.FactCheck
@@ -12,17 +14,13 @@ import androidx.compose.material.icons.outlined.Palette
 import androidx.compose.material.icons.outlined.SortByAlpha
 import androidx.compose.material.icons.outlined.Speed
 import androidx.compose.material.icons.outlined.Straighten
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.alad1nks.oquturbo.core.ui.component.GameMenuItem
+import com.alad1nks.oquturbo.core.ui.component.PageHeader
 import com.alad1nks.oquturbo.feature.baspagame.model.BaspaGameMode
 import com.alad1nks.oquturbo.resources.AppResource
-import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.stringResource
 
 @Composable
@@ -31,79 +29,72 @@ internal fun BaspaGameMenuContentColumn(
     modifier: Modifier = Modifier,
 ) {
     LazyColumn(
-        modifier = modifier,
-        contentPadding = PaddingValues(horizontal = 16.dp),
+        modifier = modifier.widthIn(max = 760.dp).fillMaxWidth(),
+        contentPadding = PaddingValues(start = 24.dp, top = 12.dp, end = 24.dp, bottom = 32.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
         item {
-            Spacer(modifier = Modifier.height(16.dp))
-            Text(
-                text = stringResource(AppResource.String.baspa_game_menu_title),
-                fontSize = 28.sp,
-                fontWeight = FontWeight.Medium,
+            PageHeader(
+                title = stringResource(AppResource.String.baspa_game_menu_title),
+                subtitle = stringResource(AppResource.String.baspa_game_menu_subtitle),
+                modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp),
             )
-            Spacer(modifier = Modifier.height(4.dp))
-            Text(text = stringResource(AppResource.String.baspa_game_menu_subtitle))
-            Spacer(modifier = Modifier.height(24.dp))
-
-            BaspaGameMenuItem(
-                Icons.Outlined.Category,
-                AppResource.String.baspa_game_menu_categories_title,
-                AppResource.String.baspa_game_menu_categories_subtitle,
-                { onModeClick(BaspaGameMode.Categories) },
+        }
+        item {
+            GameMenuItem(
+                imageVector = Icons.Outlined.Category,
+                title = stringResource(AppResource.String.baspa_game_menu_categories_title),
+                subtitle = stringResource(AppResource.String.baspa_game_menu_categories_subtitle),
+                onClick = { onModeClick(BaspaGameMode.Categories) },
             )
-            BaspaGameMenuItem(
-                Icons.Outlined.SortByAlpha,
-                AppResource.String.baspa_game_menu_letter_title,
-                AppResource.String.baspa_game_menu_letter_subtitle,
-                { onModeClick(BaspaGameMode.Letter) },
+        }
+        item {
+            GameMenuItem(
+                imageVector = Icons.Outlined.SortByAlpha,
+                title = stringResource(AppResource.String.baspa_game_menu_letter_title),
+                subtitle = stringResource(AppResource.String.baspa_game_menu_letter_subtitle),
+                onClick = { onModeClick(BaspaGameMode.Letter) },
             )
-            BaspaGameMenuItem(
-                Icons.Outlined.Straighten,
-                AppResource.String.baspa_game_menu_word_length_title,
-                AppResource.String.baspa_game_menu_word_length_subtitle,
-                { onModeClick(BaspaGameMode.WordLength) },
+        }
+        item {
+            GameMenuItem(
+                imageVector = Icons.Outlined.Straighten,
+                title = stringResource(AppResource.String.baspa_game_menu_word_length_title),
+                subtitle = stringResource(AppResource.String.baspa_game_menu_word_length_subtitle),
+                onClick = { onModeClick(BaspaGameMode.WordLength) },
             )
-            BaspaGameMenuItem(
-                Icons.Outlined.Palette,
-                AppResource.String.baspa_game_menu_text_color_title,
-                AppResource.String.baspa_game_menu_text_color_subtitle,
-                { onModeClick(BaspaGameMode.TextColor) },
+        }
+        item {
+            GameMenuItem(
+                imageVector = Icons.Outlined.Palette,
+                title = stringResource(AppResource.String.baspa_game_menu_text_color_title),
+                subtitle = stringResource(AppResource.String.baspa_game_menu_text_color_subtitle),
+                onClick = { onModeClick(BaspaGameMode.TextColor) },
             )
-            BaspaGameMenuItem(
-                Icons.AutoMirrored.Outlined.FactCheck,
-                AppResource.String.baspa_game_menu_true_false_title,
-                AppResource.String.baspa_game_menu_true_false_subtitle,
-                { onModeClick(BaspaGameMode.TrueFalse) },
+        }
+        item {
+            GameMenuItem(
+                imageVector = Icons.AutoMirrored.Outlined.FactCheck,
+                title = stringResource(AppResource.String.baspa_game_menu_true_false_title),
+                subtitle = stringResource(AppResource.String.baspa_game_menu_true_false_subtitle),
+                onClick = { onModeClick(BaspaGameMode.TrueFalse) },
             )
-            BaspaGameMenuItem(
-                Icons.Outlined.Calculate,
-                AppResource.String.baspa_game_menu_math_title,
-                AppResource.String.baspa_game_menu_math_subtitle,
-                { onModeClick(BaspaGameMode.Math) },
+        }
+        item {
+            GameMenuItem(
+                imageVector = Icons.Outlined.Calculate,
+                title = stringResource(AppResource.String.baspa_game_menu_math_title),
+                subtitle = stringResource(AppResource.String.baspa_game_menu_math_subtitle),
+                onClick = { onModeClick(BaspaGameMode.Math) },
             )
-            BaspaGameMenuItem(
-                Icons.Outlined.Speed,
-                AppResource.String.baspa_game_menu_speed_reading_title,
-                AppResource.String.baspa_game_menu_speed_reading_subtitle,
-                { onModeClick(BaspaGameMode.SpeedReading) },
+        }
+        item {
+            GameMenuItem(
+                imageVector = Icons.Outlined.Speed,
+                title = stringResource(AppResource.String.baspa_game_menu_speed_reading_title),
+                subtitle = stringResource(AppResource.String.baspa_game_menu_speed_reading_subtitle),
+                onClick = { onModeClick(BaspaGameMode.SpeedReading) },
             )
-            Spacer(modifier = Modifier.height(16.dp))
         }
     }
-}
-
-@Composable
-private fun BaspaGameMenuItem(
-    imageVector: ImageVector,
-    title: StringResource,
-    subtitle: StringResource,
-    onClick: () -> Unit,
-) {
-    GameMenuItem(
-        imageVector = imageVector,
-        title = stringResource(title),
-        subtitle = stringResource(subtitle),
-        onClick = onClick,
-    )
-    Spacer(modifier = Modifier.height(16.dp))
 }

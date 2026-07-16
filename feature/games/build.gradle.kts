@@ -53,6 +53,8 @@ kotlin {
             implementation(libs.kotlinx.serialization.json)
             implementation(libs.navigation.compose)
 
+            implementation(projects.core.designsystem)
+            implementation(projects.core.ui)
             implementation(projects.resources)
         }
     }

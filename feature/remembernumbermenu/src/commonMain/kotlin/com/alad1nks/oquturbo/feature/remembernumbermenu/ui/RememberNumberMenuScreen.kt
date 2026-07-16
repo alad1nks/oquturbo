@@ -1,22 +1,20 @@
 package com.alad1nks.oquturbo.feature.remembernumbermenu.ui
 
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material3.CenterAlignedTopAppBar
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
+import com.alad1nks.oquturbo.core.designsystem.theme.OquTurboTheme
+import com.alad1nks.oquturbo.core.ui.component.AppTopBar
+import com.alad1nks.oquturbo.core.ui.component.appBackground
 import com.alad1nks.oquturbo.resources.AppResource
 import org.jetbrains.compose.resources.stringResource
 
@@ -44,7 +42,6 @@ internal fun RememberNumberMenuRoute(
     )
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun RememberNumberMenuScreen(
     uiState: RememberNumberMenuUiState,
@@ -69,50 +66,39 @@ private fun RememberNumberMenuScreen(
         )
     }
 
-    Column(
-        modifier = modifier.fillMaxSize(),
-    ) {
-        CenterAlignedTopAppBar(
-            title = {
-                Text(text = stringResource(AppResource.String.remember_number_title))
-            },
-            navigationIcon = {
-                if (showBackButton) {
-                    IconButton(
-                        onClick = onBackClick,
-                    ) {
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = null,
+    Box(modifier = modifier.fillMaxSize().appBackground()) {
+        Column(modifier = Modifier.fillMaxSize()) {
+            AppTopBar(
+                title = stringResource(AppResource.String.remember_number_title),
+                onBackClick = onBackClick.takeIf { showBackButton },
+                actions = {
+                    if (uiState.themeIcon.show) {
+                        RememberNumberMenuThemeIcon(
+                            darkTheme = uiState.themeIcon.darkTheme,
+                            onChange = onDarkThemeChange,
                         )
                     }
-                }
-            },
-            actions = {
-                if (uiState.themeIcon.show) {
-                    RememberNumberMenuThemeIcon(
-                        darkTheme = uiState.themeIcon.darkTheme,
-                        onChange = onDarkThemeChange,
-                    )
-                }
-            },
-            colors =
-                TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.primaryContainer,
-                ),
-        )
+                },
+            )
 
-        RememberNumberMenuContentColumn(
-            onPlayClick = onPlayClick,
-            onCustomClick = onCustomClick,
-        )
+            Box(
+                modifier = Modifier.fillMaxWidth().weight(1f),
+                contentAlignment = Alignment.TopCenter,
+            ) {
+                RememberNumberMenuContentColumn(
+                    onPlayClick = onPlayClick,
+                    onCustomClick = onCustomClick,
+                    modifier = Modifier.widthIn(max = 760.dp).fillMaxSize(),
+                )
+            }
+        }
     }
 }
 
 @Preview
 @Composable
 private fun RememberNumberMenuScreenPreview() {
-    Scaffold {
+    OquTurboTheme {
         RememberNumberMenuScreen(
             uiState = RememberNumberMenuUiState(),
             showBackButton = true,
@@ -133,7 +119,7 @@ private fun RememberNumberMenuScreenPreview() {
 )
 @Composable
 private fun RememberNumberMenuScreenPreviewTablet() {
-    Scaffold {
+    OquTurboTheme {
         RememberNumberMenuScreen(
             uiState = RememberNumberMenuUiState(),
             showBackButton = true,
@@ -151,7 +137,7 @@ private fun RememberNumberMenuScreenPreviewTablet() {
 @Preview
 @Composable
 private fun RememberNumberMenuScreenDialogPreview() {
-    Scaffold {
+    OquTurboTheme {
         RememberNumberMenuScreen(
             uiState =
                 RememberNumberMenuUiState(
@@ -175,7 +161,7 @@ private fun RememberNumberMenuScreenDialogPreview() {
 )
 @Composable
 private fun RememberNumberMenuScreenDialogPreviewTablet() {
-    Scaffold {
+    OquTurboTheme {
         RememberNumberMenuScreen(
             uiState =
                 RememberNumberMenuUiState(

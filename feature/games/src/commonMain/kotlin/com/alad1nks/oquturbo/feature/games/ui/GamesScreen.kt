@@ -48,6 +48,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.alad1nks.oquturbo.core.designsystem.theme.OquTurboTheme
+import com.alad1nks.oquturbo.core.ui.component.appBackground
 import com.alad1nks.oquturbo.feature.games.model.TrainingGame
 import com.alad1nks.oquturbo.resources.AppResource
 import org.jetbrains.compose.resources.StringResource
@@ -74,13 +76,13 @@ private fun GamesScreen(
     onSettingsClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    Box(modifier = modifier.fillMaxSize().background(MaterialTheme.colorScheme.surfaceContainerLowest)) {
+    Box(modifier = modifier.fillMaxSize().appBackground()) {
         LazyColumn(
             modifier =
                 Modifier
                     .align(Alignment.TopCenter)
-                    .fillMaxWidth()
                     .widthIn(max = 760.dp)
+                    .fillMaxWidth()
                     .statusBarsPadding(),
         ) {
             item {
@@ -174,7 +176,7 @@ private fun GamesHeader(
                 imageVector = Icons.Filled.Settings,
                 contentDescription = stringResource(AppResource.String.games_settings_content_description),
                 modifier = Modifier.size(30.dp),
-                tint = Purple,
+                tint = MaterialTheme.colorScheme.primary,
             )
         }
     }
@@ -203,7 +205,7 @@ private fun SkillChip(
     val color = skill.color()
     Surface(
         modifier = modifier.height(46.dp),
-        shape = RoundedCornerShape(17.dp),
+        shape = MaterialTheme.shapes.medium,
         color = MaterialTheme.colorScheme.surface,
         border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.45f)),
         shadowElevation = 2.dp,
@@ -240,9 +242,10 @@ private fun ActiveGameCard(
     Card(
         onClick = onClick,
         modifier = modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(26.dp),
+        shape = MaterialTheme.shapes.large,
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.55f)),
+        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
     ) {
         Row(
             modifier = Modifier.fillMaxWidth().heightIn(min = 128.dp).padding(12.dp),
@@ -285,13 +288,13 @@ private fun ActiveGameCard(
             Surface(
                 modifier = Modifier.size(44.dp),
                 shape = RoundedCornerShape(22.dp),
-                color = Lavender,
+                color = MaterialTheme.colorScheme.primaryContainer,
             ) {
                 Box(contentAlignment = Alignment.Center) {
                     Icon(
                         imageVector = Icons.Filled.ChevronRight,
                         contentDescription = null,
-                        tint = Purple,
+                        tint = MaterialTheme.colorScheme.primary,
                         modifier = Modifier.size(22.dp),
                     )
                 }
@@ -331,7 +334,7 @@ private fun GameArtwork(game: TrainingGame) {
                     imageVector = Icons.Filled.Visibility,
                     contentDescription = null,
                     modifier = Modifier.size(56.dp),
-                    tint = Purple,
+                    tint = MaterialTheme.colorScheme.secondary,
                 )
             TrainingGame.DontTap -> DontTapArtwork()
         }
@@ -355,14 +358,14 @@ private fun NumberGridArtwork() {
 @Composable
 private fun NumberTile(number: Int) {
     Box(
-        modifier = Modifier.size(28.dp).clip(RoundedCornerShape(6.dp)).background(Purple),
+        modifier = Modifier.size(28.dp).clip(RoundedCornerShape(6.dp)).background(MaterialTheme.colorScheme.primary),
         contentAlignment = Alignment.Center,
     ) {
         Text(
             text = number.toString(),
             style = MaterialTheme.typography.titleMedium,
             fontWeight = FontWeight.Bold,
-            color = Color.White,
+            color = MaterialTheme.colorScheme.onPrimary,
         )
     }
 }
@@ -374,13 +377,13 @@ private fun DontTapArtwork() {
             imageVector = Icons.Filled.Block,
             contentDescription = null,
             modifier = Modifier.size(58.dp),
-            tint = Pink,
+            tint = MaterialTheme.colorScheme.tertiary,
         )
         Icon(
             imageVector = Icons.Filled.TouchApp,
             contentDescription = null,
             modifier = Modifier.padding(start = 18.dp, top = 20.dp).size(38.dp),
-            tint = DarkPurple,
+            tint = MaterialTheme.colorScheme.onTertiaryContainer,
         )
     }
 }
@@ -392,8 +395,9 @@ private fun UpcomingGameCard(
 ) {
     Card(
         modifier = modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(22.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.72f)),
+        shape = MaterialTheme.shapes.large,
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.84f)),
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.42f)),
         elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
     ) {
         Row(
@@ -434,13 +438,13 @@ private fun UpcomingGameCard(
             }
             Surface(
                 shape = RoundedCornerShape(12.dp),
-                color = Lavender.copy(alpha = 0.7f),
+                color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.7f),
             ) {
                 Text(
                     text = stringResource(AppResource.String.games_soon),
                     modifier = Modifier.padding(horizontal = 12.dp, vertical = 5.dp),
                     style = MaterialTheme.typography.labelMedium,
-                    color = Purple.copy(alpha = 0.65f),
+                    color = MaterialTheme.colorScheme.primary.copy(alpha = 0.72f),
                 )
             }
         }
@@ -451,8 +455,8 @@ private fun UpcomingGameCard(
 private fun MotivationBanner(modifier: Modifier = Modifier) {
     Surface(
         modifier = modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(24.dp),
-        color = Lavender,
+        shape = MaterialTheme.shapes.large,
+        color = MaterialTheme.colorScheme.primaryContainer,
     ) {
         Row(
             modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 16.dp),
@@ -463,7 +467,7 @@ private fun MotivationBanner(modifier: Modifier = Modifier) {
                 imageVector = Icons.Filled.EmojiEvents,
                 contentDescription = null,
                 modifier = Modifier.size(42.dp),
-                tint = Purple,
+                tint = MaterialTheme.colorScheme.primary,
             )
             Column(
                 modifier = Modifier.weight(1f),
@@ -473,18 +477,18 @@ private fun MotivationBanner(modifier: Modifier = Modifier) {
                     text = stringResource(AppResource.String.games_motivation_title),
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold,
-                    color = DarkPurple,
+                    color = MaterialTheme.colorScheme.onPrimaryContainer,
                 )
                 Text(
                     text = stringResource(AppResource.String.games_motivation_subtitle),
                     style = MaterialTheme.typography.bodySmall,
-                    color = DarkPurple.copy(alpha = 0.72f),
+                    color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.72f),
                 )
             }
             Icon(
                 imageVector = Icons.Filled.ChevronRight,
                 contentDescription = null,
-                tint = Purple,
+                tint = MaterialTheme.colorScheme.primary,
             )
         }
     }
@@ -504,11 +508,12 @@ private fun TrainingGame.descriptionResource(): StringResource =
         TrainingGame.DontTap -> AppResource.String.games_dont_tap_description
     }
 
+@Composable
 private fun TrainingGame.artworkBackground(): Color =
     when (this) {
-        TrainingGame.NumberSprint -> Lavender
-        TrainingGame.WideEye -> Color(0xFFEDE9FF)
-        TrainingGame.DontTap -> Color(0xFFF9E8F3)
+        TrainingGame.NumberSprint -> MaterialTheme.colorScheme.primaryContainer
+        TrainingGame.WideEye -> MaterialTheme.colorScheme.secondaryContainer
+        TrainingGame.DontTap -> MaterialTheme.colorScheme.tertiaryContainer
     }
 
 private fun GamesUiState.Skill.titleResource(): StringResource =
@@ -529,13 +534,14 @@ private fun GamesUiState.Skill.icon(): ImageVector =
         GamesUiState.Skill.Vision -> Icons.Filled.Visibility
     }
 
+@Composable
 private fun GamesUiState.Skill.color(): Color =
     when (this) {
-        GamesUiState.Skill.Memory -> Purple
-        GamesUiState.Skill.Attention -> Indigo
-        GamesUiState.Skill.Reaction -> Pink
-        GamesUiState.Skill.Reading -> Teal
-        GamesUiState.Skill.Vision -> Blue
+        GamesUiState.Skill.Memory -> MaterialTheme.colorScheme.primary
+        GamesUiState.Skill.Attention -> MaterialTheme.colorScheme.secondary
+        GamesUiState.Skill.Reaction -> MaterialTheme.colorScheme.tertiary
+        GamesUiState.Skill.Reading -> MaterialTheme.colorScheme.onSecondaryContainer
+        GamesUiState.Skill.Vision -> MaterialTheme.colorScheme.onTertiaryContainer
     }
 
 private fun GamesUiState.UpcomingGame.titleResource(): StringResource =
@@ -552,18 +558,10 @@ private fun GamesUiState.UpcomingGame.descriptionResource(): StringResource =
         GamesUiState.UpcomingGame.WordFlow -> AppResource.String.games_word_flow_description
     }
 
-private val Purple = Color(0xFF6542E8)
-private val DarkPurple = Color(0xFF24156B)
-private val Lavender = Color(0xFFF0EBFF)
-private val Indigo = Color(0xFF5A50F0)
-private val Pink = Color(0xFFC83B98)
-private val Teal = Color(0xFF4C9B8A)
-private val Blue = Color(0xFF4D7BEF)
-
 @Preview
 @Composable
 private fun GamesScreenPreview() {
-    MaterialTheme {
+    OquTurboTheme {
         GamesScreen(
             uiState = GamesUiState(),
             onGameClick = {},

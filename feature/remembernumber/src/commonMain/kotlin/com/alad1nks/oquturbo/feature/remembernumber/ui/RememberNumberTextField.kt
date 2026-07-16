@@ -10,9 +10,11 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
@@ -34,7 +36,6 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 
 @Composable
 internal fun RememberNumberTextField(
@@ -73,34 +74,53 @@ internal fun RememberNumberTextField(
                 imeAction = ImeAction.Done,
             ),
         decorationBox = {
-            Row(
-                horizontalArrangement = Arrangement.spacedBy(12.dp),
+            BoxWithConstraints(
+                modifier = Modifier.fillMaxWidth(),
+                contentAlignment = Alignment.Center,
             ) {
-                repeat(maxLength) { index ->
-                    val char = value.getOrNull(index)
-                    val isFocused = index == value.length
+                val itemsPerRow = if (maxLength <= 5) maxLength else (maxLength + 1) / 2
+                val horizontalSpacing = if (maxLength <= 5) 12.dp else 8.dp
+                val availableTileWidth =
+                    (maxWidth - horizontalSpacing * (itemsPerRow - 1)) / itemsPerRow
+                val tileSize = minOf(availableTileWidth, 72.dp)
 
-                    Box(
-                        modifier =
-                            Modifier
-                                .weight(1f)
-                                .aspectRatio(1f)
-                                .border(
-                                    width = 2.dp,
-                                    color = borderColor(index),
-                                    shape = RoundedCornerShape(12.dp),
-                                ).clip(RoundedCornerShape(12.dp))
-                                .background(backgroundColor(index)),
-                        contentAlignment = Alignment.Center,
-                    ) {
-                        if (char != null) {
-                            Text(
-                                text = char.toString(),
-                                fontSize = 24.sp,
-                                fontWeight = FontWeight.Bold,
-                            )
-                        } else if (isFocused && showFocusedPlaceholder) {
-                            FocusedPlaceHolder()
+                FlowRow(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement =
+                        Arrangement.spacedBy(
+                            space = horizontalSpacing,
+                            alignment = Alignment.CenterHorizontally,
+                        ),
+                    verticalArrangement = Arrangement.spacedBy(8.dp),
+                    maxItemsInEachRow = itemsPerRow,
+                ) {
+                    repeat(maxLength) { index ->
+                        val char = value.getOrNull(index)
+                        val isFocused = index == value.length
+                        val shape = RoundedCornerShape(16.dp)
+
+                        Box(
+                            modifier =
+                                Modifier
+                                    .size(tileSize)
+                                    .clip(shape)
+                                    .background(backgroundColor(index))
+                                    .border(
+                                        width = 2.dp,
+                                        color = borderColor(index),
+                                        shape = shape,
+                                    ),
+                            contentAlignment = Alignment.Center,
+                        ) {
+                            if (char != null) {
+                                Text(
+                                    text = char.toString(),
+                                    style = MaterialTheme.typography.headlineSmall,
+                                    fontWeight = FontWeight.Bold,
+                                )
+                            } else if (isFocused && showFocusedPlaceholder) {
+                                FocusedPlaceHolder()
+                            }
                         }
                     }
                 }

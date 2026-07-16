@@ -32,6 +32,8 @@
     <string name="oquturbo_navigation_games">Игры</string>
     <string name="oquturbo_navigation_stats">Статистика</string>
     <string name="oquturbo_navigation_profile">Профиль</string>
+    <string name="oquturbo_stats_subtitle">Здесь появятся история тренировок и ваш прогресс</string>
+    <string name="oquturbo_profile_subtitle">Здесь будут ваши настройки и достижения</string>
     <string name="baspa_game_record">Рекорд: %1$d</string>
     <string name="baspa_game_record_label">Рекорд</string>
     <string name="baspa_game_rule_categories">Нажимай только на %1$s</string>
@@ -52,7 +54,8 @@
     <string name="baspa_game_score_label">Счёт</string>
     <string name="baspa_game_speed">Скорость: %1$s сек</string>
     <string name="baspa_game_tap_hint">Тапни по экрану, если подходит</string>
-    <string name="baspa_game_start">Start Game!</string>
+    <string name="baspa_game_start">Начать игру!</string>
+    <string name="baspa_game_continue">Продолжить</string>
     <string name="baspa_game_try_again">Попробовать снова?</string>
     <string-array name="baspa_categories"><item>animals|животных|КОТ,СОБАКА,ТИГР,ЛЕВ,ЛОШАДЬ,ВОЛК,МЕДВЕДЬ,ЛИСА,ЗАЯЦ,МЫШЬ</item><item>fruits|фрукты|ЯБЛОКО,ГРУША,БАНАН,АПЕЛЬСИН,ЛИМОН,ПЕРСИК,СЛИВА,ВИШНЯ,МАНГО,ВИНОГРАД</item><item>vehicles|транспорт|МАШИНА,АВТОБУС,ПОЕЗД,САМОЛЁТ,ВЕЛОСИПЕД,ГРУЗОВИК,ЛОДКА,ТРАМВАЙ,МЕТРО,САМОКАТ</item><item>professions|профессии|ВРАЧ,УЧИТЕЛЬ,ВОДИТЕЛЬ,ПОВАР,ПИЛОТ,СТРОИТЕЛЬ,ХУДОЖНИК,ФЕРМЕР,ЮРИСТ,АКТЁР</item><item>clothes|одежду|РУБАШКА,ПАЛЬТО,ШАПКА,ПЛАТЬЕ,НОСКИ,КУРТКА,ЮБКА,ТУФЛИ,ПЕРЧАТКИ,ШАРФ</item><item>nature|природу|ЛЕС,РЕКА,ГОРА,МОРЕ,ОБЛАКО,ДОЖДЬ,СНЕГ,ВЕТЕР,КАМЕНЬ,ЦВЕТОК</item><item>food|еду|ХЛЕБ,СУП,СЫР,РИС,МАКАРОНЫ,САЛАТ,ТОРТ,ПИЦЦА,МЯСО,РЫБА</item><item>home|предметы дома|СТОЛ,СТУЛ,ЛАМПА,ДИВАН,КРОВАТЬ,ЧАСЫ,ЗЕРКАЛО,ЧАШКА,ТАРЕЛКА,ЛОЖКА</item><item>sports|спорт|ФУТБОЛ,ТЕННИС,ХОККЕЙ,БОКС,ЛЫЖИ,БЕГ,ПЛАВАНИЕ,ШАХМАТЫ,ГОЛЬФ,РЕГБИ</item><item>school|школьные предметы|КНИГА,РУЧКА,КАРАНДАШ,ЛИНЕЙКА,ЛАСТИК,ПАРТА,ДОСКА,КАРТА,ГЛОБУС,ТЕТРАДЬ</item></string-array>
     <string-array name="baspa_letters"><item>А</item><item>О</item><item>М</item><item>К</item><item>С</item></string-array>

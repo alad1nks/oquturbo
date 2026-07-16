@@ -32,6 +32,8 @@
     <string name="oquturbo_navigation_games">Ойындар</string>
     <string name="oquturbo_navigation_stats">Статистика</string>
     <string name="oquturbo_navigation_profile">Профиль</string>
+    <string name="oquturbo_stats_subtitle">Мұнда жаттығу тарихы мен ілгерілеуіңіз көрсетіледі</string>
+    <string name="oquturbo_profile_subtitle">Мұнда баптауларыңыз бен жетістіктеріңіз болады</string>
     <string name="baspa_game_record">Рекорд: %1$d</string>
     <string name="baspa_game_record_label">Рекорд</string>
     <string name="baspa_game_rule_categories">Тек %1$s басыңыз</string>
@@ -52,7 +54,8 @@
     <string name="baspa_game_score_label">Ұпай</string>
     <string name="baspa_game_speed">Жылдамдық: %1$s сек</string>
     <string name="baspa_game_tap_hint">Сәйкес келсе, экранды басыңыз</string>
-    <string name="baspa_game_start">Start Game!</string>
+    <string name="baspa_game_start">Ойынды бастау!</string>
+    <string name="baspa_game_continue">Жалғастыру</string>
     <string name="baspa_game_try_again">Қайта байқап көресіз бе?</string>
     <string-array name="baspa_categories"><item>animals|жануарларды|МЫСЫҚ,ИТ,ЖОЛБАРЫС,АРЫСТАН,ЖЫЛҚЫ,ҚАСҚЫР,АЮ,ТҮЛКІ,ҚОЯН,ТЫШҚАН</item><item>fruits|жемістерді|АЛМА,АЛМҰРТ,БАНАН,АПЕЛЬСИН,ЛИМОН,ШАБДАЛЫ,АЛХОРЫ,ШИЕ,МАНГО,ЖҮЗІМ</item><item>vehicles|көліктерді|КӨЛІК,АВТОБУС,ПОЙЫЗ,ҰШАҚ,ВЕЛОСИПЕД,ЖҮККӨЛІК,ҚАЙЫҚ,ТРАМВАЙ,МЕТРО,САМОКАТ</item><item>professions|мамандықтарды|ДӘРІГЕР,МҰҒАЛІМ,ЖҮРГІЗУШІ,АСПАЗ,ҰШҚЫШ,ҚҰРЫЛЫСШЫ,СУРЕТШІ,ФЕРМЕР,ЗАҢГЕР,АКТЕР</item><item>clothes|киімдерді|КӨЙЛЕК,ПАЛЬТО,БӨРІК,ЖЕЙДЕ,ШҰЛЫҚ,КҮРТЕШЕ,БЕЛДЕМШЕ,АЯҚКИІМ,ҚОЛҒАП,ШАРФ</item><item>nature|табиғатты|ОРМАН,ӨЗЕН,ТАУ,ТЕҢІЗ,БҰЛТ,ЖАҢБЫР,ҚАР,ЖЕЛ,ТАС,ГҮЛ</item><item>food|тағамды|НАН,СОРПА,ІРІМШІК,КҮРІШ,МАКАРОН,САЛАТ,ТОРТ,ПИЦЦА,ЕТ,БАЛЫҚ</item><item>home|үй заттарын|ҮСТЕЛ,ОРЫНДЫҚ,ШАМ,ДИВАН,КЕРЕУЕТ,САҒАТ,АЙНА,КЕСЕ,ТӘРЕЛКЕ,ҚАСЫҚ</item><item>sports|спортты|ФУТБОЛ,ТЕННИС,ХОККЕЙ,БОКС,ШАҢҒЫ,ЖҮГІРУ,ЖҮЗУ,ШАХМАТ,ГОЛЬФ,РЕГБИ</item><item>school|мектеп заттарын|КІТАП,ҚАЛАМ,ҚАРЫНДАШ,СЫЗҒЫШ,ӨШІРГІШ,ПАРТА,ТАҚТА,КАРТА,ГЛОБУС,ДӘПТЕР</item></string-array>
     <string-array name="baspa_letters"><item>А</item><item>Қ</item><item>М</item><item>С</item><item>Т</item></string-array>
