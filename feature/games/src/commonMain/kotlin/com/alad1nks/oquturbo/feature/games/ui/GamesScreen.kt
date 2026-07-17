@@ -2,10 +2,10 @@ package com.alad1nks.oquturbo.feature.games.ui
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
-import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -18,7 +18,8 @@ import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AutoStories
@@ -184,16 +185,21 @@ private fun GamesHeader(
 
 @Composable
 private fun SkillsRow(modifier: Modifier = Modifier) {
-    Row(
-        modifier = modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),
+    LazyRow(
+        modifier = modifier.fillMaxWidth(),
+        contentPadding = PaddingValues(horizontal = 24.dp),
         horizontalArrangement = Arrangement.spacedBy(8.dp),
     ) {
-        Spacer(modifier = Modifier.width(24.dp))
-        SkillChip(GamesUiState.Skill.Memory)
-        SkillChip(GamesUiState.Skill.Attention)
-        SkillChip(GamesUiState.Skill.Reaction)
-        SkillChip(GamesUiState.Skill.Reading)
-        Spacer(modifier = Modifier.width(24.dp))
+        items(
+            listOf(
+                GamesUiState.Skill.Memory,
+                GamesUiState.Skill.Attention,
+                GamesUiState.Skill.Reaction,
+                GamesUiState.Skill.Reading,
+            ),
+        ) { skill ->
+            SkillChip(skill)
+        }
     }
 }
 

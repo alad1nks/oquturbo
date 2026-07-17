@@ -82,8 +82,10 @@ kotlin {
             implementation(projects.feature.kenkozgame)
             implementation(projects.feature.kenkozgamemenu)
             implementation(projects.feature.main)
+            implementation(projects.feature.profile)
             implementation(projects.feature.remembernumber)
             implementation(projects.feature.remembernumbermenu)
+            implementation(projects.feature.stats)
             implementation(projects.resources)
         }
         commonTest.dependencies {

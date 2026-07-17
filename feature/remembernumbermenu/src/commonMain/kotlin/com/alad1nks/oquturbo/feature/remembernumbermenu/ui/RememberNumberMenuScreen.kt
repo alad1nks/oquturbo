@@ -5,11 +5,14 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.widthIn
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.alad1nks.oquturbo.core.designsystem.theme.OquTurboTheme
@@ -42,6 +45,7 @@ internal fun RememberNumberMenuRoute(
     )
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun RememberNumberMenuScreen(
     uiState: RememberNumberMenuUiState,
@@ -55,6 +59,8 @@ private fun RememberNumberMenuScreen(
     onDarkThemeChange: (Boolean) -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior()
+
     if (uiState.customOptionsDialog.show) {
         RememberNumberMenuCustomOptionsDialog(
             length = uiState.customOptionsDialog.maxLength,
@@ -66,7 +72,13 @@ private fun RememberNumberMenuScreen(
         )
     }
 
-    Box(modifier = modifier.fillMaxSize().appBackground()) {
+    Box(
+        modifier =
+            modifier
+                .fillMaxSize()
+                .appBackground()
+                .nestedScroll(scrollBehavior.nestedScrollConnection),
+    ) {
         Column(modifier = Modifier.fillMaxSize()) {
             AppTopBar(
                 title = stringResource(AppResource.String.remember_number_title),
@@ -79,6 +91,7 @@ private fun RememberNumberMenuScreen(
                         )
                     }
                 },
+                scrollBehavior = scrollBehavior,
             )
 
             Box(

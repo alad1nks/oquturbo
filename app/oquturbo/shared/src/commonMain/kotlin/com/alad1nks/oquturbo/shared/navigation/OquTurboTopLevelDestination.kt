@@ -12,6 +12,8 @@ import androidx.compose.material.icons.outlined.Person
 import androidx.compose.ui.graphics.vector.ImageVector
 import com.alad1nks.oquturbo.feature.games.navigation.GamesRoute
 import com.alad1nks.oquturbo.feature.home.navigation.HomeRoute
+import com.alad1nks.oquturbo.feature.profile.navigation.ProfileRoute
+import com.alad1nks.oquturbo.feature.stats.navigation.StatsRoute
 import com.alad1nks.oquturbo.resources.AppResource
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.serializer

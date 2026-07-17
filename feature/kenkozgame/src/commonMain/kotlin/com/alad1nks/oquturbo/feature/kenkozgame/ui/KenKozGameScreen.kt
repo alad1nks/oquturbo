@@ -98,12 +98,7 @@ private fun KenKozGameScreen(
                     .padding(horizontal = 20.dp, vertical = 16.dp)
                     .blur(blurRadius),
         ) {
-            GameHud(
-                score = uiState.score,
-                onBackClick = onBackClick,
-                backContentDescription = backContentDescription,
-                showBackButton = !showStateOverlay,
-            )
+            GameHud(score = uiState.score)
 
             Box(
                 modifier =
@@ -167,40 +162,29 @@ private fun KenKozGameScreen(
             )
         }
 
-        if (showStateOverlay) {
-            AppBackButton(
-                onClick = onBackClick,
-                contentDescription = backContentDescription,
-                modifier =
-                    Modifier
-                        .align(Alignment.TopStart)
-                        .statusBarsPadding()
-                        .padding(start = 12.dp, top = 8.dp),
-            )
-        }
+        AppBackButton(
+            onClick = onBackClick,
+            contentDescription = backContentDescription,
+            modifier =
+                Modifier
+                    .align(Alignment.TopStart)
+                    .statusBarsPadding()
+                    .padding(
+                        start = 24.dp,
+                        top = if (showStateOverlay) 8.dp else 16.dp,
+                    ),
+        )
     }
 }
 
 @Composable
-private fun GameHud(
-    score: Int,
-    onBackClick: () -> Unit,
-    backContentDescription: String,
-    showBackButton: Boolean,
-) {
+private fun GameHud(score: Int) {
     Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        if (showBackButton) {
-            AppBackButton(
-                onClick = onBackClick,
-                contentDescription = backContentDescription,
-            )
-        } else {
-            Spacer(modifier = Modifier.size(48.dp))
-        }
+        Spacer(modifier = Modifier.size(48.dp))
         GameScoreBadge(
             label = stringResource(AppResource.String.kenkoz_game_score),
             value = score.toString(),
