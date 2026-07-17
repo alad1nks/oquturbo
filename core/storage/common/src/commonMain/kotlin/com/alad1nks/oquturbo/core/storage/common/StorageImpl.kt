@@ -9,6 +9,26 @@ internal class StorageImpl(
         return appPreferences.getBoolean(DARK_THEME)
     }
 
+    override fun getSoundEnabled(): Flow<Boolean?> {
+        return appPreferences.getBoolean(SOUND_ENABLED)
+    }
+
+    override fun getVibrationEnabled(): Flow<Boolean?> {
+        return appPreferences.getBoolean(VIBRATION_ENABLED)
+    }
+
+    override fun getRemindersEnabled(): Flow<Boolean?> {
+        return appPreferences.getBoolean(REMINDERS_ENABLED)
+    }
+
+    override fun getGameSessionsJson(): Flow<String?> {
+        return appPreferences.getString(GAME_SESSIONS_V1)
+    }
+
+    override fun getProfilePreferencesJson(): Flow<String?> {
+        return appPreferences.getString(PROFILE_PREFERENCES_V1)
+    }
+
     override fun getBaspaGameRecord(mode: String): Flow<Int?> {
         return appPreferences.getInt("${BASPA_GAME_RECORD}_$mode")
     }
@@ -26,6 +46,26 @@ internal class StorageImpl(
 
     override suspend fun setDarkTheme(value: Boolean) {
         appPreferences.setBoolean(DARK_THEME, value)
+    }
+
+    override suspend fun setSoundEnabled(value: Boolean) {
+        appPreferences.setBoolean(SOUND_ENABLED, value)
+    }
+
+    override suspend fun setVibrationEnabled(value: Boolean) {
+        appPreferences.setBoolean(VIBRATION_ENABLED, value)
+    }
+
+    override suspend fun setRemindersEnabled(value: Boolean) {
+        appPreferences.setBoolean(REMINDERS_ENABLED, value)
+    }
+
+    override suspend fun setGameSessionsJson(value: String) {
+        appPreferences.setString(GAME_SESSIONS_V1, value)
+    }
+
+    override suspend fun setProfilePreferencesJson(value: String) {
+        appPreferences.setString(PROFILE_PREFERENCES_V1, value)
     }
 
     override suspend fun setBaspaGameRecord(
@@ -53,7 +93,12 @@ internal class StorageImpl(
     private companion object {
         const val BASPA_GAME_RECORD = "baspa_game_record"
         const val DARK_THEME = "dark_theme"
+        const val GAME_SESSIONS_V1 = "game_sessions_v1"
         const val KENKOZ_GAME_RECORD = "kenkoz_game_record"
+        const val PROFILE_PREFERENCES_V1 = "profile_preferences_v1"
         const val REMEMBER_NUMBER_RECORD = "remember_number_record"
+        const val REMINDERS_ENABLED = "reminders_enabled"
+        const val SOUND_ENABLED = "sound_enabled"
+        const val VIBRATION_ENABLED = "vibration_enabled"
     }
 }

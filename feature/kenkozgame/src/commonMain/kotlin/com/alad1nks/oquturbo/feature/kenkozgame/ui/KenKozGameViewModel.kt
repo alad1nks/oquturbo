@@ -2,16 +2,24 @@ package com.alad1nks.oquturbo.feature.kenkozgame.ui
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.alad1nks.oquturbo.core.data.model.GameId
+import com.alad1nks.oquturbo.core.data.model.GameModeId
+import com.alad1nks.oquturbo.core.data.repository.GameActivityRepository
 import com.alad1nks.oquturbo.core.data.repository.KenKozGameRepository
 import com.alad1nks.oquturbo.feature.kenkozgame.model.KenKozGameMode
+import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import kotlin.time.Duration.Companion.milliseconds
+import kotlin.time.TimeMark
+import kotlin.time.TimeSource
 
 internal class KenKozGameViewModel(
     private val mode: KenKozGameMode,
@@ -19,15 +27,18 @@ internal class KenKozGameViewModel(
     private val words: List<String>,
     private val differencePairs: List<Pair<String, String>>,
     private val kenKozGameRepository: KenKozGameRepository,
+    private val gameActivityRepository: GameActivityRepository,
 ) : ViewModel() {
     private val _uiState = MutableStateFlow(KenKozGameUiState(mode = mode))
     val uiState = _uiState.asStateFlow()
 
     private var showingDurationMillis = INITIAL_SHOWING_DURATION_MILLIS
     private var roundJob: Job? = null
+    private var sessionStartMark: TimeMark? = null
 
     fun start() {
         showingDurationMillis = INITIAL_SHOWING_DURATION_MILLIS
+        sessionStartMark = TimeSource.Monotonic.markNow()
         _uiState.update { it.copy(score = 0) }
         startRound()
     }
@@ -48,12 +59,26 @@ internal class KenKozGameViewModel(
     }
 
     private fun updateRecord(score: Int) {
-        viewModelScope.launch {
-            val storedRecord = kenKozGameRepository.getRecord(mode.name).first() ?: 0
-            val currentRecord = maxOf(storedRecord, score)
-            _uiState.update { it.copy(record = currentRecord) }
-            if (currentRecord > storedRecord) {
-                kenKozGameRepository.setRecord(mode.name, currentRecord)
+        val startMark = sessionStartMark ?: return
+        sessionStartMark = null
+        val sessionDurationMillis = startMark.elapsedNow().inWholeMilliseconds
+        viewModelScope.launch(start = CoroutineStart.UNDISPATCHED) {
+            withContext(NonCancellable) {
+                val storedRecord = kenKozGameRepository.getRecord(mode.name).first() ?: 0
+                val currentRecord = maxOf(storedRecord, score)
+                _uiState.update { it.copy(record = currentRecord) }
+                gameActivityRepository.recordCompletedSession(
+                    game = GameId.WideEye,
+                    mode = mode.toGameModeId(),
+                    variantId = null,
+                    score = score,
+                    correctAnswers = score,
+                    durationMillis = sessionDurationMillis,
+                    isNewRecord = currentRecord > storedRecord,
+                )
+                if (currentRecord > storedRecord) {
+                    kenKozGameRepository.setRecord(mode.name, currentRecord)
+                }
             }
         }
     }
@@ -130,6 +155,14 @@ internal class KenKozGameViewModel(
         val correctAnswer: String,
         val questionDirection: KenKozGameUiState.Direction?,
     )
+
+    private fun KenKozGameMode.toGameModeId(): GameModeId =
+        when (this) {
+            KenKozGameMode.Characters -> GameModeId.WideEyeCharacters
+            KenKozGameMode.Words -> GameModeId.WideEyeWords
+            KenKozGameMode.FindDifference -> GameModeId.WideEyeFindDifference
+            KenKozGameMode.WideLine -> GameModeId.WideEyeWideLine
+        }
 
     private companion object {
         const val INITIAL_SHOWING_DURATION_MILLIS = 2_000L

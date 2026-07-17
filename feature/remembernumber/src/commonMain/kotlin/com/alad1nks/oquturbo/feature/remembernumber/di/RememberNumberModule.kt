@@ -11,6 +11,7 @@ val RememberNumberModule =
                 maxLength = maxLength,
                 availableDigits = availableDigits,
                 rememberNumberRepository = get(),
+                gameActivityRepository = get(),
             )
         }
     }

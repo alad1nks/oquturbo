@@ -2,22 +2,31 @@ package com.alad1nks.oquturbo.feature.baspagame.ui
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.alad1nks.oquturbo.core.data.model.GameId
+import com.alad1nks.oquturbo.core.data.model.GameModeId
 import com.alad1nks.oquturbo.core.data.repository.BaspaGameRepository
+import com.alad1nks.oquturbo.core.data.repository.GameActivityRepository
 import com.alad1nks.oquturbo.feature.baspagame.model.BaspaGameContent
 import com.alad1nks.oquturbo.feature.baspagame.model.BaspaGameMode
+import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import kotlin.time.Duration.Companion.milliseconds
+import kotlin.time.TimeMark
+import kotlin.time.TimeSource
 
 internal class BaspaGameViewModel(
     private val mode: BaspaGameMode,
     private val content: BaspaGameContent,
     private val repository: BaspaGameRepository,
+    private val gameActivityRepository: GameActivityRepository,
 ) : ViewModel() {
     private val _uiState = MutableStateFlow(BaspaGameUiState(mode = mode))
     val uiState = _uiState.asStateFlow()
@@ -27,12 +36,22 @@ internal class BaspaGameViewModel(
     private var letterIndex = content.letters.indices.random()
     private var wordLengthIndex = content.wordLengths.indices.random()
     private var colorIndex = content.colors.indices.random()
+    private var correctAnswers = 0
+    private var activeDurationMillis = 0L
+    private var activeSegmentStartMark: TimeMark? = null
+    private var recordAtSessionStart = 0
+    private var sessionInProgress = false
 
     init {
         viewModelScope.launch {
+            val storedRecord = repository.getRecord(mode.name).first() ?: 0
+            if (sessionInProgress) {
+                recordAtSessionStart = maxOf(recordAtSessionStart, storedRecord)
+            }
             _uiState.update {
                 it.copy(
-                    record = repository.getRecord(mode.name).first() ?: 0,
+                    record = maxOf(it.record, storedRecord),
+                    isRecordLoaded = true,
                     categoryName = content.categories[categoryIndex].name,
                     categoryId = content.categories[categoryIndex].id,
                     letter = content.letters[letterIndex],
@@ -52,14 +71,18 @@ internal class BaspaGameViewModel(
     fun togglePause() {
         when (_uiState.value.phase) {
             BaspaGameUiState.Phase.Initial -> {
+                if (!_uiState.value.isRecordLoaded) return
+                startSessionTelemetry()
                 _uiState.update { it.copy(phase = BaspaGameUiState.Phase.Playing) }
                 scheduleNextRound()
             }
             BaspaGameUiState.Phase.Playing -> {
                 timerJob?.cancel()
+                pauseSessionTelemetry()
                 _uiState.update { it.copy(phase = BaspaGameUiState.Phase.Paused) }
             }
             BaspaGameUiState.Phase.Paused -> {
+                resumeSessionTelemetry()
                 _uiState.update { it.copy(phase = BaspaGameUiState.Phase.Playing) }
                 if (_uiState.value.stimulus.isEmpty()) {
                     scheduleNextRound()
@@ -77,6 +100,7 @@ internal class BaspaGameViewModel(
         letterIndex = content.letters.indices.random()
         wordLengthIndex = content.wordLengths.indices.random()
         colorIndex = content.colors.indices.random()
+        startSessionTelemetry()
         _uiState.update {
             it.copy(
                 score = 0,
@@ -120,13 +144,19 @@ internal class BaspaGameViewModel(
         timerJob =
             viewModelScope.launch {
                 delay(_uiState.value.intervalMillis.milliseconds)
-                if (_uiState.value.shouldTap) mistake() else scheduleNextRound()
+                if (_uiState.value.shouldTap) {
+                    mistake()
+                } else {
+                    correctAnswers++
+                    scheduleNextRound()
+                }
             }
     }
 
     private fun success() {
         timerJob?.cancel()
         if (mode == BaspaGameMode.SpeedReading) seenWords.clear()
+        correctAnswers++
         val newScore = _uiState.value.score + 1
         val oldRecord = _uiState.value.record
         val newRecord = maxOf(oldRecord, newScore)
@@ -136,9 +166,6 @@ internal class BaspaGameViewModel(
                 record = newRecord,
                 intervalMillis = (it.intervalMillis * SPEED_FACTOR_PERCENT) / 100,
             )
-        }
-        if (newRecord > oldRecord) {
-            viewModelScope.launch { repository.setRecord(mode.name, newRecord) }
         }
         if (newScore % CHALLENGE_CHANGE_SCORE == 0 && mode in challengeChangingModes) {
             when (mode) {
@@ -155,9 +182,67 @@ internal class BaspaGameViewModel(
     }
 
     private fun mistake() {
+        if (_uiState.value.phase != BaspaGameUiState.Phase.Playing || !sessionInProgress) return
         timerJob?.cancel()
+        val sessionDurationMillis = finishSessionTelemetry()
+        val sessionScore = _uiState.value.score
+        val sessionCorrectAnswers = correctAnswers
+        val isNewRecord = sessionScore > recordAtSessionStart
         _uiState.update { it.copy(phase = BaspaGameUiState.Phase.Mistake) }
+        viewModelScope.launch(start = CoroutineStart.UNDISPATCHED) {
+            withContext(NonCancellable) {
+                gameActivityRepository.recordCompletedSession(
+                    game = GameId.DontTap,
+                    mode = mode.toGameModeId(),
+                    variantId = null,
+                    score = sessionScore,
+                    correctAnswers = sessionCorrectAnswers,
+                    durationMillis = sessionDurationMillis,
+                    isNewRecord = isNewRecord,
+                )
+                if (isNewRecord) {
+                    repository.setRecord(mode.name, sessionScore)
+                }
+            }
+        }
     }
+
+    private fun startSessionTelemetry() {
+        correctAnswers = 0
+        activeDurationMillis = 0L
+        recordAtSessionStart = _uiState.value.record
+        activeSegmentStartMark = TimeSource.Monotonic.markNow()
+        sessionInProgress = true
+    }
+
+    private fun pauseSessionTelemetry() {
+        val startMark = activeSegmentStartMark ?: return
+        activeDurationMillis += startMark.elapsedNow().inWholeMilliseconds
+        activeSegmentStartMark = null
+    }
+
+    private fun resumeSessionTelemetry() {
+        if (sessionInProgress && activeSegmentStartMark == null) {
+            activeSegmentStartMark = TimeSource.Monotonic.markNow()
+        }
+    }
+
+    private fun finishSessionTelemetry(): Long {
+        pauseSessionTelemetry()
+        sessionInProgress = false
+        return activeDurationMillis
+    }
+
+    private fun BaspaGameMode.toGameModeId(): GameModeId =
+        when (this) {
+            BaspaGameMode.Categories -> GameModeId.DontTapCategories
+            BaspaGameMode.Letter -> GameModeId.DontTapLetter
+            BaspaGameMode.WordLength -> GameModeId.DontTapWordLength
+            BaspaGameMode.TextColor -> GameModeId.DontTapTextColor
+            BaspaGameMode.TrueFalse -> GameModeId.DontTapTrueFalse
+            BaspaGameMode.Math -> GameModeId.DontTapMath
+            BaspaGameMode.SpeedReading -> GameModeId.DontTapSpeedReading
+        }
 
     private fun createStimulus(): Stimulus {
         return when (mode) {

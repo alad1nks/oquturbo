@@ -31,6 +31,8 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -48,11 +50,14 @@ import org.jetbrains.compose.resources.stringResource
 
 @Composable
 internal fun HomeRoute(
+    viewModel: HomeViewModel,
     onStartTrainingClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    val uiState by viewModel.uiState.collectAsState()
+
     HomeScreen(
-        uiState = HomeUiState(),
+        uiState = uiState,
         onStartTrainingClick = onStartTrainingClick,
         modifier = modifier,
     )
@@ -81,7 +86,8 @@ private fun HomeScreen(
             item {
                 LevelProgress(
                     level = uiState.overallLevel,
-                    rank = uiState.rank,
+                    rankNumber = uiState.rankNumber,
+                    progress = uiState.levelProgress,
                 )
             }
             item {
@@ -97,7 +103,8 @@ private fun HomeScreen(
 @Composable
 private fun LevelProgress(
     level: Int,
-    rank: HomeUiState.Rank,
+    rankNumber: Int,
+    progress: Float,
 ) {
     Card(
         modifier = Modifier.fillMaxWidth(),
@@ -121,7 +128,11 @@ private fun LevelProgress(
                         style = MaterialTheme.typography.titleLarge,
                     )
                     Text(
-                        text = stringResource(AppResource.String.home_rank, stringResource(rank.titleResource())),
+                        text =
+                            stringResource(
+                                AppResource.String.home_rank,
+                                stringResource(AppResource.String.profile_rank_neutral_format, rankNumber),
+                            ),
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
@@ -143,7 +154,7 @@ private fun LevelProgress(
                 }
             }
             LinearProgressIndicator(
-                progress = { level.coerceIn(0, 100) / 100f },
+                progress = { progress.coerceIn(0f, 1f) },
                 modifier = Modifier.fillMaxWidth().height(10.dp).clip(MaterialTheme.shapes.small),
                 color = MaterialTheme.colorScheme.primary,
                 trackColor = MaterialTheme.colorScheme.primaryContainer,
@@ -213,39 +224,57 @@ private fun RecentRecords(records: List<HomeUiState.RecentRecord>) {
             border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.55f)),
             elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
         ) {
-            Column(modifier = Modifier.padding(horizontal = 18.dp, vertical = 10.dp)) {
-                records.forEach { record ->
-                    Row(
-                        modifier = Modifier.fillMaxWidth().padding(vertical = 10.dp),
-                        horizontalArrangement = Arrangement.spacedBy(12.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                    ) {
-                        Surface(
-                            shape = MaterialTheme.shapes.small,
-                            color = MaterialTheme.colorScheme.surfaceContainerHigh,
+            if (records.isEmpty()) {
+                Text(
+                    text = stringResource(AppResource.String.home_no_recent_records),
+                    modifier = Modifier.padding(18.dp),
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            } else {
+                Column(modifier = Modifier.padding(horizontal = 18.dp, vertical = 10.dp)) {
+                    records.forEach { record ->
+                        Row(
+                            modifier = Modifier.fillMaxWidth().padding(vertical = 10.dp),
+                            horizontalArrangement = Arrangement.spacedBy(12.dp),
+                            verticalAlignment = Alignment.CenterVertically,
                         ) {
-                            Box(
-                                modifier = Modifier.size(42.dp),
-                                contentAlignment = Alignment.Center,
+                            Surface(
+                                shape = MaterialTheme.shapes.small,
+                                color = MaterialTheme.colorScheme.surfaceContainerHigh,
                             ) {
-                                Icon(
-                                    imageVector = record.game.icon(),
-                                    contentDescription = null,
-                                    modifier = Modifier.size(21.dp),
-                                    tint = MaterialTheme.colorScheme.primary,
+                                Box(
+                                    modifier = Modifier.size(42.dp),
+                                    contentAlignment = Alignment.Center,
+                                ) {
+                                    Icon(
+                                        imageVector = record.game.icon(),
+                                        contentDescription = null,
+                                        modifier = Modifier.size(21.dp),
+                                        tint = MaterialTheme.colorScheme.primary,
+                                    )
+                                }
+                            }
+                            Column(
+                                modifier = Modifier.weight(1f),
+                                verticalArrangement = Arrangement.spacedBy(2.dp),
+                            ) {
+                                Text(
+                                    text = stringResource(record.game.titleResource()),
+                                    style = MaterialTheme.typography.bodyLarge,
+                                )
+                                Text(
+                                    text = record.modeTitle(),
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                                 )
                             }
+                            Text(
+                                text = record.score.toString(),
+                                style = MaterialTheme.typography.titleMedium,
+                                color = MaterialTheme.colorScheme.primary,
+                            )
                         }
-                        Text(
-                            text = stringResource(record.game.titleResource()),
-                            modifier = Modifier.weight(1f),
-                            style = MaterialTheme.typography.bodyLarge,
-                        )
-                        Text(
-                            text = record.score.toString(),
-                            style = MaterialTheme.typography.titleMedium,
-                            color = MaterialTheme.colorScheme.primary,
-                        )
                     }
                 }
             }
@@ -291,10 +320,55 @@ private fun HomeUiState.Game.titleResource(): StringResource =
         HomeUiState.Game.DontTap -> AppResource.String.baspa_title
     }
 
-private fun HomeUiState.Rank.titleResource(): StringResource =
+private fun HomeUiState.Mode.titleResource(): StringResource =
     when (this) {
-        HomeUiState.Rank.Master -> AppResource.String.home_rank_master
+        HomeUiState.Mode.Classic -> AppResource.String.remember_number_menu_item_classic_title
+        HomeUiState.Mode.Binary -> AppResource.String.remember_number_menu_item_binary_title
+        HomeUiState.Mode.Custom -> AppResource.String.remember_number_menu_item_custom_title
+        HomeUiState.Mode.Characters -> AppResource.String.kenkoz_game_menu_item_characters_title
+        HomeUiState.Mode.Words -> AppResource.String.kenkoz_game_menu_item_words_title
+        HomeUiState.Mode.FindDifference -> AppResource.String.kenkoz_game_menu_item_find_difference_title
+        HomeUiState.Mode.WideLine -> AppResource.String.kenkoz_game_menu_item_wide_line_title
+        HomeUiState.Mode.Categories -> AppResource.String.baspa_game_menu_categories_title
+        HomeUiState.Mode.Letter -> AppResource.String.baspa_game_menu_letter_title
+        HomeUiState.Mode.WordLength -> AppResource.String.baspa_game_menu_word_length_title
+        HomeUiState.Mode.TextColor -> AppResource.String.baspa_game_menu_text_color_title
+        HomeUiState.Mode.TrueFalse -> AppResource.String.baspa_game_menu_true_false_title
+        HomeUiState.Mode.Math -> AppResource.String.baspa_game_menu_math_title
+        HomeUiState.Mode.SpeedReading -> AppResource.String.baspa_game_menu_speed_reading_title
     }
+
+@Composable
+private fun HomeUiState.RecentRecord.modeTitle(): String {
+    val title = stringResource(mode.titleResource())
+    val settings = variantId?.toCustomSettings() ?: return title
+    return buildString {
+        append(title)
+        append(" · ")
+        append(stringResource(AppResource.String.remember_number_menu_item_custom_dialog_length))
+        append(": ")
+        append(settings.length)
+        append(" · ")
+        append(stringResource(AppResource.String.remember_number_menu_item_custom_dialog_available_digits))
+        append(": ")
+        append(settings.digits)
+    }
+}
+
+private fun String.toCustomSettings(): CustomSettings? {
+    val values =
+        split(';').associate { part ->
+            val separator = part.indexOf(':')
+            if (separator < 1) return null
+            part.substring(0, separator) to part.substring(separator + 1)
+        }
+    return CustomSettings(
+        length = values["length"]?.toIntOrNull() ?: return null,
+        digits = values["digits"]?.takeIf(String::isNotBlank) ?: return null,
+    )
+}
+
+private data class CustomSettings(val length: Int, val digits: String)
 
 private fun HomeUiState.Game.icon(): ImageVector =
     when (this) {

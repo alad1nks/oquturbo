@@ -157,8 +157,8 @@ internal fun ProfileEditRouteContent(
                     viewModel.updateIdentity(
                         displayName = name,
                         avatarId = selectedAvatar,
+                        onSaved = onBackClick,
                     )
-                    onBackClick()
                 },
                 modifier = Modifier.fillMaxWidth(),
                 shape = MaterialTheme.shapes.medium,
@@ -505,10 +505,7 @@ internal fun ProfileSettingsRouteContent(
     viewModel: ProfileViewModel,
     onBackClick: () -> Unit,
 ) {
-    val darkThemeEnabled by viewModel.darkTheme.collectAsState(false)
-    var soundEnabled by remember { mutableStateOf(true) }
-    var vibrationEnabled by remember { mutableStateOf(true) }
-    var remindersEnabled by remember { mutableStateOf(false) }
+    val settings by viewModel.settingsUiState.collectAsState()
     ProfileDetailScaffold(
         title = AppResource.String.profile_settings_title,
         onBackClick = onBackClick,
@@ -524,7 +521,7 @@ internal fun ProfileSettingsRouteContent(
             SettingsSwitchRow(
                 icon = Icons.Filled.DarkMode,
                 title = AppResource.String.profile_settings_theme,
-                checked = darkThemeEnabled,
+                checked = settings.darkThemeEnabled,
                 onCheckedChange = viewModel::setDarkTheme,
             )
         }
@@ -532,24 +529,24 @@ internal fun ProfileSettingsRouteContent(
             SettingsSwitchRow(
                 icon = Icons.AutoMirrored.Filled.VolumeUp,
                 title = AppResource.String.profile_settings_sound,
-                checked = soundEnabled,
-                onCheckedChange = { soundEnabled = it },
+                checked = settings.soundEnabled,
+                onCheckedChange = viewModel::setSoundEnabled,
             )
         }
         item {
             SettingsSwitchRow(
                 icon = Icons.Filled.Smartphone,
                 title = AppResource.String.profile_settings_vibration,
-                checked = vibrationEnabled,
-                onCheckedChange = { vibrationEnabled = it },
+                checked = settings.vibrationEnabled,
+                onCheckedChange = viewModel::setVibrationEnabled,
             )
         }
         item {
             SettingsSwitchRow(
                 icon = Icons.Filled.Notifications,
                 title = AppResource.String.profile_settings_reminders,
-                checked = remindersEnabled,
-                onCheckedChange = { remindersEnabled = it },
+                checked = settings.remindersEnabled,
+                onCheckedChange = viewModel::setRemindersEnabled,
             )
         }
         item {

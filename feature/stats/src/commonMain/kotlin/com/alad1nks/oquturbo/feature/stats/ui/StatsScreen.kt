@@ -30,6 +30,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.alad1nks.oquturbo.core.ui.component.PageHeader
 import com.alad1nks.oquturbo.core.ui.component.appBackground
+import com.alad1nks.oquturbo.feature.stats.model.ModeTrend
 import com.alad1nks.oquturbo.feature.stats.model.StatsGame
 import com.alad1nks.oquturbo.feature.stats.model.StatsMode
 import com.alad1nks.oquturbo.feature.stats.model.StatsPeriod
@@ -66,7 +67,7 @@ internal fun StatsScreen(
     onPeriodSelected: (StatsPeriod) -> Unit,
     onDaySelected: (Int) -> Unit,
     onGameSelected: (StatsGame) -> Unit,
-    onModeSelected: (StatsMode) -> Unit,
+    onModeSelected: (ModeTrend) -> Unit,
     onGamesClick: () -> Unit,
     onGameClick: (StatsGame) -> Unit,
     onActivityClick: (StatsGame, StatsMode?) -> Unit,
@@ -145,7 +146,6 @@ internal fun StatsScreen(
                         DynamicsSection(
                             trends = uiState.snapshot.trends,
                             selectedGame = uiState.selectedGame,
-                            selectedMode = uiState.selectedMode,
                             selectedModeTrend = uiState.selectedModeTrend,
                             onGameSelected = onGameSelected,
                             onModeSelected = onModeSelected,

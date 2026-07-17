@@ -5,6 +5,16 @@ import kotlinx.coroutines.flow.Flow
 interface Storage {
     fun getDarkTheme(): Flow<Boolean?>
 
+    fun getSoundEnabled(): Flow<Boolean?>
+
+    fun getVibrationEnabled(): Flow<Boolean?>
+
+    fun getRemindersEnabled(): Flow<Boolean?>
+
+    fun getGameSessionsJson(): Flow<String?>
+
+    fun getProfilePreferencesJson(): Flow<String?>
+
     fun getBaspaGameRecord(mode: String): Flow<Int?>
 
     fun getKenKozGameRecord(mode: String): Flow<Int?>
@@ -15,6 +25,16 @@ interface Storage {
     ): Flow<Int?>
 
     suspend fun setDarkTheme(value: Boolean)
+
+    suspend fun setSoundEnabled(value: Boolean)
+
+    suspend fun setVibrationEnabled(value: Boolean)
+
+    suspend fun setRemindersEnabled(value: Boolean)
+
+    suspend fun setGameSessionsJson(value: String)
+
+    suspend fun setProfilePreferencesJson(value: String)
 
     suspend fun setBaspaGameRecord(
         mode: String,

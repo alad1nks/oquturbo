@@ -9,6 +9,6 @@ import org.koin.dsl.module
 val BaspaGameModule =
     module {
         viewModel { (mode: BaspaGameMode, content: BaspaGameContent) ->
-            BaspaGameViewModel(mode, content, get())
+            BaspaGameViewModel(mode, content, get(), get())
         }
     }

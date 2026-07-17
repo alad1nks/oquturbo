@@ -119,11 +119,11 @@ private fun StatsModeDetailScreen(
                 subtitle = stringResource(AppResource.String.stats_mode_detail_subtitle),
             )
         }
-        item {
-            if (mode == null || mode.scores.size < 3) {
-                NotEnoughDynamics()
-            } else {
-                ModeDetailCard(trend = mode)
+        if (uiState.modes.isEmpty()) {
+            item { NotEnoughDynamics() }
+        } else {
+            uiState.modes.forEach { trend ->
+                item { ModeDetailCard(trend = trend) }
             }
         }
     }
@@ -157,7 +157,7 @@ private fun ModeDetailCard(
             ) {
                 Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(3.dp)) {
                     Text(
-                        text = stringResource(trend.mode.titleResource()),
+                        text = trend.title(),
                         style = MaterialTheme.typography.titleLarge,
                         maxLines = 2,
                         overflow = TextOverflow.Ellipsis,
@@ -181,14 +181,10 @@ private fun ModeDetailCard(
                     )
                 }
             }
-            if (trend.scores.size < 3) {
-                NotEnoughDynamics(modifier = Modifier.padding(horizontal = 18.dp))
-            } else {
-                ModeTrendContent(
-                    trend = trend,
-                    horizontalContentPadding = PaddingValues(horizontal = 18.dp),
-                )
-            }
+            ModeTrendContent(
+                trend = trend,
+                horizontalContentPadding = PaddingValues(horizontal = 18.dp),
+            )
         }
     }
 }

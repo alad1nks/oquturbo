@@ -7,6 +7,7 @@ internal data class ProfileUiState(
     val nextLevelXp: Int = 500,
     val ranks: List<Rank> = defaultRanks,
     val completedTrainings: Int = 0,
+    val hasGameActivity: Boolean = level > 1 || currentLevelXp > 0 || completedTrainings > 0,
     val currentStreakDays: Int = 0,
     val bestStreakDays: Int = 0,
     val achievements: List<Achievement> = emptyList(),

@@ -4,8 +4,10 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Block
 import androidx.compose.material.icons.filled.Bolt
 import androidx.compose.material.icons.filled.Visibility
+import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.vector.ImageVector
 import com.alad1nks.oquturbo.feature.stats.model.ActivityStatus
+import com.alad1nks.oquturbo.feature.stats.model.ModeTrend
 import com.alad1nks.oquturbo.feature.stats.model.StatsGame
 import com.alad1nks.oquturbo.feature.stats.model.StatsMode
 import com.alad1nks.oquturbo.feature.stats.model.StatsPeriod
@@ -14,6 +16,7 @@ import com.alad1nks.oquturbo.feature.stats.model.StatsTrend
 import com.alad1nks.oquturbo.feature.stats.model.StatsWeekday
 import com.alad1nks.oquturbo.resources.AppResource
 import org.jetbrains.compose.resources.StringResource
+import org.jetbrains.compose.resources.stringResource
 
 internal fun StatsGame.titleResource(): StringResource =
     when (this) {
@@ -46,6 +49,47 @@ internal fun StatsMode.titleResource(): StringResource =
         StatsMode.Math -> AppResource.String.baspa_game_menu_math_title
         StatsMode.SpeedReading -> AppResource.String.baspa_game_menu_speed_reading_title
     }
+
+@Composable
+internal fun ModeTrend.title(): String = modeTitle(mode, variantId)
+
+@Composable
+internal fun modeTitle(
+    mode: StatsMode,
+    variantId: String?,
+): String {
+    val title = stringResource(mode.titleResource())
+    val customSettings = variantId?.toCustomSettings() ?: return title
+    return buildString {
+        append(title)
+        append(" · ")
+        append(stringResource(AppResource.String.remember_number_menu_item_custom_dialog_length))
+        append(": ")
+        append(customSettings.length)
+        append(" · ")
+        append(stringResource(AppResource.String.remember_number_menu_item_custom_dialog_available_digits))
+        append(": ")
+        append(customSettings.digits)
+    }
+}
+
+private fun String.toCustomSettings(): CustomSettings? {
+    val values =
+        split(';').associate { part ->
+            val separator = part.indexOf(':')
+            if (separator < 1) return null
+            part.substring(0, separator) to part.substring(separator + 1)
+        }
+    return CustomSettings(
+        length = values["length"]?.toIntOrNull() ?: return null,
+        digits = values["digits"]?.takeIf(String::isNotBlank) ?: return null,
+    )
+}
+
+private data class CustomSettings(
+    val length: Int,
+    val digits: String,
+)
 
 internal fun StatsPeriod.titleResource(): StringResource =
     when (this) {

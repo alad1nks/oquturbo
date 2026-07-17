@@ -6,6 +6,7 @@
     <string name="home_start_training">Start Training</string>
     <string name="home_today_training">Today’s training</string>
     <string name="home_recent_records">Recent records</string>
+    <string name="home_no_recent_records">New records will appear here after you play</string>
     <string name="games_subtitle">Choose a game and train your skills</string>
     <string name="games_settings_content_description">Settings</string>
     <string name="games_skills_title">TRAINABLE SKILLS</string>

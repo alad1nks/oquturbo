@@ -5,7 +5,9 @@ import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavOptionsBuilder
 import androidx.navigation.compose.composable
 import com.alad1nks.oquturbo.feature.home.ui.HomeRoute
+import com.alad1nks.oquturbo.feature.home.ui.HomeViewModel
 import kotlinx.serialization.Serializable
+import org.koin.compose.viewmodel.koinViewModel
 
 @Serializable data object HomeRoute
 
@@ -20,6 +22,10 @@ fun NavController.navigateToHome(
 
 fun NavGraphBuilder.homeScreen(onStartTrainingClick: () -> Unit) {
     composable<HomeRoute> {
-        HomeRoute(onStartTrainingClick = onStartTrainingClick)
+        val viewModel = koinViewModel<HomeViewModel>()
+        HomeRoute(
+            viewModel = viewModel,
+            onStartTrainingClick = onStartTrainingClick,
+        )
     }
 }

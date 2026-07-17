@@ -21,21 +21,23 @@ navigation around the same Number Sprint, Wide Eye, and Don't Tap implementation
 
 ## Current implementation status
 
-The playable games and per-mode records are connected to persistent storage. The OquTurbo progression screens are
-implemented visually, but several of their data sources are still placeholders:
+The playable games, OquTurbo tabs, and profile preferences are connected to persistent storage:
 
-- Home uses a static level, rank, daily-training card, and recent records. Starting the daily training currently
-  opens Games; there is no training orchestrator yet.
-- Games uses a static catalog of available and upcoming games.
-- Stats uses `DemoStatsDataSource`, including its periods, activity, charts, skills, history, and detail screens.
-- Profile uses an in-memory `ProfileDemoStore`. Identity, XP, ranks, achievements, titles, and personalization are
-  not yet derived from completed games and are lost when the process stops.
-- Home and Profile do not yet share one progression source.
-- Dark theme is persisted. The language row currently reflects the system default; sound, vibration, and reminder
-  switches are local UI state only.
+- Every completed Number Sprint, Wide Eye, or Don't Tap session stores its mode, score, correct-answer count,
+  duration, completion time, and new-record state.
+- Home and Profile use the same progression source. One correct answer currently awards one XP, and every 500 XP
+  advances the overall level; one rank still spans five levels.
+- Stats builds its periods, activity grid, per-mode trends, skill activity, game totals, and recent history from
+  persisted sessions and cumulative aggregates. Custom Number Sprint configurations remain separate selectable
+  series. Existing best records stay visible but are not turned into sessions with invented dates.
+- Profile identity, selected title, avatar, frame, background, and the sound, vibration, reminder, and theme settings
+  persist between launches. Achievements and unlock conditions are derived from stored progress and records.
+- Games remains a static product catalog because its game list, skills, and mode counts are product configuration,
+  not user data. Preview scenarios remain isolated demo fixtures and are never used at runtime.
 
-This separation is intentional: demo and static UI state is isolated from the repositories that store real game
-records, so the screens can later be connected to a product data model without changing their visual components.
+Daily training orchestration is not implemented yet: the Home action currently opens Games. Completed-training and
+streak values therefore remain zero instead of treating standalone games as daily training. The language setting
+currently follows the system default.
 
 ## Supported platforms
 
@@ -87,7 +89,7 @@ feature/
   baspagamemenu/      Don't Tap menu
 
 core/
-  data/               Repositories for settings and game records
+  data/               Repositories for activity, progression, profile, settings, and game records
   designsystem/       OquTurboTheme, color schemes, typography, and shapes
   ui/                 Shared background, app bars, headers, and compound game components
   storage/common/     Storage contracts and common implementation
@@ -116,17 +118,22 @@ sets; shared platform differences use the existing `expect`/`actual` pattern.
 
 ## Persistence
 
-The common storage API currently persists dark-theme selection and game records:
+The common storage API currently persists settings, profile preferences, game records, and completed sessions:
 
 - Number Sprint records are keyed by number length and the available digit set.
 - Wide Eye and Don't Tap records are keyed by game mode.
+- A versioned session payload retains the latest 1,000 completed games, records, and cumulative counts, duration,
+  correct answers, and score totals per game/mode series. Custom Number Sprint variants retain their length and
+  digit set, so their trends and averages are not combined.
+- Profile name and selections are stored separately from derived level, XP, achievements, and unlock states.
+- Theme, sound, vibration, and reminder preferences are persisted; language still uses the system default.
 - Android writes a Preferences DataStore file in the app's files directory.
 - iOS writes the same DataStore file in the app's documents directory.
 - Desktop writes `${java.io.tmpdir}/oquturbo.preferences_pb`.
 - JS and Wasm use browser `localStorage`.
 
-Stats analytics and Profile metaprogression are not persisted yet; see
-[Current implementation status](#current-implementation-status).
+Session history starts with the version that introduced activity persistence. Older best records have no timestamp,
+duration, or attempt count, so the application does not fabricate those fields during migration.
 
 ## Prerequisites
 
@@ -281,6 +288,12 @@ Do not commit the keystore. Build an APK or App Bundle with:
   `${java.io.tmpdir}/oquturbo.preferences_pb`; Desktop products can share records and the data is not durable.
 - Number Sprint assumes that route arguments contain at least one available digit. An empty set reaches
   `availableDigits.random()` and fails.
+- The Stats calendar currently groups sessions by UTC day. Activity completed near local midnight can appear on an
+  adjacent calendar day in non-UTC time zones.
+- The persisted session log is capped at 1,000 entries. Cumulative XP, records, all-time summaries, and per-series
+  totals remain intact, while old chart and recent-history points eventually roll out.
+- Daily training is not orchestrated yet, so training totals and streaks remain zero even when standalone games are
+  played.
 - The OquTurbo Web entry point still uses the legacy package `com.alad1nks.startkmp`.
 - Each product keeps a temporary `shared/webpack.config.d/watch.js` workaround for KT-80582.
 

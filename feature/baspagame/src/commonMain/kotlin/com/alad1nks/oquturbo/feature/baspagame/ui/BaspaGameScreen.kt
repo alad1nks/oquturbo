@@ -152,6 +152,7 @@ private fun BaspaGameScreen(
                     title = stringResource(AppResource.String.baspa_game_start),
                     icon = Icons.Filled.PlayArrow,
                     onClick = onPauseClick,
+                    enabled = uiState.isRecordLoaded,
                 )
                 GameBackButton(
                     onClick = onBackClick,

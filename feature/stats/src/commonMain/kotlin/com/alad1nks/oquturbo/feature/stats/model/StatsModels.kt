@@ -91,10 +91,11 @@ internal data class StatsDayActivity(
 
 internal data class ModeTrend(
     val mode: StatsMode,
+    val variantId: String? = null,
     val scores: List<Int>,
     val record: Int,
-    val lastResult: Int,
-    val averageResult: Int,
+    val lastResult: Int?,
+    val averageResult: Int?,
     val gamesPlayed: Int,
     val comparisonPercent: Int? = null,
     val hasNewRecord: Boolean = false,
@@ -110,6 +111,7 @@ internal data class SkillInsight(
     val trainings: Int,
     val averageChangePercent: Int?,
     val trend: StatsTrend,
+    val showComparison: Boolean = true,
 )
 
 internal data class GameStatsRow(
@@ -124,6 +126,7 @@ internal data class RecentActivity(
     val type: RecentActivityType,
     val game: StatsGame? = null,
     val mode: StatsMode? = null,
+    val variantId: String? = null,
     val score: Int? = null,
     val daysAgo: Int = 0,
 )
@@ -138,7 +141,7 @@ internal data class StatsPeriodSnapshot(
     val recentActivity: List<RecentActivity>,
 ) {
     val hasActivity: Boolean
-        get() = summary.games > 0 || summary.trainings > 0
+        get() = summary.games > 0 || summary.trainings > 0 || games.isNotEmpty()
 
     companion object {
         val Empty =
@@ -160,6 +163,7 @@ internal data class StatsUiState(
     val selectedDayId: Int? = null,
     val selectedGame: StatsGame? = null,
     val selectedMode: StatsMode? = null,
+    val selectedVariantId: String? = null,
 ) {
     val selectedDay: StatsDayActivity?
         get() = snapshot.activityDays.firstOrNull { it.id == selectedDayId }
@@ -168,7 +172,10 @@ internal data class StatsUiState(
         get() = snapshot.trends.firstOrNull { it.game == selectedGame }
 
     val selectedModeTrend: ModeTrend?
-        get() = selectedGameTrend?.modes?.firstOrNull { it.mode == selectedMode }
+        get() =
+            selectedGameTrend?.modes?.firstOrNull {
+                it.mode == selectedMode && it.variantId == selectedVariantId
+            }
 }
 
 internal data class StatsDetailUiState(

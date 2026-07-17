@@ -13,6 +13,6 @@ val KenKozGameModule =
             val words = parameters.get<List<String>>(2)
             val differencePairs = parameters.get<List<Pair<String, String>>>(3)
 
-            KenKozGameViewModel(mode, characters, words, differencePairs, get())
+            KenKozGameViewModel(mode, characters, words, differencePairs, get(), get())
         }
     }
