@@ -5,6 +5,7 @@ import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavOptionsBuilder
 import androidx.navigation.compose.composable
 import androidx.navigation.toRoute
+import com.alad1nks.oquturbo.core.ui.navigation.enumNavType
 import com.alad1nks.oquturbo.feature.kenkozgame.model.KenKozGameMode
 import com.alad1nks.oquturbo.feature.kenkozgame.ui.KenKozGameRoute
 import com.alad1nks.oquturbo.feature.kenkozgame.ui.KenKozGameViewModel
@@ -14,11 +15,15 @@ import org.jetbrains.compose.resources.stringArrayResource
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
 import org.koin.core.parameter.parametersOf
+import kotlin.reflect.typeOf
 
 @Serializable
 data class KenKozGameRoute(
     val mode: KenKozGameMode,
 )
+
+private val kenKozGameTypeMap =
+    mapOf(typeOf<KenKozGameMode>() to enumNavType<KenKozGameMode>())
 
 fun NavController.navigateToKenKozGame(
     mode: KenKozGameMode,
@@ -30,7 +35,7 @@ fun NavController.navigateToKenKozGame(
 fun NavGraphBuilder.kenKozGameScreen(
     onBackClick: () -> Unit,
 ) {
-    composable<KenKozGameRoute> { entry ->
+    composable<KenKozGameRoute>(typeMap = kenKozGameTypeMap) { entry ->
         val mode = entry.toRoute<KenKozGameRoute>().mode
         val characters = stringResource(AppResource.String.kenkoz_game_characters).map(Char::toString)
         val words = stringArrayResource(AppResource.Array.kenkoz_game_words)
