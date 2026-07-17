@@ -13,6 +13,8 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListScope
+import androidx.compose.foundation.selection.selectable
+import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.VolumeUp
 import androidx.compose.material.icons.filled.AutoAwesome
@@ -26,6 +28,7 @@ import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.PrivacyTip
 import androidx.compose.material.icons.filled.Save
 import androidx.compose.material.icons.filled.Smartphone
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -34,9 +37,11 @@ import androidx.compose.material3.ListItem
 import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -46,8 +51,10 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import com.alad1nks.oquturbo.core.data.model.AppLanguage
 import com.alad1nks.oquturbo.core.ui.component.AppTopBar
 import com.alad1nks.oquturbo.core.ui.component.appBackground
 import com.alad1nks.oquturbo.resources.AppResource
@@ -506,6 +513,19 @@ internal fun ProfileSettingsRouteContent(
     onBackClick: () -> Unit,
 ) {
     val settings by viewModel.settingsUiState.collectAsState()
+    var showLanguageDialog by remember { mutableStateOf(false) }
+
+    if (showLanguageDialog) {
+        LanguageSelectionDialog(
+            selectedLanguage = settings.language,
+            onLanguageSelect = { language ->
+                showLanguageDialog = false
+                viewModel.setLanguage(language)
+            },
+            onDismissRequest = { showLanguageDialog = false },
+        )
+    }
+
     ProfileDetailScaffold(
         title = AppResource.String.profile_settings_title,
         onBackClick = onBackClick,
@@ -514,7 +534,8 @@ internal fun ProfileSettingsRouteContent(
             SettingsValueRow(
                 icon = Icons.Filled.Language,
                 title = AppResource.String.profile_settings_language,
-                value = AppResource.String.profile_settings_system_default,
+                value = settings.language.titleResource(),
+                onClick = { showLanguageDialog = true },
             )
         }
         item {
@@ -571,8 +592,9 @@ private fun SettingsValueRow(
     icon: ImageVector,
     title: StringResource,
     value: StringResource,
+    onClick: () -> Unit,
 ) {
-    SettingsCard {
+    SettingsCard(onClick = onClick) {
         ListItem(
             headlineContent = { Text(stringResource(title)) },
             supportingContent = { Text(stringResource(value)) },
@@ -581,6 +603,62 @@ private fun SettingsValueRow(
         )
     }
 }
+
+@Composable
+private fun LanguageSelectionDialog(
+    selectedLanguage: AppLanguage,
+    onLanguageSelect: (AppLanguage) -> Unit,
+    onDismissRequest: () -> Unit,
+) {
+    AlertDialog(
+        onDismissRequest = onDismissRequest,
+        title = { Text(stringResource(AppResource.String.profile_settings_language)) },
+        text = {
+            Column(
+                modifier = Modifier.selectableGroup(),
+                verticalArrangement = Arrangement.spacedBy(4.dp),
+            ) {
+                AppLanguage.entries.forEach { language ->
+                    ListItem(
+                        headlineContent = { Text(stringResource(language.titleResource())) },
+                        leadingContent = {
+                            RadioButton(
+                                selected = language == selectedLanguage,
+                                onClick = null,
+                            )
+                        },
+                        modifier =
+                            Modifier
+                                .fillMaxWidth()
+                                .selectable(
+                                    selected = language == selectedLanguage,
+                                    onClick = { onLanguageSelect(language) },
+                                    role = Role.RadioButton,
+                                ),
+                        colors =
+                            ListItemDefaults.colors(
+                                containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
+                            ),
+                    )
+                }
+            }
+        },
+        confirmButton = {},
+        dismissButton = {
+            TextButton(onClick = onDismissRequest) {
+                Text(stringResource(AppResource.String.profile_settings_language_cancel))
+            }
+        },
+    )
+}
+
+private fun AppLanguage.titleResource(): StringResource =
+    when (this) {
+        AppLanguage.System -> AppResource.String.profile_settings_system_default
+        AppLanguage.English -> AppResource.String.profile_settings_language_english
+        AppLanguage.Russian -> AppResource.String.profile_settings_language_russian
+        AppLanguage.Kazakh -> AppResource.String.profile_settings_language_kazakh
+    }
 
 @Composable
 private fun SettingsSwitchRow(
@@ -630,14 +708,32 @@ private fun SettingsIcon(icon: ImageVector) {
 }
 
 @Composable
-private fun SettingsCard(content: @Composable () -> Unit) {
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        shape = MaterialTheme.shapes.medium,
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)),
-        content = { content() },
-    )
+private fun SettingsCard(
+    onClick: (() -> Unit)? = null,
+    content: @Composable () -> Unit,
+) {
+    val modifier = Modifier.fillMaxWidth()
+    val colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
+    val border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
+
+    if (onClick == null) {
+        Card(
+            modifier = modifier,
+            shape = MaterialTheme.shapes.medium,
+            colors = colors,
+            border = border,
+            content = { content() },
+        )
+    } else {
+        Card(
+            onClick = onClick,
+            modifier = modifier,
+            shape = MaterialTheme.shapes.medium,
+            colors = colors,
+            border = border,
+            content = { content() },
+        )
+    }
 }
 
 @Composable

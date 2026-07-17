@@ -8,8 +8,10 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.navigation.NavGraphBuilder
@@ -43,24 +45,29 @@ fun MainScreen(
                 parameters = { parametersOf() },
             )
         val darkTheme by viewModel.darkTheme.collectAsState(false)
+        val language by viewModel.language.collectAsState(null)
 
         OquTurboTheme(darkTheme = darkTheme) {
-            Scaffold(
-                modifier = Modifier.fillMaxSize().appBackground(),
-                contentWindowInsets = WindowInsets(0, 0, 0, 0),
-                containerColor = Color.Transparent,
-                bottomBar = bottomBar,
-            ) { padding ->
-                NavHost(
-                    navController = navController,
-                    startDestination = startDestination,
-                    modifier = Modifier.fillMaxSize().padding(padding).consumeWindowInsets(padding),
-                    enterTransition = { EnterTransition.None },
-                    exitTransition = { ExitTransition.None },
-                    popEnterTransition = { EnterTransition.None },
-                    popExitTransition = { ExitTransition.None },
-                    builder = navGraphBuilder,
-                )
+            CompositionLocalProvider(LocalAppLocale provides language?.code) {
+                key(language) {
+                    Scaffold(
+                        modifier = Modifier.fillMaxSize().appBackground(),
+                        contentWindowInsets = WindowInsets(0, 0, 0, 0),
+                        containerColor = Color.Transparent,
+                        bottomBar = bottomBar,
+                    ) { padding ->
+                        NavHost(
+                            navController = navController,
+                            startDestination = startDestination,
+                            modifier = Modifier.fillMaxSize().padding(padding).consumeWindowInsets(padding),
+                            enterTransition = { EnterTransition.None },
+                            exitTransition = { ExitTransition.None },
+                            popEnterTransition = { EnterTransition.None },
+                            popExitTransition = { ExitTransition.None },
+                            builder = navGraphBuilder,
+                        )
+                    }
+                }
             }
         }
     }

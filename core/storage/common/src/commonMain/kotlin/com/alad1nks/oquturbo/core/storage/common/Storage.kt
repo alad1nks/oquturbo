@@ -5,6 +5,8 @@ import kotlinx.coroutines.flow.Flow
 interface Storage {
     fun getDarkTheme(): Flow<Boolean?>
 
+    fun getLanguageCode(): Flow<String?>
+
     fun getSoundEnabled(): Flow<Boolean?>
 
     fun getVibrationEnabled(): Flow<Boolean?>
@@ -25,6 +27,8 @@ interface Storage {
     ): Flow<Int?>
 
     suspend fun setDarkTheme(value: Boolean)
+
+    suspend fun setLanguageCode(value: String)
 
     suspend fun setSoundEnabled(value: Boolean)
 

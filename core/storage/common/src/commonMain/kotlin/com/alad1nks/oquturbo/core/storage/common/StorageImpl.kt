@@ -9,6 +9,10 @@ internal class StorageImpl(
         return appPreferences.getBoolean(DARK_THEME)
     }
 
+    override fun getLanguageCode(): Flow<String?> {
+        return appPreferences.getString(LANGUAGE)
+    }
+
     override fun getSoundEnabled(): Flow<Boolean?> {
         return appPreferences.getBoolean(SOUND_ENABLED)
     }
@@ -46,6 +50,10 @@ internal class StorageImpl(
 
     override suspend fun setDarkTheme(value: Boolean) {
         appPreferences.setBoolean(DARK_THEME, value)
+    }
+
+    override suspend fun setLanguageCode(value: String) {
+        appPreferences.setString(LANGUAGE, value)
     }
 
     override suspend fun setSoundEnabled(value: Boolean) {
@@ -95,6 +103,7 @@ internal class StorageImpl(
         const val DARK_THEME = "dark_theme"
         const val GAME_SESSIONS_V1 = "game_sessions_v1"
         const val KENKOZ_GAME_RECORD = "kenkoz_game_record"
+        const val LANGUAGE = "language"
         const val PROFILE_PREFERENCES_V1 = "profile_preferences_v1"
         const val REMEMBER_NUMBER_RECORD = "remember_number_record"
         const val REMINDERS_ENABLED = "reminders_enabled"

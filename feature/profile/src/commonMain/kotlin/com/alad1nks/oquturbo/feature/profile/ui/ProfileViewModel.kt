@@ -2,6 +2,7 @@ package com.alad1nks.oquturbo.feature.profile.ui
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.alad1nks.oquturbo.core.data.model.AppLanguage
 import com.alad1nks.oquturbo.core.data.model.PlayerProgress
 import com.alad1nks.oquturbo.core.data.model.ProfilePreferences
 import com.alad1nks.oquturbo.core.data.repository.GameActivityRepository
@@ -46,12 +47,14 @@ internal class ProfileViewModel(
             settingsRepository.getSoundEnabled(),
             settingsRepository.getVibrationEnabled(),
             settingsRepository.getRemindersEnabled(),
-        ) { darkTheme, sound, vibration, reminders ->
+            settingsRepository.getLanguage(),
+        ) { darkTheme, sound, vibration, reminders, language ->
             ProfileSettingsUiState(
                 darkThemeEnabled = darkTheme == true,
                 soundEnabled = sound ?: true,
                 vibrationEnabled = vibration ?: true,
                 remindersEnabled = reminders ?: false,
+                language = language,
             )
         }.stateIn(
             scope = viewModelScope,
@@ -102,6 +105,10 @@ internal class ProfileViewModel(
         }
     }
 
+    fun setLanguage(value: AppLanguage) {
+        viewModelScope.launch { settingsRepository.setLanguage(value) }
+    }
+
     fun setSoundEnabled(value: Boolean) {
         viewModelScope.launch { settingsRepository.setSoundEnabled(value) }
     }
@@ -124,6 +131,7 @@ internal data class ProfileSettingsUiState(
     val soundEnabled: Boolean = true,
     val vibrationEnabled: Boolean = true,
     val remindersEnabled: Boolean = false,
+    val language: AppLanguage = AppLanguage.System,
 )
 
 private fun emptyPlayerProgress() =

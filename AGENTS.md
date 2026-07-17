@@ -35,6 +35,9 @@ Operational rules for AI coding agents. Human-facing project documentation belon
   `AppComponents.kt`.
 - Apply `OquTurboTheme` at every app root and in every `@Preview`; do not wrap previews in a bare `MaterialTheme`
   or define product theme colors inside feature modules.
+- Persist language selection through `SettingsRepository` and apply it only at the shared app root through
+  `LocalAppLocale`. Keep its platform behavior in the existing Android, iOS, JVM, JS, and Wasm source sets; Web
+  launchers must install the `navigator.languages` override before loading the application bundle.
 - Use `Modifier.appBackground()` for the shared background. Do not add a wrapper composable whose only purpose is
   drawing it. Keep the root `Scaffold` and shared top bars transparent so the background extends under the status
   bar.

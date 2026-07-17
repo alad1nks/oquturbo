@@ -183,6 +183,10 @@ import oquturbo.resources.generated.resources.profile_select
 import oquturbo.resources.generated.resources.profile_settings_about
 import oquturbo.resources.generated.resources.profile_settings_content_description
 import oquturbo.resources.generated.resources.profile_settings_language
+import oquturbo.resources.generated.resources.profile_settings_language_cancel
+import oquturbo.resources.generated.resources.profile_settings_language_english
+import oquturbo.resources.generated.resources.profile_settings_language_kazakh
+import oquturbo.resources.generated.resources.profile_settings_language_russian
 import oquturbo.resources.generated.resources.profile_settings_privacy
 import oquturbo.resources.generated.resources.profile_settings_reminders
 import oquturbo.resources.generated.resources.profile_settings_sound
@@ -427,6 +431,10 @@ object AppResource {
         val profile_settings_about = Res.string.profile_settings_about
         val profile_settings_content_description = Res.string.profile_settings_content_description
         val profile_settings_language = Res.string.profile_settings_language
+        val profile_settings_language_cancel = Res.string.profile_settings_language_cancel
+        val profile_settings_language_english = Res.string.profile_settings_language_english
+        val profile_settings_language_kazakh = Res.string.profile_settings_language_kazakh
+        val profile_settings_language_russian = Res.string.profile_settings_language_russian
         val profile_settings_privacy = Res.string.profile_settings_privacy
         val profile_settings_reminders = Res.string.profile_settings_reminders
         val profile_settings_sound = Res.string.profile_settings_sound
