@@ -4,6 +4,7 @@ import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
 import androidx.navigation.toRoute
+import com.alad1nks.oquturbo.core.ui.navigation.enumNavType
 import com.alad1nks.oquturbo.feature.baspagame.model.BaspaGameContent
 import com.alad1nks.oquturbo.feature.baspagame.model.BaspaGameMode
 import com.alad1nks.oquturbo.feature.baspagame.model.Category
@@ -15,15 +16,19 @@ import kotlinx.serialization.Serializable
 import org.jetbrains.compose.resources.stringArrayResource
 import org.koin.compose.viewmodel.koinViewModel
 import org.koin.core.parameter.parametersOf
+import kotlin.reflect.typeOf
 
 @Serializable data class BaspaGameRoute(val mode: BaspaGameMode)
+
+private val baspaGameTypeMap =
+    mapOf(typeOf<BaspaGameMode>() to enumNavType<BaspaGameMode>())
 
 fun NavController.navigateToBaspaGame(mode: BaspaGameMode) {
     navigate(BaspaGameRoute(mode))
 }
 
 fun NavGraphBuilder.baspaGameScreen(onBackClick: () -> Unit) {
-    composable<BaspaGameRoute> { entry ->
+    composable<BaspaGameRoute>(typeMap = baspaGameTypeMap) { entry ->
         val mode = entry.toRoute<BaspaGameRoute>().mode
         val content = baspaGameContent()
         val viewModel =

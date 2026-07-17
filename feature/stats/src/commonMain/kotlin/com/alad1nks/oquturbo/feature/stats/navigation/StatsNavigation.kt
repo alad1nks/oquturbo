@@ -5,6 +5,7 @@ import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavOptionsBuilder
 import androidx.navigation.compose.composable
 import androidx.navigation.toRoute
+import com.alad1nks.oquturbo.core.ui.navigation.enumNavType
 import com.alad1nks.oquturbo.feature.stats.model.StatsGame
 import com.alad1nks.oquturbo.feature.stats.model.StatsMode
 import com.alad1nks.oquturbo.feature.stats.model.StatsPeriod
@@ -17,6 +18,7 @@ import com.alad1nks.oquturbo.feature.stats.ui.StatsViewModel
 import kotlinx.serialization.Serializable
 import org.koin.compose.viewmodel.koinViewModel
 import org.koin.core.parameter.parametersOf
+import kotlin.reflect.typeOf
 
 @Serializable
 data object StatsRoute
@@ -33,6 +35,16 @@ data class StatsModeDetailRoute(
     val mode: StatsMode,
     val period: StatsPeriod,
 )
+
+private val statsGameDetailTypeMap =
+    mapOf(
+        typeOf<StatsGame>() to enumNavType<StatsGame>(),
+        typeOf<StatsPeriod>() to enumNavType<StatsPeriod>(),
+    )
+
+private val statsModeDetailTypeMap =
+    statsGameDetailTypeMap +
+        (typeOf<StatsMode>() to enumNavType<StatsMode>())
 
 fun NavController.navigateToStats(navOptions: NavOptionsBuilder.() -> Unit = {}) {
     navigate(route = StatsRoute, builder = navOptions)
@@ -74,7 +86,7 @@ fun NavGraphBuilder.statsGameDetailScreen(
     onBackClick: () -> Unit,
     onModeClick: (StatsGame, StatsMode, StatsPeriod) -> Unit,
 ) {
-    composable<StatsGameDetailRoute> { entry ->
+    composable<StatsGameDetailRoute>(typeMap = statsGameDetailTypeMap) { entry ->
         val route = entry.toRoute<StatsGameDetailRoute>()
         StatsGameDetailRouteContent(
             viewModel =
@@ -88,7 +100,7 @@ fun NavGraphBuilder.statsGameDetailScreen(
 }
 
 fun NavGraphBuilder.statsModeDetailScreen(onBackClick: () -> Unit) {
-    composable<StatsModeDetailRoute> { entry ->
+    composable<StatsModeDetailRoute>(typeMap = statsModeDetailTypeMap) { entry ->
         val route = entry.toRoute<StatsModeDetailRoute>()
         StatsModeDetailRouteContent(
             viewModel =
