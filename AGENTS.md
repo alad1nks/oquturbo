@@ -1,101 +1,62 @@
 # AGENTS.md
 
-## Project
+Operational rules for AI coding agents. Human-facing project documentation belongs in `README.md`.
 
-Kotlin Multiplatform/Compose Multiplatform repository with four products: `oquturbo`, `sansprint`, `kenkoz`, and `baspa`. Each Gradle product has Android, Desktop (JVM), shared, and Web entry points; Web is built for JS and Wasm. OquTurbo, SanSprint, and KenKoz also have Xcode projects.
+## Sources of truth
 
-## Modules and ownership
+- Treat `settings.gradle.kts`, module `build.gradle.kts` files, and `gradle/libs.versions.toml` as the sources of
+  truth for modules, targets, dependencies, and versions. Do not copy fixed counts or versions into this file.
+- A shared feature can be consumed by OquTurbo and a standalone product. Find and verify every consumer before
+  changing shared navigation, DI, storage, or behavior.
 
-`settings.gradle.kts` declares 30 modules:
+## Architecture
 
-- `app:<product>:{androidApp,desktopApp,shared,webApp}` for each product. Platform launchers delegate to `shared`; `shared/App.kt` assembles the product navigation graph and DI modules.
-- `feature:main`: Koin root, app theme, root `Scaffold`, and `NavHost`.
-- `feature:baspagame`: Baspa game modes, timed state machine, UI, navigation, and DI.
-- `feature:baspagamemenu`: Baspa start menu and its navigation destination.
-- `feature:kenkozgame`: KenKoz game modes, state machine, UI, navigation, and DI.
-- `feature:kenkozgamemenu`: KenKoz start menu and its navigation destination.
-- `feature:remembernumber`, `feature:remembernumbermenu`: feature UI, ViewModel/state, navigation, and DI.
-- `core:data`: repositories.
-- `core:storage:common`: storage contracts and `StorageImpl`.
-- `core:storage:datastore`: Android/iOS/JVM DataStore implementation.
-- `core:storage:web`: JS/Wasm `localStorage` implementation.
-- `core:designsystem`: basic UI primitives.
-- `core:ui`: compound UI components.
-- `resources`: shared Compose resources and strings.
+- Preserve the dependency direction: `platform launcher -> app:<product>:shared -> feature -> core`.
+  Platform `shared` source sets select `core:storage:datastore` for Android/iOS/JVM and `core:storage:web` for
+  JS/Wasm.
+- Put portable implementation in `commonMain`. Keep platform APIs in the corresponding platform source set and
+  use the existing `expect`/`actual` pattern when common code needs platform behavior.
+- Keep feature routes and navigation extensions in `feature/*/navigation`. When a feature has a ViewModel, its
+  route obtains it from Koin and passes state and callbacks to screen composables. Leaf UI must not receive a
+  `NavController`.
+- Product graphs and start destinations belong in `app/<product>/shared/App.kt`. Koin definitions belong in each
+  module's `di` package; product module lists belong in `GetCommonModules.kt` and `GetPlatformModules.kt`.
+- Do not introduce a new architectural layer as incidental refactoring.
+- Home and Games currently use static models; Stats and Profile use isolated demo stores. Do not present these as
+  persisted product progression or connect them to game repositories unless the request includes data integration.
 
-## Stack and existing patterns
+## UI and resources
 
-Dependency versions are defined in `gradle/libs.versions.toml`; consult that file rather than copying versions here. The project uses Compose Multiplatform/Material 3, Koin, Navigation Compose with `@Serializable` routes, Lifecycle ViewModel, Coroutines/Flow, Compose Resources, and DataStore.
+- Keep `OquTurboTheme`, color schemes, typography, shapes, and basic design primitives in `core:designsystem`.
+  Put compound reusable UI in `core:ui`, with one focused component per file instead of a catch-all
+  `AppComponents.kt`.
+- Apply `OquTurboTheme` at every app root and in every `@Preview`; do not wrap previews in a bare `MaterialTheme`
+  or define product theme colors inside feature modules.
+- Use `Modifier.appBackground()` for the shared background. Do not add a wrapper composable whose only purpose is
+  drawing it. Keep the root `Scaffold` and shared top bars transparent so the background extends under the status
+  bar.
+- Use shared `AppTopBar` and `AppBackButton` for back navigation. The Back control starts `24.dp` from the screen
+  edge. Game-menu top bars use enter-always scrolling.
+- Horizontal scrolling content fills the parent width and uses `contentPadding` for side spacing. Sibling cards in
+  the same `Row` must match the tallest item.
+- Do not hardcode user-facing text. Update matching keys in `values/`, `values-ru/`, and `values-kk/`, expose them
+  through the manually maintained `AppResource.String`, `Array`, or `Plural` facade, and read them with Compose
+  Resources. Do not edit generated resource or build output.
 
-Follow the existing dependency direction:
+## Verification
 
-```text
-platform app -> app:<product>:shared -> feature -> core:data -> core:storage:common
-                                                       ^
-                              core:storage:datastore or core:storage:web
-```
+- Use the checked-in `./gradlew`. After Kotlin or Gradle changes, run `./gradlew ktlintCheck` and the narrowest
+  compile or build task covering every affected module and product consumer.
+- After `commonMain` changes, compile more than one applicable target when practical. Do not report iOS
+  verification unless Apple tooling actually ran.
+- For navigation or DI changes, verify every affected product's graph, module list, arguments, start destination,
+  and back behavior. For resource changes, verify all three locale files and the `AppResource` facade.
+- Test source sets are currently empty. Do not describe a passing test task as behavioral test coverage.
+- Preserve unrelated work. Inspect `git status`, `git diff`, and `git diff --check` before finishing.
 
-- ViewModels expose `StateFlow`. Route composables obtain them from Koin and pass state/callbacks to screen composables.
-- Feature navigation stays in `feature/*/navigation`: a serializable route plus `navigateTo...` and `...Screen` extensions.
-- Koin definitions live in each module's `di` package. Product module lists are assembled in `GetCommonModules.kt`; `expect`/`actual` `GetPlatformModules.kt` selects DataStore or Web storage.
-- There is no separate domain/use-case module in the current repository.
+## Change boundaries
 
-## Source sets
-
-- Put portable code in `commonMain`; keep platform APIs out of it.
-- Product `shared` modules use `androidMain`, `iosMain`, `jvmMain`, and `webMain`. `webMain` serves both JS and Wasm.
-- Shared/core/feature/resource modules generally target Android, `iosArm64`, `iosSimulatorArm64`, JVM, JS browser, and Wasm browser as declared in their build files.
-- Exception: `core:storage:datastore` targets Android/iOS/JVM only; `core:storage:web` targets JS/Wasm only.
-- Add platform behavior through the existing `expect`/`actual` pattern when a common API needs different implementations.
-- iOS Kotlin entry points are `shared/src/iosMain/.../MainViewController.kt`. Swift/Xcode wrappers currently exist for OquTurbo, SanSprint, and KenKoz, but not Baspa.
-
-## UI, navigation, and resources
-
-- Shared Compose screens live in feature `commonMain`; basic primitives belong in `core:designsystem`, while compound reusable components belong in `core:ui`.
-- Keep the current route/screen split: route composables connect ViewModels, while screen/component composables accept state and callbacks.
-- Product graphs and start destinations are defined in `app/<product>/shared/App.kt`; leaf UI receives navigation callbacks rather than a `NavController`.
-- Shared UI strings live in `resources/src/commonMain/composeResources/values*/strings.xml` for default, Russian, and Kazakh locales. Use `AppResource.String` with `stringResource` and update matching keys in all three files.
-- Product names and launcher resources live in each `androidApp/src/main/res`; Web HTML/CSS lives in each `webApp/src/webMain/resources`.
-
-## Commands
-
-Use the checked-in wrapper and replace `<product>` with `oquturbo`, `sansprint`, `kenkoz`, or `baspa`. The README documents the OquTurbo run commands.
-
-```shell
-./gradlew ktlintCheck
-./gradlew check
-./gradlew :app:<product>:androidApp:assembleDebug
-./gradlew :app:<product>:androidApp:test
-./gradlew :app:<product>:desktopApp:run
-./gradlew :app:<product>:desktopApp:test
-./gradlew :app:<product>:webApp:wasmJsBrowserDevelopmentRun
-./gradlew :app:<product>:webApp:jsBrowserDevelopmentRun
-./gradlew :app:<product>:shared:allTests
-./gradlew :app:<product>:shared:iosSimulatorArm64Test
-```
-
-No test source files currently exist, so test tasks provide compilation/configuration coverage but run no project tests. The repository provides no CLI command for building the iOS app; README says to run it from the IDE or open `app/oquturbo/iosApp` in Xcode. The other two products also contain Xcode projects, but their workflow is not documented.
-
-Android release tasks use `release-key.jks` and the environment variables `SIGNING_STORE_PASSWORD`, `SIGNING_KEY_ALIAS`, and `SIGNING_KEY_PASSWORD`.
-
-## Style and verification
-
-- `.editorconfig` requires UTF-8, LF, final newline, trimmed trailing whitespace, 120-character lines, official Kotlin style, and trailing commas. It also records the project's disabled ktlint rules.
-- The root build applies ktlint to every subproject with `ignoreFailures=false`.
-- After Kotlin or Gradle edits, run `./gradlew ktlintCheck` and the narrowest build/check task covering the changed module and target.
-- After `commonMain` changes, compile affected consumers on more than one target when practical. Do not report iOS verification unless Apple tooling actually ran.
-- For resource changes, check the three shared locale files. For DI/navigation changes, check every affected product's module list, graph, arguments, start destination, and back behavior.
-- Preserve unrelated work and inspect `git diff`/`git status` before finishing.
-
-## Known limitations
-
-- Desktop DataStore writes all products to `${java.io.tmpdir}/oquturbo.preferences_pb`; products can share data and the file is temporary.
-- `RememberNumberViewModel` calls `availableDigits.random()` without validating route arguments.
-- `feature:main/MainScreen.kt` starts Koin inside Compose and ignores the root `Scaffold` content padding.
-- `app/oquturbo/webApp` uses the leftover package `com.alad1nks.startkmp`.
-- Each `shared/webpack.config.d/watch.js` documents a temporary workaround for KT-80582.
-- `gradle.properties` currently has `android.useAndroidX=truedistributionBase=GRADLE_USER_HOME` on one line; do not silently fix it during unrelated work.
-
-## Require a separate request
-
-Do not change release signing/credentials, application or bundle IDs, package namespaces, version codes/names, platform targets, dependency/plugin/wrapper versions, Xcode project settings, storage keys/file format, or navigation route arguments as incidental cleanup. Do not remove the KT-80582 workaround without first confirming that the configured Kotlin version resolves it.
+A separate user request is required before changing signing or credentials, application or bundle IDs, package
+namespaces, version codes or names, platform targets, dependency/plugin/wrapper versions, Xcode project settings,
+storage keys or formats, or navigation route arguments. Do not remove the KT-80582 webpack workaround without first
+confirming that the configured Kotlin version resolves it.
