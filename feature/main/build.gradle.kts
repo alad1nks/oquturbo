@@ -63,6 +63,7 @@ kotlin {
             implementation(projects.core.data)
             implementation(projects.core.designsystem)
             implementation(projects.core.storage.common)
+            implementation(projects.core.ui)
             implementation(projects.resources)
         }
     }

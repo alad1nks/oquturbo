@@ -273,7 +273,7 @@ private fun GameBackButton(
     AppBackButton(
         onClick = onClick,
         contentDescription = stringResource(AppResource.String.kenkoz_game_back),
-        modifier = modifier.statusBarsPadding().padding(start = 8.dp, top = 8.dp),
+        modifier = modifier.statusBarsPadding().padding(start = 24.dp, top = 8.dp),
     )
 }
 

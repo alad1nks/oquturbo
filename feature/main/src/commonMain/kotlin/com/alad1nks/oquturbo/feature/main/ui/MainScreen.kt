@@ -9,10 +9,12 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import com.alad1nks.oquturbo.core.designsystem.theme.OquTurboTheme
+import com.alad1nks.oquturbo.core.ui.component.appBackground
 import org.koin.compose.KoinApplication
 import org.koin.compose.viewmodel.koinViewModel
 import org.koin.core.module.Module
@@ -42,7 +44,9 @@ fun MainScreen(
 
         OquTurboTheme(darkTheme = darkTheme) {
             Scaffold(
+                modifier = Modifier.fillMaxSize().appBackground(),
                 contentWindowInsets = WindowInsets(0, 0, 0, 0),
+                containerColor = Color.Transparent,
                 bottomBar = bottomBar,
             ) { padding ->
                 NavHost(

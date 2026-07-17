@@ -12,9 +12,11 @@ import com.alad1nks.oquturbo.feature.games.navigation.GamesRoute
 import com.alad1nks.oquturbo.feature.games.navigation.navigateToGames
 import com.alad1nks.oquturbo.feature.home.navigation.HomeRoute
 import com.alad1nks.oquturbo.feature.home.navigation.navigateToHome
+import com.alad1nks.oquturbo.feature.profile.navigation.ProfileRoute
+import com.alad1nks.oquturbo.feature.profile.navigation.navigateToProfile
+import com.alad1nks.oquturbo.feature.stats.navigation.StatsRoute
+import com.alad1nks.oquturbo.feature.stats.navigation.navigateToStats
 import com.alad1nks.oquturbo.shared.navigation.OquTurboTopLevelDestination
-import com.alad1nks.oquturbo.shared.navigation.ProfileRoute
-import com.alad1nks.oquturbo.shared.navigation.StatsRoute
 import com.alad1nks.oquturbo.shared.navigation.routeSerialName
 
 @Composable
@@ -47,8 +49,8 @@ internal class OquTurboAppState(
         when (destination.route) {
             HomeRoute -> navController.navigateToHome(navOptions)
             GamesRoute -> navController.navigateToGames(navOptions)
-            StatsRoute -> navController.navigate(StatsRoute, navOptions)
-            ProfileRoute -> navController.navigate(ProfileRoute, navOptions)
+            StatsRoute -> navController.navigateToStats(navOptions)
+            ProfileRoute -> navController.navigateToProfile(navOptions)
         }
     }
 }
