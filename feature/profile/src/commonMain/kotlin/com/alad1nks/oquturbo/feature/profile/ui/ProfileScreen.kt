@@ -91,7 +91,7 @@ internal fun ProfileScreen(
                     onRanksClick = onRanksClick,
                 )
             }
-            if (uiState.completedTrainings == 0) {
+            if (!uiState.hasGameActivity) {
                 item { NewUserHint() }
             }
             item {

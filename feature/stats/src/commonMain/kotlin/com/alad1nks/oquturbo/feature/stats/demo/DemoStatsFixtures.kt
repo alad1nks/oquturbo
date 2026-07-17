@@ -1,6 +1,5 @@
 package com.alad1nks.oquturbo.feature.stats.demo
 
-import com.alad1nks.oquturbo.feature.stats.data.StatsDataSource
 import com.alad1nks.oquturbo.feature.stats.model.ActivityStatus
 import com.alad1nks.oquturbo.feature.stats.model.GameStatsRow
 import com.alad1nks.oquturbo.feature.stats.model.GameTrend
@@ -18,14 +17,6 @@ import com.alad1nks.oquturbo.feature.stats.model.StatsSummary
 import com.alad1nks.oquturbo.feature.stats.model.StatsTrend
 import com.alad1nks.oquturbo.feature.stats.model.StatsUiState
 import com.alad1nks.oquturbo.feature.stats.model.StatsWeekday
-
-/**
- * Deliberately isolated preview/demo data. It is not a source of product progress and can be replaced
- * by a persistent [StatsDataSource] without changing the screen contract.
- */
-internal class DemoStatsDataSource : StatsDataSource {
-    override fun getSnapshot(period: StatsPeriod): StatsPeriodSnapshot = DemoStatsFixtures.snapshot(period)
-}
 
 internal object DemoStatsFixtures {
     fun empty(): StatsUiState = StatsUiState(snapshot = StatsPeriodSnapshot.Empty)
@@ -160,6 +151,7 @@ internal object DemoStatsFixtures {
             selectedDayId = snapshot.activityDays.lastOrNull()?.id,
             selectedGame = firstGame?.game,
             selectedMode = firstGame?.modes?.firstOrNull()?.mode,
+            selectedVariantId = firstGame?.modes?.firstOrNull()?.variantId,
         )
     }
 

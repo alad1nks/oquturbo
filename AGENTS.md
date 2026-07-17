@@ -22,8 +22,11 @@ Operational rules for AI coding agents. Human-facing project documentation belon
 - Product graphs and start destinations belong in `app/<product>/shared/App.kt`. Koin definitions belong in each
   module's `di` package; product module lists belong in `GetCommonModules.kt` and `GetPlatformModules.kt`.
 - Do not introduce a new architectural layer as incidental refactoring.
-- Home and Games currently use static models; Stats and Profile use isolated demo stores. Do not present these as
-  persisted product progression or connect them to game repositories unless the request includes data integration.
+- Home, Stats, and Profile derive runtime state from persisted game sessions and profile preferences. Games remains
+  a static product catalog; Stats/Profile demo fixtures are for previews only. Daily training is not implemented,
+  so do not infer completed trainings or streaks from standalone game sessions.
+- `GameActivityRepository` keeps a bounded session journal and separate cumulative aggregates. Use the journal for
+  recent charts and history, and `observeTotals()` for all-time counts, duration, and per-series averages.
 
 ## UI and resources
 

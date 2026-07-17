@@ -32,10 +32,12 @@ fun GameStateOverlay(
     icon: ImageVector,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
+    enabled: Boolean = true,
     extraContent: @Composable ColumnScope.() -> Unit = {},
 ) {
     Surface(
         onClick = onClick,
+        enabled = enabled,
         modifier = modifier.fillMaxSize(),
         color = MaterialTheme.colorScheme.scrim.copy(alpha = 0.32f),
         contentColor = MaterialTheme.colorScheme.onSurface,

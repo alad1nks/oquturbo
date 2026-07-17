@@ -6,6 +6,7 @@
     <string name="home_start_training">Жаттығуды бастау</string>
     <string name="home_today_training">Бүгінгі жаттығу</string>
     <string name="home_recent_records">Соңғы рекордтар</string>
+    <string name="home_no_recent_records">Жаңа рекордтар ойыннан кейін осында көрсетіледі</string>
     <string name="games_subtitle">Ойынды таңдап, дағдыларыңызды жаттықтырыңыз</string>
     <string name="games_settings_content_description">Баптаулар</string>
     <string name="games_skills_title">ЖАТТЫҚТЫРЫЛАТЫН ДАҒДЫЛАР</string>

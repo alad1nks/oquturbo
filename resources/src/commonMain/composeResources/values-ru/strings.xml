@@ -6,6 +6,7 @@
     <string name="home_start_training">Начать тренировку</string>
     <string name="home_today_training">Сегодня в тренировке</string>
     <string name="home_recent_records">Последние рекорды</string>
+    <string name="home_no_recent_records">Новые рекорды появятся здесь после игры</string>
     <string name="games_subtitle">Выберите игру и тренируйте свои навыки</string>
     <string name="games_settings_content_description">Настройки</string>
     <string name="games_skills_title">ТРЕНИРУЕМЫЕ НАВЫКИ</string>

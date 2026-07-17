@@ -68,6 +68,7 @@ import oquturbo.resources.generated.resources.games_subtitle
 import oquturbo.resources.generated.resources.games_wide_eye_description
 import oquturbo.resources.generated.resources.games_word_flow_description
 import oquturbo.resources.generated.resources.games_word_flow_title
+import oquturbo.resources.generated.resources.home_no_recent_records
 import oquturbo.resources.generated.resources.home_overall_level
 import oquturbo.resources.generated.resources.home_rank
 import oquturbo.resources.generated.resources.home_rank_master
@@ -321,6 +322,7 @@ object AppResource {
     object String {
         val home_title = Res.string.home_title
         val home_overall_level = Res.string.home_overall_level
+        val home_no_recent_records = Res.string.home_no_recent_records
         val home_rank = Res.string.home_rank
         val home_rank_master = Res.string.home_rank_master
         val home_start_training = Res.string.home_start_training

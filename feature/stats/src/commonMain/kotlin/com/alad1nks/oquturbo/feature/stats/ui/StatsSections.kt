@@ -375,10 +375,9 @@ private fun ActivityLegend(modifier: Modifier = Modifier) {
 internal fun DynamicsSection(
     trends: List<GameTrend>,
     selectedGame: StatsGame?,
-    selectedMode: StatsMode?,
     selectedModeTrend: ModeTrend?,
     onGameSelected: (StatsGame) -> Unit,
-    onModeSelected: (StatsMode) -> Unit,
+    onModeSelected: (ModeTrend) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     StatsSection(
@@ -418,17 +417,17 @@ internal fun DynamicsSection(
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
             SelectorRow {
-                items(items = modes, key = { it.mode }) { mode ->
+                items(items = modes, key = { "${it.mode.name}:${it.variantId.orEmpty()}" }) { mode ->
                     FilterChip(
-                        selected = selectedMode == mode.mode,
-                        onClick = { onModeSelected(mode.mode) },
-                        label = { Text(stringResource(mode.mode.titleResource())) },
+                        selected = selectedModeTrend?.sameSeries(mode) == true,
+                        onClick = { onModeSelected(mode) },
+                        label = { Text(mode.title()) },
                     )
                 }
             }
         }
 
-        if (selectedModeTrend == null || selectedModeTrend.scores.size < 3) {
+        if (selectedModeTrend == null) {
             NotEnoughDynamics(modifier = Modifier.padding(horizontal = StatsCardContentPadding))
         } else {
             ModeTrendContent(
@@ -463,14 +462,18 @@ internal fun ModeTrendContent(
                 )
             }
         }
-        StatsLineChart(
-            scores = trend.scores,
-            modifier = Modifier.padding(horizontalContentPadding),
-        )
-        StatsScoreHistory(
-            scores = trend.scores,
-            contentPadding = horizontalContentPadding,
-        )
+        if (trend.scores.size < 3) {
+            NotEnoughDynamics(modifier = Modifier.padding(horizontalContentPadding))
+        } else {
+            StatsLineChart(
+                scores = trend.scores,
+                modifier = Modifier.padding(horizontalContentPadding),
+            )
+            StatsScoreHistory(
+                scores = trend.scores,
+                contentPadding = horizontalContentPadding,
+            )
+        }
         Row(
             modifier =
                 Modifier
@@ -518,7 +521,7 @@ internal fun ModeTrendContent(
 @Composable
 private fun TrendMetric(
     label: String,
-    value: Int,
+    value: Int?,
     modifier: Modifier = Modifier,
 ) {
     Surface(
@@ -532,7 +535,7 @@ private fun TrendMetric(
             verticalArrangement = Arrangement.spacedBy(3.dp),
         ) {
             Text(
-                text = value.toString(),
+                text = value?.toString() ?: "—",
                 style = MaterialTheme.typography.titleLarge,
                 color = MaterialTheme.colorScheme.primary,
             )
@@ -620,13 +623,15 @@ private fun SkillRow(insight: SkillInsight) {
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
-                Text(
-                    text = insight.description(),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
+                if (insight.showComparison) {
+                    Text(
+                        text = insight.description(),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
             }
-            if (insight.trend != StatsTrend.NotEnoughData) {
+            if (insight.showComparison && insight.trend != StatsTrend.NotEnoughData) {
                 Text(
                     text = stringResource(insight.trend.titleResource()),
                     style = MaterialTheme.typography.labelLarge,
@@ -824,7 +829,7 @@ private fun RecentHistoryItem(
 @Composable
 private fun RecentActivity.description(): String {
     val gameTitle = game?.let { stringResource(it.titleResource()) }.orEmpty()
-    val modeTitle = mode?.let { stringResource(it.titleResource()) }.orEmpty()
+    val modeTitle = mode?.let { mode -> modeTitle(mode, variantId) }.orEmpty()
     return when (type) {
         RecentActivityType.NewRecord ->
             stringResource(AppResource.String.stats_history_new_record, gameTitle, modeTitle, score ?: 0)
@@ -843,6 +848,9 @@ private fun RecentActivity.timeDescription(): String =
         1 -> stringResource(AppResource.String.stats_yesterday)
         else -> pluralStringResource(AppResource.Plural.stats_days_ago, daysAgo, daysAgo)
     }
+
+private fun ModeTrend.sameSeries(other: ModeTrend): Boolean =
+    mode == other.mode && variantId == other.variantId
 
 @Composable
 internal fun StatsSection(
