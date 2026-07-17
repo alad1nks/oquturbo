@@ -1,5 +1,7 @@
 package com.alad1nks.oquturbo.feature.main.ui
 
+import androidx.compose.animation.EnterTransition
+import androidx.compose.animation.ExitTransition
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
@@ -53,6 +55,10 @@ fun MainScreen(
                     navController = navController,
                     startDestination = startDestination,
                     modifier = Modifier.fillMaxSize().padding(padding).consumeWindowInsets(padding),
+                    enterTransition = { EnterTransition.None },
+                    exitTransition = { ExitTransition.None },
+                    popEnterTransition = { EnterTransition.None },
+                    popExitTransition = { ExitTransition.None },
                     builder = navGraphBuilder,
                 )
             }
