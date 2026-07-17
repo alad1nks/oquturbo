@@ -30,14 +30,14 @@ The playable games, OquTurbo tabs, and profile preferences are connected to pers
 - Stats builds its periods, activity grid, per-mode trends, skill activity, game totals, and recent history from
   persisted sessions and cumulative aggregates. Custom Number Sprint configurations remain separate selectable
   series. Existing best records stay visible but are not turned into sessions with invented dates.
-- Profile identity, selected title, avatar, frame, background, and the sound, vibration, reminder, and theme settings
-  persist between launches. Achievements and unlock conditions are derived from stored progress and records.
+- Profile identity, selected title, avatar, frame, background, and the language, sound, vibration, reminder, and
+  theme settings persist between launches. Achievements and unlock conditions are derived from stored progress and
+  records.
 - Games remains a static product catalog because its game list, skills, and mode counts are product configuration,
   not user data. Preview scenarios remain isolated demo fixtures and are never used at runtime.
 
 Daily training orchestration is not implemented yet: the Home action currently opens Games. Completed-training and
-streak values therefore remain zero instead of treating standalone games as daily training. The language setting
-currently follows the system default.
+streak values therefore remain zero instead of treating standalone games as daily training.
 
 ## Supported platforms
 
@@ -126,7 +126,8 @@ The common storage API currently persists settings, profile preferences, game re
   correct answers, and score totals per game/mode series. Custom Number Sprint variants retain their length and
   digit set, so their trends and averages are not combined.
 - Profile name and selections are stored separately from derived level, XP, achievements, and unlock states.
-- Theme, sound, vibration, and reminder preferences are persisted; language still uses the system default.
+- Language, theme, sound, vibration, and reminder preferences are persisted. Language can follow the system or be
+  fixed to English, Russian, or Kazakh.
 - Android writes a Preferences DataStore file in the app's files directory.
 - iOS writes the same DataStore file in the app's documents directory.
 - Desktop writes `${java.io.tmpdir}/oquturbo.preferences_pb`.
@@ -250,6 +251,10 @@ Shared strings, plurals, arrays, and game content live in
 [`AppResource.kt`](./resources/src/commonMain/kotlin/com/alad1nks/oquturbo/resources/AppResource.kt) is a manually
 maintained facade over generated Compose resources. A new resource must be added to all three locale files and
 exposed through `AppResource.String`, `AppResource.Plural`, or `AppResource.Array` before feature code can use it.
+
+The Profile settings screen can select the system language, English, Russian, or Kazakh. The choice is stored by
+`SettingsRepository`; `feature:main` applies it at the shared application root through platform-specific
+`LocalAppLocale` implementations so the visible Compose resources update without restarting the app.
 
 Product-specific Android launcher resources live in `app/<product>/androidApp/src/main/res`. Browser HTML and CSS
 live in `app/<product>/webApp/src/webMain/resources`.

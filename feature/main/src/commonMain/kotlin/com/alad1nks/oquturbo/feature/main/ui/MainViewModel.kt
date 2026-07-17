@@ -8,4 +8,5 @@ internal class MainViewModel(
     settingsRepository: SettingsRepository,
 ) : ViewModel() {
     val darkTheme = settingsRepository.getDarkTheme().map { it == true }
+    val language = settingsRepository.getLanguage()
 }

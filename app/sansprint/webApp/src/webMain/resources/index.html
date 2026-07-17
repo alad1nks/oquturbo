@@ -5,6 +5,18 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SanSprint</title>
     <link type="text/css" rel="stylesheet" href="styles.css">
+    <script>
+        const systemLanguages = Object.getOwnPropertyDescriptor(Navigator.prototype, "languages");
+        const appLanguages = Object.assign({}, systemLanguages, {
+            get: function () {
+                if (window.__customLocale) {
+                    return [window.__customLocale];
+                }
+                return systemLanguages.get.apply(this);
+            }
+        });
+        Object.defineProperty(Navigator.prototype, "languages", appLanguages);
+    </script>
     <script type="application/javascript" src="webApp.js"></script>
 </head>
 <body>
