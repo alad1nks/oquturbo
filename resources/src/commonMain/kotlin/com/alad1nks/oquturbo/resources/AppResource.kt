@@ -177,8 +177,8 @@ import oquturbo.resources.generated.resources.profile_progress_format
 import oquturbo.resources.generated.resources.profile_progress_summary_title
 import oquturbo.resources.generated.resources.profile_rank_current
 import oquturbo.resources.generated.resources.profile_rank_locked
-import oquturbo.resources.generated.resources.profile_rank_neutral_format
 import oquturbo.resources.generated.resources.profile_rank_names
+import oquturbo.resources.generated.resources.profile_rank_neutral_format
 import oquturbo.resources.generated.resources.profile_rank_range_format
 import oquturbo.resources.generated.resources.profile_rank_unlocked
 import oquturbo.resources.generated.resources.profile_ranks_subtitle
