@@ -29,12 +29,10 @@ import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material.icons.filled.EmojiEvents
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Psychology
-import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.TouchApp
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.FilledTonalIconButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -59,13 +57,11 @@ import org.jetbrains.compose.resources.stringResource
 @Composable
 internal fun GamesRoute(
     onGameClick: (TrainingGame) -> Unit,
-    onSettingsClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     GamesScreen(
         uiState = GamesUiState(),
         onGameClick = onGameClick,
-        onSettingsClick = onSettingsClick,
         modifier = modifier,
     )
 }
@@ -74,7 +70,6 @@ internal fun GamesRoute(
 private fun GamesScreen(
     uiState: GamesUiState,
     onGameClick: (TrainingGame) -> Unit,
-    onSettingsClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Box(modifier = modifier.fillMaxSize().appBackground()) {
@@ -88,7 +83,6 @@ private fun GamesScreen(
         ) {
             item {
                 GamesHeader(
-                    onSettingsClick = onSettingsClick,
                     modifier = Modifier.padding(start = 24.dp, top = 24.dp, end = 24.dp),
                 )
             }
@@ -144,42 +138,23 @@ private fun GamesScreen(
 
 @Composable
 private fun GamesHeader(
-    onSettingsClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    Row(
+    Column(
         modifier = modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.Top,
+        verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
-        Column(
-            modifier = Modifier.weight(1f),
-            verticalArrangement = Arrangement.spacedBy(8.dp),
-        ) {
-            Text(
-                text = stringResource(AppResource.String.oquturbo_navigation_games),
-                style = MaterialTheme.typography.displaySmall,
-                fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.onSurface,
-            )
-            Text(
-                text = stringResource(AppResource.String.games_subtitle),
-                style = MaterialTheme.typography.titleMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-        }
-        FilledTonalIconButton(
-            onClick = onSettingsClick,
-            modifier = Modifier.padding(start = 16.dp).size(56.dp),
-            shape = RoundedCornerShape(18.dp),
-        ) {
-            Icon(
-                imageVector = Icons.Filled.Settings,
-                contentDescription = stringResource(AppResource.String.games_settings_content_description),
-                modifier = Modifier.size(30.dp),
-                tint = MaterialTheme.colorScheme.primary,
-            )
-        }
+        Text(
+            text = stringResource(AppResource.String.oquturbo_navigation_games),
+            style = MaterialTheme.typography.displaySmall,
+            fontWeight = FontWeight.Bold,
+            color = MaterialTheme.colorScheme.onSurface,
+        )
+        Text(
+            text = stringResource(AppResource.String.games_subtitle),
+            style = MaterialTheme.typography.titleMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
     }
 }
 
@@ -402,7 +377,7 @@ private fun UpcomingGameCard(
     Card(
         modifier = modifier.fillMaxWidth(),
         shape = MaterialTheme.shapes.large,
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.84f)),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow),
         border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.42f)),
         elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
     ) {
@@ -571,7 +546,6 @@ private fun GamesScreenPreview() {
         GamesScreen(
             uiState = GamesUiState(),
             onGameClick = {},
-            onSettingsClick = {},
         )
     }
 }

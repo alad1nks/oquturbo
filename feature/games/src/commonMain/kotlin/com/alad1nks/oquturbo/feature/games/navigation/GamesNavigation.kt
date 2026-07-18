@@ -21,12 +21,10 @@ fun NavController.navigateToGames(
 
 fun NavGraphBuilder.gamesScreen(
     onGameClick: (TrainingGame) -> Unit,
-    onSettingsClick: () -> Unit,
 ) {
     composable<GamesRoute> {
         GamesRoute(
             onGameClick = onGameClick,
-            onSettingsClick = onSettingsClick,
         )
     }
 }

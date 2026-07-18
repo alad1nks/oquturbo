@@ -76,9 +76,6 @@ fun App() {
                     TrainingGame.DontTap -> appState.navController.navigateToBaspaGameMenu()
                 }
             },
-            onSettingsClick = {
-                appState.navigateToTopLevelDestination(OquTurboTopLevelDestination.PROFILE)
-            },
         )
         rememberNumberMenuScreen(
             showBackButton = true,
