@@ -147,6 +147,7 @@
     <string name="profile_overall_level_format">Level %1$d</string>
     <string name="profile_xp_format">%1$d / %2$d XP</string>
     <string name="profile_xp_to_next_format">%1$d XP to next level</string>
+    <string-array name="profile_rank_names"><item>Novice</item><item>Learner</item><item>Skilled</item><item>Professional</item><item>Expert</item><item>Master</item><item>Grandmaster</item><item>Legend</item></string-array>
     <string name="profile_rank_neutral_format">Rank %1$d</string>
     <string name="profile_rank_range_format">Levels %1$d–%2$d</string>
     <string name="profile_next_rank_format">Next rank: %1$s</string>
@@ -213,7 +214,7 @@
     </plurals>
     <string name="profile_recently_unlocked">Recently unlocked</string>
     <string name="profile_recent_level_format">Reached Level %1$d</string>
-    <string name="profile_recent_rank_format">Rank %1$d unlocked</string>
+    <string name="profile_recent_rank_format">%1$s rank unlocked</string>
     <string name="profile_recent_title_format">Title “%1$s” unlocked</string>
     <string name="profile_recent_achievement_format">Achievement “%1$s” earned</string>
     <string name="profile_recent_personalization_format">%1$s unlocked</string>

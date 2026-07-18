@@ -147,6 +147,7 @@
     <string name="profile_overall_level_format">%1$d-деңгей</string>
     <string name="profile_xp_format">%1$d / %2$d XP</string>
     <string name="profile_xp_to_next_format">Келесі деңгейге дейін: %1$d XP</string>
+    <string-array name="profile_rank_names"><item>Жаңадан бастаушы</item><item>Үйренуші</item><item>Шеберленген</item><item>Кәсіпқой</item><item>Сарапшы</item><item>Шебер</item><item>Грандмастер</item><item>Аңыз</item></string-array>
     <string name="profile_rank_neutral_format">%1$d-ранг</string>
     <string name="profile_rank_range_format">%1$d–%2$d деңгейлер</string>
     <string name="profile_next_rank_format">Келесі ранг: %1$s</string>
@@ -213,7 +214,7 @@
     </plurals>
     <string name="profile_recently_unlocked">Жақында ашылғандар</string>
     <string name="profile_recent_level_format">%1$d-деңгейге жеттіңіз</string>
-    <string name="profile_recent_rank_format">%1$d-ранг ашылды</string>
+    <string name="profile_recent_rank_format">«%1$s» рангі ашылды</string>
     <string name="profile_recent_title_format">«%1$s» атағы ашылды</string>
     <string name="profile_recent_achievement_format">«%1$s» жетістігі алынды</string>
     <string name="profile_recent_personalization_format">%1$s ашылды</string>

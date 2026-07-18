@@ -163,6 +163,7 @@
     <string name="profile_overall_level_format">Уровень %1$d</string>
     <string name="profile_xp_format">%1$d / %2$d XP</string>
     <string name="profile_xp_to_next_format">До следующего уровня: %1$d XP</string>
+    <string-array name="profile_rank_names"><item>Новичок</item><item>Ученик</item><item>Умелец</item><item>Профессионал</item><item>Эксперт</item><item>Мастер</item><item>Грандмастер</item><item>Легенда</item></string-array>
     <string name="profile_rank_neutral_format">Ранг %1$d</string>
     <string name="profile_rank_range_format">Уровни %1$d–%2$d</string>
     <string name="profile_next_rank_format">Следующий ранг: %1$s</string>
@@ -235,7 +236,7 @@
     </plurals>
     <string name="profile_recently_unlocked">Недавно открыто</string>
     <string name="profile_recent_level_format">Получен уровень %1$d</string>
-    <string name="profile_recent_rank_format">Открыт ранг %1$d</string>
+    <string name="profile_recent_rank_format">Открыт ранг «%1$s»</string>
     <string name="profile_recent_title_format">Открыт титул «%1$s»</string>
     <string name="profile_recent_achievement_format">Получено достижение «%1$s»</string>
     <string name="profile_recent_personalization_format">Открыто: %1$s</string>
