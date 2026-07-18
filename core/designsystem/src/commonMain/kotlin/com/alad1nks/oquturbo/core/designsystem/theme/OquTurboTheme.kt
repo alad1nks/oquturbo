@@ -1,12 +1,14 @@
 package com.alad1nks.oquturbo.core.designsystem.theme
 
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Shapes
 import androidx.compose.material3.Typography
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -41,29 +43,42 @@ private val LightColorScheme =
 
 private val DarkColorScheme =
     darkColorScheme(
-        primary = Color(0xFFCCBEFF),
-        onPrimary = Color(0xFF332279),
-        primaryContainer = Color(0xFF493795),
-        onPrimaryContainer = Color(0xFFE8E2FF),
-        secondary = Color(0xFFCEC2DA),
-        onSecondary = Color(0xFF352D40),
-        secondaryContainer = Color(0xFF4C4358),
-        onSecondaryContainer = Color(0xFFEBDDF5),
-        tertiary = Color(0xFFFFB0CC),
-        onTertiary = Color(0xFF5D113A),
-        tertiaryContainer = Color(0xFF7A2D51),
-        onTertiaryContainer = Color(0xFFFFD8E6),
+        primary = Color(0xFFC9B9FF),
+        onPrimary = Color(0xFF2F1D70),
+        primaryContainer = Color(0xFF44337D),
+        onPrimaryContainer = Color(0xFFE8E0FF),
+        secondary = Color(0xFFCEC3D6),
+        onSecondary = Color(0xFF352E3D),
+        secondaryContainer = Color(0xFF403847),
+        onSecondaryContainer = Color(0xFFECE2F1),
+        tertiary = Color(0xFFE7B8D0),
+        onTertiary = Color(0xFF482036),
+        tertiaryContainer = Color(0xFF62334A),
+        onTertiaryContainer = Color(0xFFFFD8E8),
         error = Color(0xFFFFB4AB),
+        onError = Color(0xFF690005),
         errorContainer = Color(0xFF93000A),
         onErrorContainer = Color(0xFFFFDAD6),
-        background = Color(0xFF141217),
-        onBackground = Color(0xFFE7E0E8),
-        surface = Color(0xFF141217),
-        onSurface = Color(0xFFE7E0E8),
-        surfaceVariant = Color(0xFF49454F),
-        onSurfaceVariant = Color(0xFFCBC4CF),
-        outline = Color(0xFF958F99),
-        outlineVariant = Color(0xFF49454F),
+        background = Color(0xFF111016),
+        onBackground = Color(0xFFF0EAF4),
+        surface = Color(0xFF19171F),
+        onSurface = Color(0xFFF0EAF4),
+        surfaceVariant = Color(0xFF4A4550),
+        onSurfaceVariant = Color(0xFFCEC5D2),
+        outline = Color(0xFF978F9C),
+        outlineVariant = Color(0xFF4B4651),
+        inverseSurface = Color(0xFFF0EAF4),
+        inverseOnSurface = Color(0xFF312E35),
+        inversePrimary = Color(0xFF6250C7),
+        surfaceDim = Color(0xFF111016),
+        surfaceBright = Color(0xFF3A363F),
+        surfaceContainerLowest = Color(0xFF0C0B10),
+        surfaceContainerLow = Color(0xFF17151C),
+        surfaceContainer = Color(0xFF1D1B23),
+        surfaceContainerHigh = Color(0xFF27232D),
+        surfaceContainerHighest = Color(0xFF322E39),
+        surfaceTint = Color.Transparent,
+        scrim = Color(0xFF000000),
     )
 
 private val OquTurboTypography =
@@ -94,10 +109,23 @@ fun OquTurboTheme(
     darkTheme: Boolean = false,
     content: @Composable () -> Unit,
 ) {
-    MaterialTheme(
-        colorScheme = if (darkTheme) DarkColorScheme else LightColorScheme,
-        typography = OquTurboTypography,
-        shapes = OquTurboShapes,
-        content = content,
-    )
+    if (darkTheme) {
+        MaterialTheme(
+            colorScheme = DarkColorScheme,
+            typography = OquTurboTypography,
+            shapes = OquTurboShapes,
+        ) {
+            CompositionLocalProvider(
+                LocalContentColor provides DarkColorScheme.onBackground,
+                content = content,
+            )
+        }
+    } else {
+        MaterialTheme(
+            colorScheme = LightColorScheme,
+            typography = OquTurboTypography,
+            shapes = OquTurboShapes,
+            content = content,
+        )
+    }
 }
