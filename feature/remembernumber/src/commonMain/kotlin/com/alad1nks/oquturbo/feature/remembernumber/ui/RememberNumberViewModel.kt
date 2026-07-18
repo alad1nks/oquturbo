@@ -205,8 +205,7 @@ internal class RememberNumberViewModel(
         return when (maxLength) {
             4 if digits == ALL_DIGITS -> GameModeId.NumberSprintClassic to null
             4 if digits == BINARY_DIGITS -> GameModeId.NumberSprintBinary to null
-            else -> GameModeId.NumberSprintCustom to
-                    "length:$maxLength;digits:$digits"
+            else -> GameModeId.NumberSprintCustom to "length:$maxLength;digits:$digits"
         }
     }
 
