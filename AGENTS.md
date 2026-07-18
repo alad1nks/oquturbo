@@ -2,6 +2,13 @@
 
 Operational rules for AI coding agents. Human-facing project documentation belongs in `README.md`.
 
+## Git workflow
+
+- Start each task from `main` by creating a separate branch with a short, descriptive kebab-case name that includes
+  the task intent, for example `add-logout-button` or `fix-crash-on-start`.
+- Open pull requests back into `main` with a concise human-readable title that summarizes the change, for example
+  `Add logout button` or `Fix crash on start`.
+
 ## Sources of truth
 
 - Treat `settings.gradle.kts`, module `build.gradle.kts` files, and `gradle/libs.versions.toml` as the sources of
