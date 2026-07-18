@@ -5,17 +5,24 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.luminance
 
 @Composable
-fun Modifier.appBackground(): Modifier =
-    background(
-        brush =
-            Brush.verticalGradient(
-                colors =
-                    listOf(
-                        MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.18f),
-                        MaterialTheme.colorScheme.surfaceContainerLowest,
-                        MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.12f),
-                    ),
-            ),
-    )
+fun Modifier.appBackground(): Modifier {
+    val colorScheme = MaterialTheme.colorScheme
+    return if (colorScheme.background.luminance() < 0.5f) {
+        background(colorScheme.background)
+    } else {
+        background(
+            brush =
+                Brush.verticalGradient(
+                    colors =
+                        listOf(
+                            colorScheme.primaryContainer.copy(alpha = 0.18f),
+                            colorScheme.surfaceContainerLowest,
+                            colorScheme.secondaryContainer.copy(alpha = 0.12f),
+                        ),
+                ),
+        )
+    }
+}
