@@ -18,6 +18,7 @@ import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.automirrored.outlined.FactCheck
 import androidx.compose.material.icons.filled.Checkroom
 import androidx.compose.material.icons.filled.DirectionsCar
@@ -64,6 +65,7 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.alad1nks.oquturbo.core.data.model.DailyTrainingEntry
 import com.alad1nks.oquturbo.core.designsystem.theme.OquTurboTheme
 import com.alad1nks.oquturbo.core.ui.component.AppBackButton
 import com.alad1nks.oquturbo.core.ui.component.GameResultCard
@@ -75,9 +77,20 @@ import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.stringResource
 
 @Composable
-internal fun BaspaGameRoute(viewModel: BaspaGameViewModel, onBackClick: () -> Unit) {
+internal fun BaspaGameRoute(
+    viewModel: BaspaGameViewModel,
+    onBackClick: () -> Unit,
+    onTrainingContinue: (DailyTrainingEntry?) -> Unit,
+) {
     val uiState by viewModel.uiState.collectAsState()
-    BaspaGameScreen(uiState, onBackClick, viewModel::togglePause, viewModel::tap, viewModel::restart)
+    BaspaGameScreen(
+        uiState = uiState,
+        onBackClick = onBackClick,
+        onPauseClick = viewModel::togglePause,
+        onTap = viewModel::tap,
+        onRestart = viewModel::restart,
+        onTrainingContinue = { viewModel.continueTraining(onTrainingContinue) },
+    )
 }
 
 @Composable
@@ -87,6 +100,7 @@ private fun BaspaGameScreen(
     onPauseClick: () -> Unit,
     onTap: () -> Unit,
     onRestart: () -> Unit,
+    onTrainingContinue: () -> Unit,
 ) {
     val blurRadius by animateDpAsState(
         targetValue = if (uiState.phase == BaspaGameUiState.Phase.Playing) 0.dp else 8.dp,
@@ -171,18 +185,10 @@ private fun BaspaGameScreen(
                 )
             }
             BaspaGameUiState.Phase.Mistake -> {
-                GameStateOverlay(
-                    title = stringResource(AppResource.String.baspa_game_try_again),
-                    icon = Icons.Filled.Replay,
-                    onClick = onRestart,
-                    extraContent = {
-                        GameResultCard(
-                            primaryText =
-                                "${stringResource(AppResource.String.baspa_game_score_label)}: ${uiState.score}",
-                            secondaryText =
-                                "${stringResource(AppResource.String.baspa_game_record_label)}: ${uiState.record}",
-                        )
-                    },
+                MistakeOverlay(
+                    uiState = uiState,
+                    onRestart = onRestart,
+                    onTrainingContinue = onTrainingContinue,
                 )
                 GameBackButton(
                     onClick = onBackClick,
@@ -192,6 +198,42 @@ private fun BaspaGameScreen(
             BaspaGameUiState.Phase.Playing -> Unit
         }
     }
+}
+
+@Composable
+private fun MistakeOverlay(
+    uiState: BaspaGameUiState,
+    onRestart: () -> Unit,
+    onTrainingContinue: () -> Unit,
+) {
+    val trainingGoalReached = uiState.isTrainingGoalReached
+    GameStateOverlay(
+        title =
+            when {
+                trainingGoalReached -> stringResource(AppResource.String.home_training_goal_reached)
+                uiState.isTraining ->
+                    stringResource(
+                        AppResource.String.home_training_goal_not_reached,
+                        requireNotNull(uiState.trainingRequiredScore),
+                    )
+                else -> stringResource(AppResource.String.baspa_game_try_again)
+            },
+        supportingText =
+            if (trainingGoalReached) {
+                stringResource(AppResource.String.home_training_goal_reached_message)
+            } else {
+                null
+            },
+        icon = if (trainingGoalReached) Icons.AutoMirrored.Filled.ArrowForward else Icons.Filled.Replay,
+        onClick = if (trainingGoalReached) onTrainingContinue else onRestart,
+        enabled = !uiState.isTraining || uiState.isTrainingCompletionReady,
+        extraContent = {
+            GameResultCard(
+                primaryText = "${stringResource(AppResource.String.baspa_game_score_label)}: ${uiState.score}",
+                secondaryText = "${stringResource(AppResource.String.baspa_game_record_label)}: ${uiState.record}",
+            )
+        },
+    )
 }
 
 @Composable
@@ -487,6 +529,7 @@ private fun BaspaGameScreenPreview() {
     OquTurboTheme {
         BaspaGameScreen(
             BaspaGameUiState(BaspaGameMode.Categories, "КОШКА", score = 24, record = 57),
+            {},
             {},
             {},
             {},

@@ -2,8 +2,10 @@ package com.alad1nks.oquturbo.feature.remembernumber.ui
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.alad1nks.oquturbo.core.data.model.DailyTrainingEntry
 import com.alad1nks.oquturbo.core.data.model.GameId
 import com.alad1nks.oquturbo.core.data.model.GameModeId
+import com.alad1nks.oquturbo.core.data.repository.DailyTrainingRepository
 import com.alad1nks.oquturbo.core.data.repository.GameActivityRepository
 import com.alad1nks.oquturbo.core.data.repository.RememberNumberRepository
 import kotlinx.coroutines.NonCancellable
@@ -20,14 +22,19 @@ import kotlin.time.TimeSource
 internal class RememberNumberViewModel(
     val maxLength: Int,
     private val availableDigits: String,
+    private val trainingEntryId: String?,
+    val trainingRequiredScore: Int?,
     private val rememberNumberRepository: RememberNumberRepository,
     private val gameActivityRepository: GameActivityRepository,
+    private val dailyTrainingRepository: DailyTrainingRepository,
 ) : ViewModel() {
     private var score: Int = 0
     private var waitingNumber: String = ""
     private var delay: Long = 1000
     private var isFirstNumber = true
     private var sessionStartMark: TimeMark? = null
+    private var nextTrainingEntry: DailyTrainingEntry? = null
+    private var hasContinuedTraining = false
 
     private val _focusEvent = MutableStateFlow<Unit?>(null)
     val focusEvent = _focusEvent.asStateFlow()
@@ -36,6 +43,12 @@ internal class RememberNumberViewModel(
     val uiState = _uiState.asStateFlow()
 
     init {
+        require((trainingEntryId == null) == (trainingRequiredScore == null)) {
+            "Number Sprint training id and required score must be provided together"
+        }
+        require(trainingRequiredScore == null || trainingRequiredScore > 0) {
+            "Number Sprint training required score must be positive"
+        }
         viewModelScope.launch {
             uiState.collect { uiState ->
                 when (uiState) {
@@ -67,6 +80,7 @@ internal class RememberNumberViewModel(
                                             score = score,
                                             correctText = waitingNumber,
                                             record = currentRecord,
+                                            isTrainingResultReady = trainingEntryId == null,
                                         )
                                     delay = 1000
                                     sessionDurationMillis?.let { durationMillis ->
@@ -75,6 +89,20 @@ internal class RememberNumberViewModel(
                                             durationMillis = durationMillis,
                                             isNewRecord = currentRecord > storageRecord,
                                         )
+                                        trainingEntryId?.let { entryId ->
+                                            nextTrainingEntry =
+                                                dailyTrainingRepository
+                                                    .completeEntry(entryId = entryId, score = score)
+                                                    .nextEntry
+                                            _uiState.value =
+                                                RememberNumberUiState.Mistake(
+                                                    text = text,
+                                                    score = score,
+                                                    correctText = waitingNumber,
+                                                    record = currentRecord,
+                                                    isTrainingResultReady = true,
+                                                )
+                                        }
                                     }
                                     if (currentRecord > storageRecord) {
                                         rememberNumberRepository.setRememberNumberRecord(
@@ -111,6 +139,8 @@ internal class RememberNumberViewModel(
         viewModelScope.launch {
             score = 0
             isFirstNumber = true
+            nextTrainingEntry = null
+            hasContinuedTraining = false
             sessionStartMark = TimeSource.Monotonic.markNow()
             waitingNumber = generateNumber()
             _uiState.value =
@@ -126,6 +156,15 @@ internal class RememberNumberViewModel(
         if (uiState is RememberNumberUiState.Writing) {
             _uiState.value = uiState.copy(text = value)
         }
+    }
+
+    fun continueTraining(onContinue: (DailyTrainingEntry?) -> Unit) {
+        val mistake = _uiState.value as? RememberNumberUiState.Mistake ?: return
+        val requiredScore = trainingRequiredScore ?: return
+        if (!mistake.isTrainingResultReady || mistake.score < requiredScore || hasContinuedTraining) return
+
+        hasContinuedTraining = true
+        onContinue(nextTrainingEntry)
     }
 
     private fun generateNumber(): String {
@@ -163,12 +202,10 @@ internal class RememberNumberViewModel(
 
     private fun sessionMode(): Pair<GameModeId, String?> {
         val digits = normalizedDigits()
-        return when {
-            maxLength == 4 && digits == ALL_DIGITS -> GameModeId.NumberSprintClassic to null
-            maxLength == 4 && digits == BINARY_DIGITS -> GameModeId.NumberSprintBinary to null
-            else ->
-                GameModeId.NumberSprintCustom to
-                    "length:$maxLength;digits:$digits"
+        return when (maxLength) {
+            4 if digits == ALL_DIGITS -> GameModeId.NumberSprintClassic to null
+            4 if digits == BINARY_DIGITS -> GameModeId.NumberSprintBinary to null
+            else -> GameModeId.NumberSprintCustom to "length:$maxLength;digits:$digits"
         }
     }
 

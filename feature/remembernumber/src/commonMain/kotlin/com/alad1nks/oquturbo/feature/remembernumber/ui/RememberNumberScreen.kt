@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Replay
 import androidx.compose.material3.MaterialTheme
@@ -27,6 +28,7 @@ import androidx.compose.ui.focus.focusProperties
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.alad1nks.oquturbo.core.data.model.DailyTrainingEntry
 import com.alad1nks.oquturbo.core.designsystem.theme.OquTurboTheme
 import com.alad1nks.oquturbo.core.ui.component.AppTopBar
 import com.alad1nks.oquturbo.core.ui.component.GameResultCard
@@ -40,6 +42,7 @@ import org.jetbrains.compose.resources.stringResource
 internal fun RememberNumberRoute(
     viewModel: RememberNumberViewModel,
     onBackClick: () -> Unit,
+    onTrainingContinue: (DailyTrainingEntry?) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val uiState by viewModel.uiState.collectAsState()
@@ -52,6 +55,8 @@ internal fun RememberNumberRoute(
         writeText = viewModel::writeText,
         onStartClick = viewModel::start,
         onBackClick = onBackClick,
+        trainingRequiredScore = viewModel.trainingRequiredScore,
+        onTrainingContinueClick = { viewModel.continueTraining(onTrainingContinue) },
         modifier = modifier,
     )
 }
@@ -64,12 +69,20 @@ internal fun RememberNumberScreen(
     writeText: (String) -> Unit,
     onStartClick: () -> Unit,
     onBackClick: () -> Unit,
+    trainingRequiredScore: Int? = null,
+    onTrainingContinueClick: () -> Unit = {},
     modifier: Modifier = Modifier,
 ) {
     val focusRequester = remember { FocusRequester() }
     val scoreText = stringResource(AppResource.String.remember_number_game_score, uiState.score)
     val scoreValue = uiState.score.toString()
     val scoreLabel = scoreText.removeSuffix(scoreValue).trimEnd(' ', ':')
+    val mistake = uiState as? RememberNumberUiState.Mistake
+    val isTrainingResult = mistake != null && trainingRequiredScore != null
+    val isTrainingGoalReached =
+        mistake != null &&
+            trainingRequiredScore != null &&
+            mistake.score >= trainingRequiredScore
 
     LaunchedEffect(focusEvent) {
         if (focusEvent != null) {
@@ -148,20 +161,32 @@ internal fun RememberNumberScreen(
         ) {
             GameStateOverlay(
                 title =
-                    stringResource(
-                        if (uiState is RememberNumberUiState.Initial) {
-                            AppResource.String.remember_number_game_start
-                        } else {
-                            AppResource.String.remember_number_game_try_again
-                        },
-                    ),
-                icon =
-                    if (uiState is RememberNumberUiState.Initial) {
-                        Icons.Default.PlayArrow
-                    } else {
-                        Icons.Default.Replay
+                    when {
+                        uiState is RememberNumberUiState.Initial ->
+                            stringResource(AppResource.String.remember_number_game_start)
+                        isTrainingGoalReached ->
+                            stringResource(AppResource.String.home_training_goal_reached)
+                        isTrainingResult ->
+                            stringResource(
+                                AppResource.String.home_training_goal_not_reached,
+                                trainingRequiredScore,
+                            )
+                        else -> stringResource(AppResource.String.remember_number_game_try_again)
                     },
-                onClick = onStartClick,
+                supportingText =
+                    if (isTrainingGoalReached) {
+                        stringResource(AppResource.String.home_training_goal_reached_message)
+                    } else {
+                        null
+                    },
+                icon =
+                    when {
+                        uiState is RememberNumberUiState.Initial -> Icons.Default.PlayArrow
+                        isTrainingGoalReached -> Icons.AutoMirrored.Filled.ArrowForward
+                        else -> Icons.Default.Replay
+                    },
+                onClick = if (isTrainingGoalReached) onTrainingContinueClick else onStartClick,
+                enabled = !isTrainingResult || mistake.isTrainingResultReady,
                 modifier = Modifier.fillMaxSize(),
                 extraContent = {
                     if (uiState is RememberNumberUiState.Mistake) {

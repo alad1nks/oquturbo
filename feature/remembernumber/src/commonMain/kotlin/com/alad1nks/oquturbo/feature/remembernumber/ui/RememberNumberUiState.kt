@@ -24,5 +24,6 @@ internal sealed interface RememberNumberUiState {
         override val score: Int,
         val correctText: String,
         val record: Int,
+        val isTrainingResultReady: Boolean = true,
     ) : RememberNumberUiState
 }

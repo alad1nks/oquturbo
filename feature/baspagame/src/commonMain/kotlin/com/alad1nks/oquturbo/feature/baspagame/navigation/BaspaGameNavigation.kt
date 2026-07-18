@@ -4,6 +4,7 @@ import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
 import androidx.navigation.toRoute
+import com.alad1nks.oquturbo.core.data.model.DailyTrainingEntry
 import com.alad1nks.oquturbo.core.ui.navigation.enumNavType
 import com.alad1nks.oquturbo.feature.baspagame.model.BaspaGameContent
 import com.alad1nks.oquturbo.feature.baspagame.model.BaspaGameMode
@@ -18,7 +19,12 @@ import org.koin.compose.viewmodel.koinViewModel
 import org.koin.core.parameter.parametersOf
 import kotlin.reflect.typeOf
 
-@Serializable data class BaspaGameRoute(val mode: BaspaGameMode)
+@Serializable
+data class BaspaGameRoute(
+    val mode: BaspaGameMode,
+    val trainingEntryId: String? = null,
+    val trainingRequiredScore: Int? = null,
+)
 
 private val baspaGameTypeMap =
     mapOf(typeOf<BaspaGameMode>() to enumNavType<BaspaGameMode>())
@@ -27,15 +33,58 @@ fun NavController.navigateToBaspaGame(mode: BaspaGameMode) {
     navigate(BaspaGameRoute(mode))
 }
 
+fun NavController.navigateToBaspaTraining(
+    mode: BaspaGameMode,
+    trainingEntryId: String,
+    trainingRequiredScore: Int,
+) {
+    require(trainingEntryId.isNotBlank()) { "Training entry id must not be blank" }
+    require(trainingRequiredScore > 0) { "Training required score must be positive" }
+    navigate(
+        BaspaGameRoute(
+            mode = mode,
+            trainingEntryId = trainingEntryId,
+            trainingRequiredScore = trainingRequiredScore,
+        ),
+    )
+}
+
 fun NavGraphBuilder.baspaGameScreen(onBackClick: () -> Unit) {
+    baspaGameScreen(
+        onBackClick = onBackClick,
+        onTrainingBackClick = onBackClick,
+        onTrainingContinue = { onBackClick() },
+    )
+}
+
+fun NavGraphBuilder.baspaGameScreen(
+    onBackClick: () -> Unit,
+    onTrainingBackClick: () -> Unit,
+    onTrainingContinue: (DailyTrainingEntry?) -> Unit,
+) {
     composable<BaspaGameRoute>(typeMap = baspaGameTypeMap) { entry ->
-        val mode = entry.toRoute<BaspaGameRoute>().mode
+        val route = entry.toRoute<BaspaGameRoute>()
+        require((route.trainingEntryId == null) == (route.trainingRequiredScore == null)) {
+            "Baspa training id and required score must be provided together"
+        }
+        val isTraining = route.trainingEntryId != null
         val content = baspaGameContent()
         val viewModel =
             koinViewModel<BaspaGameViewModel>(
-                parameters = { parametersOf(mode, content) },
+                parameters = {
+                    parametersOf(
+                        route.mode,
+                        content,
+                        route.trainingEntryId,
+                        route.trainingRequiredScore,
+                    )
+                },
             )
-        BaspaGameRoute(viewModel, onBackClick)
+        BaspaGameRoute(
+            viewModel = viewModel,
+            onBackClick = if (isTraining) onTrainingBackClick else onBackClick,
+            onTrainingContinue = onTrainingContinue,
+        )
     }
 }
 
