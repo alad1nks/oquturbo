@@ -19,12 +19,14 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Block
 import androidx.compose.material.icons.filled.Bolt
+import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.EmojiEvents
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
@@ -38,10 +40,16 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.LifecycleResumeEffect
+import com.alad1nks.oquturbo.core.data.model.DailyTrainingEntry
 import com.alad1nks.oquturbo.core.designsystem.theme.OquTurboTheme
+import com.alad1nks.oquturbo.core.designsystem.theme.success
 import com.alad1nks.oquturbo.core.ui.component.PageHeader
 import com.alad1nks.oquturbo.core.ui.component.appBackground
 import com.alad1nks.oquturbo.resources.AppResource
@@ -51,14 +59,18 @@ import org.jetbrains.compose.resources.stringResource
 @Composable
 internal fun HomeRoute(
     viewModel: HomeViewModel,
-    onStartTrainingClick: () -> Unit,
+    onStartTrainingClick: (DailyTrainingEntry) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val uiState by viewModel.uiState.collectAsState()
+    LifecycleResumeEffect(viewModel) {
+        viewModel.refreshDailyTraining()
+        onPauseOrDispose {}
+    }
 
     HomeScreen(
         uiState = uiState,
-        onStartTrainingClick = onStartTrainingClick,
+        onStartTrainingClick = { viewModel.startTraining(onStartTrainingClick) },
         modifier = modifier,
     )
 }
@@ -91,7 +103,10 @@ private fun HomeScreen(
                 )
             }
             item {
-                TrainingCard(onStartTrainingClick = onStartTrainingClick)
+                TrainingCard(
+                    training = uiState.dailyTraining,
+                    onStartTrainingClick = onStartTrainingClick,
+                )
             }
             item {
                 RecentRecords(records = uiState.recentRecords)
@@ -165,7 +180,10 @@ private fun LevelProgress(
 }
 
 @Composable
-private fun TrainingCard(onStartTrainingClick: () -> Unit) {
+private fun TrainingCard(
+    training: HomeUiState.DailyTraining?,
+    onStartTrainingClick: () -> Unit,
+) {
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = MaterialTheme.shapes.large,
@@ -175,37 +193,83 @@ private fun TrainingCard(onStartTrainingClick: () -> Unit) {
             modifier = Modifier.fillMaxWidth().padding(20.dp),
             verticalArrangement = Arrangement.spacedBy(14.dp),
         ) {
+            if (training?.isCompleted == true) {
+                CompletedTrainingHeader()
+            } else {
+                Text(
+                    text = stringResource(AppResource.String.home_today_training),
+                    style = MaterialTheme.typography.titleLarge,
+                    color = MaterialTheme.colorScheme.onPrimaryContainer,
+                )
+            }
+            if (training == null) {
+                CircularProgressIndicator(
+                    modifier = Modifier.align(Alignment.CenterHorizontally).size(32.dp),
+                    color = MaterialTheme.colorScheme.primary,
+                )
+            } else {
+                training.items.forEach { item -> TrainingItem(item) }
+                if (!training.isCompleted) {
+                    Spacer(modifier = Modifier.height(2.dp))
+                    Button(
+                        onClick = onStartTrainingClick,
+                        modifier =
+                            Modifier
+                                .align(Alignment.CenterHorizontally)
+                                .widthIn(max = 360.dp)
+                                .fillMaxWidth()
+                                .heightIn(min = 52.dp),
+                        shape = MaterialTheme.shapes.medium,
+                        contentPadding = PaddingValues(horizontal = 24.dp, vertical = 12.dp),
+                    ) {
+                        Text(
+                            text =
+                                stringResource(
+                                    if (training.items.any(HomeUiState.TrainingItem::isCompleted)) {
+                                        AppResource.String.home_continue_training
+                                    } else {
+                                        AppResource.String.home_start_training
+                                    },
+                                ),
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Bold,
+                        )
+                        Icon(
+                            imageVector = Icons.Filled.PlayArrow,
+                            contentDescription = null,
+                            modifier = Modifier.padding(start = 8.dp),
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun CompletedTrainingHeader() {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(12.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Icon(
+            imageVector = Icons.Filled.CheckCircle,
+            contentDescription = null,
+            modifier = Modifier.size(40.dp),
+            tint = MaterialTheme.colorScheme.success,
+        )
+        Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
             Text(
-                text = stringResource(AppResource.String.home_today_training),
+                text = stringResource(AppResource.String.home_training_completed),
                 style = MaterialTheme.typography.titleLarge,
                 color = MaterialTheme.colorScheme.onPrimaryContainer,
             )
-            TrainingItem(HomeUiState.Game.NumberSprint)
-            TrainingItem(HomeUiState.Game.WideEye)
-            TrainingItem(HomeUiState.Game.DontTap)
-            Spacer(modifier = Modifier.height(2.dp))
-            Button(
-                onClick = onStartTrainingClick,
-                modifier =
-                    Modifier
-                        .align(Alignment.CenterHorizontally)
-                        .widthIn(max = 360.dp)
-                        .fillMaxWidth()
-                        .heightIn(min = 52.dp),
-                shape = MaterialTheme.shapes.medium,
-                contentPadding = PaddingValues(horizontal = 24.dp, vertical = 12.dp),
-            ) {
-                Text(
-                    text = stringResource(AppResource.String.home_start_training),
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold,
-                )
-                Icon(
-                    imageVector = Icons.Filled.PlayArrow,
-                    contentDescription = null,
-                    modifier = Modifier.padding(start = 8.dp),
-                )
-            }
+            Text(
+                text = stringResource(AppResource.String.home_training_completed_message),
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.72f),
+            )
         }
     }
 }
@@ -283,9 +347,16 @@ private fun RecentRecords(records: List<HomeUiState.RecentRecord>) {
 }
 
 @Composable
-private fun TrainingItem(game: HomeUiState.Game) {
+private fun TrainingItem(item: HomeUiState.TrainingItem) {
+    val completedState = stringResource(AppResource.String.home_training_item_completed)
     Row(
-        modifier = Modifier.fillMaxWidth().padding(vertical = 3.dp),
+        modifier =
+            Modifier
+                .fillMaxWidth()
+                .padding(vertical = 3.dp)
+                .semantics {
+                    if (item.isCompleted) stateDescription = completedState
+                },
         horizontalArrangement = Arrangement.spacedBy(12.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
@@ -298,18 +369,48 @@ private fun TrainingItem(game: HomeUiState.Game) {
                 contentAlignment = Alignment.Center,
             ) {
                 Icon(
-                    imageVector = game.icon(),
+                    imageVector = item.game.icon(),
                     contentDescription = null,
                     modifier = Modifier.size(21.dp),
                     tint = MaterialTheme.colorScheme.primary,
                 )
             }
         }
-        Text(
-            text = stringResource(game.titleResource()),
-            style = MaterialTheme.typography.titleMedium,
-            color = MaterialTheme.colorScheme.onPrimaryContainer,
-        )
+        Column(
+            modifier = Modifier.weight(1f),
+            verticalArrangement = Arrangement.spacedBy(2.dp),
+        ) {
+            Text(
+                text = stringResource(item.game.titleResource()),
+                style = MaterialTheme.typography.titleMedium,
+                color = MaterialTheme.colorScheme.onPrimaryContainer,
+                textDecoration = if (item.isCompleted) TextDecoration.LineThrough else null,
+            )
+            Text(
+                text = stringResource(item.mode.titleResource()),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.72f),
+                textDecoration = if (item.isCompleted) TextDecoration.LineThrough else null,
+            )
+        }
+        Row(
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Text(
+                text = stringResource(AppResource.String.home_training_score_goal, item.requiredScore),
+                style = MaterialTheme.typography.titleMedium,
+                color = MaterialTheme.colorScheme.primary,
+                textDecoration = if (item.isCompleted) TextDecoration.LineThrough else null,
+            )
+            if (item.isCompleted) {
+                Icon(
+                    imageVector = Icons.Filled.CheckCircle,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.success,
+                )
+            }
+        }
     }
 }
 

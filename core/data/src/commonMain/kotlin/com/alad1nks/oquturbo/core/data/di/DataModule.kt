@@ -1,6 +1,7 @@
 package com.alad1nks.oquturbo.core.data.di
 
 import com.alad1nks.oquturbo.core.data.repository.BaspaGameRepository
+import com.alad1nks.oquturbo.core.data.repository.DailyTrainingRepository
 import com.alad1nks.oquturbo.core.data.repository.GameActivityRepository
 import com.alad1nks.oquturbo.core.data.repository.KenKozGameRepository
 import com.alad1nks.oquturbo.core.data.repository.ProfileRepository
@@ -11,6 +12,7 @@ import org.koin.dsl.module
 val DataModule =
     module {
         single { BaspaGameRepository(get()) }
+        single { DailyTrainingRepository(get()) }
         single { GameActivityRepository(get()) }
         single { KenKozGameRepository(get()) }
         single { ProfileRepository(get()) }

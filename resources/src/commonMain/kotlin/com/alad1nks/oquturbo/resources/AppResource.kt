@@ -68,6 +68,7 @@ import oquturbo.resources.generated.resources.games_subtitle
 import oquturbo.resources.generated.resources.games_wide_eye_description
 import oquturbo.resources.generated.resources.games_word_flow_description
 import oquturbo.resources.generated.resources.games_word_flow_title
+import oquturbo.resources.generated.resources.home_continue_training
 import oquturbo.resources.generated.resources.home_no_recent_records
 import oquturbo.resources.generated.resources.home_overall_level
 import oquturbo.resources.generated.resources.home_rank
@@ -76,6 +77,16 @@ import oquturbo.resources.generated.resources.home_recent_records
 import oquturbo.resources.generated.resources.home_start_training
 import oquturbo.resources.generated.resources.home_title
 import oquturbo.resources.generated.resources.home_today_training
+import oquturbo.resources.generated.resources.home_training_completed
+import oquturbo.resources.generated.resources.home_training_completed_message
+import oquturbo.resources.generated.resources.home_training_congratulations
+import oquturbo.resources.generated.resources.home_training_congratulations_message
+import oquturbo.resources.generated.resources.home_training_goal_not_reached
+import oquturbo.resources.generated.resources.home_training_goal_reached
+import oquturbo.resources.generated.resources.home_training_goal_reached_message
+import oquturbo.resources.generated.resources.home_training_item_completed
+import oquturbo.resources.generated.resources.home_training_return_home
+import oquturbo.resources.generated.resources.home_training_score_goal
 import oquturbo.resources.generated.resources.kenkoz_game_back
 import oquturbo.resources.generated.resources.kenkoz_game_characters
 import oquturbo.resources.generated.resources.kenkoz_game_difference_pairs
@@ -325,12 +336,23 @@ object AppResource {
 
     object String {
         val home_title = Res.string.home_title
+        val home_continue_training = Res.string.home_continue_training
         val home_overall_level = Res.string.home_overall_level
         val home_no_recent_records = Res.string.home_no_recent_records
         val home_rank = Res.string.home_rank
         val home_rank_master = Res.string.home_rank_master
         val home_start_training = Res.string.home_start_training
         val home_today_training = Res.string.home_today_training
+        val home_training_completed = Res.string.home_training_completed
+        val home_training_completed_message = Res.string.home_training_completed_message
+        val home_training_congratulations = Res.string.home_training_congratulations
+        val home_training_congratulations_message = Res.string.home_training_congratulations_message
+        val home_training_goal_not_reached = Res.string.home_training_goal_not_reached
+        val home_training_goal_reached = Res.string.home_training_goal_reached
+        val home_training_goal_reached_message = Res.string.home_training_goal_reached_message
+        val home_training_item_completed = Res.string.home_training_item_completed
+        val home_training_return_home = Res.string.home_training_return_home
+        val home_training_score_goal = Res.string.home_training_score_goal
         val home_recent_records = Res.string.home_recent_records
         val games_subtitle = Res.string.games_subtitle
         val games_settings_content_description = Res.string.games_settings_content_description

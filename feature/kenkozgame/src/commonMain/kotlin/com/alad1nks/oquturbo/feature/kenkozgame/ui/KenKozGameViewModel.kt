@@ -2,8 +2,10 @@ package com.alad1nks.oquturbo.feature.kenkozgame.ui
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.alad1nks.oquturbo.core.data.model.DailyTrainingEntry
 import com.alad1nks.oquturbo.core.data.model.GameId
 import com.alad1nks.oquturbo.core.data.model.GameModeId
+import com.alad1nks.oquturbo.core.data.repository.DailyTrainingRepository
 import com.alad1nks.oquturbo.core.data.repository.GameActivityRepository
 import com.alad1nks.oquturbo.core.data.repository.KenKozGameRepository
 import com.alad1nks.oquturbo.feature.kenkozgame.model.KenKozGameMode
@@ -26,21 +28,59 @@ internal class KenKozGameViewModel(
     private val characters: List<String>,
     private val words: List<String>,
     private val differencePairs: List<Pair<String, String>>,
+    private val trainingEntryId: String?,
+    trainingRequiredScore: Int?,
     private val kenKozGameRepository: KenKozGameRepository,
     private val gameActivityRepository: GameActivityRepository,
+    private val dailyTrainingRepository: DailyTrainingRepository,
 ) : ViewModel() {
-    private val _uiState = MutableStateFlow(KenKozGameUiState(mode = mode))
+    private val _uiState =
+        MutableStateFlow(
+            KenKozGameUiState(
+                mode = mode,
+                trainingRequiredScore = trainingRequiredScore,
+            ),
+        )
     val uiState = _uiState.asStateFlow()
 
     private var showingDurationMillis = INITIAL_SHOWING_DURATION_MILLIS
     private var roundJob: Job? = null
     private var sessionStartMark: TimeMark? = null
+    private var hasContinuedTraining = false
+
+    init {
+        require((trainingEntryId == null) == (trainingRequiredScore == null)) {
+            "Wide Eye training id and required score must be provided together"
+        }
+        require(trainingEntryId == null || trainingEntryId.isNotBlank()) {
+            "Wide Eye training id must not be blank"
+        }
+        require(trainingRequiredScore == null || trainingRequiredScore > 0) {
+            "Wide Eye training required score must be positive"
+        }
+    }
 
     fun start() {
         showingDurationMillis = INITIAL_SHOWING_DURATION_MILLIS
         sessionStartMark = TimeSource.Monotonic.markNow()
-        _uiState.update { it.copy(score = 0) }
+        hasContinuedTraining = false
+        _uiState.update {
+            it.copy(
+                score = 0,
+                trainingNextEntry = null,
+                isTrainingCompletionReady = false,
+            )
+        }
         startRound()
+    }
+
+    fun continueTraining(onContinue: (DailyTrainingEntry?) -> Unit) {
+        val state = _uiState.value
+        if (!state.isTrainingCompletionReady || hasContinuedTraining) return
+
+        hasContinuedTraining = true
+        _uiState.value = state.copy(isTrainingCompletionReady = false)
+        onContinue(state.trainingNextEntry)
     }
 
     fun selectAnswer(answer: String) {
@@ -78,6 +118,15 @@ internal class KenKozGameViewModel(
                 )
                 if (currentRecord > storedRecord) {
                     kenKozGameRepository.setRecord(mode.name, currentRecord)
+                }
+                trainingEntryId?.let { entryId ->
+                    val plan = dailyTrainingRepository.completeEntry(entryId, score)
+                    _uiState.update {
+                        it.copy(
+                            trainingNextEntry = plan.nextEntry,
+                            isTrainingCompletionReady = true,
+                        )
+                    }
                 }
             }
         }

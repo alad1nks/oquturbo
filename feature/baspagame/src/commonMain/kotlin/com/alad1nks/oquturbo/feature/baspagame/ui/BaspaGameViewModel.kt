@@ -2,9 +2,11 @@ package com.alad1nks.oquturbo.feature.baspagame.ui
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.alad1nks.oquturbo.core.data.model.DailyTrainingEntry
 import com.alad1nks.oquturbo.core.data.model.GameId
 import com.alad1nks.oquturbo.core.data.model.GameModeId
 import com.alad1nks.oquturbo.core.data.repository.BaspaGameRepository
+import com.alad1nks.oquturbo.core.data.repository.DailyTrainingRepository
 import com.alad1nks.oquturbo.core.data.repository.GameActivityRepository
 import com.alad1nks.oquturbo.feature.baspagame.model.BaspaGameContent
 import com.alad1nks.oquturbo.feature.baspagame.model.BaspaGameMode
@@ -25,10 +27,19 @@ import kotlin.time.TimeSource
 internal class BaspaGameViewModel(
     private val mode: BaspaGameMode,
     private val content: BaspaGameContent,
+    private val trainingEntryId: String?,
+    trainingRequiredScore: Int?,
     private val repository: BaspaGameRepository,
     private val gameActivityRepository: GameActivityRepository,
+    private val dailyTrainingRepository: DailyTrainingRepository,
 ) : ViewModel() {
-    private val _uiState = MutableStateFlow(BaspaGameUiState(mode = mode))
+    private val _uiState =
+        MutableStateFlow(
+            BaspaGameUiState(
+                mode = mode,
+                trainingRequiredScore = trainingRequiredScore,
+            ),
+        )
     val uiState = _uiState.asStateFlow()
     private val seenWords = mutableListOf<String>()
     private var timerJob: Job? = null
@@ -41,8 +52,15 @@ internal class BaspaGameViewModel(
     private var activeSegmentStartMark: TimeMark? = null
     private var recordAtSessionStart = 0
     private var sessionInProgress = false
+    private var hasContinuedTraining = false
 
     init {
+        require((trainingEntryId == null) == (trainingRequiredScore == null)) {
+            "Baspa training id and required score must be provided together"
+        }
+        require(trainingRequiredScore == null || trainingRequiredScore > 0) {
+            "Baspa training required score must be positive"
+        }
         viewModelScope.launch {
             val storedRecord = repository.getRecord(mode.name).first() ?: 0
             if (sessionInProgress) {
@@ -100,6 +118,7 @@ internal class BaspaGameViewModel(
         letterIndex = content.letters.indices.random()
         wordLengthIndex = content.wordLengths.indices.random()
         colorIndex = content.colors.indices.random()
+        hasContinuedTraining = false
         startSessionTelemetry()
         _uiState.update {
             it.copy(
@@ -111,9 +130,20 @@ internal class BaspaGameViewModel(
                 targetColorName = content.colors[colorIndex].name,
                 intervalMillis = INITIAL_INTERVAL_MILLIS,
                 phase = BaspaGameUiState.Phase.Playing,
+                isTrainingCompletionReady = false,
+                trainingNextEntry = null,
             )
         }
         scheduleNextRound()
+    }
+
+    fun continueTraining(onContinue: (DailyTrainingEntry?) -> Unit) {
+        val state = _uiState.value
+        if (!state.isTrainingCompletionReady || hasContinuedTraining) return
+
+        hasContinuedTraining = true
+        _uiState.value = state.copy(isTrainingCompletionReady = false)
+        onContinue(state.trainingNextEntry)
     }
 
     private fun showNextStimulus() {
@@ -202,6 +232,15 @@ internal class BaspaGameViewModel(
                 )
                 if (isNewRecord) {
                     repository.setRecord(mode.name, sessionScore)
+                }
+                trainingEntryId?.let { entryId ->
+                    val trainingPlan = dailyTrainingRepository.completeEntry(entryId, sessionScore)
+                    _uiState.update {
+                        it.copy(
+                            isTrainingCompletionReady = true,
+                            trainingNextEntry = trainingPlan.nextEntry,
+                        )
+                    }
                 }
             }
         }

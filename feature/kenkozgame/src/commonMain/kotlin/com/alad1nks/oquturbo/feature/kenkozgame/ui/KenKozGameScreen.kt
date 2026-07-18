@@ -25,6 +25,7 @@ import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Replay
 import androidx.compose.material3.Card
@@ -43,6 +44,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.alad1nks.oquturbo.core.data.model.DailyTrainingEntry
 import com.alad1nks.oquturbo.core.designsystem.theme.OquTurboTheme
 import com.alad1nks.oquturbo.core.ui.component.AppBackButton
 import com.alad1nks.oquturbo.core.ui.component.GameResultCard
@@ -57,6 +59,7 @@ import org.jetbrains.compose.resources.stringResource
 internal fun KenKozGameRoute(
     viewModel: KenKozGameViewModel,
     onBackClick: () -> Unit,
+    onTrainingContinue: (DailyTrainingEntry?) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val uiState by viewModel.uiState.collectAsState()
@@ -65,6 +68,7 @@ internal fun KenKozGameRoute(
         uiState = uiState,
         onBackClick = onBackClick,
         onStartClick = viewModel::start,
+        onTrainingContinueClick = { viewModel.continueTraining(onTrainingContinue) },
         onAnswerClick = viewModel::selectAnswer,
         modifier = modifier,
     )
@@ -75,6 +79,7 @@ private fun KenKozGameScreen(
     uiState: KenKozGameUiState,
     onBackClick: () -> Unit,
     onStartClick: () -> Unit,
+    onTrainingContinueClick: () -> Unit,
     onAnswerClick: (String) -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -86,6 +91,12 @@ private fun KenKozGameScreen(
         animationSpec = tween(durationMillis = 700),
     )
     val backContentDescription = stringResource(AppResource.String.kenkoz_game_back)
+    val isTrainingAttempt = uiState.trainingRequiredScore != null
+    val isTrainingResult = isTrainingAttempt && uiState.phase == KenKozGameUiState.Phase.Mistake
+    val isTrainingGoalReached =
+        isTrainingResult && uiState.score >= requireNotNull(uiState.trainingRequiredScore)
+    val isTrainingGoalNotReached =
+        isTrainingResult && !isTrainingGoalReached
 
     Box(modifier = modifier.fillMaxSize().appBackground()) {
         Column(
@@ -130,26 +141,34 @@ private fun KenKozGameScreen(
         ) {
             GameStateOverlay(
                 title =
-                    stringResource(
-                        if (uiState.phase == KenKozGameUiState.Phase.Mistake) {
-                            AppResource.String.kenkoz_game_try_again
-                        } else {
-                            AppResource.String.kenkoz_game_start
-                        },
-                    ),
+                    when {
+                        uiState.phase == KenKozGameUiState.Phase.Initial ->
+                            stringResource(AppResource.String.kenkoz_game_start)
+                        isTrainingGoalReached ->
+                            stringResource(AppResource.String.home_training_goal_reached)
+                        isTrainingGoalNotReached ->
+                            stringResource(
+                                AppResource.String.home_training_goal_not_reached,
+                                requireNotNull(uiState.trainingRequiredScore),
+                            )
+                        else -> stringResource(AppResource.String.kenkoz_game_try_again)
+                    },
                 supportingText =
-                    if (uiState.phase == KenKozGameUiState.Phase.Initial) {
-                        stringResource(AppResource.String.kenkoz_game_menu_subtitle)
-                    } else {
-                        null
+                    when {
+                        uiState.phase == KenKozGameUiState.Phase.Initial ->
+                            stringResource(AppResource.String.kenkoz_game_menu_subtitle)
+                        isTrainingGoalReached ->
+                            stringResource(AppResource.String.home_training_goal_reached_message)
+                        else -> null
                     },
                 icon =
-                    if (uiState.phase == KenKozGameUiState.Phase.Mistake) {
-                        Icons.Filled.Replay
-                    } else {
-                        Icons.Filled.PlayArrow
+                    when {
+                        uiState.phase == KenKozGameUiState.Phase.Initial -> Icons.Filled.PlayArrow
+                        isTrainingGoalReached -> Icons.AutoMirrored.Filled.ArrowForward
+                        else -> Icons.Filled.Replay
                     },
-                onClick = onStartClick,
+                onClick = if (isTrainingGoalReached) onTrainingContinueClick else onStartClick,
+                enabled = !isTrainingResult || uiState.isTrainingCompletionReady,
                 extraContent = {
                     if (uiState.phase == KenKozGameUiState.Phase.Mistake) {
                         GameResultCard(
@@ -390,6 +409,7 @@ private fun KenKozGameScreenInitialPreview() {
             uiState = KenKozGameUiState(mode = KenKozGameMode.Words),
             onBackClick = {},
             onStartClick = {},
+            onTrainingContinueClick = {},
             onAnswerClick = {},
         )
     }
@@ -412,6 +432,7 @@ private fun KenKozGameScreenAnsweringPreview() {
                 ),
             onBackClick = {},
             onStartClick = {},
+            onTrainingContinueClick = {},
             onAnswerClick = {},
         )
     }
@@ -431,6 +452,7 @@ private fun KenKozGameScreenMistakePreview() {
                 ),
             onBackClick = {},
             onStartClick = {},
+            onTrainingContinueClick = {},
             onAnswerClick = {},
         )
     }
