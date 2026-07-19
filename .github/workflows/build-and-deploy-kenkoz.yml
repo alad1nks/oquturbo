@@ -82,12 +82,12 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: app-release
-          path: kenkoz
+          path: oquturbo/kenkoz/main
 
       - name: Commit APK
         run: |
           git config --local user.name 'alad1nks'
           git config --local user.email 'alad1nks@users.noreply.github.com'
-          git add kenkoz/*.apk
+          git add oquturbo/kenkoz/main/*.apk
           git commit -m 'Add generated APK file'
           git push

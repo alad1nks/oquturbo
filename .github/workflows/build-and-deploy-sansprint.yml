@@ -82,12 +82,12 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: app-release
-          path: sansprint
+          path: oquturbo/sansprint/main
 
       - name: Commit APK
         run: |
           git config --local user.name 'alad1nks'
           git config --local user.email 'alad1nks@users.noreply.github.com'
-          git add sansprint/*.apk
+          git add oquturbo/sansprint/main/*.apk
           git commit -m 'Add generated APK file'
           git push
