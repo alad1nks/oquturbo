@@ -36,6 +36,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.alad1nks.oquturbo.resources.AppResource
@@ -440,6 +441,7 @@ internal fun ProfilePersonalizationSection(
                                     style = MaterialTheme.typography.labelSmall,
                                     maxLines = 2,
                                     overflow = TextOverflow.Ellipsis,
+                                    textAlign = TextAlign.Center,
                                 )
                             }
                         }

@@ -58,6 +58,10 @@ internal class KenKozGameViewModel(
         require(trainingRequiredScore == null || trainingRequiredScore > 0) {
             "Wide Eye training required score must be positive"
         }
+        viewModelScope.launch {
+            val storedRecord = kenKozGameRepository.getRecord(mode.name).first() ?: 0
+            _uiState.update { it.copy(record = maxOf(it.record, storedRecord)) }
+        }
     }
 
     fun start() {

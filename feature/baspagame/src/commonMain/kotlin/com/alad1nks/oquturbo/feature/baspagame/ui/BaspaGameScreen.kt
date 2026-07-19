@@ -22,7 +22,6 @@ import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.automirrored.outlined.FactCheck
 import androidx.compose.material.icons.filled.Checkroom
 import androidx.compose.material.icons.filled.DirectionsCar
-import androidx.compose.material.icons.filled.EmojiEvents
 import androidx.compose.material.icons.filled.Forest
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Palette
@@ -44,7 +43,6 @@ import androidx.compose.material.icons.outlined.TouchApp
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -67,7 +65,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.alad1nks.oquturbo.core.data.model.DailyTrainingEntry
 import com.alad1nks.oquturbo.core.designsystem.theme.OquTurboTheme
+import com.alad1nks.oquturbo.core.ui.component.AnimatedGameStateOverlay
 import com.alad1nks.oquturbo.core.ui.component.AppBackButton
+import com.alad1nks.oquturbo.core.ui.component.GameHeader
+import com.alad1nks.oquturbo.core.ui.component.GameHeaderActionButton
 import com.alad1nks.oquturbo.core.ui.component.GameResultCard
 import com.alad1nks.oquturbo.core.ui.component.GameStateOverlay
 import com.alad1nks.oquturbo.core.ui.component.appBackground
@@ -102,6 +103,7 @@ private fun BaspaGameScreen(
     onRestart: () -> Unit,
     onTrainingContinue: () -> Unit,
 ) {
+    val overlayState = uiState.takeUnless { it.phase == BaspaGameUiState.Phase.Playing }
     val blurRadius by animateDpAsState(
         targetValue = if (uiState.phase == BaspaGameUiState.Phase.Playing) 0.dp else 8.dp,
         animationSpec = tween(durationMillis = 700),
@@ -131,10 +133,22 @@ private fun BaspaGameScreen(
                     modifier = Modifier.fillMaxSize(),
                     horizontalAlignment = Alignment.CenterHorizontally,
                 ) {
-                    ScoreHeader(
-                        uiState = uiState,
-                        onPauseClick = onPauseClick,
-                        showPauseButton = uiState.phase == BaspaGameUiState.Phase.Playing,
+                    GameHeader(
+                        scoreLabel = stringResource(AppResource.String.baspa_game_score_label),
+                        score = uiState.score.toString(),
+                        recordLabel = stringResource(AppResource.String.baspa_game_record_label),
+                        record = uiState.record.toString(),
+                        leadingContent =
+                            if (uiState.phase == BaspaGameUiState.Phase.Playing) {
+                                {
+                                    GameHeaderActionButton(
+                                        icon = Icons.Filled.Pause,
+                                        onClick = onPauseClick,
+                                    )
+                                }
+                            } else {
+                                null
+                            },
                     )
                     Spacer(modifier = Modifier.height(if (compactLayout) 8.dp else 20.dp))
                     RuleCard(uiState)
@@ -160,42 +174,38 @@ private fun BaspaGameScreen(
             }
         }
 
-        when (uiState.phase) {
-            BaspaGameUiState.Phase.Initial -> {
-                GameStateOverlay(
-                    title = stringResource(AppResource.String.baspa_game_start),
-                    icon = Icons.Filled.PlayArrow,
-                    onClick = onPauseClick,
-                    enabled = uiState.isRecordLoaded,
-                )
+        AnimatedGameStateOverlay(
+            state = overlayState,
+            modifier = Modifier.fillMaxSize(),
+        ) { displayedState ->
+            Box(modifier = Modifier.fillMaxSize()) {
+                when (displayedState.phase) {
+                    BaspaGameUiState.Phase.Initial ->
+                        GameStateOverlay(
+                            title = stringResource(AppResource.String.baspa_game_start),
+                            icon = Icons.Filled.PlayArrow,
+                            onClick = onPauseClick,
+                            enabled = displayedState.isRecordLoaded,
+                        )
+                    BaspaGameUiState.Phase.Paused ->
+                        GameStateOverlay(
+                            title = stringResource(AppResource.String.baspa_game_continue),
+                            icon = Icons.Filled.PlayArrow,
+                            onClick = onPauseClick,
+                        )
+                    BaspaGameUiState.Phase.Mistake ->
+                        MistakeOverlay(
+                            uiState = displayedState,
+                            onRestart = onRestart,
+                            onTrainingContinue = onTrainingContinue,
+                        )
+                    BaspaGameUiState.Phase.Playing -> Unit
+                }
                 GameBackButton(
                     onClick = onBackClick,
                     modifier = Modifier.align(Alignment.TopStart),
                 )
             }
-            BaspaGameUiState.Phase.Paused -> {
-                GameStateOverlay(
-                    title = stringResource(AppResource.String.baspa_game_continue),
-                    icon = Icons.Filled.PlayArrow,
-                    onClick = onPauseClick,
-                )
-                GameBackButton(
-                    onClick = onBackClick,
-                    modifier = Modifier.align(Alignment.TopStart),
-                )
-            }
-            BaspaGameUiState.Phase.Mistake -> {
-                MistakeOverlay(
-                    uiState = uiState,
-                    onRestart = onRestart,
-                    onTrainingContinue = onTrainingContinue,
-                )
-                GameBackButton(
-                    onClick = onBackClick,
-                    modifier = Modifier.align(Alignment.TopStart),
-                )
-            }
-            BaspaGameUiState.Phase.Playing -> Unit
         }
     }
 }
@@ -318,78 +328,6 @@ private fun GameBackButton(
         contentDescription = stringResource(AppResource.String.kenkoz_game_back),
         modifier = modifier.statusBarsPadding().padding(start = 24.dp, top = 8.dp),
     )
-}
-
-@Composable
-private fun ScoreHeader(
-    uiState: BaspaGameUiState,
-    onPauseClick: () -> Unit,
-    showPauseButton: Boolean,
-    modifier: Modifier = Modifier,
-) {
-    Box(modifier = modifier.fillMaxWidth()) {
-        if (showPauseButton) {
-            Surface(
-                modifier = Modifier.align(Alignment.CenterStart),
-                shape = MaterialTheme.shapes.medium,
-                color = MaterialTheme.colorScheme.primaryContainer,
-            ) {
-                IconButton(onClick = onPauseClick, modifier = Modifier.size(52.dp)) {
-                    Icon(
-                        imageVector = Icons.Filled.Pause,
-                        contentDescription = null,
-                        modifier = Modifier.size(26.dp),
-                    )
-                }
-            }
-        } else {
-            Spacer(modifier = Modifier.align(Alignment.CenterStart).size(52.dp))
-        }
-
-        Column(
-            modifier = Modifier.align(Alignment.Center),
-            horizontalAlignment = Alignment.CenterHorizontally,
-        ) {
-            Text(
-                text = stringResource(AppResource.String.baspa_game_score_label),
-                style = MaterialTheme.typography.labelLarge,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-            Text(
-                text = uiState.score.toString(),
-                style = MaterialTheme.typography.displaySmall,
-                fontWeight = FontWeight.Black,
-                color = MaterialTheme.colorScheme.primary,
-            )
-        }
-
-        Row(
-            modifier = Modifier.align(Alignment.CenterEnd),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-        ) {
-            Column(horizontalAlignment = Alignment.End) {
-                Text(
-                    text = stringResource(AppResource.String.baspa_game_record_label),
-                    style = MaterialTheme.typography.labelMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-                Text(
-                    text = uiState.record.toString(),
-                    style = MaterialTheme.typography.titleLarge,
-                    fontWeight = FontWeight.Bold,
-                )
-            }
-            Surface(shape = MaterialTheme.shapes.medium, color = MaterialTheme.colorScheme.primaryContainer) {
-                Icon(
-                    imageVector = Icons.Filled.EmojiEvents,
-                    contentDescription = null,
-                    modifier = Modifier.padding(12.dp).size(26.dp),
-                    tint = MaterialTheme.colorScheme.primary,
-                )
-            }
-        }
-    }
 }
 
 @Composable

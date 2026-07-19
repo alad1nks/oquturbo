@@ -1,9 +1,5 @@
 package com.alad1nks.oquturbo.feature.remembernumber.ui
 
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.core.tween
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -30,9 +26,10 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.alad1nks.oquturbo.core.data.model.DailyTrainingEntry
 import com.alad1nks.oquturbo.core.designsystem.theme.OquTurboTheme
-import com.alad1nks.oquturbo.core.ui.component.AppTopBar
+import com.alad1nks.oquturbo.core.ui.component.AnimatedGameStateOverlay
+import com.alad1nks.oquturbo.core.ui.component.AppBackButton
+import com.alad1nks.oquturbo.core.ui.component.GameHeader
 import com.alad1nks.oquturbo.core.ui.component.GameResultCard
-import com.alad1nks.oquturbo.core.ui.component.GameScoreBadge
 import com.alad1nks.oquturbo.core.ui.component.GameStateOverlay
 import com.alad1nks.oquturbo.core.ui.component.appBackground
 import com.alad1nks.oquturbo.resources.AppResource
@@ -47,11 +44,13 @@ internal fun RememberNumberRoute(
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val focusEvent by viewModel.focusEvent.collectAsState()
+    val record by viewModel.record.collectAsState()
 
     RememberNumberScreen(
         uiState = uiState,
         focusEvent = focusEvent,
         maxLength = viewModel.maxLength,
+        record = record,
         writeText = viewModel::writeText,
         onStartClick = viewModel::start,
         onBackClick = onBackClick,
@@ -66,6 +65,7 @@ internal fun RememberNumberScreen(
     uiState: RememberNumberUiState,
     focusEvent: Unit?,
     maxLength: Int,
+    record: Int = 0,
     writeText: (String) -> Unit,
     onStartClick: () -> Unit,
     onBackClick: () -> Unit,
@@ -77,12 +77,21 @@ internal fun RememberNumberScreen(
     val scoreText = stringResource(AppResource.String.remember_number_game_score, uiState.score)
     val scoreValue = uiState.score.toString()
     val scoreLabel = scoreText.removeSuffix(scoreValue).trimEnd(' ', ':')
-    val mistake = uiState as? RememberNumberUiState.Mistake
-    val isTrainingResult = mistake != null && trainingRequiredScore != null
-    val isTrainingGoalReached =
-        mistake != null &&
-            trainingRequiredScore != null &&
-            mistake.score >= trainingRequiredScore
+    val recordValue = record.toString()
+    val recordLabel =
+        stringResource(AppResource.String.remember_number_game_record, record)
+            .removeSuffix(recordValue)
+            .trimEnd(' ', ':')
+    val backContentDescription = stringResource(AppResource.String.kenkoz_game_back)
+    val overlayState =
+        when (uiState) {
+            is RememberNumberUiState.Initial,
+            is RememberNumberUiState.Mistake,
+            -> uiState
+            is RememberNumberUiState.Reading,
+            is RememberNumberUiState.Writing,
+            -> null
+        }
 
     LaunchedEffect(focusEvent) {
         if (focusEvent != null) {
@@ -147,22 +156,46 @@ internal fun RememberNumberScreen(
             )
         }
 
-        AnimatedVisibility(
-            visible = uiState is RememberNumberUiState.Mistake || uiState is RememberNumberUiState.Initial,
+        GameHeader(
+            scoreLabel = scoreLabel,
+            score = scoreValue,
+            recordLabel = recordLabel,
+            record = recordValue,
+            leadingContent =
+                if (overlayState != null) {
+                    null
+                } else {
+                    {
+                        AppBackButton(
+                            onClick = onBackClick,
+                            contentDescription = backContentDescription,
+                        )
+                    }
+                },
+            modifier =
+                Modifier
+                    .align(Alignment.TopCenter)
+                    .widthIn(max = 760.dp)
+                    .fillMaxWidth()
+                    .statusBarsPadding()
+                    .padding(horizontal = 24.dp, vertical = 16.dp),
+        )
+
+        AnimatedGameStateOverlay(
+            state = overlayState,
             modifier = Modifier.fillMaxSize(),
-            enter =
-                fadeIn(
-                    animationSpec = tween(durationMillis = 700),
-                ),
-            exit =
-                fadeOut(
-                    animationSpec = tween(durationMillis = 700),
-                ),
-        ) {
+        ) { displayedOverlayState ->
+            val displayedMistake = displayedOverlayState as? RememberNumberUiState.Mistake
+            val isTrainingResult = displayedMistake != null && trainingRequiredScore != null
+            val isTrainingGoalReached =
+                displayedMistake != null &&
+                    trainingRequiredScore != null &&
+                    displayedMistake.score >= trainingRequiredScore
+
             GameStateOverlay(
                 title =
                     when {
-                        uiState is RememberNumberUiState.Initial ->
+                        displayedOverlayState is RememberNumberUiState.Initial ->
                             stringResource(AppResource.String.remember_number_game_start)
                         isTrainingGoalReached ->
                             stringResource(AppResource.String.home_training_goal_reached)
@@ -181,25 +214,25 @@ internal fun RememberNumberScreen(
                     },
                 icon =
                     when {
-                        uiState is RememberNumberUiState.Initial -> Icons.Default.PlayArrow
+                        displayedOverlayState is RememberNumberUiState.Initial -> Icons.Default.PlayArrow
                         isTrainingGoalReached -> Icons.AutoMirrored.Filled.ArrowForward
                         else -> Icons.Default.Replay
                     },
                 onClick = if (isTrainingGoalReached) onTrainingContinueClick else onStartClick,
-                enabled = !isTrainingResult || mistake.isTrainingResultReady,
+                enabled = !isTrainingResult || displayedMistake.isTrainingResultReady,
                 modifier = Modifier.fillMaxSize(),
                 extraContent = {
-                    if (uiState is RememberNumberUiState.Mistake) {
+                    if (displayedMistake != null) {
                         GameResultCard(
                             primaryText =
                                 stringResource(
                                     AppResource.String.remember_number_game_score,
-                                    uiState.score,
+                                    displayedMistake.score,
                                 ),
                             secondaryText =
                                 stringResource(
                                     AppResource.String.remember_number_game_record,
-                                    uiState.record,
+                                    displayedMistake.record,
                                 ),
                             modifier = Modifier.fillMaxWidth(),
                         )
@@ -208,20 +241,17 @@ internal fun RememberNumberScreen(
             )
         }
 
-        AppTopBar(
-            title = stringResource(AppResource.String.remember_number_title),
-            onBackClick = onBackClick,
-            modifier =
-                Modifier
-                    .align(Alignment.TopCenter)
-                    .fillMaxWidth(),
-            actions = {
-                GameScoreBadge(
-                    label = scoreLabel,
-                    value = scoreValue,
-                )
-            },
-        )
+        if (overlayState != null) {
+            AppBackButton(
+                onClick = onBackClick,
+                contentDescription = backContentDescription,
+                modifier =
+                    Modifier
+                        .align(Alignment.TopStart)
+                        .statusBarsPadding()
+                        .padding(start = 24.dp, top = 8.dp),
+            )
+        }
     }
 }
 
