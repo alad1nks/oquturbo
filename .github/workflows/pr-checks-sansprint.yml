@@ -34,8 +34,60 @@ jobs:
       - name: Make gradlew executable
         run: chmod +x ./gradlew
 
-      - name: Build Android
-        run: ./gradlew :app:sansprint:androidApp:assembleDebug
+      - name: Run local tests
+        run: ./gradlew test
+
+      - name: Decode Keystore
+        run: |
+          echo "${{ secrets.SANSPRINT_KEYSTORE_BASE64 }}" | base64 -d > release-key.jks
+
+      - name: Build APK
+        run: ./gradlew :app:sansprint:androidApp:assembleRelease
+        env:
+          SIGNING_KEY_ALIAS: ${{ secrets.SANSPRINT_KEY_ALIAS }}
+          SIGNING_KEY_PASSWORD: ${{ secrets.SANSPRINT_KEY_PASSWORD }}
+          SIGNING_STORE_PASSWORD: ${{ secrets.SANSPRINT_KEYSTORE_PASSWORD }}
+        if: success()
+
+      - name: Rename APK
+        run: mv app/sansprint/androidApp/build/outputs/apk/release/androidApp-release.apk app/sansprint/androidApp/build/outputs/apk/release/sansprint.apk
+        if: success()
+
+      - name: Upload APK to GitHub
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-release
+          path: app/sansprint/androidApp/build/outputs/apk/release/sansprint.apk
+        if: success()
+
+  post-build-android:
+    needs: build-android
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Checkout io repository
+        uses: actions/checkout@v4
+        with:
+          repository: 'alad1nks/alad1nks.github.io'
+          token: ${{ secrets.ACCESS_TOKEN }}
+
+      - name: Download APK
+        uses: actions/download-artifact@v4
+        with:
+          name: app-release
+          path: oquturbo/sansprint/${{ github.head_ref || github.ref_name }}
+
+      - name: Commit APK
+        run: |
+          git config --local user.name 'alad1nks'
+          git config --local user.email 'alad1nks@users.noreply.github.com'
+          git add oquturbo/sansprint/${{ github.head_ref || github.ref_name }}/*.apk
+          git commit -m 'Add generated APK file for sansprint'
+          git push
 
   build-ios:
     runs-on: ubuntu-latest
