@@ -34,6 +34,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.alad1nks.oquturbo.resources.AppResource
 import org.jetbrains.compose.resources.pluralStringResource
+import org.jetbrains.compose.resources.stringArrayResource
 import org.jetbrains.compose.resources.stringResource
 
 @Composable
@@ -296,8 +297,9 @@ private fun RankSummary(
                 modifier = Modifier.weight(1f),
                 verticalArrangement = Arrangement.spacedBy(3.dp),
             ) {
+                val rankNames = stringArrayResource(AppResource.Array.profile_rank_names)
                 Text(
-                    text = stringResource(AppResource.String.profile_rank_neutral_format, rank.number),
+                    text = rank.title(rankNames),
                     style = MaterialTheme.typography.titleMedium,
                 )
                 if (!uiState.isBeyondKnownRankRange) {
@@ -319,7 +321,7 @@ private fun RankSummary(
                         text =
                             stringResource(
                                 AppResource.String.profile_next_rank_format,
-                                stringResource(AppResource.String.profile_rank_neutral_format, nextRank.number),
+                                nextRank.title(rankNames),
                             ),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -343,3 +345,7 @@ private fun RankSummary(
         }
     }
 }
+
+@Composable
+private fun ProfileUiState.Rank.title(rankNames: List<String>): String =
+    rankNames.getOrNull(number - 1) ?: stringResource(AppResource.String.profile_rank_neutral_format, number)

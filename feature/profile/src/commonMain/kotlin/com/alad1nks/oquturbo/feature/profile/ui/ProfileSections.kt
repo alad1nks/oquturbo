@@ -40,6 +40,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.alad1nks.oquturbo.resources.AppResource
 import org.jetbrains.compose.resources.pluralStringResource
+import org.jetbrains.compose.resources.stringArrayResource
 import org.jetbrains.compose.resources.stringResource
 
 @Composable
@@ -507,11 +508,14 @@ private fun recentUnlockText(unlock: ProfileUiState.RecentUnlock): String =
         is ProfileUiState.RecentUnlock.Level ->
             stringResource(AppResource.String.profile_recent_level_format, unlock.value)
 
-        is ProfileUiState.RecentUnlock.Rank ->
+        is ProfileUiState.RecentUnlock.Rank -> {
+            val rankNames = stringArrayResource(AppResource.Array.profile_rank_names)
             stringResource(
                 AppResource.String.profile_recent_rank_format,
-                unlock.number,
+                rankNames.getOrNull(unlock.number - 1)
+                    ?: stringResource(AppResource.String.profile_rank_neutral_format, unlock.number),
             )
+        }
 
         is ProfileUiState.RecentUnlock.Title ->
             stringResource(

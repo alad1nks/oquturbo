@@ -60,6 +60,7 @@ import com.alad1nks.oquturbo.core.ui.component.appBackground
 import com.alad1nks.oquturbo.resources.AppResource
 import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.pluralStringResource
+import org.jetbrains.compose.resources.stringArrayResource
 import org.jetbrains.compose.resources.stringResource
 
 @Composable
@@ -251,8 +252,9 @@ private fun RankListItem(
                 modifier = Modifier.weight(1f),
                 verticalArrangement = Arrangement.spacedBy(3.dp),
             ) {
+                val rankNames = stringArrayResource(AppResource.Array.profile_rank_names)
                 Text(
-                    text = stringResource(AppResource.String.profile_rank_neutral_format, rank.number),
+                    text = rank.title(rankNames),
                     style = MaterialTheme.typography.titleMedium,
                 )
                 Text(
@@ -757,3 +759,7 @@ private fun ProfileDetailScaffold(
         }
     }
 }
+
+@Composable
+private fun ProfileUiState.Rank.title(rankNames: List<String>): String =
+    rankNames.getOrNull(number - 1) ?: stringResource(AppResource.String.profile_rank_neutral_format, number)

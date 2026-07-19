@@ -54,6 +54,7 @@ import com.alad1nks.oquturbo.core.ui.component.PageHeader
 import com.alad1nks.oquturbo.core.ui.component.appBackground
 import com.alad1nks.oquturbo.resources.AppResource
 import org.jetbrains.compose.resources.StringResource
+import org.jetbrains.compose.resources.stringArrayResource
 import org.jetbrains.compose.resources.stringResource
 
 @Composable
@@ -142,12 +143,12 @@ private fun LevelProgress(
                         text = stringResource(AppResource.String.home_overall_level, level),
                         style = MaterialTheme.typography.titleLarge,
                     )
+                    val rankNames = stringArrayResource(AppResource.Array.profile_rank_names)
+                    val rankName =
+                        rankNames.getOrNull(rankNumber - 1)
+                            ?: stringResource(AppResource.String.profile_rank_neutral_format, rankNumber)
                     Text(
-                        text =
-                            stringResource(
-                                AppResource.String.home_rank,
-                                stringResource(AppResource.String.profile_rank_neutral_format, rankNumber),
-                            ),
+                        text = stringResource(AppResource.String.home_rank, rankName),
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )

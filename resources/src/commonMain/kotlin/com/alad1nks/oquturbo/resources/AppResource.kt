@@ -177,6 +177,7 @@ import oquturbo.resources.generated.resources.profile_progress_format
 import oquturbo.resources.generated.resources.profile_progress_summary_title
 import oquturbo.resources.generated.resources.profile_rank_current
 import oquturbo.resources.generated.resources.profile_rank_locked
+import oquturbo.resources.generated.resources.profile_rank_names
 import oquturbo.resources.generated.resources.profile_rank_neutral_format
 import oquturbo.resources.generated.resources.profile_rank_range_format
 import oquturbo.resources.generated.resources.profile_rank_unlocked
@@ -318,6 +319,7 @@ object AppResource {
         val baspa_statements = Res.array.baspa_statements
         val kenkoz_game_difference_pairs = Res.array.kenkoz_game_difference_pairs
         val kenkoz_game_words = Res.array.kenkoz_game_words
+        val profile_rank_names = Res.array.profile_rank_names
     }
 
     object Plural {
