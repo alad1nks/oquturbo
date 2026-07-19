@@ -39,6 +39,9 @@ internal class RememberNumberViewModel(
     private val _focusEvent = MutableStateFlow<Unit?>(null)
     val focusEvent = _focusEvent.asStateFlow()
 
+    private val _record = MutableStateFlow(0)
+    val record = _record.asStateFlow()
+
     private val _uiState = MutableStateFlow<RememberNumberUiState>(RememberNumberUiState.Initial())
     val uiState = _uiState.asStateFlow()
 
@@ -48,6 +51,13 @@ internal class RememberNumberViewModel(
         }
         require(trainingRequiredScore == null || trainingRequiredScore > 0) {
             "Number Sprint training required score must be positive"
+        }
+        viewModelScope.launch {
+            _record.value =
+                rememberNumberRepository.getRememberNumberRecord(
+                    maxLength = maxLength,
+                    availableDigits = availableDigits,
+                ).first() ?: 0
         }
         viewModelScope.launch {
             uiState.collect { uiState ->
@@ -74,6 +84,7 @@ internal class RememberNumberViewModel(
                                             availableDigits = availableDigits,
                                         ).first() ?: 0
                                     val currentRecord = maxOf(storageRecord, score)
+                                    _record.value = currentRecord
                                     _uiState.value =
                                         RememberNumberUiState.Mistake(
                                             text = text,
