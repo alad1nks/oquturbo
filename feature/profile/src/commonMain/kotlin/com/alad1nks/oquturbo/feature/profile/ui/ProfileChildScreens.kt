@@ -760,7 +760,6 @@ private fun ProfileDetailScaffold(
     }
 }
 
-
 @Composable
 private fun ProfileUiState.Rank.title(rankNames: List<String>): String =
     rankNames.getOrNull(number - 1) ?: stringResource(AppResource.String.profile_rank_neutral_format, number)
