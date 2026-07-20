@@ -17,6 +17,8 @@ interface Storage {
 
     fun getDailyTrainingJson(): Flow<String?>
 
+    fun getDailyTrainingProgressJson(): Flow<String?>
+
     fun getProfilePreferencesJson(): Flow<String?>
 
     fun getBaspaGameRecord(mode: String): Flow<Int?>
@@ -41,6 +43,8 @@ interface Storage {
     suspend fun setGameSessionsJson(value: String)
 
     suspend fun setDailyTrainingJson(value: String)
+
+    suspend fun setDailyTrainingProgressJson(value: String)
 
     suspend fun setProfilePreferencesJson(value: String)
 

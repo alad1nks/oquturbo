@@ -33,6 +33,10 @@ internal class StorageImpl(
         return appPreferences.getString(DAILY_TRAINING_V1)
     }
 
+    override fun getDailyTrainingProgressJson(): Flow<String?> {
+        return appPreferences.getString(DAILY_TRAINING_PROGRESS_V1)
+    }
+
     override fun getProfilePreferencesJson(): Flow<String?> {
         return appPreferences.getString(PROFILE_PREFERENCES_V1)
     }
@@ -80,6 +84,10 @@ internal class StorageImpl(
         appPreferences.setString(DAILY_TRAINING_V1, value)
     }
 
+    override suspend fun setDailyTrainingProgressJson(value: String) {
+        appPreferences.setString(DAILY_TRAINING_PROGRESS_V1, value)
+    }
+
     override suspend fun setProfilePreferencesJson(value: String) {
         appPreferences.setString(PROFILE_PREFERENCES_V1, value)
     }
@@ -108,6 +116,7 @@ internal class StorageImpl(
 
     private companion object {
         const val BASPA_GAME_RECORD = "baspa_game_record"
+        const val DAILY_TRAINING_PROGRESS_V1 = "daily_training_progress_v1"
         const val DAILY_TRAINING_V1 = "daily_training_v1"
         const val DARK_THEME = "dark_theme"
         const val GAME_SESSIONS_V1 = "game_sessions_v1"

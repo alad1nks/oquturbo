@@ -3,8 +3,10 @@ package com.alad1nks.oquturbo.feature.profile.ui
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.alad1nks.oquturbo.core.data.model.AppLanguage
+import com.alad1nks.oquturbo.core.data.model.DailyTrainingProgress
 import com.alad1nks.oquturbo.core.data.model.PlayerProgress
 import com.alad1nks.oquturbo.core.data.model.ProfilePreferences
+import com.alad1nks.oquturbo.core.data.repository.DailyTrainingRepository
 import com.alad1nks.oquturbo.core.data.repository.GameActivityRepository
 import com.alad1nks.oquturbo.core.data.repository.ProfileRepository
 import com.alad1nks.oquturbo.core.data.repository.SettingsRepository
@@ -16,6 +18,7 @@ import kotlinx.coroutines.launch
 
 internal class ProfileViewModel(
     private val activityRepository: GameActivityRepository,
+    private val dailyTrainingRepository: DailyTrainingRepository,
     private val profileRepository: ProfileRepository,
     private val settingsRepository: SettingsRepository,
 ) : ViewModel() {
@@ -27,8 +30,21 @@ internal class ProfileViewModel(
             activityRepository.observeRecords(),
             profileRepository.observePreferences(),
             activityRepository.observeSessions(),
-        ) { progress, records, preferences, sessions ->
-            createProfileUiState(progress, records, preferences, sessions)
+            combine(
+                dailyTrainingRepository.observeTodayTraining(),
+                dailyTrainingRepository.observeProgress(),
+            ) { todayTraining, trainingProgress ->
+                todayTraining to trainingProgress
+            },
+        ) { progress, records, preferences, sessions, trainingState ->
+            createProfileUiState(
+                progress = progress,
+                records = records,
+                preferences = preferences,
+                sessions = sessions,
+                todayTraining = trainingState.first,
+                trainingProgress = trainingState.second,
+            )
         }.stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(STOP_TIMEOUT_MILLIS),
@@ -38,6 +54,8 @@ internal class ProfileViewModel(
                     emptyList(),
                     ProfilePreferences(),
                     emptyList(),
+                    null,
+                    DailyTrainingProgress(),
                 ),
         )
 
