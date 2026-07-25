@@ -15,6 +15,7 @@ internal data class KenKozGameUiState(
     val answers: List<String> = emptyList(),
     val correctAnswer: String = "",
     val questionDirection: Direction? = null,
+    val wideLineWordIndex: Int? = null,
 ) {
     enum class Phase {
         Initial,

@@ -146,6 +146,7 @@ internal class KenKozGameViewModel(
                 answers = round.answers,
                 correctAnswer = round.correctAnswer,
                 questionDirection = round.questionDirection,
+                wideLineWordIndex = round.wideLineWordIndex,
             )
         }
         scheduleQuestion()
@@ -177,6 +178,7 @@ internal class KenKozGameViewModel(
             answers = items.shuffled(),
             correctAnswer = correctAnswer,
             questionDirection = direction,
+            wideLineWordIndex = null,
         )
     }
 
@@ -189,16 +191,19 @@ internal class KenKozGameViewModel(
             answers = KenKozGameUiState.Direction.entries.map { it.name },
             correctAnswer = direction.name,
             questionDirection = null,
+            wideLineWordIndex = null,
         )
     }
 
     private fun createWideLineRound(): Round {
         val items = words.shuffled().take(4)
+        val wordIndex = items.indices.random()
         return Round(
             items = items,
             answers = items.shuffled(),
-            correctAnswer = items.first(),
+            correctAnswer = items[wordIndex],
             questionDirection = null,
+            wideLineWordIndex = wordIndex,
         )
     }
 
@@ -207,6 +212,7 @@ internal class KenKozGameViewModel(
         val answers: List<String>,
         val correctAnswer: String,
         val questionDirection: KenKozGameUiState.Direction?,
+        val wideLineWordIndex: Int?,
     )
 
     private fun KenKozGameMode.toGameModeId(): GameModeId =

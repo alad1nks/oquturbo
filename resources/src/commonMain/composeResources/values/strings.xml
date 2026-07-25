@@ -300,7 +300,11 @@
     <string name="kenkoz_game_direction_top">on top</string>
     <string name="kenkoz_game_question_character">Which character was %1$s?</string>
     <string name="kenkoz_game_question_difference">Where was the different word?</string>
-    <string name="kenkoz_game_question_first_word">Which word was first?</string>
+    <string name="kenkoz_game_question_wide_line">Which word was %1$s?</string>
+    <string name="kenkoz_game_position_first">first</string>
+    <string name="kenkoz_game_position_second">second</string>
+    <string name="kenkoz_game_position_third">third</string>
+    <string name="kenkoz_game_position_fourth">fourth</string>
     <string name="kenkoz_game_question_word">Which word was %1$s?</string>
     <string name="kenkoz_game_record">Record: %1$d</string>
     <string name="kenkoz_game_score">Score</string>
