@@ -387,8 +387,25 @@ private fun questionText(uiState: KenKozGameUiState): String {
                 directionLabel(requireNotNull(uiState.questionDirection)),
             )
         KenKozGameMode.FindDifference -> stringResource(AppResource.String.kenkoz_game_question_difference)
-        KenKozGameMode.WideLine -> stringResource(AppResource.String.kenkoz_game_question_first_word)
+        KenKozGameMode.WideLine ->
+            stringResource(
+                AppResource.String.kenkoz_game_question_wide_line,
+                wideLinePositionLabel(requireNotNull(uiState.wideLineWordIndex)),
+            )
     }
+}
+
+@Composable
+private fun wideLinePositionLabel(index: Int): String {
+    val resource =
+        when (index) {
+            0 -> AppResource.String.kenkoz_game_position_first
+            1 -> AppResource.String.kenkoz_game_position_second
+            2 -> AppResource.String.kenkoz_game_position_third
+            3 -> AppResource.String.kenkoz_game_position_fourth
+            else -> error("Unsupported Wide Line word index: $index")
+        }
+    return stringResource(resource)
 }
 
 @Composable
