@@ -2,6 +2,7 @@ package com.alad1nks.oquturbo.core.data.repository
 
 import com.alad1nks.oquturbo.core.data.model.DailyTrainingEntry
 import com.alad1nks.oquturbo.core.data.model.DailyTrainingPlan
+import com.alad1nks.oquturbo.core.data.model.DailyTrainingProgress
 import com.alad1nks.oquturbo.core.data.model.GameId
 import com.alad1nks.oquturbo.core.data.model.GameModeId
 import com.alad1nks.oquturbo.core.storage.common.Storage
@@ -40,6 +41,17 @@ class DailyTrainingRepository(
             }
             .map(::decodePlan)
             .map { plan -> plan?.takeIf { it.epochDay == currentEpochDay() } }
+            .distinctUntilChanged()
+
+    fun observeProgress(): Flow<DailyTrainingProgress> =
+        storage
+            .getDailyTrainingProgressJson()
+            .retryWhen { error, _ ->
+                if (error is CancellationException) return@retryWhen false
+                delay(MAX_STORAGE_RETRY_DELAY_MILLIS.milliseconds)
+                true
+            }
+            .map(::decodeProgress)
             .distinctUntilChanged()
 
     suspend fun ensureTodayTraining(): DailyTrainingPlan =
@@ -87,6 +99,9 @@ class DailyTrainingRepository(
                     }
 
                 if (currentEpochDay() != currentDay) continue
+                if (!plan.isCompleted && updatedPlan.isCompleted) {
+                    incrementCompletedTrainings(currentDay)
+                }
                 writePlan(updatedPlan)
                 if (currentEpochDay() == currentDay) result = updatedPlan
             }
@@ -98,9 +113,31 @@ class DailyTrainingRepository(
             storage.getDailyTrainingJson().first()?.let(::decodePlan)
         }
 
+    private suspend fun readProgress(): DailyTrainingProgress =
+        withStorageRetry {
+            decodeProgress(storage.getDailyTrainingProgressJson().first())
+        }
+
+    private suspend fun incrementCompletedTrainings(epochDay: Long) {
+        val progress = readProgress()
+        if (progress.lastCompletedEpochDay == epochDay) return
+        writeProgress(
+            progress.copy(
+                totalCompletedTrainings = progress.totalCompletedTrainings + 1,
+                lastCompletedEpochDay = epochDay,
+            ),
+        )
+    }
+
     private suspend fun writePlan(plan: DailyTrainingPlan) {
         withStorageRetry {
             storage.setDailyTrainingJson(json.encodeToString(plan))
+        }
+    }
+
+    private suspend fun writeProgress(progress: DailyTrainingProgress) {
+        withStorageRetry {
+            storage.setDailyTrainingProgressJson(json.encodeToString(progress))
         }
     }
 
@@ -126,6 +163,13 @@ class DailyTrainingRepository(
             ?.takeIf(String::isNotBlank)
             ?.let { runCatching { json.decodeFromString<DailyTrainingPlan>(it) }.getOrNull() }
             ?.takeIf { it.isValid() }
+
+    private fun decodeProgress(value: String?): DailyTrainingProgress =
+        value
+            ?.takeIf(String::isNotBlank)
+            ?.let { runCatching { json.decodeFromString<DailyTrainingProgress>(it) }.getOrNull() }
+            ?.takeIf { it.isValid() }
+            ?: DailyTrainingProgress()
 
     private fun createPlan(epochDay: Long): DailyTrainingPlan {
         val random = Random(epochDay.toRandomSeed())
@@ -155,6 +199,10 @@ class DailyTrainingRepository(
                     entry.requiredScore > 0
             } &&
             entries.dropWhile(DailyTrainingEntry::isCompleted).none(DailyTrainingEntry::isCompleted)
+
+    private fun DailyTrainingProgress.isValid(): Boolean =
+        version == DailyTrainingProgress.CURRENT_VERSION &&
+            totalCompletedTrainings >= 0
 
     private fun trainingEntryId(
         epochDay: Long,

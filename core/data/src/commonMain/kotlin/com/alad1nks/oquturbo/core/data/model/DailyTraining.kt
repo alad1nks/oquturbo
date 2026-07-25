@@ -27,3 +27,14 @@ data class DailyTrainingEntry(
     val requiredScore: Int,
     val isCompleted: Boolean = false,
 )
+
+@Serializable
+data class DailyTrainingProgress(
+    val version: Int = CURRENT_VERSION,
+    val totalCompletedTrainings: Int = 0,
+    val lastCompletedEpochDay: Long? = null,
+) {
+    companion object {
+        const val CURRENT_VERSION = 1
+    }
+}

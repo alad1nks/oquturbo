@@ -1,5 +1,7 @@
 package com.alad1nks.oquturbo.feature.profile.ui
 
+import com.alad1nks.oquturbo.core.data.model.DailyTrainingPlan
+import com.alad1nks.oquturbo.core.data.model.DailyTrainingProgress
 import com.alad1nks.oquturbo.core.data.model.GameId
 import com.alad1nks.oquturbo.core.data.model.GameRecord
 import com.alad1nks.oquturbo.core.data.model.GameSession
@@ -13,6 +15,8 @@ internal fun createProfileUiState(
     records: List<GameRecord>,
     preferences: ProfilePreferences,
     sessions: List<GameSession>,
+    todayTraining: DailyTrainingPlan?,
+    trainingProgress: DailyTrainingProgress,
 ): ProfileUiState {
     val memoryModes = records.filter { it.game == GameId.NumberSprint }.map { it.mode }.distinct().size
     val wideEyeModes = records.filter { it.game == GameId.WideEye }.map { it.mode }.distinct().size
@@ -27,17 +31,25 @@ internal fun createProfileUiState(
             ?.takeIf { selected -> titles.any { it.id == selected && it.isUnlocked } }
             ?: TitleId.Starter
     val recentProgress = recentProgress(progress, sessions.lastOrNull())
+    val isTodayTrainingCompleted = todayTraining?.isCompleted == true
 
     return ProfileUiState(
         displayName = preferences.displayName,
         level = progress.level,
         currentLevelXp = progress.currentLevelXp,
         nextLevelXp = progress.xpPerLevel,
-        completedTrainings = 0,
+        completedTrainings = trainingProgress.totalCompletedTrainings,
         hasGameActivity = sessions.isNotEmpty() || progress.totalCorrectAnswers > 0 || records.isNotEmpty(),
         currentStreakDays = 0,
         bestStreakDays = 0,
-        achievements = achievements(progress.totalCorrectAnswers, memoryModes, recentProgress),
+        achievements =
+            achievements(
+                correctAnswers = progress.totalCorrectAnswers,
+                memoryModes = memoryModes,
+                completedTrainings = trainingProgress.totalCompletedTrainings,
+                isTodayTrainingCompleted = isTodayTrainingCompleted,
+                recentProgress = recentProgress,
+            ),
         titles = titles,
         selectedTitle = selectedTitle,
         personalization = personalization(progress.level, preferences),
@@ -49,10 +61,16 @@ internal fun createProfileUiState(
 private fun achievements(
     correctAnswers: Int,
     memoryModes: Int,
+    completedTrainings: Int,
+    isTodayTrainingCompleted: Boolean,
     recentProgress: RecentProgress,
 ): List<ProfileUiState.Achievement> =
     listOf(
-        progressAchievement(AchievementId.FirstTraining, current = 0, target = 1),
+        progressAchievement(
+            AchievementId.FirstTraining,
+            current = completedTrainings.coerceAtLeast(if (isTodayTrainingCompleted) 1 else 0),
+            target = 1,
+        ),
         progressAchievement(AchievementId.SevenDayStreak, current = 0, target = 7),
         progressAchievement(AchievementId.MemoryMaster, current = memoryModes, target = MEMORY_MASTER_MODES),
         progressAchievement(
