@@ -1,10 +1,12 @@
 package com.alad1nks.oquturbo.feature.remembernumbermenu.ui
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
@@ -33,6 +35,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.alad1nks.oquturbo.core.designsystem.theme.OquTurboTheme
+import com.alad1nks.oquturbo.core.ui.component.appBackground
+import com.alad1nks.oquturbo.core.ui.preview.ScreenshotPreview
 import com.alad1nks.oquturbo.resources.AppResource
 import org.jetbrains.compose.resources.stringResource
 
@@ -53,150 +57,173 @@ internal fun RememberNumberMenuCustomOptionsDialog(
         onDismissRequest = onDismissRequest,
         modifier = modifier,
     ) {
-        Surface(
-            modifier =
-                Modifier
-                    .padding(16.dp)
-                    .widthIn(max = 560.dp)
-                    .fillMaxWidth(),
-            shape = MaterialTheme.shapes.extraLarge,
-            color = MaterialTheme.colorScheme.surfaceContainerHigh,
-            contentColor = MaterialTheme.colorScheme.onSurface,
-            tonalElevation = 3.dp,
+        RememberNumberMenuCustomOptionsContent(
+            digitsAvailability = digitsAvailability,
+            onDigitSelect = onDigitSelect,
+            length = length,
+            onLengthChange = onLengthChange,
+            onDismissRequest = onDismissRequest,
+            onPlayClick = onPlayClick,
+            lengthMin = lengthMin,
+            lengthMax = lengthMax,
+        )
+    }
+}
+
+@Composable
+private fun RememberNumberMenuCustomOptionsContent(
+    digitsAvailability: List<Boolean>,
+    onDigitSelect: (Int, Boolean) -> Unit,
+    length: Int,
+    onLengthChange: (Int) -> Unit,
+    onDismissRequest: () -> Unit,
+    onPlayClick: (Int, String) -> Unit,
+    lengthMin: Int,
+    lengthMax: Int,
+) {
+    Surface(
+        modifier =
+            Modifier
+                .padding(16.dp)
+                .widthIn(max = 560.dp)
+                .fillMaxWidth(),
+        shape = MaterialTheme.shapes.extraLarge,
+        color = MaterialTheme.colorScheme.surfaceContainerHigh,
+        contentColor = MaterialTheme.colorScheme.onSurface,
+        tonalElevation = 3.dp,
+    ) {
+        Column(
+            modifier = Modifier.padding(24.dp),
+            verticalArrangement = Arrangement.spacedBy(24.dp),
         ) {
+            Text(
+                text = stringResource(AppResource.String.remember_number_menu_item_custom_dialog_title),
+                style = MaterialTheme.typography.headlineSmall,
+                fontWeight = FontWeight.SemiBold,
+            )
+
             Column(
-                modifier = Modifier.padding(24.dp),
-                verticalArrangement = Arrangement.spacedBy(24.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp),
             ) {
                 Text(
-                    text = stringResource(AppResource.String.remember_number_menu_item_custom_dialog_title),
-                    style = MaterialTheme.typography.headlineSmall,
-                    fontWeight = FontWeight.SemiBold,
+                    text =
+                        stringResource(
+                            resource = AppResource.String.remember_number_menu_item_custom_dialog_available_digits,
+                        ),
+                    style = MaterialTheme.typography.titleMedium,
                 )
 
-                Column(
-                    verticalArrangement = Arrangement.spacedBy(12.dp),
+                FlowRow(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement =
+                        Arrangement.spacedBy(
+                            space = 8.dp,
+                            alignment = Alignment.CenterHorizontally,
+                        ),
+                    verticalArrangement = Arrangement.spacedBy(8.dp),
+                ) {
+                    digitsAvailability.forEachIndexed { index, isAvailable ->
+                        FilterChip(
+                            selected = isAvailable,
+                            onClick = { onDigitSelect(index, !isAvailable) },
+                            label = { Text(text = index.toString()) },
+                            leadingIcon =
+                                if (isAvailable) {
+                                    {
+                                        Icon(
+                                            imageVector = Icons.Default.Check,
+                                            contentDescription = null,
+                                        )
+                                    }
+                                } else {
+                                    null
+                                },
+                        )
+                    }
+                }
+            }
+
+            Column(
+                verticalArrangement = Arrangement.spacedBy(12.dp),
+            ) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Text(
+                        text = stringResource(AppResource.String.remember_number_menu_item_custom_dialog_length),
+                        style = MaterialTheme.typography.titleMedium,
+                    )
+
+                    Surface(
+                        shape = MaterialTheme.shapes.medium,
+                        color = MaterialTheme.colorScheme.secondaryContainer,
+                        contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
+                    ) {
+                        Text(
+                            text = length.toString(),
+                            modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Bold,
+                        )
+                    }
+                }
+
+                Slider(
+                    value = length.toFloat(),
+                    onValueChange = { onLengthChange(it.toInt()) },
+                    valueRange = lengthMin.toFloat()..lengthMax.toFloat(),
+                    steps = lengthMax - lengthMin - 1,
+                )
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                ) {
+                    Text(
+                        text = lengthMin.toString(),
+                        style = MaterialTheme.typography.labelMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                    Text(
+                        text = lengthMax.toString(),
+                        style = MaterialTheme.typography.labelMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+            }
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.End,
+            ) {
+                TextButton(
+                    onClick = onDismissRequest,
                 ) {
                     Text(
                         text =
                             stringResource(
-                                resource = AppResource.String.remember_number_menu_item_custom_dialog_available_digits,
+                                resource = AppResource.String.remember_number_menu_item_custom_dialog_cancel_button,
                             ),
-                        style = MaterialTheme.typography.titleMedium,
                     )
-
-                    FlowRow(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement =
-                            Arrangement.spacedBy(
-                                space = 8.dp,
-                                alignment = Alignment.CenterHorizontally,
-                            ),
-                        verticalArrangement = Arrangement.spacedBy(8.dp),
-                    ) {
-                        digitsAvailability.forEachIndexed { index, isAvailable ->
-                            FilterChip(
-                                selected = isAvailable,
-                                onClick = { onDigitSelect(index, !isAvailable) },
-                                label = { Text(text = index.toString()) },
-                                leadingIcon =
-                                    if (isAvailable) {
-                                        {
-                                            Icon(
-                                                imageVector = Icons.Default.Check,
-                                                contentDescription = null,
-                                            )
-                                        }
-                                    } else {
-                                        null
-                                    },
-                            )
-                        }
-                    }
                 }
 
-                Column(
-                    verticalArrangement = Arrangement.spacedBy(12.dp),
+                Spacer(modifier = Modifier.width(8.dp))
+
+                Button(
+                    enabled = digitsAvailability.count { it } > 1,
+                    onClick = {
+                        onDismissRequest()
+                        onPlayClick(length, digitsAvailability.toAvailableDigits())
+                    },
                 ) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically,
-                    ) {
-                        Text(
-                            text = stringResource(AppResource.String.remember_number_menu_item_custom_dialog_length),
-                            style = MaterialTheme.typography.titleMedium,
-                        )
-
-                        Surface(
-                            shape = MaterialTheme.shapes.medium,
-                            color = MaterialTheme.colorScheme.secondaryContainer,
-                            contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
-                        ) {
-                            Text(
-                                text = length.toString(),
-                                modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
-                                style = MaterialTheme.typography.titleMedium,
-                                fontWeight = FontWeight.Bold,
-                            )
-                        }
-                    }
-
-                    Slider(
-                        value = length.toFloat(),
-                        onValueChange = { onLengthChange(it.toInt()) },
-                        valueRange = lengthMin.toFloat()..lengthMax.toFloat(),
-                        steps = lengthMax - lengthMin - 1,
+                    Text(
+                        text =
+                            stringResource(
+                                resource = AppResource.String.remember_number_menu_item_custom_dialog_play_button,
+                            ),
                     )
-
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                    ) {
-                        Text(
-                            text = lengthMin.toString(),
-                            style = MaterialTheme.typography.labelMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        )
-                        Text(
-                            text = lengthMax.toString(),
-                            style = MaterialTheme.typography.labelMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        )
-                    }
-                }
-
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.End,
-                ) {
-                    TextButton(
-                        onClick = onDismissRequest,
-                    ) {
-                        Text(
-                            text =
-                                stringResource(
-                                    resource = AppResource.String.remember_number_menu_item_custom_dialog_cancel_button,
-                                ),
-                        )
-                    }
-
-                    Spacer(modifier = Modifier.width(8.dp))
-
-                    Button(
-                        enabled = digitsAvailability.count { it } > 1,
-                        onClick = {
-                            onDismissRequest()
-                            onPlayClick(length, digitsAvailability.toAvailableDigits())
-                        },
-                    ) {
-                        Text(
-                            text =
-                                stringResource(
-                                    resource = AppResource.String.remember_number_menu_item_custom_dialog_play_button,
-                                ),
-                        )
-                    }
                 }
             }
         }
@@ -213,20 +240,32 @@ private fun List<Boolean>.toAvailableDigits(): String {
     return builder.toString()
 }
 
-@Preview
+@Preview(
+    name = "Number Sprint custom options dialog",
+    widthDp = 390,
+    heightDp = 844,
+)
+@ScreenshotPreview
 @Composable
 private fun RememberNumberMenuCustomOptionsDialogPreview() {
     var maxLength by remember { mutableIntStateOf(4) }
     val digitsAvailability = remember { SnapshotStateList(10) { true } }
 
     OquTurboTheme {
-        RememberNumberMenuCustomOptionsDialog(
-            length = maxLength,
-            onLengthChange = { maxLength = it },
-            digitsAvailability = digitsAvailability,
-            onDigitSelect = { index, isAvailable -> digitsAvailability[index] = isAvailable },
-            onDismissRequest = {},
-            onPlayClick = { _, _ -> },
-        )
+        Box(
+            modifier = Modifier.fillMaxSize().appBackground(),
+            contentAlignment = Alignment.Center,
+        ) {
+            RememberNumberMenuCustomOptionsContent(
+                length = maxLength,
+                onLengthChange = { maxLength = it },
+                digitsAvailability = digitsAvailability,
+                onDigitSelect = { index, isAvailable -> digitsAvailability[index] = isAvailable },
+                onDismissRequest = {},
+                onPlayClick = { _, _ -> },
+                lengthMin = 2,
+                lengthMax = 10,
+            )
+        }
     }
 }

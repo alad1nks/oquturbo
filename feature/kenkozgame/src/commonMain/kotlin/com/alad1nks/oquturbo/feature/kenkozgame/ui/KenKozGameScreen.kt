@@ -49,6 +49,7 @@ import com.alad1nks.oquturbo.core.ui.component.GameHeader
 import com.alad1nks.oquturbo.core.ui.component.GameResultCard
 import com.alad1nks.oquturbo.core.ui.component.GameStateOverlay
 import com.alad1nks.oquturbo.core.ui.component.appBackground
+import com.alad1nks.oquturbo.core.ui.preview.ScreenshotPreview
 import com.alad1nks.oquturbo.feature.kenkozgame.model.KenKozGameMode
 import com.alad1nks.oquturbo.resources.AppResource
 import org.jetbrains.compose.resources.stringResource
@@ -432,7 +433,12 @@ private fun directionLabel(direction: KenKozGameUiState.Direction): String {
     )
 }
 
-@Preview
+@Preview(
+    name = "Wide Eye — initial",
+    widthDp = 390,
+    heightDp = 844,
+)
+@ScreenshotPreview
 @Composable
 private fun KenKozGameScreenInitialPreview() {
     OquTurboTheme {
@@ -446,7 +452,12 @@ private fun KenKozGameScreenInitialPreview() {
     }
 }
 
-@Preview
+@Preview(
+    name = "Wide Eye — answering",
+    widthDp = 390,
+    heightDp = 844,
+)
+@ScreenshotPreview
 @Composable
 private fun KenKozGameScreenAnsweringPreview() {
     OquTurboTheme {
@@ -469,7 +480,12 @@ private fun KenKozGameScreenAnsweringPreview() {
     }
 }
 
-@Preview
+@Preview(
+    name = "Wide Eye — mistake",
+    widthDp = 390,
+    heightDp = 844,
+)
+@ScreenshotPreview
 @Composable
 private fun KenKozGameScreenMistakePreview() {
     OquTurboTheme {

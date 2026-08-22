@@ -3,10 +3,16 @@ package com.alad1nks.oquturbo.feature.stats.ui
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.tooling.preview.Preview
 import com.alad1nks.oquturbo.core.designsystem.theme.OquTurboTheme
+import com.alad1nks.oquturbo.core.ui.preview.ScreenshotPreview
 import com.alad1nks.oquturbo.feature.stats.demo.DemoStatsFixtures
 import com.alad1nks.oquturbo.feature.stats.model.StatsUiState
 
-@Preview(name = "Stats — empty")
+@Preview(
+    name = "Stats — empty",
+    widthDp = 390,
+    heightDp = 1200,
+)
+@ScreenshotPreview
 @Composable
 private fun EmptyStatsPreview() {
     StatsPreview(uiState = DemoStatsFixtures.empty())
@@ -18,13 +24,23 @@ private fun PopulatedStatsPreview() {
     StatsPreview(uiState = DemoStatsFixtures.populated())
 }
 
-@Preview(name = "Stats — rich", heightDp = 1600)
+@Preview(
+    name = "Stats — rich",
+    widthDp = 390,
+    heightDp = 1600,
+)
+@ScreenshotPreview
 @Composable
 private fun RichStatsPreview() {
     StatsPreview(uiState = DemoStatsFixtures.rich())
 }
 
-@Preview(name = "Stats — one mode")
+@Preview(
+    name = "Stats — one mode",
+    widthDp = 390,
+    heightDp = 1200,
+)
+@ScreenshotPreview
 @Composable
 private fun OneModeStatsPreview() {
     StatsPreview(uiState = DemoStatsFixtures.oneMode())
@@ -48,7 +64,12 @@ private fun NewRecordStatsPreview() {
     StatsPreview(uiState = DemoStatsFixtures.newRecord())
 }
 
-@Preview(name = "Stats — dark", heightDp = 1200)
+@Preview(
+    name = "Stats — dark",
+    widthDp = 390,
+    heightDp = 1200,
+)
+@ScreenshotPreview
 @Composable
 private fun DarkStatsPreview() {
     OquTurboTheme(darkTheme = true) {

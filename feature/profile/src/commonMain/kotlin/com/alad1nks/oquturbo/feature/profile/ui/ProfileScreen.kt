@@ -25,6 +25,7 @@ import androidx.compose.ui.unit.dp
 import com.alad1nks.oquturbo.core.designsystem.theme.OquTurboTheme
 import com.alad1nks.oquturbo.core.ui.component.PageHeader
 import com.alad1nks.oquturbo.core.ui.component.appBackground
+import com.alad1nks.oquturbo.core.ui.preview.ScreenshotPreview
 import com.alad1nks.oquturbo.resources.AppResource
 import org.jetbrains.compose.resources.stringResource
 
@@ -174,7 +175,12 @@ private fun ProfilePreviewContent(
     }
 }
 
-@Preview(name = "New user")
+@Preview(
+    name = "New user",
+    widthDp = 390,
+    heightDp = 1000,
+)
+@ScreenshotPreview
 @Composable
 private fun ProfileNewUserPreview() {
     ProfilePreviewContent(uiState = ProfileDemoData.newUser)
@@ -185,12 +191,18 @@ private fun ProfileNewUserPreview() {
     widthDp = 800,
     heightDp = 1100,
 )
+@ScreenshotPreview
 @Composable
 private fun ProfileMidRankPreview() {
     ProfilePreviewContent(uiState = ProfileDemoData.midRank)
 }
 
-@Preview(name = "Near next rank")
+@Preview(
+    name = "Near next rank",
+    widthDp = 390,
+    heightDp = 1000,
+)
+@ScreenshotPreview
 @Composable
 private fun ProfileNearRankPreview() {
     ProfilePreviewContent(uiState = ProfileDemoData.nearNextRank)
@@ -219,6 +231,7 @@ private fun ProfileStarterTitlePreview() {
     widthDp = 320,
     heightDp = 760,
 )
+@ScreenshotPreview
 @Composable
 private fun ProfileCustomizedDarkPreview() {
     ProfilePreviewContent(

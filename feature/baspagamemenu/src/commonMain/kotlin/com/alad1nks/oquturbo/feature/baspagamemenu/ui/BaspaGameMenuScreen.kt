@@ -14,6 +14,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import com.alad1nks.oquturbo.core.designsystem.theme.OquTurboTheme
 import com.alad1nks.oquturbo.core.ui.component.AppTopBar
 import com.alad1nks.oquturbo.core.ui.component.appBackground
+import com.alad1nks.oquturbo.core.ui.preview.ScreenshotPreview
 import com.alad1nks.oquturbo.feature.baspagame.model.BaspaGameMode
 import com.alad1nks.oquturbo.resources.AppResource
 import org.jetbrains.compose.resources.stringResource
@@ -52,7 +53,12 @@ internal fun BaspaGameMenuScreen(
     }
 }
 
-@Preview
+@Preview(
+    name = "Don't Tap menu",
+    widthDp = 390,
+    heightDp = 1000,
+)
+@ScreenshotPreview
 @Composable
 private fun BaspaGameMenuScreenPreview() {
     OquTurboTheme {

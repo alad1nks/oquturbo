@@ -1,3 +1,4 @@
+import com.github.takahirom.roborazzi.AnnotationFilter
 import com.github.takahirom.roborazzi.ExperimentalRoborazziApi
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
@@ -47,12 +48,10 @@ roborazzi {
 
     generateComposePreviewDesktopTests {
         enable = true
-        // Stage 2 will expand this pilot list after previews receive an explicit screenshot marker.
-        packages =
-            listOf(
-                "com.alad1nks.oquturbo.core.ui",
-                "com.alad1nks.oquturbo.feature.stats",
-                "com.alad1nks.oquturbo.screenshottests",
+        packages = listOf("com.alad1nks.oquturbo")
+        annotationFilter =
+            AnnotationFilter.Include(
+                "com.alad1nks.oquturbo.core.ui.preview.ScreenshotPreview",
             )
         includePrivatePreviews = true
         generatedTestClassCount = 1
