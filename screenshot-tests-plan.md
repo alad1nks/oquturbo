@@ -148,7 +148,7 @@ Goldens должны записываться в том же Linux-окруже�
 - `settings.gradle.kts` — test-only module;
 - `build.gradle.kts` — Roborazzi plugin `apply false`;
 - `gradle/libs.versions.toml` — pinned plugin/library versions;
-- `screenshot-tests/build.gradle.kts` — JVM 17 test harness, dependencies и Roborazzi configuration;
+- `screenshot-tests/build.gradle.kts` — JVM 21 test harness, dependencies и Roborazzi configuration;
 - `screenshot-tests/src/test/screenshots/**` — tracked reference PNG;
 - существующие `*Preview*.kt`/screen-файлы — только marker и недостающие deterministic previews;
 - `.github/workflows/pr-screenshot-tests.yml` — PR verification;

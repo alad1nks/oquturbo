@@ -236,8 +236,38 @@ Useful product checks include:
 ./gradlew :app:<product>:shared:iosSimulatorArm64Test
 ```
 
-The repository currently has no test source files. Test tasks therefore provide compilation and configuration
-coverage, not behavioral regression coverage. iOS simulator tasks require compatible Apple tooling.
+Most product test source sets are currently empty, so their test tasks provide compilation and configuration
+coverage rather than behavioral regression coverage. The dedicated `screenshot-tests` module is the exception: it
+provides visual regression coverage for shared Compose UI. iOS simulator tasks require compatible Apple tooling.
+
+### Screenshot tests
+
+The screenshot suite renders selected Compose Multiplatform previews on the JVM with Roborazzi. It checks shared
+layout, theme, icons, and resources without an Android emulator. Desktop/Skia screenshots do not replace Android or
+iOS end-to-end UI tests.
+
+Verify the tracked reference images without accepting changes:
+
+```shell
+./gradlew :screenshot-tests:verifyRoborazziJvm
+```
+
+Generate actual images, diffs, and the HTML report without updating references:
+
+```shell
+./gradlew :screenshot-tests:compareRoborazziJvm
+```
+
+Update reference images after an intentional UI change:
+
+```shell
+./gradlew :screenshot-tests:recordRoborazziJvm
+```
+
+Reference PNG files are tracked under `screenshot-tests/src/test/screenshots`. Actual images, diffs, test results,
+and reports stay under `screenshot-tests/build` and are not committed. Review every changed PNG or CI artifact
+before accepting a baseline update. Linux CI is the source of truth for accepted references; local recording on
+macOS or Windows is suitable only for preliminary inspection.
 
 ## Localization and resources
 
