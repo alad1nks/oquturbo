@@ -1,0 +1,66 @@
+name: Update screenshot goldens
+
+on:
+  workflow_dispatch:
+
+concurrency:
+  group: update-screenshot-goldens-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+env:
+  LANG: C.UTF-8
+  LC_ALL: C.UTF-8
+  TZ: UTC
+
+jobs:
+  record:
+    name: Record Linux screenshot goldens
+    runs-on: ubuntu-24.04
+
+    steps:
+      - name: Checkout selected branch
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+
+      - name: Set up JDK
+        uses: actions/setup-java@b6effb05e454b25005698d916606bdc6ffcbf961 # v5
+        with:
+          java-version: '21'
+          distribution: 'jetbrains'
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@4733eaac7c1b0da527e4206b7671e0061de1ce37 # v6
+
+      - name: Make gradlew executable
+        run: chmod +x ./gradlew
+
+      - name: Record Linux screenshot goldens
+        run: xvfb-run -a ./gradlew :screenshot-tests:recordRoborazziJvm --stacktrace
+
+      - name: Summarize generated goldens
+        run: |
+          screenshot_count=$(find screenshot-tests/src/test/screenshots -type f -name '*.png' | wc -l)
+          echo "Generated ${screenshot_count} screenshot goldens from \`${GITHUB_REF_NAME}\`." >> "${GITHUB_STEP_SUMMARY}"
+          echo "Download and review the artifact, then commit accepted PNG files through a normal pull request." >> "${GITHUB_STEP_SUMMARY}"
+
+      - name: Upload Linux screenshot goldens
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        with:
+          name: screenshot-goldens-${{ github.run_id }}
+          path: screenshot-tests/src/test/screenshots/
+          if-no-files-found: error
+          retention-days: 7
+
+      - name: Upload recording diagnostics
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        with:
+          name: screenshot-recording-diagnostics-${{ github.run_id }}
+          path: |
+            screenshot-tests/build/reports/roborazzi/
+            screenshot-tests/build/reports/tests/
+            screenshot-tests/build/test-results/
+          if-no-files-found: warn
+          retention-days: 7

@@ -273,6 +273,15 @@ and reports stay under `screenshot-tests/build` and are not committed. Review ev
 before accepting a baseline update. Linux CI is the source of truth for accepted references; local recording on
 macOS or Windows is suitable only for preliminary inspection.
 
+Pull requests that affect shared UI or the screenshot harness automatically run the `PR screenshot tests` workflow
+on `ubuntu-24.04`. The check uploads JUnit results on every run and publishes the Roborazzi report plus actual/diff
+images when verification fails.
+
+To update accepted references, open GitHub Actions, select `Update screenshot goldens`, choose the source branch,
+and run the workflow. Download the `screenshot-goldens-*` artifact, review all PNG files, copy the accepted files
+into `screenshot-tests/src/test/screenshots`, and commit them through a normal pull request. The workflow never
+pushes or accepts visual changes automatically.
+
 ## Localization and resources
 
 Shared strings, plurals, arrays, and game content live in
