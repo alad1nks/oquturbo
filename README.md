@@ -282,6 +282,11 @@ and run the workflow. Download the `screenshot-goldens-*` artifact, review all P
 into `screenshot-tests/src/test/screenshots`, and commit them through a normal pull request. The workflow never
 pushes or accepts visual changes automatically.
 
+Follow the module's [baseline review guide](./screenshot-tests/README.md) and use the dedicated
+[`screenshot-baseline.md`](./.github/PULL_REQUEST_TEMPLATE/screenshot-baseline.md) pull request template for every
+baseline update. The PR must list affected scenarios, explain expected visual changes, and link the Linux workflow
+artifact or an attached contact sheet. Do not accept a mass PNG update without reviewing every image.
+
 ## Localization and resources
 
 Shared strings, plurals, arrays, and game content live in
