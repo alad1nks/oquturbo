@@ -19,7 +19,7 @@
 - В 14 Kotlin-файлах есть 36 `@Preview`. Они уже покрывают Home, Games, Stats, Profile, меню и состояния трёх игр, включая dark, tablet, dialog и error-сценарии.
 - Большинство leaf screen composable и preview-функций имеют `private`/`internal` visibility. Это хорошо для production API, но затрудняет создание внешнего Android test harness без рефакторинга видимости.
 - Тема централизована в `core:designsystem`; существующие previews используют `OquTurboTheme`. Строки приходят из Compose Resources через `AppResource` и имеют `values`, `values-ru`, `values-kk`.
-- Gradle wrapper — 9.6.1, AGP — 9.3.0, Kotlin — 2.4.10, Compose Multiplatform — 1.11.1, CI использует JDK 17 и Ubuntu.
+- Gradle wrapper — 9.6.1, AGP — 9.3.0, Kotlin — 2.4.10, Compose Multiplatform — 1.11.1. Workflow устанавливают JDK 17, но `gradle/gradle-daemon-jvm.properties` закрепляет Gradle daemon toolchain 21; JVM-варианты KMP-модулей поэтому загружаются screenshot runtime на Java 21.
 - В PR workflow уже выполняется `./gradlew test`, но тестовые source set практически пусты; визуальных проверок и сохранённых эталонов нет.
 - GitHub Actions сейчас дублирует `./gradlew test` в продуктовых workflow. Screenshot-проверку лучше вынести в отдельный job/workflow, а не размножать по четырём продуктам, потому что feature UI общий.
 
@@ -27,12 +27,12 @@
 
 | Вариант | Плюсы | Ограничения для этого проекта | Решение |
 | --- | --- | --- | --- |
-| Roborazzi + Compose Desktop preview scanner | Headless JVM-запуск, быстро, умеет сканировать Compose Multiplatform `@Preview` из `commonMain`, включая private previews; есть record/verify/compare и HTML report | Desktop/Skia pixels не равны Android pixels; функция preview scanner пока experimental; JVM 17 нужен модулю-сканеру | **Основной подход** |
+| Roborazzi + Compose Desktop preview scanner | Headless JVM-запуск, быстро, умеет сканировать Compose Multiplatform `@Preview` из `commonMain`, включая private previews; есть record/verify/compare и HTML report | Desktop/Skia pixels не равны Android pixels; функция preview scanner пока experimental; scanner требует минимум JVM 17, а этот репозиторий фактически собирает JVM-варианты на toolchain 21 | **Основной подход** |
 | Roborazzi + Robolectric | Android-like rendering без эмулятора | Для используемого `com.android.kotlin.multiplatform.library` известна проблема: Roborazzi-задачи для `androidHostTest` не создаются; потребовалась бы отдельная Android-обвязка и изменение visibility/fixtures | Не использовать как основу |
 | Official Compose Preview Screenshot Testing | Официальный Layoutlib renderer, `validateDebugScreenshotTest`, хороший отчёт | Инструмент Android-only и alpha; тестовые `@PreviewTest` должны жить в Android `screenshotTest`, поэтому существующие private KMP previews напрямую не переиспользуются | Вернуться к оценке после появления полноценной KMP-поддержки |
 | Instrumented screenshots на emulator | Максимальная Android fidelity | Медленнее, дороже и более flaky в CI; не проверяет Desktop/Web и избыточен для shared leaf UI | Только отдельным будущим слоем для 2–3 критичных end-to-end экранов |
 
-Рекомендуемая архитектура: отдельный test-only JVM-модуль `:screenshot-tests`, который зависит от JVM-вариантов UI-модулей и через Roborazzi Compose Desktop Preview Scanner находит previews в runtime classpath. Сам модуль компилируется под JVM 17, поэтому production JVM targets менять не нужно. Goldens хранятся в этом модуле и проверяются одной Gradle-командой.
+Рекомендуемая архитектура: отдельный test-only JVM-модуль `:screenshot-tests`, который зависит от JVM-вариантов UI-модулей и через Roborazzi Compose Desktop Preview Scanner находит previews в runtime classpath. Сам модуль компилируется под JVM 21 в соответствии с уже закреплённым Gradle daemon toolchain, поэтому production JVM targets менять не нужно. Goldens хранятся в этом модуле и проверяются одной Gradle-командой.
 
 Такой тест проверяет shared Compose layout, тему, ресурсы и состояния. Он намеренно не обещает pixel fidelity Android status/navigation bars или OEM rendering.
 
@@ -60,11 +60,11 @@
 
 1. Создать `screenshot-tests/build.gradle.kts` и временно подключить только `core:ui` и один resource-heavy feature, например `feature:stats`.
 2. В `gradle/libs.versions.toml` зафиксировать одну совместимую версию Roborazzi и matching-версию ComposablePreviewScanner. Версию выбрать по результату dependency resolution с текущими Gradle 9.6.1, Kotlin 2.4.10 и Compose 1.11.1; не использовать dynamic versions.
-3. Применить `org.jetbrains.kotlin.jvm`, Compose Multiplatform, Compose Compiler и Roborazzi plugins только к `:screenshot-tests`; выставить JVM toolchain/target 17 только в этом test-only модуле.
+3. Применить `org.jetbrains.kotlin.jvm`, Compose Multiplatform, Compose Compiler и Roborazzi plugins только к `:screenshot-tests`; выставить JVM toolchain/target 21 только в этом test-only модуле, чтобы runtime мог загрузить JVM-варианты KMP dependencies.
 4. Добавить `roborazzi-compose-desktop-preview-scanner-support`, ComposablePreviewScanner и JUnit 4 в test configuration, а Skiko runtime — в runtime/test runtime по фактической конфигурации библиотеки.
 5. Ограничить scanner package prefix значением `com.alad1nks.oquturbo`, включить private previews и проверить, что scanner видит previews в project dependencies, а не только в собственном source set.
 6. Проверить рендер `OquTurboTheme`, Material icons и Compose Resources на Linux; отдельно убедиться, что кириллица и казахские символы не заменяются tofu glyphs.
-7. Локально получить задачи `recordRoborazziJvm`, `verifyRoborazziJvm`, `compareRoborazziJvm`, затем повторить record и verify на GitHub-hosted `ubuntu-24.04` с JDK 17.
+7. Локально получить задачи `recordRoborazziJvm`, `verifyRoborazziJvm`, `compareRoborazziJvm`, затем повторить record и verify на GitHub-hosted `ubuntu-24.04` с JDK 21.
 8. Проверить, что configuration cache не ломает generated tests и что повторный verify без изменений даёт нулевой diff.
 
 Критерий выхода из spike: два последовательных CI-run на одном commit создают идентичные PNG, private previews из зависимых KMP-модулей найдены, resources загружены, отчёт и diff доступны как artifact.
@@ -119,7 +119,7 @@
 Создать отдельный `.github/workflows/pr-screenshot-tests.yml`:
 
 1. Trigger: `pull_request` в `main`/`master` с path filters для `core/**`, `feature/**`, `resources/**`, `app/*/shared/**`, Gradle-файлов и самого workflow. Не запускать четыре одинаковых screenshot job по одному на продукт.
-2. Environment: `ubuntu-24.04`, Temurin JDK 17, `LANG=C.UTF-8`, `LC_ALL=C.UTF-8`, `TZ=UTC`. Не использовать `ubuntu-latest`.
+2. Environment: `ubuntu-24.04`, JDK 21, `LANG=C.UTF-8`, `LC_ALL=C.UTF-8`, `TZ=UTC`. Использовать уже закреплённый в `gradle/gradle-daemon-jvm.properties` JetBrains toolchain для фактического Gradle/test runtime и не использовать `ubuntu-latest`.
 3. Настроить Gradle cache штатным `gradle/actions/setup-gradle`, не кэшируя generated screenshots как эталоны.
 4. Запускать `xvfb-run -a ./gradlew :screenshot-tests:verifyRoborazziJvm --stacktrace`, если spike подтвердит необходимость X server; иначе запускать Gradle напрямую.
 5. При любом результате сохранять JUnit/test result; при failure загружать Roborazzi HTML report, actual и diff images через `actions/upload-artifact` с коротким retention.

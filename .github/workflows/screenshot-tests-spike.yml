@@ -1,0 +1,105 @@
+name: Screenshot tests spike
+
+on:
+  pull_request:
+    branches: [ main, master ]
+  workflow_dispatch:
+
+concurrency:
+  group: screenshot-tests-spike-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+env:
+  LANG: C.UTF-8
+  LC_ALL: C.UTF-8
+  TZ: UTC
+
+jobs:
+  render-and-verify:
+    name: Render and verify (${{ matrix.replica }})
+    runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        replica: [ 1, 2 ]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'jetbrains'
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Make gradlew executable
+        run: chmod +x ./gradlew
+
+      - name: Record Linux screenshots
+        run: xvfb-run -a ./gradlew :screenshot-tests:recordRoborazziJvm --stacktrace
+
+      - name: Verify screenshots twice
+        run: |
+          xvfb-run -a ./gradlew :screenshot-tests:verifyRoborazziJvm --configuration-cache --rerun-tasks --stacktrace
+          xvfb-run -a ./gradlew :screenshot-tests:verifyRoborazziJvm --configuration-cache --rerun-tasks --stacktrace
+
+      - name: Create screenshot checksum manifest
+        run: |
+          find screenshot-tests/src/test/screenshots -type f -name '*.png' -print0 \
+            | sort -z \
+            | xargs -0 sha256sum \
+            > screenshot-tests/build/screenshot-sha256.txt
+
+      - name: Upload rendered screenshots
+        uses: actions/upload-artifact@v4
+        with:
+          name: stage0-screenshots-${{ matrix.replica }}
+          path: screenshot-tests/src/test/screenshots/
+          if-no-files-found: error
+          retention-days: 7
+
+      - name: Upload screenshot checksums
+        uses: actions/upload-artifact@v4
+        with:
+          name: stage0-checksums-${{ matrix.replica }}
+          path: screenshot-tests/build/screenshot-sha256.txt
+          if-no-files-found: error
+          retention-days: 7
+
+      - name: Upload Roborazzi diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: stage0-roborazzi-diagnostics-${{ matrix.replica }}
+          path: |
+            screenshot-tests/build/outputs/roborazzi/
+            screenshot-tests/build/reports/roborazzi/
+            screenshot-tests/build/reports/tests/
+            screenshot-tests/build/test-results/
+          if-no-files-found: warn
+          retention-days: 7
+
+  compare-renders:
+    name: Compare independent renders
+    needs: render-and-verify
+    runs-on: ubuntu-24.04
+
+    steps:
+      - name: Download screenshot artifacts
+        uses: actions/download-artifact@v4
+        with:
+          pattern: stage0-checksums-*
+          path: artifacts
+
+      - name: Compare checksum manifests
+        run: |
+          diff -u \
+            artifacts/stage0-checksums-1/screenshot-sha256.txt \
+            artifacts/stage0-checksums-2/screenshot-sha256.txt
