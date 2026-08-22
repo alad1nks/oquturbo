@@ -18,6 +18,15 @@ kotlin {
 
 dependencies {
     implementation(projects.core.ui)
+    implementation(projects.feature.baspagame)
+    implementation(projects.feature.baspagamemenu)
+    implementation(projects.feature.games)
+    implementation(projects.feature.home)
+    implementation(projects.feature.kenkozgame)
+    implementation(projects.feature.kenkozgamemenu)
+    implementation(projects.feature.profile)
+    implementation(projects.feature.remembernumber)
+    implementation(projects.feature.remembernumbermenu)
     implementation(projects.feature.stats)
 
     testImplementation(libs.compose.components.resources)
@@ -38,6 +47,7 @@ roborazzi {
 
     generateComposePreviewDesktopTests {
         enable = true
+        // Stage 2 will expand this pilot list after previews receive an explicit screenshot marker.
         packages =
             listOf(
                 "com.alad1nks.oquturbo.core.ui",
