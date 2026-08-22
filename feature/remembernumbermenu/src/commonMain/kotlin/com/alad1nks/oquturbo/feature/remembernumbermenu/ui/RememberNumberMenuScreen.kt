@@ -18,6 +18,7 @@ import androidx.compose.ui.unit.dp
 import com.alad1nks.oquturbo.core.designsystem.theme.OquTurboTheme
 import com.alad1nks.oquturbo.core.ui.component.AppTopBar
 import com.alad1nks.oquturbo.core.ui.component.appBackground
+import com.alad1nks.oquturbo.core.ui.preview.ScreenshotPreview
 import com.alad1nks.oquturbo.resources.AppResource
 import org.jetbrains.compose.resources.stringResource
 
@@ -108,7 +109,12 @@ private fun RememberNumberMenuScreen(
     }
 }
 
-@Preview
+@Preview(
+    name = "Number Sprint menu",
+    widthDp = 390,
+    heightDp = 1000,
+)
+@ScreenshotPreview
 @Composable
 private fun RememberNumberMenuScreenPreview() {
     OquTurboTheme {
@@ -130,6 +136,7 @@ private fun RememberNumberMenuScreenPreview() {
     widthDp = 800,
     heightDp = 1280,
 )
+@ScreenshotPreview
 @Composable
 private fun RememberNumberMenuScreenPreviewTablet() {
     OquTurboTheme {
@@ -147,7 +154,11 @@ private fun RememberNumberMenuScreenPreviewTablet() {
     }
 }
 
-@Preview
+@Preview(
+    name = "Number Sprint menu dialog",
+    widthDp = 390,
+    heightDp = 1000,
+)
 @Composable
 private fun RememberNumberMenuScreenDialogPreview() {
     OquTurboTheme {

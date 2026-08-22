@@ -32,6 +32,7 @@ import com.alad1nks.oquturbo.core.ui.component.GameHeader
 import com.alad1nks.oquturbo.core.ui.component.GameResultCard
 import com.alad1nks.oquturbo.core.ui.component.GameStateOverlay
 import com.alad1nks.oquturbo.core.ui.component.appBackground
+import com.alad1nks.oquturbo.core.ui.preview.ScreenshotPreview
 import com.alad1nks.oquturbo.resources.AppResource
 import org.jetbrains.compose.resources.stringResource
 
@@ -255,7 +256,13 @@ internal fun RememberNumberScreen(
     }
 }
 
-@Preview(showBackground = true)
+@Preview(
+    name = "Number Sprint — initial",
+    widthDp = 390,
+    heightDp = 844,
+    showBackground = true,
+)
+@ScreenshotPreview
 @Composable
 private fun RememberNumberScreenInitialPreview() {
     OquTurboTheme {
@@ -270,7 +277,13 @@ private fun RememberNumberScreenInitialPreview() {
     }
 }
 
-@Preview(showBackground = true)
+@Preview(
+    name = "Number Sprint — reading",
+    widthDp = 390,
+    heightDp = 844,
+    showBackground = true,
+)
+@ScreenshotPreview
 @Composable
 private fun RememberNumberScreenReadingPreview() {
     OquTurboTheme {
@@ -285,7 +298,13 @@ private fun RememberNumberScreenReadingPreview() {
     }
 }
 
-@Preview(showBackground = true)
+@Preview(
+    name = "Number Sprint — writing",
+    widthDp = 390,
+    heightDp = 844,
+    showBackground = true,
+)
+@ScreenshotPreview
 @Composable
 private fun RememberNumberScreenWritingPreview() {
     OquTurboTheme {
@@ -300,7 +319,13 @@ private fun RememberNumberScreenWritingPreview() {
     }
 }
 
-@Preview(showBackground = true)
+@Preview(
+    name = "Number Sprint — mistake",
+    widthDp = 390,
+    heightDp = 844,
+    showBackground = true,
+)
+@ScreenshotPreview
 @Composable
 private fun RememberNumberScreenMistakePreview() {
     OquTurboTheme {

@@ -16,6 +16,7 @@ import androidx.compose.ui.unit.dp
 import com.alad1nks.oquturbo.core.designsystem.theme.OquTurboTheme
 import com.alad1nks.oquturbo.core.ui.component.AppTopBar
 import com.alad1nks.oquturbo.core.ui.component.appBackground
+import com.alad1nks.oquturbo.core.ui.preview.ScreenshotPreview
 import com.alad1nks.oquturbo.feature.kenkozgame.model.KenKozGameMode
 import com.alad1nks.oquturbo.resources.AppResource
 import org.jetbrains.compose.resources.stringResource
@@ -65,7 +66,12 @@ internal fun KenKozGameMenuScreen(
     }
 }
 
-@Preview
+@Preview(
+    name = "Wide Eye menu",
+    widthDp = 390,
+    heightDp = 1000,
+)
+@ScreenshotPreview
 @Composable
 private fun KenKozGameMenuScreenPreview() {
     OquTurboTheme {

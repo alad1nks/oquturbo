@@ -48,10 +48,13 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.LifecycleResumeEffect
 import com.alad1nks.oquturbo.core.data.model.DailyTrainingEntry
+import com.alad1nks.oquturbo.core.data.model.GameId
+import com.alad1nks.oquturbo.core.data.model.GameModeId
 import com.alad1nks.oquturbo.core.designsystem.theme.OquTurboTheme
 import com.alad1nks.oquturbo.core.designsystem.theme.success
 import com.alad1nks.oquturbo.core.ui.component.PageHeader
 import com.alad1nks.oquturbo.core.ui.component.appBackground
+import com.alad1nks.oquturbo.core.ui.preview.ScreenshotPreview
 import com.alad1nks.oquturbo.resources.AppResource
 import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.stringArrayResource
@@ -479,7 +482,12 @@ private fun HomeUiState.Game.icon(): ImageVector =
         HomeUiState.Game.DontTap -> Icons.Filled.Block
     }
 
-@Preview
+@Preview(
+    name = "Home — new user",
+    widthDp = 390,
+    heightDp = 1000,
+)
+@ScreenshotPreview
 @Composable
 private fun HomeScreenPreview() {
     OquTurboTheme {
@@ -489,3 +497,124 @@ private fun HomeScreenPreview() {
         )
     }
 }
+
+@Preview(
+    name = "Home — populated",
+    widthDp = 390,
+    heightDp = 1100,
+)
+@ScreenshotPreview
+@Composable
+private fun HomeScreenPopulatedPreview() {
+    OquTurboTheme {
+        HomeScreen(
+            uiState =
+                HomeUiState(
+                    overallLevel = 17,
+                    rankNumber = 4,
+                    levelProgress = 0.68f,
+                    dailyTraining = previewDailyTraining(completed = false),
+                    recentRecords =
+                        listOf(
+                            HomeUiState.RecentRecord(
+                                game = HomeUiState.Game.NumberSprint,
+                                mode = HomeUiState.Mode.Custom,
+                                variantId = "length:12;digits:013579",
+                                score = 12,
+                            ),
+                            HomeUiState.RecentRecord(
+                                game = HomeUiState.Game.WideEye,
+                                mode = HomeUiState.Mode.FindDifference,
+                                score = 31,
+                            ),
+                            HomeUiState.RecentRecord(
+                                game = HomeUiState.Game.DontTap,
+                                mode = HomeUiState.Mode.SpeedReading,
+                                score = 24,
+                            ),
+                        ),
+                ),
+            onStartTrainingClick = {},
+        )
+    }
+}
+
+@Preview(
+    name = "Home — completed training",
+    widthDp = 390,
+    heightDp = 1000,
+)
+@ScreenshotPreview
+@Composable
+private fun HomeScreenCompletedTrainingPreview() {
+    OquTurboTheme {
+        HomeScreen(
+            uiState =
+                HomeUiState(
+                    overallLevel = 21,
+                    rankNumber = 5,
+                    levelProgress = 0.1f,
+                    dailyTraining = previewDailyTraining(completed = true),
+                ),
+            onStartTrainingClick = {},
+        )
+    }
+}
+
+private fun previewDailyTraining(completed: Boolean): HomeUiState.DailyTraining {
+    val items =
+        listOf(
+            previewTrainingItem(
+                id = "number-sprint-classic",
+                gameId = GameId.NumberSprint,
+                modeId = GameModeId.NumberSprintClassic,
+                game = HomeUiState.Game.NumberSprint,
+                mode = HomeUiState.Mode.Classic,
+                requiredScore = 8,
+                isCompleted = true,
+            ),
+            previewTrainingItem(
+                id = "wide-eye-words",
+                gameId = GameId.WideEye,
+                modeId = GameModeId.WideEyeWords,
+                game = HomeUiState.Game.WideEye,
+                mode = HomeUiState.Mode.Words,
+                requiredScore = 12,
+                isCompleted = completed,
+            ),
+            previewTrainingItem(
+                id = "dont-tap-math",
+                gameId = GameId.DontTap,
+                modeId = GameModeId.DontTapMath,
+                game = HomeUiState.Game.DontTap,
+                mode = HomeUiState.Mode.Math,
+                requiredScore = 10,
+                isCompleted = completed,
+            ),
+        )
+    return HomeUiState.DailyTraining(items = items)
+}
+
+private fun previewTrainingItem(
+    id: String,
+    gameId: GameId,
+    modeId: GameModeId,
+    game: HomeUiState.Game,
+    mode: HomeUiState.Mode,
+    requiredScore: Int,
+    isCompleted: Boolean,
+) =
+    HomeUiState.TrainingItem(
+        entry =
+            DailyTrainingEntry(
+                id = id,
+                game = gameId,
+                mode = modeId,
+                requiredScore = requiredScore,
+                isCompleted = isCompleted,
+            ),
+        game = game,
+        mode = mode,
+        requiredScore = requiredScore,
+        isCompleted = isCompleted,
+    )

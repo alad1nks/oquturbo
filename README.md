@@ -246,6 +246,10 @@ The screenshot suite renders selected Compose Multiplatform previews on the JVM 
 layout, theme, icons, and resources without an Android emulator. Desktop/Skia screenshots do not replace Android or
 iOS end-to-end UI tests.
 
+Only previews annotated with `@ScreenshotPreview` are included in the suite. Add the marker to a deterministic,
+fixed-state preview when that state belongs in the visual regression contract; ordinary IDE previews remain outside
+the baseline. Screenshot previews must not depend on the clock, randomness, persisted data, or network state.
+
 Verify the tracked reference images without accepting changes:
 
 ```shell

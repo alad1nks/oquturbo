@@ -49,6 +49,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.alad1nks.oquturbo.core.designsystem.theme.OquTurboTheme
 import com.alad1nks.oquturbo.core.ui.component.appBackground
+import com.alad1nks.oquturbo.core.ui.preview.ScreenshotPreview
 import com.alad1nks.oquturbo.feature.games.model.TrainingGame
 import com.alad1nks.oquturbo.resources.AppResource
 import org.jetbrains.compose.resources.StringResource
@@ -539,9 +540,56 @@ private fun GamesUiState.UpcomingGame.descriptionResource(): StringResource =
         GamesUiState.UpcomingGame.WordFlow -> AppResource.String.games_word_flow_description
     }
 
-@Preview
+@Preview(
+    name = "Games — English",
+    widthDp = 390,
+    heightDp = 1400,
+    locale = "en",
+)
+@ScreenshotPreview
 @Composable
 private fun GamesScreenPreview() {
+    GamesScreenPreviewContent()
+}
+
+@Preview(
+    name = "Games — Russian",
+    widthDp = 390,
+    heightDp = 1400,
+    locale = "ru",
+)
+@ScreenshotPreview
+@Composable
+private fun GamesScreenRussianPreview() {
+    GamesScreenPreviewContent()
+}
+
+@Preview(
+    name = "Games — Kazakh",
+    widthDp = 390,
+    heightDp = 1400,
+    locale = "kk",
+)
+@ScreenshotPreview
+@Composable
+private fun GamesScreenKazakhPreview() {
+    GamesScreenPreviewContent()
+}
+
+@Preview(
+    name = "Games — compact Kazakh",
+    widthDp = 320,
+    heightDp = 1200,
+    locale = "kk",
+)
+@ScreenshotPreview
+@Composable
+private fun GamesScreenCompactKazakhPreview() {
+    GamesScreenPreviewContent()
+}
+
+@Composable
+private fun GamesScreenPreviewContent() {
     OquTurboTheme {
         GamesScreen(
             uiState = GamesUiState(),

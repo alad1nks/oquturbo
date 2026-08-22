@@ -3,9 +3,12 @@ package com.alad1nks.oquturbo.core.ui.component
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -26,6 +29,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.alad1nks.oquturbo.core.designsystem.theme.OquTurboTheme
+import com.alad1nks.oquturbo.core.ui.preview.ScreenshotPreview
 
 @Composable
 fun GameMenuItem(
@@ -111,7 +115,12 @@ private fun GameMenuItemTitleAndSubtitle(
     }
 }
 
-@Preview
+@Preview(
+    name = "Game menu item",
+    widthDp = 390,
+    heightDp = 120,
+)
+@ScreenshotPreview
 @Composable
 private fun GameMenuItemItemPreview() {
     OquTurboTheme {
@@ -123,6 +132,39 @@ private fun GameMenuItemItemPreview() {
                 onClick = {},
                 modifier = Modifier.padding(16.dp),
             )
+        }
+    }
+}
+
+@Preview(
+    name = "Game menu items — matching height",
+    widthDp = 720,
+    heightDp = 220,
+)
+@ScreenshotPreview
+@Composable
+private fun GameMenuItemsMatchingHeightPreview() {
+    OquTurboTheme {
+        Surface {
+            Row(
+                modifier = Modifier.height(IntrinsicSize.Min).padding(16.dp),
+                horizontalArrangement = Arrangement.spacedBy(16.dp),
+            ) {
+                GameMenuItem(
+                    imageVector = Icons.Outlined.Timer,
+                    title = "Short title",
+                    subtitle = "Short subtitle",
+                    onClick = {},
+                    modifier = Modifier.weight(1f).fillMaxHeight(),
+                )
+                GameMenuItem(
+                    imageVector = Icons.Outlined.Timer,
+                    title = "A deliberately long game title",
+                    subtitle = "A longer subtitle that wraps onto multiple lines at this width",
+                    onClick = {},
+                    modifier = Modifier.weight(1f).fillMaxHeight(),
+                )
+            }
         }
     }
 }

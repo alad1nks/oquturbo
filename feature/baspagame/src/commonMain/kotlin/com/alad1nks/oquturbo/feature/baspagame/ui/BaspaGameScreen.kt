@@ -72,6 +72,7 @@ import com.alad1nks.oquturbo.core.ui.component.GameHeaderActionButton
 import com.alad1nks.oquturbo.core.ui.component.GameResultCard
 import com.alad1nks.oquturbo.core.ui.component.GameStateOverlay
 import com.alad1nks.oquturbo.core.ui.component.appBackground
+import com.alad1nks.oquturbo.core.ui.preview.ScreenshotPreview
 import com.alad1nks.oquturbo.feature.baspagame.model.BaspaGameMode
 import com.alad1nks.oquturbo.resources.AppResource
 import org.jetbrains.compose.resources.StringResource
@@ -461,17 +462,78 @@ private fun themeAwareColor(
 ): Color =
     if (MaterialTheme.colorScheme.background.luminance() < 0.5f) dark else light
 
-@Preview
+@Preview(
+    name = "Don't Tap — initial",
+    widthDp = 390,
+    heightDp = 844,
+)
+@ScreenshotPreview
 @Composable
-private fun BaspaGameScreenPreview() {
+private fun BaspaGameScreenInitialPreview() {
+    BaspaGamePreview(
+        uiState =
+            BaspaGameUiState(
+                mode = BaspaGameMode.Categories,
+                isRecordLoaded = true,
+            ),
+    )
+}
+
+@Preview(
+    name = "Don't Tap — playing",
+    widthDp = 390,
+    heightDp = 844,
+)
+@ScreenshotPreview
+@Composable
+private fun BaspaGameScreenPlayingPreview() {
+    BaspaGamePreview(
+        uiState =
+            BaspaGameUiState(
+                mode = BaspaGameMode.Categories,
+                stimulus = "CAT",
+                categoryName = "animals",
+                score = 24,
+                record = 57,
+                isRecordLoaded = true,
+                intervalMillis = 1_500L,
+                phase = BaspaGameUiState.Phase.Playing,
+            ),
+    )
+}
+
+@Preview(
+    name = "Don't Tap — mistake",
+    widthDp = 390,
+    heightDp = 844,
+)
+@ScreenshotPreview
+@Composable
+private fun BaspaGameScreenMistakePreview() {
+    BaspaGamePreview(
+        uiState =
+            BaspaGameUiState(
+                mode = BaspaGameMode.Categories,
+                stimulus = "CAR",
+                categoryName = "animals",
+                score = 24,
+                record = 57,
+                isRecordLoaded = true,
+                phase = BaspaGameUiState.Phase.Mistake,
+            ),
+    )
+}
+
+@Composable
+private fun BaspaGamePreview(uiState: BaspaGameUiState) {
     OquTurboTheme {
         BaspaGameScreen(
-            BaspaGameUiState(BaspaGameMode.Categories, "КОШКА", score = 24, record = 57),
-            {},
-            {},
-            {},
-            {},
-            {},
+            uiState = uiState,
+            onBackClick = {},
+            onPauseClick = {},
+            onTap = {},
+            onRestart = {},
+            onTrainingContinue = {},
         )
     }
 }
