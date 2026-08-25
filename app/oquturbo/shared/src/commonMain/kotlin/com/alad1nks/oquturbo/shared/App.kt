@@ -27,6 +27,11 @@ import com.alad1nks.oquturbo.feature.kenkozgamemenu.navigation.KenKozGameMenuRou
 import com.alad1nks.oquturbo.feature.kenkozgamemenu.navigation.kenKozGameMenuScreen
 import com.alad1nks.oquturbo.feature.kenkozgamemenu.navigation.navigateToKenKozGameMenu
 import com.alad1nks.oquturbo.feature.main.ui.MainScreen
+import com.alad1nks.oquturbo.feature.memorygrid.navigation.memoryGridScreen
+import com.alad1nks.oquturbo.feature.memorygrid.navigation.navigateToMemoryGrid
+import com.alad1nks.oquturbo.feature.memorygridmenu.navigation.MemoryGridMenuRoute
+import com.alad1nks.oquturbo.feature.memorygridmenu.navigation.memoryGridMenuScreen
+import com.alad1nks.oquturbo.feature.memorygridmenu.navigation.navigateToMemoryGridMenu
 import com.alad1nks.oquturbo.feature.profile.navigation.navigateToEditProfile
 import com.alad1nks.oquturbo.feature.profile.navigation.navigateToProfileAchievements
 import com.alad1nks.oquturbo.feature.profile.navigation.navigateToProfilePersonalization
@@ -88,6 +93,7 @@ fun App() {
                     TrainingGame.NumberSprint -> appState.navController.navigateToRememberNumberMenu()
                     TrainingGame.WideEye -> appState.navController.navigateToKenKozGameMenu()
                     TrainingGame.DontTap -> appState.navController.navigateToBaspaGameMenu()
+                    TrainingGame.MemoryGrid -> appState.navController.navigateToMemoryGridMenu()
                 }
             },
         )
@@ -108,6 +114,12 @@ fun App() {
         baspaGameMenuScreen(
             onModeClick = appState.navController::navigateToBaspaGame,
             showBackButton = true,
+            onBackClick = {
+                appState.navController.popBackStack(route = GamesRoute, inclusive = false)
+            },
+        )
+        memoryGridMenuScreen(
+            onModeClick = appState.navController::navigateToMemoryGrid,
             onBackClick = {
                 appState.navController.popBackStack(route = GamesRoute, inclusive = false)
             },
@@ -175,6 +187,11 @@ fun App() {
                 appState.navController.popBackStack(route = HomeRoute, inclusive = false)
             },
             onTrainingContinue = appState.navController::continueDailyTraining,
+        )
+        memoryGridScreen(
+            onBackClick = {
+                appState.navController.popBackStack(route = MemoryGridMenuRoute, inclusive = false)
+            },
         )
     }
 }

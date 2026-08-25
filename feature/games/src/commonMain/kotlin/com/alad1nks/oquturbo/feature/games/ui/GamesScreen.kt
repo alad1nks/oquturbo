@@ -319,6 +319,28 @@ private fun GameArtwork(game: TrainingGame) {
                     tint = MaterialTheme.colorScheme.secondary,
                 )
             TrainingGame.DontTap -> DontTapArtwork()
+            TrainingGame.MemoryGrid -> MemoryGridArtwork()
+        }
+    }
+}
+
+@Composable
+private fun MemoryGridArtwork() {
+    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+        repeat(3) { row ->
+            Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                repeat(3) { column ->
+                    Box(
+                        Modifier.size(16.dp).clip(RoundedCornerShape(4.dp)).background(
+                            if (row == column) {
+                                MaterialTheme.colorScheme.primary
+                            } else {
+                                MaterialTheme.colorScheme.surface
+                            },
+                        ),
+                    )
+                }
+            }
         }
     }
 }
@@ -481,6 +503,7 @@ private fun TrainingGame.titleResource(): StringResource =
         TrainingGame.NumberSprint -> AppResource.String.remember_number_title
         TrainingGame.WideEye -> AppResource.String.kenkoz_title
         TrainingGame.DontTap -> AppResource.String.baspa_title
+        TrainingGame.MemoryGrid -> AppResource.String.memory_grid_title
     }
 
 private fun TrainingGame.descriptionResource(): StringResource =
@@ -488,6 +511,7 @@ private fun TrainingGame.descriptionResource(): StringResource =
         TrainingGame.NumberSprint -> AppResource.String.games_number_sprint_description
         TrainingGame.WideEye -> AppResource.String.games_wide_eye_description
         TrainingGame.DontTap -> AppResource.String.games_dont_tap_description
+        TrainingGame.MemoryGrid -> AppResource.String.games_memory_grid_description
     }
 
 @Composable
@@ -496,6 +520,7 @@ private fun TrainingGame.artworkBackground(): Color =
         TrainingGame.NumberSprint -> MaterialTheme.colorScheme.primaryContainer
         TrainingGame.WideEye -> MaterialTheme.colorScheme.secondaryContainer
         TrainingGame.DontTap -> MaterialTheme.colorScheme.tertiaryContainer
+        TrainingGame.MemoryGrid -> MaterialTheme.colorScheme.primaryContainer
     }
 
 private fun GamesUiState.Skill.titleResource(): StringResource =
@@ -528,14 +553,12 @@ private fun GamesUiState.Skill.color(): Color =
 
 private fun GamesUiState.UpcomingGame.titleResource(): StringResource =
     when (this) {
-        GamesUiState.UpcomingGame.MemoryGrid -> AppResource.String.games_memory_grid_title
         GamesUiState.UpcomingGame.DualFocus -> AppResource.String.games_dual_focus_title
         GamesUiState.UpcomingGame.WordFlow -> AppResource.String.games_word_flow_title
     }
 
 private fun GamesUiState.UpcomingGame.descriptionResource(): StringResource =
     when (this) {
-        GamesUiState.UpcomingGame.MemoryGrid -> AppResource.String.games_memory_grid_description
         GamesUiState.UpcomingGame.DualFocus -> AppResource.String.games_dual_focus_description
         GamesUiState.UpcomingGame.WordFlow -> AppResource.String.games_word_flow_description
     }

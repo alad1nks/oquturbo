@@ -547,4 +547,24 @@
     <string name="remember_number_menu_subtitle">A number appears briefly. Enter it after it disappears. You get less and less time with each round</string>
     <string name="remember_number_menu_title">Choose a Mode</string>
     <string name="remember_number_title">Number Sprint</string>
+    <string name="memory_grid_title">Memory Grid</string>
+    <string name="memory_grid_menu_title">Train your route</string>
+    <string name="memory_grid_menu_subtitle">Remember the highlighted cells and repeat them in order.</string>
+    <string name="memory_grid_route_title">Route</string>
+    <string name="memory_grid_route_subtitle">Repeat an increasingly long route through the grid.</string>
+    <string name="memory_grid_score">Score</string>
+    <string name="memory_grid_length">Length</string>
+    <string name="memory_grid_back">Back</string>
+    <string name="memory_grid_ready_title">Ready to remember?</string>
+    <string name="memory_grid_rule">Watch the cells, then tap them in the same order.</string>
+    <string name="memory_grid_game_over">The correct next cell is marked.</string>
+    <string name="memory_grid_result">Best completed route: %1$d</string>
+    <string name="memory_grid_start">Start</string>
+    <string name="memory_grid_retry">Try again</string>
+    <string name="memory_grid_hint_ready">Get ready</string>
+    <string name="memory_grid_hint_watch">Watch the route</string>
+    <string name="memory_grid_hint_repeat">Repeat the route</string>
+    <string name="memory_grid_hint_success">Correct!</string>
+    <string name="memory_grid_hint_mistake">Not quite</string>
+    <string name="memory_grid_cell_description">Row %1$d, column %2$d</string>
 </resources>

@@ -119,6 +119,26 @@ import oquturbo.resources.generated.resources.kenkoz_game_start
 import oquturbo.resources.generated.resources.kenkoz_game_try_again
 import oquturbo.resources.generated.resources.kenkoz_game_words
 import oquturbo.resources.generated.resources.kenkoz_title
+import oquturbo.resources.generated.resources.memory_grid_back
+import oquturbo.resources.generated.resources.memory_grid_cell_description
+import oquturbo.resources.generated.resources.memory_grid_game_over
+import oquturbo.resources.generated.resources.memory_grid_hint_mistake
+import oquturbo.resources.generated.resources.memory_grid_hint_ready
+import oquturbo.resources.generated.resources.memory_grid_hint_repeat
+import oquturbo.resources.generated.resources.memory_grid_hint_success
+import oquturbo.resources.generated.resources.memory_grid_hint_watch
+import oquturbo.resources.generated.resources.memory_grid_length
+import oquturbo.resources.generated.resources.memory_grid_menu_subtitle
+import oquturbo.resources.generated.resources.memory_grid_menu_title
+import oquturbo.resources.generated.resources.memory_grid_ready_title
+import oquturbo.resources.generated.resources.memory_grid_result
+import oquturbo.resources.generated.resources.memory_grid_retry
+import oquturbo.resources.generated.resources.memory_grid_route_subtitle
+import oquturbo.resources.generated.resources.memory_grid_route_title
+import oquturbo.resources.generated.resources.memory_grid_rule
+import oquturbo.resources.generated.resources.memory_grid_score
+import oquturbo.resources.generated.resources.memory_grid_start
+import oquturbo.resources.generated.resources.memory_grid_title
 import oquturbo.resources.generated.resources.oquturbo_navigation_games
 import oquturbo.resources.generated.resources.oquturbo_navigation_home
 import oquturbo.resources.generated.resources.oquturbo_navigation_profile
@@ -374,6 +394,26 @@ object AppResource {
         val games_modes_count = Res.string.games_modes_count
         val games_coming_soon_title = Res.string.games_coming_soon_title
         val games_memory_grid_title = Res.string.games_memory_grid_title
+        val memory_grid_title = Res.string.memory_grid_title
+        val memory_grid_menu_title = Res.string.memory_grid_menu_title
+        val memory_grid_menu_subtitle = Res.string.memory_grid_menu_subtitle
+        val memory_grid_route_title = Res.string.memory_grid_route_title
+        val memory_grid_route_subtitle = Res.string.memory_grid_route_subtitle
+        val memory_grid_score = Res.string.memory_grid_score
+        val memory_grid_length = Res.string.memory_grid_length
+        val memory_grid_back = Res.string.memory_grid_back
+        val memory_grid_ready_title = Res.string.memory_grid_ready_title
+        val memory_grid_rule = Res.string.memory_grid_rule
+        val memory_grid_game_over = Res.string.memory_grid_game_over
+        val memory_grid_result = Res.string.memory_grid_result
+        val memory_grid_start = Res.string.memory_grid_start
+        val memory_grid_retry = Res.string.memory_grid_retry
+        val memory_grid_hint_ready = Res.string.memory_grid_hint_ready
+        val memory_grid_hint_watch = Res.string.memory_grid_hint_watch
+        val memory_grid_hint_repeat = Res.string.memory_grid_hint_repeat
+        val memory_grid_hint_success = Res.string.memory_grid_hint_success
+        val memory_grid_hint_mistake = Res.string.memory_grid_hint_mistake
+        val memory_grid_cell_description = Res.string.memory_grid_cell_description
         val games_memory_grid_description = Res.string.games_memory_grid_description
         val games_dual_focus_title = Res.string.games_dual_focus_title
         val games_dual_focus_description = Res.string.games_dual_focus_description
