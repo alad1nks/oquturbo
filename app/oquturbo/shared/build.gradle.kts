@@ -82,6 +82,8 @@ kotlin {
             implementation(projects.feature.kenkozgame)
             implementation(projects.feature.kenkozgamemenu)
             implementation(projects.feature.main)
+            implementation(projects.feature.memorygrid)
+            implementation(projects.feature.memorygridmenu)
             implementation(projects.feature.profile)
             implementation(projects.feature.remembernumber)
             implementation(projects.feature.remembernumbermenu)

@@ -20,6 +20,11 @@ internal data class GamesUiState(
                 skills = listOf(Skill.Attention, Skill.Reaction),
                 modesCount = 7,
             ),
+            GameSummary(
+                game = TrainingGame.MemoryGrid,
+                skills = listOf(Skill.Memory, Skill.Attention),
+                modesCount = 1,
+            ),
         ),
     val upcomingGames: List<UpcomingGame> = UpcomingGame.entries,
 ) {
@@ -38,7 +43,6 @@ internal data class GamesUiState(
     }
 
     enum class UpcomingGame {
-        MemoryGrid,
         DualFocus,
         WordFlow,
     }

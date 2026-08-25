@@ -570,4 +570,24 @@
     <string name="remember_number_menu_subtitle">На короткое время показывается число. Введи его после исчезновения. Каждый раз времени даётся всё меньше и меньше</string>
     <string name="remember_number_menu_title">Выбери режим</string>
     <string name="remember_number_title">Числовой спринт</string>
+    <string name="memory_grid_title">Сетка памяти</string>
+    <string name="memory_grid_menu_title">Тренировка маршрута</string>
+    <string name="memory_grid_menu_subtitle">Запомните подсвеченные клетки и повторите их по порядку.</string>
+    <string name="memory_grid_route_title">Маршрут</string>
+    <string name="memory_grid_route_subtitle">Повторяйте всё более длинный маршрут по сетке.</string>
+    <string name="memory_grid_score">Счёт</string>
+    <string name="memory_grid_length">Длина</string>
+    <string name="memory_grid_back">Назад</string>
+    <string name="memory_grid_ready_title">Готовы запоминать?</string>
+    <string name="memory_grid_rule">Следите за клетками, затем нажмите их в том же порядке.</string>
+    <string name="memory_grid_game_over">Правильная следующая клетка отмечена.</string>
+    <string name="memory_grid_result">Лучший пройденный маршрут: %1$d</string>
+    <string name="memory_grid_start">Начать</string>
+    <string name="memory_grid_retry">Попробовать снова</string>
+    <string name="memory_grid_hint_ready">Приготовьтесь</string>
+    <string name="memory_grid_hint_watch">Запоминайте маршрут</string>
+    <string name="memory_grid_hint_repeat">Повторите маршрут</string>
+    <string name="memory_grid_hint_success">Верно!</string>
+    <string name="memory_grid_hint_mistake">Не совсем</string>
+    <string name="memory_grid_cell_description">Строка %1$d, столбец %2$d</string>
 </resources>

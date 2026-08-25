@@ -11,30 +11,19 @@ plugins {
 
 kotlin {
     android {
-        namespace = "com.alad1nks.oquturbo.feature.memorygrid"
+        namespace = "com.alad1nks.oquturbo.feature.memorygridmenu"
         compileSdk = libs.versions.android.compileSdk.get().toInt()
         minSdk = libs.versions.android.minSdk.get().toInt()
-
-        compilerOptions {
-            jvmTarget = JvmTarget.JVM_11
-        }
+        compilerOptions { jvmTarget = JvmTarget.JVM_11 }
         androidResources { enable = true }
-        withHostTest {}
+        withHostTest { isIncludeAndroidResources = true }
     }
-
     iosArm64()
     iosSimulatorArm64()
     jvm()
-
-    js {
-        browser()
-    }
-
+    js { browser() }
     @OptIn(ExperimentalWasmDsl::class)
-    wasmJs {
-        browser()
-    }
-
+    wasmJs { browser() }
     sourceSets {
         commonMain.dependencies {
             implementation(libs.compose.foundation)
@@ -44,24 +33,13 @@ kotlin {
             implementation(libs.compose.ui)
             implementation(libs.compose.components.resources)
             implementation(libs.compose.ui.tooling.preview)
-            implementation(libs.androidx.lifecycle.viewmodelCompose)
-            implementation(libs.koin.core)
-            implementation(libs.koin.compose)
-            implementation(libs.koin.compose.viewmodel)
-            implementation(libs.kotlinx.coroutines.core)
             implementation(libs.navigation.compose)
-            implementation(project.dependencies.platform(libs.koin.bom))
-
             implementation(projects.core.designsystem)
             implementation(projects.core.ui)
+            implementation(projects.feature.memorygrid)
             implementation(projects.resources)
-        }
-        commonTest.dependencies {
-            implementation(libs.kotlin.test)
         }
     }
 }
 
-dependencies {
-    androidRuntimeClasspath(libs.compose.ui.tooling)
-}
+dependencies { androidRuntimeClasspath(libs.compose.ui.tooling) }

@@ -4,4 +4,5 @@ enum class TrainingGame {
     NumberSprint,
     WideEye,
     DontTap,
+    MemoryGrid,
 }
