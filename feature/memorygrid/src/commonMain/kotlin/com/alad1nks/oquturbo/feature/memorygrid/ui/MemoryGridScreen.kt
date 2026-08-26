@@ -91,7 +91,7 @@ internal fun MemoryGridScreen(
             scoreLabel = scoreLabel,
             score = state.score.toString(),
             recordLabel = stringResource(AppResource.String.memory_grid_length),
-            record = state.sequence.size.toString(),
+            record = state.record.toString(),
             leadingContent = {
                 AppBackButton(
                     onClick = onBackClick,

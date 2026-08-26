@@ -7,6 +7,7 @@ enum class GameId {
     NumberSprint,
     WideEye,
     DontTap,
+    MemoryGrid,
 }
 
 @Serializable
@@ -25,6 +26,7 @@ enum class GameModeId {
     DontTapTrueFalse,
     DontTapMath,
     DontTapSpeedReading,
+    MemoryGridRoute,
 }
 
 @Serializable

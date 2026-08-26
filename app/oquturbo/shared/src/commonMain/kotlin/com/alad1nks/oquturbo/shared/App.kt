@@ -238,6 +238,7 @@ private fun NavController.navigateToDailyTrainingEntry(entry: DailyTrainingEntry
                 trainingEntryId = entry.id,
                 trainingRequiredScore = entry.requiredScore,
             )
+        GameId.MemoryGrid -> error("Memory Grid is not available in daily training")
     }
 }
 

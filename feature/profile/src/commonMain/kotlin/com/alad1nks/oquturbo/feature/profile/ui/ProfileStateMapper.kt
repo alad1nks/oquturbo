@@ -18,7 +18,12 @@ internal fun createProfileUiState(
     todayTraining: DailyTrainingPlan?,
     trainingProgress: DailyTrainingProgress,
 ): ProfileUiState {
-    val memoryModes = records.filter { it.game == GameId.NumberSprint }.map { it.mode }.distinct().size
+    val memoryModes =
+        records
+            .filter { it.game == GameId.NumberSprint || it.game == GameId.MemoryGrid }
+            .map { it.mode }
+            .distinct()
+            .size
     val wideEyeModes = records.filter { it.game == GameId.WideEye }.map { it.mode }.distinct().size
     val titles =
         listOf(

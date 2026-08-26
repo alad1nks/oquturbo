@@ -301,6 +301,7 @@ internal object DemoStatsFixtures {
                             StatsGame.NumberSprint -> 38 * scale
                             StatsGame.WideEye -> 29 * scale
                             StatsGame.DontTap -> 17 * scale
+                            StatsGame.MemoryGrid -> 12 * scale
                         }
                     },
                 modesWithRecords = trend.modes.count { it.scores.isNotEmpty() },
