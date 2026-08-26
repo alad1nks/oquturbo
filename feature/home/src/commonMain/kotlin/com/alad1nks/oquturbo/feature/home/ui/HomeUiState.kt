@@ -13,6 +13,7 @@ internal data class HomeUiState(
         NumberSprint,
         WideEye,
         DontTap,
+        MemoryGrid,
     }
 
     enum class Mode {
@@ -30,6 +31,7 @@ internal data class HomeUiState(
         TrueFalse,
         Math,
         SpeedReading,
+        Route,
     }
 
     data class RecentRecord(

@@ -470,6 +470,7 @@ private fun GameId.modeCatalog(): List<GameModeId> =
                 GameModeId.DontTapMath,
                 GameModeId.DontTapSpeedReading,
             )
+        GameId.MemoryGrid -> listOf(GameModeId.MemoryGridRoute)
     }
 
 private fun GameId.toStatsGame(): StatsGame =
@@ -477,6 +478,7 @@ private fun GameId.toStatsGame(): StatsGame =
         GameId.NumberSprint -> StatsGame.NumberSprint
         GameId.WideEye -> StatsGame.WideEye
         GameId.DontTap -> StatsGame.DontTap
+        GameId.MemoryGrid -> StatsGame.MemoryGrid
     }
 
 private fun GameModeId.toStatsMode(): StatsMode =
@@ -495,11 +497,12 @@ private fun GameModeId.toStatsMode(): StatsMode =
         GameModeId.DontTapTrueFalse -> StatsMode.TrueFalse
         GameModeId.DontTapMath -> StatsMode.Math
         GameModeId.DontTapSpeedReading -> StatsMode.SpeedReading
+        GameModeId.MemoryGridRoute -> StatsMode.Route
     }
 
 private fun StatsSkill.gameIds(): Set<GameId> =
     when (this) {
-        StatsSkill.Memory -> setOf(GameId.NumberSprint)
+        StatsSkill.Memory -> setOf(GameId.NumberSprint, GameId.MemoryGrid)
         StatsSkill.Attention -> setOf(GameId.WideEye, GameId.DontTap)
         StatsSkill.Reaction -> setOf(GameId.NumberSprint, GameId.DontTap)
         StatsSkill.PeripheralVision,

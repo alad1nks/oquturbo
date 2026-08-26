@@ -7,5 +7,5 @@ import org.koin.dsl.module
 
 val MemoryGridModule =
     module {
-        viewModel { parameters -> MemoryGridViewModel(parameters.get<MemoryGridGameMode>()) }
+        viewModel { parameters -> MemoryGridViewModel(parameters.get<MemoryGridGameMode>(), get()) }
     }

@@ -2,6 +2,9 @@ package com.alad1nks.oquturbo.feature.memorygrid.ui
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.alad1nks.oquturbo.core.data.model.GameId
+import com.alad1nks.oquturbo.core.data.model.GameModeId
+import com.alad1nks.oquturbo.core.data.repository.GameActivityRepository
 import com.alad1nks.oquturbo.feature.memorygrid.model.MemoryGridGame
 import com.alad1nks.oquturbo.feature.memorygrid.model.MemoryGridGameMode
 import com.alad1nks.oquturbo.feature.memorygrid.model.MemoryGridPhase
@@ -9,18 +12,38 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import kotlin.time.TimeSource
 
 internal class MemoryGridViewModel(
     val mode: MemoryGridGameMode,
+    private val activityRepository: GameActivityRepository,
     private val game: MemoryGridGame = MemoryGridGame(),
 ) : ViewModel() {
     private val _uiState = MutableStateFlow(game.state)
     val uiState = _uiState.asStateFlow()
     private var presentationJob: Job? = null
+    private var startedAt = TimeSource.Monotonic.markNow()
+    private var record = 0
+    private var sessionRecorded = false
+    private var completedWithNewRecord = false
+
+    init {
+        viewModelScope.launch {
+            record =
+                activityRepository.observeRecords().first()
+                    .filter { it.game == GameId.MemoryGrid && it.mode == GameModeId.MemoryGridRoute }
+                    .maxOfOrNull { it.score } ?: 0
+            publish()
+        }
+    }
 
     fun start() {
         presentationJob?.cancel()
+        startedAt = TimeSource.Monotonic.markNow()
+        sessionRecorded = false
+        completedWithNewRecord = false
         game.start()
         publish()
         schedulePresentation()
@@ -30,6 +53,7 @@ internal class MemoryGridViewModel(
         if (game.state.phase != MemoryGridPhase.AwaitingInput) return
         game.selectCell(cellIndex)
         publish()
+        if (game.state.phase == MemoryGridPhase.GameOver) recordSession()
         if (game.state.phase == MemoryGridPhase.RoundSuccess) {
             presentationJob?.cancel()
             presentationJob =
@@ -55,7 +79,31 @@ internal class MemoryGridViewModel(
     }
 
     private fun publish() {
-        _uiState.value = game.state
+        _uiState.value =
+            game.state.copy(
+                record = maxOf(record, game.state.score),
+                isNewRecord = completedWithNewRecord,
+            )
+    }
+
+    private fun recordSession() {
+        if (sessionRecorded) return
+        sessionRecorded = true
+        val finishedState = game.state
+        val isNewRecord = finishedState.score > record
+        completedWithNewRecord = isNewRecord
+        if (isNewRecord) record = finishedState.score
+        publish()
+        viewModelScope.launch {
+            activityRepository.recordCompletedSession(
+                game = GameId.MemoryGrid,
+                mode = GameModeId.MemoryGridRoute,
+                score = finishedState.score,
+                correctAnswers = finishedState.correctCellCount,
+                durationMillis = startedAt.elapsedNow().inWholeMilliseconds,
+                isNewRecord = isNewRecord,
+            )
+        }
     }
 
     override fun onCleared() {

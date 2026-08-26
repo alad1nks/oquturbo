@@ -3,6 +3,7 @@ package com.alad1nks.oquturbo.feature.stats.ui
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Block
 import androidx.compose.material.icons.filled.Bolt
+import androidx.compose.material.icons.filled.GridView
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -23,6 +24,7 @@ internal fun StatsGame.titleResource(): StringResource =
         StatsGame.NumberSprint -> AppResource.String.remember_number_title
         StatsGame.WideEye -> AppResource.String.kenkoz_title
         StatsGame.DontTap -> AppResource.String.baspa_title
+        StatsGame.MemoryGrid -> AppResource.String.memory_grid_title
     }
 
 internal fun StatsGame.icon(): ImageVector =
@@ -30,6 +32,7 @@ internal fun StatsGame.icon(): ImageVector =
         StatsGame.NumberSprint -> Icons.Filled.Bolt
         StatsGame.WideEye -> Icons.Filled.Visibility
         StatsGame.DontTap -> Icons.Filled.Block
+        StatsGame.MemoryGrid -> Icons.Filled.GridView
     }
 
 internal fun StatsMode.titleResource(): StringResource =
@@ -48,6 +51,7 @@ internal fun StatsMode.titleResource(): StringResource =
         StatsMode.TrueFalse -> AppResource.String.baspa_game_menu_true_false_title
         StatsMode.Math -> AppResource.String.baspa_game_menu_math_title
         StatsMode.SpeedReading -> AppResource.String.baspa_game_menu_speed_reading_title
+        StatsMode.Route -> AppResource.String.memory_grid_route_title
     }
 
 @Composable

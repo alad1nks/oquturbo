@@ -176,7 +176,7 @@ class DailyTrainingRepository(
         return DailyTrainingPlan(
             epochDay = epochDay,
             entries =
-                GameId.entries.shuffled(random).take(DAILY_TRAINING_GAME_COUNT).map { game ->
+                DAILY_TRAINING_GAMES.shuffled(random).take(DAILY_TRAINING_GAME_COUNT).map { game ->
                     val mode = game.trainingModes().random(random)
                     DailyTrainingEntry(
                         id = trainingEntryId(epochDay, game, mode),
@@ -237,6 +237,7 @@ class DailyTrainingRepository(
                     GameModeId.DontTapMath,
                     GameModeId.DontTapSpeedReading,
                 )
+            GameId.MemoryGrid -> emptyList()
         }
 
     private fun GameId.requiredTrainingScore(): Int =
@@ -244,6 +245,7 @@ class DailyTrainingRepository(
             GameId.NumberSprint -> 5
             GameId.WideEye -> 5
             GameId.DontTap -> 8
+            GameId.MemoryGrid -> error("Memory Grid is not balanced for daily training")
         }
 
     @OptIn(ExperimentalTime::class)
@@ -257,5 +259,6 @@ class DailyTrainingRepository(
         const val MILLIS_PER_DAY = 86_400_000L
         const val STORAGE_RETRY_ATTEMPTS = 4
         const val STORAGE_RETRY_DELAY_MULTIPLIER = 2
+        val DAILY_TRAINING_GAMES = listOf(GameId.NumberSprint, GameId.WideEye, GameId.DontTap)
     }
 }

@@ -7,6 +7,7 @@ enum class StatsGame {
     NumberSprint,
     WideEye,
     DontTap,
+    MemoryGrid,
 }
 
 @Serializable
@@ -25,6 +26,7 @@ enum class StatsMode {
     TrueFalse,
     Math,
     SpeedReading,
+    Route,
 }
 
 @Serializable

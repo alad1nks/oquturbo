@@ -128,6 +128,7 @@ internal class HomeViewModel(
             GameId.NumberSprint -> HomeUiState.Game.NumberSprint
             GameId.WideEye -> HomeUiState.Game.WideEye
             GameId.DontTap -> HomeUiState.Game.DontTap
+            GameId.MemoryGrid -> HomeUiState.Game.MemoryGrid
         }
 
     private fun GameModeId.toHomeMode(): HomeUiState.Mode =
@@ -146,6 +147,7 @@ internal class HomeViewModel(
             GameModeId.DontTapTrueFalse -> HomeUiState.Mode.TrueFalse
             GameModeId.DontTapMath -> HomeUiState.Mode.Math
             GameModeId.DontTapSpeedReading -> HomeUiState.Mode.SpeedReading
+            GameModeId.MemoryGridRoute -> HomeUiState.Mode.Route
         }
 
     private companion object {

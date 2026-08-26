@@ -154,6 +154,8 @@ data class MemoryGridState(
     val correctCellCount: Int = 0,
     val cellPresentationMillis: Long = MemoryGridGame.INITIAL_PRESENTATION_MILLIS,
     val mistakeIndex: Int? = null,
+    val record: Int = 0,
+    val isNewRecord: Boolean = false,
 ) {
     val cellCount: Int
         get() = gridSize * gridSize

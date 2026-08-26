@@ -21,6 +21,7 @@ import androidx.compose.material.icons.filled.Block
 import androidx.compose.material.icons.filled.Bolt
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.EmojiEvents
+import androidx.compose.material.icons.filled.GridView
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material3.Button
@@ -423,6 +424,7 @@ private fun HomeUiState.Game.titleResource(): StringResource =
         HomeUiState.Game.NumberSprint -> AppResource.String.remember_number_title
         HomeUiState.Game.WideEye -> AppResource.String.kenkoz_title
         HomeUiState.Game.DontTap -> AppResource.String.baspa_title
+        HomeUiState.Game.MemoryGrid -> AppResource.String.memory_grid_title
     }
 
 private fun HomeUiState.Mode.titleResource(): StringResource =
@@ -441,6 +443,7 @@ private fun HomeUiState.Mode.titleResource(): StringResource =
         HomeUiState.Mode.TrueFalse -> AppResource.String.baspa_game_menu_true_false_title
         HomeUiState.Mode.Math -> AppResource.String.baspa_game_menu_math_title
         HomeUiState.Mode.SpeedReading -> AppResource.String.baspa_game_menu_speed_reading_title
+        HomeUiState.Mode.Route -> AppResource.String.memory_grid_route_title
     }
 
 @Composable
@@ -480,6 +483,7 @@ private fun HomeUiState.Game.icon(): ImageVector =
         HomeUiState.Game.NumberSprint -> Icons.Filled.Bolt
         HomeUiState.Game.WideEye -> Icons.Filled.Visibility
         HomeUiState.Game.DontTap -> Icons.Filled.Block
+        HomeUiState.Game.MemoryGrid -> Icons.Filled.GridView
     }
 
 @Preview(
