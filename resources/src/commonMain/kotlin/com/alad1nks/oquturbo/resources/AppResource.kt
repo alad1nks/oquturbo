@@ -121,6 +121,9 @@ import oquturbo.resources.generated.resources.kenkoz_game_words
 import oquturbo.resources.generated.resources.kenkoz_title
 import oquturbo.resources.generated.resources.memory_grid_back
 import oquturbo.resources.generated.resources.memory_grid_cell_description
+import oquturbo.resources.generated.resources.memory_grid_flash_rule
+import oquturbo.resources.generated.resources.memory_grid_flash_subtitle
+import oquturbo.resources.generated.resources.memory_grid_flash_title
 import oquturbo.resources.generated.resources.memory_grid_game_over
 import oquturbo.resources.generated.resources.memory_grid_hint_mistake
 import oquturbo.resources.generated.resources.memory_grid_hint_ready
@@ -133,6 +136,9 @@ import oquturbo.resources.generated.resources.memory_grid_menu_title
 import oquturbo.resources.generated.resources.memory_grid_ready_title
 import oquturbo.resources.generated.resources.memory_grid_result
 import oquturbo.resources.generated.resources.memory_grid_retry
+import oquturbo.resources.generated.resources.memory_grid_reverse_rule
+import oquturbo.resources.generated.resources.memory_grid_reverse_subtitle
+import oquturbo.resources.generated.resources.memory_grid_reverse_title
 import oquturbo.resources.generated.resources.memory_grid_route_subtitle
 import oquturbo.resources.generated.resources.memory_grid_route_title
 import oquturbo.resources.generated.resources.memory_grid_rule
@@ -399,6 +405,12 @@ object AppResource {
         val memory_grid_menu_subtitle = Res.string.memory_grid_menu_subtitle
         val memory_grid_route_title = Res.string.memory_grid_route_title
         val memory_grid_route_subtitle = Res.string.memory_grid_route_subtitle
+        val memory_grid_reverse_title = Res.string.memory_grid_reverse_title
+        val memory_grid_reverse_subtitle = Res.string.memory_grid_reverse_subtitle
+        val memory_grid_reverse_rule = Res.string.memory_grid_reverse_rule
+        val memory_grid_flash_title = Res.string.memory_grid_flash_title
+        val memory_grid_flash_subtitle = Res.string.memory_grid_flash_subtitle
+        val memory_grid_flash_rule = Res.string.memory_grid_flash_rule
         val memory_grid_score = Res.string.memory_grid_score
         val memory_grid_length = Res.string.memory_grid_length
         val memory_grid_back = Res.string.memory_grid_back

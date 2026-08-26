@@ -552,6 +552,12 @@
     <string name="memory_grid_menu_subtitle">Remember the highlighted cells and repeat them in order.</string>
     <string name="memory_grid_route_title">Route</string>
     <string name="memory_grid_route_subtitle">Repeat an increasingly long route through the grid.</string>
+    <string name="memory_grid_reverse_title">Reverse</string>
+    <string name="memory_grid_reverse_subtitle">Repeat the route from the last cell to the first.</string>
+    <string name="memory_grid_reverse_rule">Watch the cells, then tap them in reverse order.</string>
+    <string name="memory_grid_flash_title">Flash</string>
+    <string name="memory_grid_flash_subtitle">Remember all highlighted cells; order does not matter.</string>
+    <string name="memory_grid_flash_rule">Remember all cells shown at once, then tap them in any order.</string>
     <string name="memory_grid_score">Score</string>
     <string name="memory_grid_length">Length</string>
     <string name="memory_grid_back">Back</string>

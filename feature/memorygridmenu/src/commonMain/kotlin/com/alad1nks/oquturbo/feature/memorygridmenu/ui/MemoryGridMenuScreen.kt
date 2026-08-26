@@ -62,6 +62,22 @@ internal fun MemoryGridMenuScreen(
                         onClick = { onModeClick(MemoryGridGameMode.Route) },
                     )
                 }
+                item {
+                    GameMenuItem(
+                        imageVector = Icons.Outlined.GridView,
+                        title = stringResource(AppResource.String.memory_grid_reverse_title),
+                        subtitle = stringResource(AppResource.String.memory_grid_reverse_subtitle),
+                        onClick = { onModeClick(MemoryGridGameMode.Reverse) },
+                    )
+                }
+                item {
+                    GameMenuItem(
+                        imageVector = Icons.Outlined.GridView,
+                        title = stringResource(AppResource.String.memory_grid_flash_title),
+                        subtitle = stringResource(AppResource.String.memory_grid_flash_subtitle),
+                        onClick = { onModeClick(MemoryGridGameMode.Flash) },
+                    )
+                }
             }
         }
     }

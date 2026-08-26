@@ -62,6 +62,32 @@ class MemoryGridGameTest {
     }
 
     @Test
+    fun reverseModeAcceptsCellsFromLastToFirst() {
+        val game = MemoryGridGame(RecordingGenerator(), MemoryGridGameMode.Reverse).apply { start() }
+        finishPresentation(game)
+
+        game.state.sequence.reversed().forEach(game::selectCell)
+
+        assertEquals(MemoryGridPhase.RoundSuccess, game.state.phase)
+        assertEquals(3, game.state.score)
+    }
+
+    @Test
+    fun flashModeShowsAllCellsAndAcceptsAnyOrder() {
+        val game = MemoryGridGame(RecordingGenerator(), MemoryGridGameMode.Flash).apply { start() }
+
+        assertEquals(4, game.state.gridSize)
+        assertEquals(setOf(0, 1, 2), game.state.highlightedCells(MemoryGridGameMode.Flash))
+        game.advancePresentation()
+        assertEquals(MemoryGridPhase.AwaitingInput, game.state.phase)
+        listOf(2, 0, 1).forEach(game::selectCell)
+
+        assertEquals(MemoryGridPhase.RoundSuccess, game.state.phase)
+        assertEquals(1, game.state.score)
+        assertEquals(3, game.state.correctCellCount)
+    }
+
+    @Test
     fun mistakeEndsGameAndExposesExpectedCell() {
         val game = MemoryGridGame(RecordingGenerator()).apply { start() }
         finishPresentation(game)

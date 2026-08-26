@@ -148,6 +148,8 @@ internal class HomeViewModel(
             GameModeId.DontTapMath -> HomeUiState.Mode.Math
             GameModeId.DontTapSpeedReading -> HomeUiState.Mode.SpeedReading
             GameModeId.MemoryGridRoute -> HomeUiState.Mode.Route
+            GameModeId.MemoryGridReverse -> HomeUiState.Mode.Reverse
+            GameModeId.MemoryGridFlash -> HomeUiState.Mode.Flash
         }
 
     private companion object {

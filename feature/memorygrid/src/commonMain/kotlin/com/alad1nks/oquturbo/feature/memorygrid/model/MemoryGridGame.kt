@@ -8,6 +8,7 @@ package com.alad1nks.oquturbo.feature.memorygrid.model
  */
 class MemoryGridGame(
     private val sequenceGenerator: MemoryGridSequenceGenerator = RandomMemoryGridSequenceGenerator(),
+    val mode: MemoryGridGameMode = MemoryGridGameMode.Route,
 ) {
     var state: MemoryGridState = MemoryGridState()
         private set
@@ -21,7 +22,7 @@ class MemoryGridGame(
         if (current.phase != MemoryGridPhase.ShowingSequence) return
 
         state =
-            if (current.presentationIndex < current.sequence.lastIndex) {
+            if (mode != MemoryGridGameMode.Flash && current.presentationIndex < current.sequence.lastIndex) {
                 current.copy(presentationIndex = current.presentationIndex + 1)
             } else {
                 current.copy(
@@ -38,12 +39,30 @@ class MemoryGridGame(
             "Memory Grid cell index $cellIndex is outside a ${current.gridSize}x${current.gridSize} grid"
         }
 
-        val expectedCell = current.sequence[current.input.size]
-        if (cellIndex != expectedCell) {
+        val expectedSequence =
+            when (mode) {
+                MemoryGridGameMode.Route -> current.sequence
+                MemoryGridGameMode.Reverse -> current.sequence.reversed()
+                MemoryGridGameMode.Flash -> current.sequence
+            }
+        val expectedCell = expectedSequence[current.input.size]
+        val isCorrect =
+            if (mode == MemoryGridGameMode.Flash) {
+                cellIndex in current.sequence && cellIndex !in current.input
+            } else {
+                cellIndex == expectedCell
+            }
+        if (!isCorrect) {
             state =
                 current.copy(
                     phase = MemoryGridPhase.GameOver,
                     mistakeIndex = current.input.size,
+                    expectedCellAfterMistake =
+                        if (mode == MemoryGridGameMode.Flash) {
+                            current.sequence.firstOrNull { it !in current.input }
+                        } else {
+                            expectedCell
+                        },
                 )
             return
         }
@@ -54,7 +73,7 @@ class MemoryGridGame(
                 current.copy(
                     phase = MemoryGridPhase.RoundSuccess,
                     input = updatedInput,
-                    score = current.sequence.size,
+                    score = if (mode == MemoryGridGameMode.Flash) current.score + 1 else current.sequence.size,
                     correctCellCount = current.correctCellCount + 1,
                 )
             } else {
@@ -71,7 +90,12 @@ class MemoryGridGame(
 
         state =
             createRound(
-                sequenceLength = current.sequence.size + 1,
+                sequenceLength =
+                    if (mode == MemoryGridGameMode.Flash) {
+                        (current.sequence.size + 1).coerceAtMost(FLASH_CELL_COUNT)
+                    } else {
+                        current.sequence.size + 1
+                    },
                 score = current.score,
                 correctCellCount = current.correctCellCount,
             )
@@ -82,8 +106,8 @@ class MemoryGridGame(
         score: Int,
         correctCellCount: Int,
     ): MemoryGridState {
-        val gridSize = gridSizeFor(sequenceLength)
-        val allowRepeatedCells = sequenceLength >= REPEATED_CELLS_SEQUENCE_LENGTH
+        val gridSize = if (mode == MemoryGridGameMode.Flash) 4 else gridSizeFor(sequenceLength)
+        val allowRepeatedCells = mode != MemoryGridGameMode.Flash && sequenceLength >= REPEATED_CELLS_SEQUENCE_LENGTH
         val sequence =
             sequenceGenerator.generate(
                 cellCount = gridSize * gridSize,
@@ -118,6 +142,7 @@ class MemoryGridGame(
         const val MIN_PRESENTATION_MILLIS = 350L
         const val PRESENTATION_STEP_MILLIS = 35L
         const val NO_CELL_INDEX = -1
+        const val FLASH_CELL_COUNT = 16
 
         fun gridSizeFor(sequenceLength: Int): Int {
             require(sequenceLength >= INITIAL_SEQUENCE_LENGTH) { "Memory Grid sequence must contain at least 3 cells" }
@@ -154,6 +179,7 @@ data class MemoryGridState(
     val correctCellCount: Int = 0,
     val cellPresentationMillis: Long = MemoryGridGame.INITIAL_PRESENTATION_MILLIS,
     val mistakeIndex: Int? = null,
+    val expectedCellAfterMistake: Int? = null,
     val record: Int = 0,
     val isNewRecord: Boolean = false,
 ) {
@@ -163,6 +189,10 @@ data class MemoryGridState(
     val highlightedCell: Int?
         get() = presentationIndex.takeIf { phase == MemoryGridPhase.ShowingSequence }?.let(sequence::get)
 
-    val expectedCellAfterMistake: Int?
-        get() = mistakeIndex?.let(sequence::get)
+    fun highlightedCells(mode: MemoryGridGameMode): Set<Int> =
+        when {
+            phase != MemoryGridPhase.ShowingSequence -> emptySet()
+            mode == MemoryGridGameMode.Flash -> sequence.toSet()
+            else -> setOfNotNull(highlightedCell)
+        }
 }

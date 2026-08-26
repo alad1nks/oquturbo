@@ -19,7 +19,7 @@ import kotlin.time.TimeSource
 internal class MemoryGridViewModel(
     val mode: MemoryGridGameMode,
     private val activityRepository: GameActivityRepository,
-    private val game: MemoryGridGame = MemoryGridGame(),
+    private val game: MemoryGridGame = MemoryGridGame(mode = mode),
 ) : ViewModel() {
     private val _uiState = MutableStateFlow(game.state)
     val uiState = _uiState.asStateFlow()
@@ -33,7 +33,7 @@ internal class MemoryGridViewModel(
         viewModelScope.launch {
             record =
                 activityRepository.observeRecords().first()
-                    .filter { it.game == GameId.MemoryGrid && it.mode == GameModeId.MemoryGridRoute }
+                    .filter { it.game == GameId.MemoryGrid && it.mode == mode.activityMode }
                     .maxOfOrNull { it.score } ?: 0
             publish()
         }
@@ -97,7 +97,7 @@ internal class MemoryGridViewModel(
         viewModelScope.launch {
             activityRepository.recordCompletedSession(
                 game = GameId.MemoryGrid,
-                mode = GameModeId.MemoryGridRoute,
+                mode = mode.activityMode,
                 score = finishedState.score,
                 correctAnswers = finishedState.correctCellCount,
                 durationMillis = startedAt.elapsedNow().inWholeMilliseconds,
@@ -115,3 +115,11 @@ internal class MemoryGridViewModel(
         const val ROUND_SUCCESS_MILLIS = 500L
     }
 }
+
+private val MemoryGridGameMode.activityMode: GameModeId
+    get() =
+        when (this) {
+            MemoryGridGameMode.Route -> GameModeId.MemoryGridRoute
+            MemoryGridGameMode.Reverse -> GameModeId.MemoryGridReverse
+            MemoryGridGameMode.Flash -> GameModeId.MemoryGridFlash
+        }
