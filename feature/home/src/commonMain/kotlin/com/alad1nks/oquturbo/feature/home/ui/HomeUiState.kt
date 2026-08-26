@@ -32,6 +32,8 @@ internal data class HomeUiState(
         Math,
         SpeedReading,
         Route,
+        Reverse,
+        Flash,
     }
 
     data class RecentRecord(

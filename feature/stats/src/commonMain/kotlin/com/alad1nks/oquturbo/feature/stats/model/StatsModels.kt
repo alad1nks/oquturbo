@@ -27,6 +27,8 @@ enum class StatsMode {
     Math,
     SpeedReading,
     Route,
+    Reverse,
+    Flash,
 }
 
 @Serializable

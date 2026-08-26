@@ -444,6 +444,8 @@ private fun HomeUiState.Mode.titleResource(): StringResource =
         HomeUiState.Mode.Math -> AppResource.String.baspa_game_menu_math_title
         HomeUiState.Mode.SpeedReading -> AppResource.String.baspa_game_menu_speed_reading_title
         HomeUiState.Mode.Route -> AppResource.String.memory_grid_route_title
+        HomeUiState.Mode.Reverse -> AppResource.String.memory_grid_reverse_title
+        HomeUiState.Mode.Flash -> AppResource.String.memory_grid_flash_title
     }
 
 @Composable

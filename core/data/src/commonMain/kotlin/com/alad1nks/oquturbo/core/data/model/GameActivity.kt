@@ -27,6 +27,8 @@ enum class GameModeId {
     DontTapMath,
     DontTapSpeedReading,
     MemoryGridRoute,
+    MemoryGridReverse,
+    MemoryGridFlash,
 }
 
 @Serializable

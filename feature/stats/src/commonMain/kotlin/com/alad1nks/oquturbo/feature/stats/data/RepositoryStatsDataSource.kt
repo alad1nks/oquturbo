@@ -470,7 +470,8 @@ private fun GameId.modeCatalog(): List<GameModeId> =
                 GameModeId.DontTapMath,
                 GameModeId.DontTapSpeedReading,
             )
-        GameId.MemoryGrid -> listOf(GameModeId.MemoryGridRoute)
+        GameId.MemoryGrid ->
+            listOf(GameModeId.MemoryGridRoute, GameModeId.MemoryGridReverse, GameModeId.MemoryGridFlash)
     }
 
 private fun GameId.toStatsGame(): StatsGame =
@@ -498,6 +499,8 @@ private fun GameModeId.toStatsMode(): StatsMode =
         GameModeId.DontTapMath -> StatsMode.Math
         GameModeId.DontTapSpeedReading -> StatsMode.SpeedReading
         GameModeId.MemoryGridRoute -> StatsMode.Route
+        GameModeId.MemoryGridReverse -> StatsMode.Reverse
+        GameModeId.MemoryGridFlash -> StatsMode.Flash
     }
 
 private fun StatsSkill.gameIds(): Set<GameId> =

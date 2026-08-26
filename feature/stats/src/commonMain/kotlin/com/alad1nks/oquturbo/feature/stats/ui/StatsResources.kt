@@ -52,6 +52,8 @@ internal fun StatsMode.titleResource(): StringResource =
         StatsMode.Math -> AppResource.String.baspa_game_menu_math_title
         StatsMode.SpeedReading -> AppResource.String.baspa_game_menu_speed_reading_title
         StatsMode.Route -> AppResource.String.memory_grid_route_title
+        StatsMode.Reverse -> AppResource.String.memory_grid_reverse_title
+        StatsMode.Flash -> AppResource.String.memory_grid_flash_title
     }
 
 @Composable

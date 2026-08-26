@@ -575,6 +575,12 @@
     <string name="memory_grid_menu_subtitle">Запомните подсвеченные клетки и повторите их по порядку.</string>
     <string name="memory_grid_route_title">Маршрут</string>
     <string name="memory_grid_route_subtitle">Повторяйте всё более длинный маршрут по сетке.</string>
+    <string name="memory_grid_reverse_title">Наоборот</string>
+    <string name="memory_grid_reverse_subtitle">Повторите маршрут от последней клетки к первой.</string>
+    <string name="memory_grid_reverse_rule">Следите за клетками, затем нажмите их в обратном порядке.</string>
+    <string name="memory_grid_flash_title">Вспышка</string>
+    <string name="memory_grid_flash_subtitle">Запомните все подсвеченные клетки; порядок не важен.</string>
+    <string name="memory_grid_flash_rule">Запомните все показанные одновременно клетки и нажмите их в любом порядке.</string>
     <string name="memory_grid_score">Счёт</string>
     <string name="memory_grid_length">Длина</string>
     <string name="memory_grid_back">Назад</string>

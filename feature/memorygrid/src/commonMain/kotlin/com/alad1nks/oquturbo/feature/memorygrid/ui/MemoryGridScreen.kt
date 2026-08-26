@@ -45,6 +45,7 @@ import com.alad1nks.oquturbo.core.ui.component.AppBackButton
 import com.alad1nks.oquturbo.core.ui.component.GameHeader
 import com.alad1nks.oquturbo.core.ui.component.appBackground
 import com.alad1nks.oquturbo.core.ui.preview.ScreenshotPreview
+import com.alad1nks.oquturbo.feature.memorygrid.model.MemoryGridGameMode
 import com.alad1nks.oquturbo.feature.memorygrid.model.MemoryGridPhase
 import com.alad1nks.oquturbo.feature.memorygrid.model.MemoryGridState
 import com.alad1nks.oquturbo.resources.AppResource
@@ -56,12 +57,13 @@ internal fun MemoryGridRoute(
     onBackClick: () -> Unit,
 ) {
     val state by viewModel.uiState.collectAsState()
-    MemoryGridScreen(state, viewModel::start, viewModel::selectCell, onBackClick)
+    MemoryGridScreen(state, viewModel.mode, viewModel::start, viewModel::selectCell, onBackClick)
 }
 
 @Composable
 internal fun MemoryGridScreen(
     state: MemoryGridState,
+    mode: MemoryGridGameMode,
     onStartClick: () -> Unit,
     onCellClick: (Int) -> Unit,
     onBackClick: () -> Unit,
@@ -82,9 +84,9 @@ internal fun MemoryGridScreen(
                 style = MaterialTheme.typography.titleMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
-            MemoryGridBoard(state, onCellClick)
+            MemoryGridBoard(state, mode, onCellClick)
             if (state.phase == MemoryGridPhase.Ready || state.phase == MemoryGridPhase.GameOver) {
-                ResultPanel(state, onStartClick)
+                ResultPanel(state, mode, onStartClick)
             }
         }
         GameHeader(
@@ -106,7 +108,8 @@ internal fun MemoryGridScreen(
 }
 
 @Composable
-private fun MemoryGridBoard(state: MemoryGridState, onCellClick: (Int) -> Unit) {
+private fun MemoryGridBoard(state: MemoryGridState, mode: MemoryGridGameMode, onCellClick: (Int) -> Unit) {
+    val highlightedCells = state.highlightedCells(mode)
     Column(
         modifier = Modifier.fillMaxWidth().aspectRatio(1f),
         verticalArrangement = Arrangement.spacedBy(8.dp),
@@ -115,7 +118,7 @@ private fun MemoryGridBoard(state: MemoryGridState, onCellClick: (Int) -> Unit) 
             Row(Modifier.weight(1f), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 repeat(state.gridSize) { column ->
                     val index = row * state.gridSize + column
-                    val active = state.highlightedCell == index
+                    val active = index in highlightedCells
                     val error = state.phase == MemoryGridPhase.GameOver && state.expectedCellAfterMistake == index
                     val enabled = state.phase == MemoryGridPhase.AwaitingInput
                     val description =
@@ -160,7 +163,7 @@ private fun MemoryGridBoard(state: MemoryGridState, onCellClick: (Int) -> Unit) 
 }
 
 @Composable
-private fun ResultPanel(state: MemoryGridState, onStartClick: () -> Unit) {
+private fun ResultPanel(state: MemoryGridState, mode: MemoryGridGameMode, onStartClick: () -> Unit) {
     Card(colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)) {
         Column(
             Modifier.fillMaxWidth().padding(20.dp),
@@ -179,7 +182,7 @@ private fun ResultPanel(state: MemoryGridState, onStartClick: () -> Unit) {
             )
             Text(
                 stringResource(
-                    if (state.phase == MemoryGridPhase.Ready) AppResource.String.memory_grid_rule else AppResource.String.memory_grid_game_over,
+                    if (state.phase == MemoryGridPhase.Ready) mode.ruleResource else AppResource.String.memory_grid_game_over,
                 ),
             )
             Button(onClick = onStartClick) {
@@ -206,9 +209,17 @@ private fun phaseHint(phase: MemoryGridPhase): String =
         },
     )
 
+private val MemoryGridGameMode.ruleResource
+    get() =
+        when (this) {
+            MemoryGridGameMode.Route -> AppResource.String.memory_grid_rule
+            MemoryGridGameMode.Reverse -> AppResource.String.memory_grid_reverse_rule
+            MemoryGridGameMode.Flash -> AppResource.String.memory_grid_flash_rule
+        }
+
 @Preview(widthDp = 390, heightDp = 844)
 @ScreenshotPreview
 @Composable
 private fun MemoryGridPreview() {
-    OquTurboTheme { MemoryGridScreen(MemoryGridState(), {}, {}, {}) }
+    OquTurboTheme { MemoryGridScreen(MemoryGridState(), MemoryGridGameMode.Route, {}, {}, {}) }
 }
