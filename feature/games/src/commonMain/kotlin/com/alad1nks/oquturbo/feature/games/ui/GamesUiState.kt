@@ -23,7 +23,7 @@ internal data class GamesUiState(
             GameSummary(
                 game = TrainingGame.MemoryGrid,
                 skills = listOf(Skill.Memory, Skill.Attention),
-                modesCount = 1,
+                modesCount = 3,
             ),
         ),
     val upcomingGames: List<UpcomingGame> = UpcomingGame.entries,

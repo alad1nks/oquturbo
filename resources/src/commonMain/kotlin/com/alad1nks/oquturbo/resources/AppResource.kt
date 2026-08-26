@@ -121,6 +121,7 @@ import oquturbo.resources.generated.resources.kenkoz_game_words
 import oquturbo.resources.generated.resources.kenkoz_title
 import oquturbo.resources.generated.resources.memory_grid_back
 import oquturbo.resources.generated.resources.memory_grid_cell_description
+import oquturbo.resources.generated.resources.memory_grid_flash_result
 import oquturbo.resources.generated.resources.memory_grid_flash_rule
 import oquturbo.resources.generated.resources.memory_grid_flash_subtitle
 import oquturbo.resources.generated.resources.memory_grid_flash_title
@@ -139,6 +140,7 @@ import oquturbo.resources.generated.resources.memory_grid_retry
 import oquturbo.resources.generated.resources.memory_grid_reverse_rule
 import oquturbo.resources.generated.resources.memory_grid_reverse_subtitle
 import oquturbo.resources.generated.resources.memory_grid_reverse_title
+import oquturbo.resources.generated.resources.memory_grid_rounds
 import oquturbo.resources.generated.resources.memory_grid_route_subtitle
 import oquturbo.resources.generated.resources.memory_grid_route_title
 import oquturbo.resources.generated.resources.memory_grid_rule
@@ -411,6 +413,7 @@ object AppResource {
         val memory_grid_flash_title = Res.string.memory_grid_flash_title
         val memory_grid_flash_subtitle = Res.string.memory_grid_flash_subtitle
         val memory_grid_flash_rule = Res.string.memory_grid_flash_rule
+        val memory_grid_flash_result = Res.string.memory_grid_flash_result
         val memory_grid_score = Res.string.memory_grid_score
         val memory_grid_length = Res.string.memory_grid_length
         val memory_grid_back = Res.string.memory_grid_back
@@ -418,6 +421,7 @@ object AppResource {
         val memory_grid_rule = Res.string.memory_grid_rule
         val memory_grid_game_over = Res.string.memory_grid_game_over
         val memory_grid_result = Res.string.memory_grid_result
+        val memory_grid_rounds = Res.string.memory_grid_rounds
         val memory_grid_start = Res.string.memory_grid_start
         val memory_grid_retry = Res.string.memory_grid_retry
         val memory_grid_hint_ready = Res.string.memory_grid_hint_ready
