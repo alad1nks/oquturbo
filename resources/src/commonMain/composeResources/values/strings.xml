@@ -560,11 +560,13 @@
     <string name="memory_grid_flash_rule">Remember all cells shown at once, then tap them in any order.</string>
     <string name="memory_grid_score">Score</string>
     <string name="memory_grid_length">Length</string>
+    <string name="memory_grid_rounds">Rounds</string>
     <string name="memory_grid_back">Back</string>
     <string name="memory_grid_ready_title">Ready to remember?</string>
     <string name="memory_grid_rule">Watch the cells, then tap them in the same order.</string>
     <string name="memory_grid_game_over">The correct next cell is marked.</string>
     <string name="memory_grid_result">Best completed route: %1$d</string>
+    <string name="memory_grid_flash_result">Rounds completed: %1$d</string>
     <string name="memory_grid_start">Start</string>
     <string name="memory_grid_retry">Try again</string>
     <string name="memory_grid_hint_ready">Get ready</string>

@@ -92,7 +92,14 @@ internal fun MemoryGridScreen(
         GameHeader(
             scoreLabel = scoreLabel,
             score = state.score.toString(),
-            recordLabel = stringResource(AppResource.String.memory_grid_length),
+            recordLabel =
+                stringResource(
+                    if (mode == MemoryGridGameMode.Flash) {
+                        AppResource.String.memory_grid_rounds
+                    } else {
+                        AppResource.String.memory_grid_length
+                    },
+                ),
             record = state.record.toString(),
             leadingContent = {
                 AppBackButton(
@@ -174,6 +181,8 @@ private fun ResultPanel(state: MemoryGridState, mode: MemoryGridGameMode, onStar
                 text =
                     if (state.phase == MemoryGridPhase.Ready) {
                         stringResource(AppResource.String.memory_grid_ready_title)
+                    } else if (mode == MemoryGridGameMode.Flash) {
+                        stringResource(AppResource.String.memory_grid_flash_result, state.score)
                     } else {
                         stringResource(AppResource.String.memory_grid_result, state.score)
                     },

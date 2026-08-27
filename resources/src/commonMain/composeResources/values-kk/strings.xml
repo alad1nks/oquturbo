@@ -562,11 +562,13 @@
     <string name="memory_grid_flash_rule">Бір уақытта көрсетілген барлық ұяшықтарды есте сақтап, кез келген ретпен басыңыз.</string>
     <string name="memory_grid_score">Ұпай</string>
     <string name="memory_grid_length">Ұзындық</string>
+    <string name="memory_grid_rounds">Раундтар</string>
     <string name="memory_grid_back">Артқа</string>
     <string name="memory_grid_ready_title">Есте сақтауға дайынсыз ба?</string>
     <string name="memory_grid_rule">Ұяшықтарды бақылап, кейін сол ретпен басыңыз.</string>
     <string name="memory_grid_game_over">Келесі дұрыс ұяшық белгіленді.</string>
     <string name="memory_grid_result">Ең ұзақ орындалған бағыт: %1$d</string>
+    <string name="memory_grid_flash_result">Аяқталған раундтар: %1$d</string>
     <string name="memory_grid_start">Бастау</string>
     <string name="memory_grid_retry">Қайта көру</string>
     <string name="memory_grid_hint_ready">Дайындалыңыз</string>
