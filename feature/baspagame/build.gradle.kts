@@ -48,6 +48,11 @@ kotlin {
             implementation(projects.core.ui)
             implementation(projects.resources)
         }
+        commonTest.dependencies {
+            implementation(libs.kotlin.test)
+            implementation(libs.kotlinx.coroutines.test)
+            implementation(projects.core.storage.common)
+        }
     }
 }
 

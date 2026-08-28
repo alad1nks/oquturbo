@@ -292,6 +292,8 @@
     <string name="baspa_game_start">Начать игру!</string>
     <string name="baspa_game_continue">Продолжить</string>
     <string name="baspa_game_try_again">Попробовать снова?</string>
+    <string name="baspa_game_mistake_incorrect_tap">Вы нажали, но элемент не соответствовал правилу.</string>
+    <string name="baspa_game_mistake_missed_match">Вы не нажали на элемент, который соответствовал правилу.</string>
     <string-array name="baspa_categories"><item>animals|животных|КОТ,СОБАКА,ТИГР,ЛЕВ,ЛОШАДЬ,ВОЛК,МЕДВЕДЬ,ЛИСА,ЗАЯЦ,МЫШЬ</item><item>fruits|фрукты|ЯБЛОКО,ГРУША,БАНАН,АПЕЛЬСИН,ЛИМОН,ПЕРСИК,СЛИВА,ВИШНЯ,МАНГО,ВИНОГРАД</item><item>vehicles|транспорт|МАШИНА,АВТОБУС,ПОЕЗД,САМОЛЁТ,ВЕЛОСИПЕД,ГРУЗОВИК,ЛОДКА,ТРАМВАЙ,МЕТРО,САМОКАТ</item><item>professions|профессии|ВРАЧ,УЧИТЕЛЬ,ВОДИТЕЛЬ,ПОВАР,ПИЛОТ,СТРОИТЕЛЬ,ХУДОЖНИК,ФЕРМЕР,ЮРИСТ,АКТЁР</item><item>clothes|одежду|РУБАШКА,ПАЛЬТО,ШАПКА,ПЛАТЬЕ,НОСКИ,КУРТКА,ЮБКА,ТУФЛИ,ПЕРЧАТКИ,ШАРФ</item><item>nature|природу|ЛЕС,РЕКА,ГОРА,МОРЕ,ОБЛАКО,ДОЖДЬ,СНЕГ,ВЕТЕР,КАМЕНЬ,ЦВЕТОК</item><item>food|еду|ХЛЕБ,СУП,СЫР,РИС,МАКАРОНЫ,САЛАТ,ТОРТ,ПИЦЦА,МЯСО,РЫБА</item><item>home|предметы дома|СТОЛ,СТУЛ,ЛАМПА,ДИВАН,КРОВАТЬ,ЧАСЫ,ЗЕРКАЛО,ЧАШКА,ТАРЕЛКА,ЛОЖКА</item><item>sports|спорт|ФУТБОЛ,ТЕННИС,ХОККЕЙ,БОКС,ЛЫЖИ,БЕГ,ПЛАВАНИЕ,ШАХМАТЫ,ГОЛЬФ,РЕГБИ</item><item>school|школьные предметы|КНИГА,РУЧКА,КАРАНДАШ,ЛИНЕЙКА,ЛАСТИК,ПАРТА,ДОСКА,КАРТА,ГЛОБУС,ТЕТРАДЬ</item></string-array>
     <string-array name="baspa_letters"><item>А</item><item>О</item><item>М</item><item>К</item><item>С</item></string-array>
     <string-array name="baspa_word_lengths"><item>3</item><item>4</item><item>5</item><item>6</item></string-array>

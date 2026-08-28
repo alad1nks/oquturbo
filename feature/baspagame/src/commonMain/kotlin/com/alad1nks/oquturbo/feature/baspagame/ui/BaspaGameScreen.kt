@@ -17,6 +17,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.automirrored.outlined.FactCheck
@@ -239,12 +240,41 @@ private fun MistakeOverlay(
         onClick = if (trainingGoalReached) onTrainingContinue else onRestart,
         enabled = !uiState.isTraining || uiState.isTrainingCompletionReady,
         extraContent = {
+            MistakeReasonCard(reason = requireNotNull(uiState.mistakeReason))
             GameResultCard(
                 primaryText = "${stringResource(AppResource.String.baspa_game_score_label)}: ${uiState.score}",
                 secondaryText = "${stringResource(AppResource.String.baspa_game_record_label)}: ${uiState.record}",
             )
         },
     )
+}
+
+@Composable
+private fun MistakeReasonCard(
+    reason: BaspaMistakeReason,
+    modifier: Modifier = Modifier,
+) {
+    val message =
+        when (reason) {
+            BaspaMistakeReason.IncorrectTap ->
+                stringResource(AppResource.String.baspa_game_mistake_incorrect_tap)
+            BaspaMistakeReason.MissedMatch ->
+                stringResource(AppResource.String.baspa_game_mistake_missed_match)
+        }
+    Surface(
+        modifier = modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(20.dp),
+        color = MaterialTheme.colorScheme.surfaceContainer,
+        contentColor = MaterialTheme.colorScheme.onSurface,
+        tonalElevation = 1.dp,
+    ) {
+        Text(
+            text = message,
+            modifier = Modifier.padding(horizontal = 20.dp, vertical = 16.dp),
+            style = MaterialTheme.typography.bodyLarge,
+            textAlign = TextAlign.Center,
+        )
+    }
 }
 
 @Composable
@@ -516,10 +546,40 @@ private fun BaspaGameScreenMistakePreview() {
                 mode = BaspaGameMode.Categories,
                 stimulus = "CAR",
                 categoryName = "animals",
+                shouldTap = false,
                 score = 24,
                 record = 57,
                 isRecordLoaded = true,
                 phase = BaspaGameUiState.Phase.Mistake,
+                mistakeReason = BaspaMistakeReason.IncorrectTap,
+            ),
+    )
+}
+
+@Preview(
+    name = "Don't Tap — missed match training",
+    widthDp = 390,
+    heightDp = 844,
+    locale = "kk",
+)
+@ScreenshotPreview
+@Composable
+private fun BaspaGameScreenMissedMatchTrainingPreview() {
+    BaspaGamePreview(
+        uiState =
+            BaspaGameUiState(
+                mode = BaspaGameMode.TextColor,
+                stimulus = "ҚЫЗЫЛ",
+                targetColorName = "қызыл",
+                stimulusColorId = "red",
+                shouldTap = true,
+                score = 24,
+                record = 57,
+                isRecordLoaded = true,
+                phase = BaspaGameUiState.Phase.Mistake,
+                mistakeReason = BaspaMistakeReason.MissedMatch,
+                trainingRequiredScore = 20,
+                isTrainingCompletionReady = true,
             ),
     )
 }
