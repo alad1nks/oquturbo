@@ -112,6 +112,39 @@ class BaspaGameViewModelTest {
             }
         }
 
+    @Test
+    fun textColorStimulusRetainsLocalizedDisplayedColorNameForFeedback() =
+        runTest {
+            Dispatchers.setMain(StandardTestDispatcher(testScheduler))
+            try {
+                val storage = RecordingStorage()
+                val viewModel =
+                    createViewModel(
+                        storage = storage,
+                        stimulusShouldMatch = true,
+                        mode = BaspaGameMode.TextColor,
+                    )
+                runCurrent()
+                startAndShowStimulus(viewModel)
+
+                val state = viewModel.uiState.value
+                val expectedColorName =
+                    testContent(stimulusShouldMatch = true)
+                        .colors
+                        .single { it.id == state.stimulusColorId }
+                        .name
+                assertEquals(expectedColorName, state.stimulusColorName)
+                if (state.shouldTap) {
+                    viewModel.onStimulusTimeout()
+                } else {
+                    viewModel.tap()
+                }
+                runCurrent()
+            } finally {
+                Dispatchers.resetMain()
+            }
+        }
+
     private suspend fun TestScope.startAndShowStimulus(viewModel: BaspaGameViewModel) {
         viewModel.togglePause()
         advanceTimeBy(STIMULUS_GAP_MILLIS)
@@ -124,9 +157,10 @@ class BaspaGameViewModelTest {
         storage: RecordingStorage,
         stimulusShouldMatch: Boolean,
         trainingEntry: DailyTrainingEntry? = null,
+        mode: BaspaGameMode = BaspaGameMode.Math,
     ) =
         BaspaGameViewModel(
-            mode = BaspaGameMode.Math,
+            mode = mode,
             content = testContent(stimulusShouldMatch),
             trainingEntryId = trainingEntry?.id,
             trainingRequiredScore = trainingEntry?.requiredScore,

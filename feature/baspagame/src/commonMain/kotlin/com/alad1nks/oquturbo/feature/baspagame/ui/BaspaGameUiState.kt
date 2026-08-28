@@ -12,6 +12,7 @@ internal data class BaspaGameUiState(
     val wordLength: Int = 0,
     val targetColorName: String = "",
     val stimulusColorId: String = "",
+    val stimulusColorName: String = "",
     val shouldTap: Boolean = false,
     val score: Int = 0,
     val record: Int = 0,

@@ -149,6 +149,7 @@ internal class BaspaGameViewModel(
                 stimulus = stimulus.text,
                 shouldTap = stimulus.shouldTap,
                 stimulusColorId = stimulus.colorId,
+                stimulusColorName = stimulus.colorName,
             )
         }
         if (_uiState.value.phase == BaspaGameUiState.Phase.Playing) startTimer()
@@ -317,6 +318,7 @@ internal class BaspaGameViewModel(
                         },
                     shouldTap = shouldTap,
                     colorId = displayedColor.id,
+                    colorName = displayedColor.name,
                 )
             }
             BaspaGameMode.TrueFalse -> content.statements.random().toStimulus()
@@ -404,6 +406,7 @@ internal class BaspaGameViewModel(
         val text: String,
         val shouldTap: Boolean,
         val colorId: String = "",
+        val colorName: String = "",
     )
 
     private companion object {
