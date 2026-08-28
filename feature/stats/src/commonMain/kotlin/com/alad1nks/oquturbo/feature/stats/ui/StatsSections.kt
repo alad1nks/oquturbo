@@ -229,14 +229,7 @@ internal fun ActivitySection(
                         color = MaterialTheme.colorScheme.onPrimaryContainer,
                     )
                     Text(
-                        text =
-                            stringResource(
-                                if (day.status == ActivityStatus.DailyComplete) {
-                                    AppResource.String.stats_training_completed
-                                } else {
-                                    AppResource.String.stats_training_not_completed
-                                },
-                            ),
+                        text = stringResource(day.status.titleResource()),
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.78f),
                     )

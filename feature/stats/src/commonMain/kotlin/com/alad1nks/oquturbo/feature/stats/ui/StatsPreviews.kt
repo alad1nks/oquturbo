@@ -5,6 +5,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import com.alad1nks.oquturbo.core.designsystem.theme.OquTurboTheme
 import com.alad1nks.oquturbo.core.ui.preview.ScreenshotPreview
 import com.alad1nks.oquturbo.feature.stats.demo.DemoStatsFixtures
+import com.alad1nks.oquturbo.feature.stats.model.ActivityStatus
 import com.alad1nks.oquturbo.feature.stats.model.StatsUiState
 
 @Preview(
@@ -33,6 +34,22 @@ private fun PopulatedStatsPreview() {
 @Composable
 private fun RichStatsPreview() {
     StatsPreview(uiState = DemoStatsFixtures.rich())
+}
+
+@Preview(
+    name = "Stats — games-only day selected",
+    widthDp = 390,
+    heightDp = 1200,
+)
+@ScreenshotPreview
+@Composable
+private fun GamesOnlyDaySelectedStatsPreview() {
+    val state = DemoStatsFixtures.rich()
+    val selectedDay =
+        state.snapshot.activityDays.first {
+            it.status == ActivityStatus.GamesOnly && it.games > 0 && it.minutes > 0
+        }
+    StatsPreview(uiState = state.copy(selectedDayId = selectedDay.id))
 }
 
 @Preview(
