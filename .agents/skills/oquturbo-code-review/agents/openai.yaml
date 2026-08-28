@@ -1,0 +1,4 @@
+interface:
+  display_name: "code-review"
+  short_description: "OquTurbo project workflow for code-review"
+  default_prompt: "Use $oquturbo-code-review to complete this OquTurbo task."

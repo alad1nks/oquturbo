@@ -1,0 +1,23 @@
+# Bound concurrency so the coordinator can use independent read-heavy agents without encouraging parallel writes.
+[agents]
+max_threads = 4
+
+[agents.product-manager]
+description = "OquTurbo product analyst and specification owner; use for discovery, prioritization, and acceptance criteria."
+config_file = "agents/product-manager.toml"
+
+[agents.designer]
+description = "OquTurbo product/game designer; use to turn an approved specification into interaction and UI states."
+config_file = "agents/designer.toml"
+
+[agents.developer]
+description = "Primary OquTurbo production-code writer; use for approved implementation, tests, and validation."
+config_file = "agents/developer.toml"
+
+[agents.reviewer]
+description = "Independent OquTurbo correctness and architecture reviewer; use after implementation and material fixes."
+config_file = "agents/reviewer.toml"
+
+[agents.qa]
+description = "Independent OquTurbo acceptance and regression verifier; use after review approval and QA fixes."
+config_file = "agents/qa.toml"

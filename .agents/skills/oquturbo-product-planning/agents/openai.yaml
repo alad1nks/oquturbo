@@ -1,0 +1,4 @@
+interface:
+  display_name: "product-planning"
+  short_description: "OquTurbo project workflow for product-planning"
+  default_prompt: "Use $oquturbo-product-planning to complete this OquTurbo task."
