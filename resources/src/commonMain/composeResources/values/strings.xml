@@ -306,11 +306,13 @@
     <string name="kenkoz_game_position_third">third</string>
     <string name="kenkoz_game_position_fourth">fourth</string>
     <string name="kenkoz_game_question_word">Which word was %1$s?</string>
+    <string name="kenkoz_game_correct_answer">Correct answer</string>
     <string name="kenkoz_game_record">Record: %1$d</string>
     <string name="kenkoz_game_score">Score</string>
     <string name="kenkoz_game_score_value">Score: %1$d</string>
     <string name="kenkoz_game_start">Start Game!</string>
     <string name="kenkoz_game_try_again">Try Again?</string>
+    <string name="kenkoz_game_your_answer">Your answer</string>
     <string-array name="kenkoz_game_difference_pairs">
         <item>book,cook</item>
         <item>city,pity</item>

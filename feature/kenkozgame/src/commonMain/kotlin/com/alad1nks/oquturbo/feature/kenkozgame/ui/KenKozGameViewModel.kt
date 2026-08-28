@@ -68,13 +68,7 @@ internal class KenKozGameViewModel(
         showingDurationMillis = INITIAL_SHOWING_DURATION_MILLIS
         sessionStartMark = TimeSource.Monotonic.markNow()
         hasContinuedTraining = false
-        _uiState.update {
-            it.copy(
-                score = 0,
-                trainingNextEntry = null,
-                isTrainingCompletionReady = false,
-            )
-        }
+        _uiState.update(KenKozGameUiState::startingSession)
         startRound()
     }
 
@@ -97,7 +91,7 @@ internal class KenKozGameViewModel(
             startRound()
         } else {
             roundJob?.cancel()
-            _uiState.update { it.copy(phase = KenKozGameUiState.Phase.Mistake) }
+            _uiState.update { it.withMistake(answer) }
             updateRecord(state.score)
         }
     }
@@ -145,6 +139,7 @@ internal class KenKozGameViewModel(
                 items = round.items,
                 answers = round.answers,
                 correctAnswer = round.correctAnswer,
+                selectedAnswer = null,
                 questionDirection = round.questionDirection,
                 wideLineWordIndex = round.wideLineWordIndex,
             )

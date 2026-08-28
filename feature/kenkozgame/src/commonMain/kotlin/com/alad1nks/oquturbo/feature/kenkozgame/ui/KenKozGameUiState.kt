@@ -14,9 +14,24 @@ internal data class KenKozGameUiState(
     val items: List<String> = emptyList(),
     val answers: List<String> = emptyList(),
     val correctAnswer: String = "",
+    val selectedAnswer: String? = null,
     val questionDirection: Direction? = null,
     val wideLineWordIndex: Int? = null,
 ) {
+    fun startingSession(): KenKozGameUiState =
+        copy(
+            score = 0,
+            trainingNextEntry = null,
+            isTrainingCompletionReady = false,
+            selectedAnswer = null,
+        )
+
+    fun withMistake(answer: String): KenKozGameUiState =
+        copy(
+            phase = Phase.Mistake,
+            selectedAnswer = answer,
+        )
+
     enum class Phase {
         Initial,
         Showing,
