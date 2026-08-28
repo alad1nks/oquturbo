@@ -89,6 +89,7 @@ import oquturbo.resources.generated.resources.home_training_return_home
 import oquturbo.resources.generated.resources.home_training_score_goal
 import oquturbo.resources.generated.resources.kenkoz_game_back
 import oquturbo.resources.generated.resources.kenkoz_game_characters
+import oquturbo.resources.generated.resources.kenkoz_game_correct_answer
 import oquturbo.resources.generated.resources.kenkoz_game_difference_pairs
 import oquturbo.resources.generated.resources.kenkoz_game_direction_bottom
 import oquturbo.resources.generated.resources.kenkoz_game_direction_left
@@ -118,6 +119,7 @@ import oquturbo.resources.generated.resources.kenkoz_game_score_value
 import oquturbo.resources.generated.resources.kenkoz_game_start
 import oquturbo.resources.generated.resources.kenkoz_game_try_again
 import oquturbo.resources.generated.resources.kenkoz_game_words
+import oquturbo.resources.generated.resources.kenkoz_game_your_answer
 import oquturbo.resources.generated.resources.kenkoz_title
 import oquturbo.resources.generated.resources.memory_grid_back
 import oquturbo.resources.generated.resources.memory_grid_cell_description
@@ -640,6 +642,7 @@ object AppResource {
         val baspa_title = Res.string.baspa_title
         val kenkoz_game_back = Res.string.kenkoz_game_back
         val kenkoz_game_characters = Res.string.kenkoz_game_characters
+        val kenkoz_game_correct_answer = Res.string.kenkoz_game_correct_answer
         val kenkoz_game_direction_bottom = Res.string.kenkoz_game_direction_bottom
         val kenkoz_game_direction_left = Res.string.kenkoz_game_direction_left
         val kenkoz_game_direction_right = Res.string.kenkoz_game_direction_right
@@ -668,6 +671,7 @@ object AppResource {
         val kenkoz_game_score_value = Res.string.kenkoz_game_score_value
         val kenkoz_game_start = Res.string.kenkoz_game_start
         val kenkoz_game_try_again = Res.string.kenkoz_game_try_again
+        val kenkoz_game_your_answer = Res.string.kenkoz_game_your_answer
         val kenkoz_title = Res.string.kenkoz_title
         val remember_number_game_record = Res.string.remember_number_game_record
         val remember_number_game_score = Res.string.remember_number_game_score

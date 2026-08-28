@@ -308,11 +308,13 @@
     <string name="kenkoz_game_position_third">үшінші</string>
     <string name="kenkoz_game_position_fourth">төртінші</string>
     <string name="kenkoz_game_question_word">Қай сөз %1$s болды?</string>
+    <string name="kenkoz_game_correct_answer">Дұрыс жауап</string>
     <string name="kenkoz_game_record">Рекорд: %1$d</string>
     <string name="kenkoz_game_score">Ұпай</string>
     <string name="kenkoz_game_score_value">Ұпай: %1$d</string>
     <string name="kenkoz_game_start">Ойынды бастау!</string>
     <string name="kenkoz_game_try_again">Қайта байқап көресіз бе?</string>
+    <string name="kenkoz_game_your_answer">Сіздің жауабыңыз</string>
     <string-array name="kenkoz_game_difference_pairs">
         <item>тас,бас</item>
         <item>тас,жас</item>

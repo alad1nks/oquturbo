@@ -194,6 +194,23 @@ private fun KenKozGameScreen(
                 enabled = !isTrainingResult || displayedState.isTrainingCompletionReady,
                 extraContent = {
                     if (displayedState.phase == KenKozGameUiState.Phase.Mistake) {
+                        AnswerFeedbackCard(
+                            selectedAnswerLabel =
+                                stringResource(AppResource.String.kenkoz_game_your_answer),
+                            selectedAnswer =
+                                answerFeedbackValue(
+                                    mode = displayedState.mode,
+                                    answer = displayedState.selectedAnswer,
+                                ),
+                            correctAnswerLabel =
+                                stringResource(AppResource.String.kenkoz_game_correct_answer),
+                            correctAnswer =
+                                answerFeedbackValue(
+                                    mode = displayedState.mode,
+                                    answer = displayedState.correctAnswer,
+                                ),
+                            modifier = Modifier.fillMaxWidth(),
+                        )
                         GameResultCard(
                             primaryText =
                                 stringResource(
@@ -422,6 +439,18 @@ private fun answerLabel(
 }
 
 @Composable
+private fun answerFeedbackValue(
+    mode: KenKozGameMode,
+    answer: String?,
+): String? {
+    val value = answer?.takeIf(String::isNotBlank) ?: return null
+    if (mode != KenKozGameMode.FindDifference) return value
+
+    val direction = KenKozGameUiState.Direction.entries.firstOrNull { it.name == value } ?: return null
+    return directionLabel(direction)
+}
+
+@Composable
 private fun directionLabel(direction: KenKozGameUiState.Direction): String {
     return stringResource(
         when (direction) {
@@ -496,6 +525,8 @@ private fun KenKozGameScreenMistakePreview() {
                     score = 4,
                     record = 7,
                     phase = KenKozGameUiState.Phase.Mistake,
+                    correctAnswer = "mountain",
+                    selectedAnswer = "morning",
                 ),
             onBackClick = {},
             onStartClick = {},
