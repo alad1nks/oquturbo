@@ -541,6 +541,7 @@
     <string name="remember_number_menu_item_classic_title">Classic</string>
     <string name="remember_number_menu_item_custom_dialog_available_digits">Available Digits</string>
     <string name="remember_number_menu_item_custom_dialog_cancel_button">Cancel</string>
+    <string name="remember_number_menu_item_custom_dialog_digits_error">Select at least 2 digits</string>
     <string name="remember_number_menu_item_custom_dialog_length">String Length</string>
     <string name="remember_number_menu_item_custom_dialog_play_button">Play</string>
     <string name="remember_number_menu_item_custom_dialog_title">Game Settings</string>

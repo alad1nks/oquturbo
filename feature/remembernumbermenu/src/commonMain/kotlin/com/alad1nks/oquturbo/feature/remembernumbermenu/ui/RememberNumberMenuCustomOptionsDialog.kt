@@ -81,6 +81,8 @@ private fun RememberNumberMenuCustomOptionsContent(
     lengthMin: Int,
     lengthMax: Int,
 ) {
+    val isDigitSelectionValid = digitsAvailability.isDigitSelectionValid()
+
     Surface(
         modifier =
             Modifier
@@ -140,6 +142,18 @@ private fun RememberNumberMenuCustomOptionsContent(
                                 },
                         )
                     }
+                }
+
+                if (!isDigitSelectionValid) {
+                    Text(
+                        text =
+                            stringResource(
+                                AppResource.String.remember_number_menu_item_custom_dialog_digits_error,
+                            ),
+                        modifier = Modifier.fillMaxWidth(),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.error,
+                    )
                 }
             }
 
@@ -212,7 +226,7 @@ private fun RememberNumberMenuCustomOptionsContent(
                 Spacer(modifier = Modifier.width(8.dp))
 
                 Button(
-                    enabled = digitsAvailability.count { it } > 1,
+                    enabled = isDigitSelectionValid,
                     onClick = {
                         onDismissRequest()
                         onPlayClick(length, digitsAvailability.toAvailableDigits())
@@ -229,6 +243,8 @@ private fun RememberNumberMenuCustomOptionsContent(
         }
     }
 }
+
+internal fun List<Boolean>.isDigitSelectionValid(): Boolean = count { it } >= 2
 
 private fun List<Boolean>.toAvailableDigits(): String {
     val builder = StringBuilder()
@@ -250,6 +266,36 @@ private fun List<Boolean>.toAvailableDigits(): String {
 private fun RememberNumberMenuCustomOptionsDialogPreview() {
     var maxLength by remember { mutableIntStateOf(4) }
     val digitsAvailability = remember { SnapshotStateList(10) { true } }
+
+    OquTurboTheme {
+        Box(
+            modifier = Modifier.fillMaxSize().appBackground(),
+            contentAlignment = Alignment.Center,
+        ) {
+            RememberNumberMenuCustomOptionsContent(
+                length = maxLength,
+                onLengthChange = { maxLength = it },
+                digitsAvailability = digitsAvailability,
+                onDigitSelect = { index, isAvailable -> digitsAvailability[index] = isAvailable },
+                onDismissRequest = {},
+                onPlayClick = { _, _ -> },
+                lengthMin = 2,
+                lengthMax = 10,
+            )
+        }
+    }
+}
+
+@Preview(
+    name = "Number Sprint custom options dialog — invalid digits",
+    widthDp = 390,
+    heightDp = 844,
+)
+@ScreenshotPreview
+@Composable
+private fun RememberNumberMenuCustomOptionsDialogInvalidDigitsPreview() {
+    var maxLength by remember { mutableIntStateOf(4) }
+    val digitsAvailability = remember { SnapshotStateList(10) { it == 0 } }
 
     OquTurboTheme {
         Box(

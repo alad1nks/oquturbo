@@ -564,6 +564,7 @@
     <string name="remember_number_menu_item_classic_title">Классический</string>
     <string name="remember_number_menu_item_custom_dialog_available_digits">Доступные цифры</string>
     <string name="remember_number_menu_item_custom_dialog_cancel_button">Отмена</string>
+    <string name="remember_number_menu_item_custom_dialog_digits_error">Выберите не менее 2 цифр</string>
     <string name="remember_number_menu_item_custom_dialog_length">Длина строки</string>
     <string name="remember_number_menu_item_custom_dialog_play_button">Играть</string>
     <string name="remember_number_menu_item_custom_dialog_title">Настройки игры</string>
