@@ -263,6 +263,7 @@ import oquturbo.resources.generated.resources.remember_number_menu_item_classic_
 import oquturbo.resources.generated.resources.remember_number_menu_item_classic_title
 import oquturbo.resources.generated.resources.remember_number_menu_item_custom_dialog_available_digits
 import oquturbo.resources.generated.resources.remember_number_menu_item_custom_dialog_cancel_button
+import oquturbo.resources.generated.resources.remember_number_menu_item_custom_dialog_digits_error
 import oquturbo.resources.generated.resources.remember_number_menu_item_custom_dialog_length
 import oquturbo.resources.generated.resources.remember_number_menu_item_custom_dialog_play_button
 import oquturbo.resources.generated.resources.remember_number_menu_item_custom_dialog_title
@@ -685,6 +686,8 @@ object AppResource {
             Res.string.remember_number_menu_item_custom_dialog_available_digits
         val remember_number_menu_item_custom_dialog_cancel_button =
             Res.string.remember_number_menu_item_custom_dialog_cancel_button
+        val remember_number_menu_item_custom_dialog_digits_error =
+            Res.string.remember_number_menu_item_custom_dialog_digits_error
         val remember_number_menu_item_custom_dialog_length = Res.string.remember_number_menu_item_custom_dialog_length
         val remember_number_menu_item_custom_dialog_play_button =
             Res.string.remember_number_menu_item_custom_dialog_play_button

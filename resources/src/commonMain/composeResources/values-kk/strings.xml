@@ -543,6 +543,7 @@
     <string name="remember_number_menu_item_classic_title">Классикалық</string>
     <string name="remember_number_menu_item_custom_dialog_available_digits">Қолжетімді цифрлар</string>
     <string name="remember_number_menu_item_custom_dialog_cancel_button">Бас тарту</string>
+    <string name="remember_number_menu_item_custom_dialog_digits_error">Кемінде 2 цифрды таңдаңыз</string>
     <string name="remember_number_menu_item_custom_dialog_length">Жол ұзындығы</string>
     <string name="remember_number_menu_item_custom_dialog_play_button">Ойнау</string>
     <string name="remember_number_menu_item_custom_dialog_title">Ойын баптаулары</string>
