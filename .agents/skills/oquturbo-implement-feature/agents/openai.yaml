@@ -1,0 +1,4 @@
+interface:
+  display_name: "implement-feature"
+  short_description: "OquTurbo project workflow for implement-feature"
+  default_prompt: "Use $oquturbo-implement-feature to complete this OquTurbo task."

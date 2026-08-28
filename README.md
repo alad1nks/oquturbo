@@ -36,8 +36,10 @@ The playable games, OquTurbo tabs, and profile preferences are connected to pers
 - Games remains a static product catalog because its game list, skills, and mode counts are product configuration,
   not user data. Preview scenarios remain isolated demo fixtures and are never used at runtime.
 
-Daily training orchestration is not implemented yet: the Home action currently opens Games. Completed-training and
-streak values therefore remain zero instead of treating standalone games as daily training.
+Daily training generates and persists a daily sequence drawn from supported Number Sprint, Wide Eye, and Don't Tap
+modes. Home resumes the next incomplete entry; meeting its required score advances to the next entry and completing
+the sequence updates training progress. Memory Grid and ordinary game-menu sessions do not currently complete daily
+training entries.
 
 ## Supported platforms
 
@@ -237,8 +239,9 @@ Useful product checks include:
 ```
 
 Most product test source sets are currently empty, so their test tasks provide compilation and configuration
-coverage rather than behavioral regression coverage. The dedicated `screenshot-tests` module is the exception: it
-provides visual regression coverage for shared Compose UI. iOS simulator tasks require compatible Apple tooling.
+coverage rather than behavioral regression coverage. Memory Grid has focused common game-logic tests, and the
+dedicated `screenshot-tests` module provides visual regression coverage for shared Compose UI. iOS simulator tasks
+require compatible Apple tooling.
 
 ### Screenshot tests
 

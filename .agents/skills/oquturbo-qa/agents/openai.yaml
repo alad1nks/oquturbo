@@ -1,0 +1,4 @@
+interface:
+  display_name: "qa"
+  short_description: "OquTurbo project workflow for qa"
+  default_prompt: "Use $oquturbo-qa to complete this OquTurbo task."

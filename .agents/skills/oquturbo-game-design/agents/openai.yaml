@@ -1,0 +1,4 @@
+interface:
+  display_name: "game-design"
+  short_description: "OquTurbo project workflow for game-design"
+  default_prompt: "Use $oquturbo-game-design to complete this OquTurbo task."

@@ -1,0 +1,4 @@
+interface:
+  display_name: "feature-pipeline"
+  short_description: "OquTurbo project workflow for feature-pipeline"
+  default_prompt: "Use $oquturbo-feature-pipeline to complete this OquTurbo task."
