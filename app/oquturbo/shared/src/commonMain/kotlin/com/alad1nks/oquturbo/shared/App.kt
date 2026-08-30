@@ -56,6 +56,8 @@ import com.alad1nks.oquturbo.feature.stats.navigation.navigateToStatsMode
 import com.alad1nks.oquturbo.feature.stats.navigation.statsGameDetailScreen
 import com.alad1nks.oquturbo.feature.stats.navigation.statsModeDetailScreen
 import com.alad1nks.oquturbo.feature.stats.navigation.statsScreen
+import com.alad1nks.oquturbo.feature.wordflow.navigation.navigateToWordFlow
+import com.alad1nks.oquturbo.feature.wordflow.navigation.wordFlowScreen
 import com.alad1nks.oquturbo.shared.navigation.OquTurboTopLevelDestination
 import com.alad1nks.oquturbo.shared.ui.OquTurboNavigationBar
 import com.alad1nks.oquturbo.shared.ui.rememberOquTurboAppState
@@ -94,6 +96,7 @@ fun App() {
                     TrainingGame.WideEye -> appState.navController.navigateToKenKozGameMenu()
                     TrainingGame.DontTap -> appState.navController.navigateToBaspaGameMenu()
                     TrainingGame.MemoryGrid -> appState.navController.navigateToMemoryGridMenu()
+                    TrainingGame.WordFlow -> appState.navController.navigateToWordFlow()
                 }
             },
         )
@@ -193,6 +196,11 @@ fun App() {
                 appState.navController.popBackStack(route = MemoryGridMenuRoute, inclusive = false)
             },
         )
+        wordFlowScreen(
+            onBackClick = {
+                appState.navController.popBackStack(route = GamesRoute, inclusive = false)
+            },
+        )
     }
 }
 
@@ -239,6 +247,7 @@ private fun NavController.navigateToDailyTrainingEntry(entry: DailyTrainingEntry
                 trainingRequiredScore = entry.requiredScore,
             )
         GameId.MemoryGrid -> error("Memory Grid is not available in daily training")
+        GameId.WordFlow -> error("Word Flow is not available in daily training")
     }
 }
 

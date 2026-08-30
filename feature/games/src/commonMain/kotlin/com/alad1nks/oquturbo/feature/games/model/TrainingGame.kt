@@ -5,4 +5,5 @@ enum class TrainingGame {
     WideEye,
     DontTap,
     MemoryGrid,
+    WordFlow,
 }

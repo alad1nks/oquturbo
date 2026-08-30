@@ -2,6 +2,7 @@ package com.alad1nks.oquturbo.feature.games.ui
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -320,6 +321,42 @@ private fun GameArtwork(game: TrainingGame) {
                 )
             TrainingGame.DontTap -> DontTapArtwork()
             TrainingGame.MemoryGrid -> MemoryGridArtwork()
+            TrainingGame.WordFlow -> WordFlowArtwork()
+        }
+    }
+}
+
+@Composable
+private fun WordFlowArtwork() {
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(6.dp),
+    ) {
+        Icon(
+            imageVector = Icons.Filled.AutoStories,
+            contentDescription = null,
+            modifier = Modifier.size(24.dp),
+            tint = MaterialTheme.colorScheme.onSecondaryContainer,
+        )
+        Row(horizontalArrangement = Arrangement.spacedBy(4.dp), verticalAlignment = Alignment.CenterVertically) {
+            Box(
+                Modifier.width(
+                    14.dp,
+                ).height(
+                    4.dp,
+                ).clip(RoundedCornerShape(2.dp)).background(MaterialTheme.colorScheme.onSecondaryContainer),
+            )
+            Box(
+                Modifier.width(20.dp).height(12.dp).clip(RoundedCornerShape(4.dp))
+                    .border(2.dp, MaterialTheme.colorScheme.secondary, RoundedCornerShape(4.dp)),
+            )
+            Box(
+                Modifier.width(
+                    14.dp,
+                ).height(
+                    4.dp,
+                ).clip(RoundedCornerShape(2.dp)).background(MaterialTheme.colorScheme.onSecondaryContainer),
+            )
         }
     }
 }
@@ -504,6 +541,7 @@ private fun TrainingGame.titleResource(): StringResource =
         TrainingGame.WideEye -> AppResource.String.kenkoz_title
         TrainingGame.DontTap -> AppResource.String.baspa_title
         TrainingGame.MemoryGrid -> AppResource.String.memory_grid_title
+        TrainingGame.WordFlow -> AppResource.String.word_flow_title
     }
 
 private fun TrainingGame.descriptionResource(): StringResource =
@@ -512,6 +550,7 @@ private fun TrainingGame.descriptionResource(): StringResource =
         TrainingGame.WideEye -> AppResource.String.games_wide_eye_description
         TrainingGame.DontTap -> AppResource.String.games_dont_tap_description
         TrainingGame.MemoryGrid -> AppResource.String.games_memory_grid_description
+        TrainingGame.WordFlow -> AppResource.String.games_word_flow_description
     }
 
 @Composable
@@ -521,6 +560,7 @@ private fun TrainingGame.artworkBackground(): Color =
         TrainingGame.WideEye -> MaterialTheme.colorScheme.secondaryContainer
         TrainingGame.DontTap -> MaterialTheme.colorScheme.tertiaryContainer
         TrainingGame.MemoryGrid -> MaterialTheme.colorScheme.primaryContainer
+        TrainingGame.WordFlow -> MaterialTheme.colorScheme.secondaryContainer
     }
 
 private fun GamesUiState.Skill.titleResource(): StringResource =
@@ -554,13 +594,11 @@ private fun GamesUiState.Skill.color(): Color =
 private fun GamesUiState.UpcomingGame.titleResource(): StringResource =
     when (this) {
         GamesUiState.UpcomingGame.DualFocus -> AppResource.String.games_dual_focus_title
-        GamesUiState.UpcomingGame.WordFlow -> AppResource.String.games_word_flow_title
     }
 
 private fun GamesUiState.UpcomingGame.descriptionResource(): StringResource =
     when (this) {
         GamesUiState.UpcomingGame.DualFocus -> AppResource.String.games_dual_focus_description
-        GamesUiState.UpcomingGame.WordFlow -> AppResource.String.games_word_flow_description
     }
 
 @Preview(

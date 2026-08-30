@@ -8,6 +8,7 @@ enum class StatsGame {
     WideEye,
     DontTap,
     MemoryGrid,
+    WordFlow,
 }
 
 @Serializable
@@ -29,6 +30,7 @@ enum class StatsMode {
     Route,
     Reverse,
     Flash,
+    Context,
 }
 
 @Serializable
@@ -61,6 +63,7 @@ internal enum class StatsSkill {
     Reaction,
     PeripheralVision,
     RecognitionSpeed,
+    Reading,
 }
 
 internal enum class StatsTrend {

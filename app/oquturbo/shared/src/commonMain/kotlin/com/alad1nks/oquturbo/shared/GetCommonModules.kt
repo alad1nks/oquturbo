@@ -11,6 +11,7 @@ import com.alad1nks.oquturbo.feature.profile.di.ProfileModule
 import com.alad1nks.oquturbo.feature.remembernumber.di.RememberNumberModule
 import com.alad1nks.oquturbo.feature.remembernumbermenu.di.rememberNumberMenuModule
 import com.alad1nks.oquturbo.feature.stats.di.StatsModule
+import com.alad1nks.oquturbo.feature.wordflow.di.WordFlowModule
 import org.koin.core.module.Module
 
 fun getCommonModules(): List<Module> {
@@ -25,6 +26,7 @@ fun getCommonModules(): List<Module> {
         RememberNumberModule,
         rememberNumberMenuModule(showThemeIcon = false),
         StatsModule,
+        WordFlowModule,
         StorageCommonModule,
     )
 }

@@ -238,6 +238,7 @@ class DailyTrainingRepository(
                     GameModeId.DontTapSpeedReading,
                 )
             GameId.MemoryGrid -> emptyList()
+            GameId.WordFlow -> emptyList()
         }
 
     private fun GameId.requiredTrainingScore(): Int =
@@ -246,6 +247,7 @@ class DailyTrainingRepository(
             GameId.WideEye -> 5
             GameId.DontTap -> 8
             GameId.MemoryGrid -> error("Memory Grid is not balanced for daily training")
+            GameId.WordFlow -> error("Word Flow is not balanced for daily training")
         }
 
     @OptIn(ExperimentalTime::class)

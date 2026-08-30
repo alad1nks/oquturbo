@@ -129,6 +129,7 @@ internal class HomeViewModel(
             GameId.WideEye -> HomeUiState.Game.WideEye
             GameId.DontTap -> HomeUiState.Game.DontTap
             GameId.MemoryGrid -> HomeUiState.Game.MemoryGrid
+            GameId.WordFlow -> HomeUiState.Game.WordFlow
         }
 
     private fun GameModeId.toHomeMode(): HomeUiState.Mode =
@@ -150,6 +151,7 @@ internal class HomeViewModel(
             GameModeId.MemoryGridRoute -> HomeUiState.Mode.Route
             GameModeId.MemoryGridReverse -> HomeUiState.Mode.Reverse
             GameModeId.MemoryGridFlash -> HomeUiState.Mode.Flash
+            GameModeId.WordFlowContext -> HomeUiState.Mode.Context
         }
 
     private companion object {

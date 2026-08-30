@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="word_flow_easy_templates">
+        <item>Она открыла %1$s, чтобы впустить свежий воздух.</item>
+        <item>Перед сном он воспользовался зубной нитью между %1$s.</item>
+        <item>Суп был горячим, поэтому я взял %1$s.</item>
+        <item>Начался дождь, и Мина раскрыла %1$s.</item>
+        <item>Продукты положили в %1$s, чтобы они оставались холодными.</item>
+        <item>Читатель положил закладку и закрыл %1$s.</item>
+    </string-array>
+    <string-array name="word_flow_easy_correct">
+        <item>окно</item><item>зубами</item><item>ложку</item><item>зонт</item><item>холодильник</item><item>книгу</item>
+    </string-array>
+    <string-array name="word_flow_easy_wrong_a">
+        <item>подушку</item><item>ботинками</item><item>карандаш</item><item>лестницу</item><item>ящик</item><item>тарелку</item>
+    </string-array>
+    <string-array name="word_flow_easy_wrong_b">
+        <item>корзину</item><item>ключами</item><item>носок</item><item>одеяло</item><item>гараж</item><item>лампу</item>
+    </string-array>
+    <string-array name="word_flow_medium_templates">
+        <item>На тропе было темно, поэтому мы включили %1$s.</item>
+        <item>Чтобы приехать быстрее, они сравнили оба маршрута и выбрали более %1$s.</item>
+        <item>Стакан упал, но мягкий коврик не дал ему %1$s.</item>
+        <item>Нора говорила тише, чтобы не разбудить ребёнка, который %1$s.</item>
+        <item>Команда проверила прогноз, прежде чем %1$s пикник.</item>
+        <item>Хотя автобус был переполнен, пассажир встал, чтобы другой человек занял его %1$s.</item>
+    </string-array>
+    <string-array name="word_flow_medium_correct">
+        <item>фонарик</item><item>короткий</item><item>разбиться</item><item>спал</item><item>планировать</item><item>место</item>
+    </string-array>
+    <string-array name="word_flow_medium_wrong_a">
+        <item>календарь</item><item>громкий</item><item>замёрзнуть</item><item>смеялся</item><item>складывать</item><item>билет</item>
+    </string-array>
+    <string-array name="word_flow_medium_wrong_b">
+        <item>зеркало</item><item>тяжёлый</item><item>вырасти</item><item>готовил</item><item>рисовать</item><item>карту</item>
+    </string-array>
+    <string-array name="word_flow_hard_templates">
+        <item>Комитет отложил голосование, пока недостающие доказательства не будут %1$s.</item>
+        <item>Её объяснение было кратким, но достаточно %1$s, чтобы устранить путаницу.</item>
+        <item>Редактор убрал последний абзац, потому что тот лишь %1$s прежнюю мысль.</item>
+        <item>Поскольку измерения различались, вывод оставался %1$s.</item>
+        <item>Старый мост узкий, поэтому машины с разных сторон должны %1$s.</item>
+        <item>Предложение казалось эффективным, но скрытые расходы делали его менее %1$s.</item>
+    </string-array>
+    <string-array name="word_flow_hard_correct">
+        <item>проверены</item><item>ясным</item><item>повторял</item><item>предварительным</item><item>чередоваться</item><item>практичным</item>
+    </string-array>
+    <string-array name="word_flow_hard_wrong_a">
+        <item>отпразднованы</item><item>тихим</item><item>измерял</item><item>вечным</item><item>собираться</item><item>ярким</item>
+    </string-array>
+    <string-array name="word_flow_hard_wrong_b">
+        <item>забыты</item><item>далёким</item><item>одалживал</item><item>небрежным</item><item>бродить</item><item>знакомым</item>
+    </string-array>
+</resources>
