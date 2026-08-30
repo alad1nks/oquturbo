@@ -30,8 +30,13 @@ internal data class GamesUiState(
                 skills = listOf(Skill.Reading),
                 modesCount = 1,
             ),
+            GameSummary(
+                game = TrainingGame.DualFocus,
+                skills = listOf(Skill.Attention),
+                modesCount = 1,
+            ),
         ),
-    val upcomingGames: List<UpcomingGame> = UpcomingGame.entries,
+    val upcomingGames: List<UpcomingGame> = emptyList(),
 ) {
     data class GameSummary(
         val game: TrainingGame,

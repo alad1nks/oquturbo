@@ -12,6 +12,8 @@ import com.alad1nks.oquturbo.feature.baspagame.navigation.navigateToBaspaTrainin
 import com.alad1nks.oquturbo.feature.baspagamemenu.navigation.BaspaGameMenuRoute
 import com.alad1nks.oquturbo.feature.baspagamemenu.navigation.baspaGameMenuScreen
 import com.alad1nks.oquturbo.feature.baspagamemenu.navigation.navigateToBaspaGameMenu
+import com.alad1nks.oquturbo.feature.dualfocus.navigation.dualFocusScreen
+import com.alad1nks.oquturbo.feature.dualfocus.navigation.navigateToDualFocus
 import com.alad1nks.oquturbo.feature.games.model.TrainingGame
 import com.alad1nks.oquturbo.feature.games.navigation.GamesRoute
 import com.alad1nks.oquturbo.feature.games.navigation.gamesScreen
@@ -97,6 +99,7 @@ fun App() {
                     TrainingGame.DontTap -> appState.navController.navigateToBaspaGameMenu()
                     TrainingGame.MemoryGrid -> appState.navController.navigateToMemoryGridMenu()
                     TrainingGame.WordFlow -> appState.navController.navigateToWordFlow()
+                    TrainingGame.DualFocus -> appState.navController.navigateToDualFocus()
                 }
             },
         )
@@ -201,6 +204,11 @@ fun App() {
                 appState.navController.popBackStack(route = GamesRoute, inclusive = false)
             },
         )
+        dualFocusScreen(
+            onBackClick = {
+                appState.navController.popBackStack(route = GamesRoute, inclusive = false)
+            },
+        )
     }
 }
 
@@ -248,6 +256,7 @@ private fun NavController.navigateToDailyTrainingEntry(entry: DailyTrainingEntry
             )
         GameId.MemoryGrid -> error("Memory Grid is not available in daily training")
         GameId.WordFlow -> error("Word Flow is not available in daily training")
+        GameId.DualFocus -> error("Dual Focus is not available in daily training")
     }
 }
 

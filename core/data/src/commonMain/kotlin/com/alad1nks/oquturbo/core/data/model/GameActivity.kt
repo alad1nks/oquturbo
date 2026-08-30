@@ -9,6 +9,7 @@ enum class GameId {
     DontTap,
     MemoryGrid,
     WordFlow,
+    DualFocus,
 }
 
 @Serializable
@@ -31,6 +32,7 @@ enum class GameModeId {
     MemoryGridReverse,
     MemoryGridFlash,
     WordFlowContext,
+    DualFocusMatch,
 }
 
 @Serializable

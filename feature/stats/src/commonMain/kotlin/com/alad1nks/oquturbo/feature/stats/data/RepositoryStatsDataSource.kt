@@ -476,6 +476,7 @@ private fun GameId.modeCatalog(): List<GameModeId> =
         GameId.MemoryGrid ->
             listOf(GameModeId.MemoryGridRoute, GameModeId.MemoryGridReverse, GameModeId.MemoryGridFlash)
         GameId.WordFlow -> listOf(GameModeId.WordFlowContext)
+        GameId.DualFocus -> listOf(GameModeId.DualFocusMatch)
     }
 
 private fun GameId.toStatsGame(): StatsGame =
@@ -485,6 +486,7 @@ private fun GameId.toStatsGame(): StatsGame =
         GameId.DontTap -> StatsGame.DontTap
         GameId.MemoryGrid -> StatsGame.MemoryGrid
         GameId.WordFlow -> StatsGame.WordFlow
+        GameId.DualFocus -> StatsGame.DualFocus
     }
 
 private fun GameModeId.toStatsMode(): StatsMode =
@@ -507,12 +509,13 @@ private fun GameModeId.toStatsMode(): StatsMode =
         GameModeId.MemoryGridReverse -> StatsMode.Reverse
         GameModeId.MemoryGridFlash -> StatsMode.Flash
         GameModeId.WordFlowContext -> StatsMode.Context
+        GameModeId.DualFocusMatch -> StatsMode.Match
     }
 
 private fun StatsSkill.gameIds(): Set<GameId> =
     when (this) {
         StatsSkill.Memory -> setOf(GameId.NumberSprint, GameId.MemoryGrid)
-        StatsSkill.Attention -> setOf(GameId.WideEye, GameId.DontTap)
+        StatsSkill.Attention -> setOf(GameId.WideEye, GameId.DontTap, GameId.DualFocus)
         StatsSkill.Reaction -> setOf(GameId.NumberSprint, GameId.DontTap)
         StatsSkill.PeripheralVision,
         StatsSkill.RecognitionSpeed,

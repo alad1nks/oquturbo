@@ -130,6 +130,7 @@ internal class HomeViewModel(
             GameId.DontTap -> HomeUiState.Game.DontTap
             GameId.MemoryGrid -> HomeUiState.Game.MemoryGrid
             GameId.WordFlow -> HomeUiState.Game.WordFlow
+            GameId.DualFocus -> HomeUiState.Game.DualFocus
         }
 
     private fun GameModeId.toHomeMode(): HomeUiState.Mode =
@@ -152,6 +153,7 @@ internal class HomeViewModel(
             GameModeId.MemoryGridReverse -> HomeUiState.Mode.Reverse
             GameModeId.MemoryGridFlash -> HomeUiState.Mode.Flash
             GameModeId.WordFlowContext -> HomeUiState.Mode.Context
+            GameModeId.DualFocusMatch -> HomeUiState.Mode.Match
         }
 
     private companion object {

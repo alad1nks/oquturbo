@@ -5,6 +5,7 @@ import androidx.compose.material.icons.filled.AutoStories
 import androidx.compose.material.icons.filled.Block
 import androidx.compose.material.icons.filled.Bolt
 import androidx.compose.material.icons.filled.GridView
+import androidx.compose.material.icons.filled.ViewColumn
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -27,6 +28,7 @@ internal fun StatsGame.titleResource(): StringResource =
         StatsGame.DontTap -> AppResource.String.baspa_title
         StatsGame.MemoryGrid -> AppResource.String.memory_grid_title
         StatsGame.WordFlow -> AppResource.String.word_flow_title
+        StatsGame.DualFocus -> AppResource.String.dual_focus_title
     }
 
 internal fun StatsGame.icon(): ImageVector =
@@ -36,6 +38,7 @@ internal fun StatsGame.icon(): ImageVector =
         StatsGame.DontTap -> Icons.Filled.Block
         StatsGame.MemoryGrid -> Icons.Filled.GridView
         StatsGame.WordFlow -> Icons.Filled.AutoStories
+        StatsGame.DualFocus -> Icons.Filled.ViewColumn
     }
 
 internal fun StatsMode.titleResource(): StringResource =
@@ -58,6 +61,7 @@ internal fun StatsMode.titleResource(): StringResource =
         StatsMode.Reverse -> AppResource.String.memory_grid_reverse_title
         StatsMode.Flash -> AppResource.String.memory_grid_flash_title
         StatsMode.Context -> AppResource.String.word_flow_context_mode
+        StatsMode.Match -> AppResource.String.dual_focus_match_mode
     }
 
 @Composable

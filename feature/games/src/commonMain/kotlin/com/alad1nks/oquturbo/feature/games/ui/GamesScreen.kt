@@ -31,6 +31,7 @@ import androidx.compose.material.icons.filled.EmojiEvents
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Psychology
 import androidx.compose.material.icons.filled.TouchApp
+import androidx.compose.material.icons.filled.ViewColumn
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -111,25 +112,27 @@ private fun GamesScreen(
                     )
                 }
             }
-            item { Spacer(modifier = Modifier.height(22.dp)) }
-            item {
-                Text(
-                    text = stringResource(AppResource.String.games_coming_soon_title),
-                    modifier = Modifier.padding(horizontal = 24.dp),
-                    style = MaterialTheme.typography.labelLarge,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-            }
-            item { Spacer(modifier = Modifier.height(10.dp)) }
-            uiState.upcomingGames.forEach { game ->
+            if (uiState.upcomingGames.isNotEmpty()) {
+                item { Spacer(modifier = Modifier.height(22.dp)) }
                 item {
-                    UpcomingGameCard(
-                        game = game,
-                        modifier = Modifier.padding(horizontal = 24.dp, vertical = 5.dp),
+                    Text(
+                        text = stringResource(AppResource.String.games_coming_soon_title),
+                        modifier = Modifier.padding(horizontal = 24.dp),
+                        style = MaterialTheme.typography.labelLarge,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                 }
+                item { Spacer(modifier = Modifier.height(10.dp)) }
+                uiState.upcomingGames.forEach { game ->
+                    item {
+                        UpcomingGameCard(
+                            game = game,
+                            modifier = Modifier.padding(horizontal = 24.dp, vertical = 5.dp),
+                        )
+                    }
+                }
+                item { Spacer(modifier = Modifier.height(12.dp)) }
             }
-            item { Spacer(modifier = Modifier.height(12.dp)) }
             item {
                 MotivationBanner(modifier = Modifier.padding(horizontal = 24.dp))
             }
@@ -322,6 +325,13 @@ private fun GameArtwork(game: TrainingGame) {
             TrainingGame.DontTap -> DontTapArtwork()
             TrainingGame.MemoryGrid -> MemoryGridArtwork()
             TrainingGame.WordFlow -> WordFlowArtwork()
+            TrainingGame.DualFocus ->
+                Icon(
+                    imageVector = Icons.Filled.ViewColumn,
+                    contentDescription = null,
+                    modifier = Modifier.size(52.dp),
+                    tint = MaterialTheme.colorScheme.primary,
+                )
         }
     }
 }
@@ -542,6 +552,7 @@ private fun TrainingGame.titleResource(): StringResource =
         TrainingGame.DontTap -> AppResource.String.baspa_title
         TrainingGame.MemoryGrid -> AppResource.String.memory_grid_title
         TrainingGame.WordFlow -> AppResource.String.word_flow_title
+        TrainingGame.DualFocus -> AppResource.String.dual_focus_title
     }
 
 private fun TrainingGame.descriptionResource(): StringResource =
@@ -551,6 +562,7 @@ private fun TrainingGame.descriptionResource(): StringResource =
         TrainingGame.DontTap -> AppResource.String.games_dont_tap_description
         TrainingGame.MemoryGrid -> AppResource.String.games_memory_grid_description
         TrainingGame.WordFlow -> AppResource.String.games_word_flow_description
+        TrainingGame.DualFocus -> AppResource.String.games_dual_focus_description
     }
 
 @Composable
@@ -561,6 +573,7 @@ private fun TrainingGame.artworkBackground(): Color =
         TrainingGame.DontTap -> MaterialTheme.colorScheme.tertiaryContainer
         TrainingGame.MemoryGrid -> MaterialTheme.colorScheme.primaryContainer
         TrainingGame.WordFlow -> MaterialTheme.colorScheme.secondaryContainer
+        TrainingGame.DualFocus -> MaterialTheme.colorScheme.primaryContainer
     }
 
 private fun GamesUiState.Skill.titleResource(): StringResource =

@@ -1,0 +1,155 @@
+name: PR checks dualfocus
+
+on:
+  pull_request:
+    branches: [ main, master ]
+    paths:
+      - 'app/dualfocus/**'
+      - 'feature/dualfocus/**'
+      - 'feature/main/**'
+      - 'core/**'
+      - 'resources/**'
+      - '.github/workflows/**'
+      - 'build.gradle.kts'
+      - 'settings.gradle.kts'
+      - 'gradle.properties'
+      - 'gradle/**'
+      - 'gradlew'
+      - 'gradlew.bat'
+
+jobs:
+  build-android:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: Make gradlew executable
+        run: chmod +x ./gradlew
+
+      - name: Run local tests
+        run: ./gradlew test
+
+      - name: Decode Keystore
+        env:
+          DUALFOCUS_KEYSTORE_BASE64: ${{ secrets.DUALFOCUS_KEYSTORE_BASE64 }}
+        shell: bash
+        run: |
+          if [[ -n "$DUALFOCUS_KEYSTORE_BASE64" ]]; then
+            printf '%s' "$DUALFOCUS_KEYSTORE_BASE64" | base64 -d > release-key.jks
+          fi
+
+      - name: Build APK
+        run: ./gradlew :app:dualfocus:androidApp:assembleRelease
+        env:
+          SIGNING_STORE_FILE: ${{ github.workspace }}/release-key.jks
+          SIGNING_KEY_ALIAS: ${{ secrets.DUALFOCUS_KEY_ALIAS }}
+          SIGNING_KEY_PASSWORD: ${{ secrets.DUALFOCUS_KEY_PASSWORD }}
+          SIGNING_STORE_PASSWORD: ${{ secrets.DUALFOCUS_KEYSTORE_PASSWORD }}
+        if: success()
+
+      - name: Rename APK
+        shell: bash
+        run: |
+          output_dir=app/dualfocus/androidApp/build/outputs/apk/release
+          mapfile -t release_apks < <(
+            find "$output_dir" -maxdepth 1 -type f \
+              \( -name "androidApp-release.apk" -o -name "androidApp-release-unsigned.apk" \) \
+              -print
+          )
+          if [[ ${#release_apks[@]} -ne 1 ]]; then
+            echo "Expected exactly one signed or unsigned release APK, found ${#release_apks[@]}" >&2
+            printf "%s\n" "${release_apks[@]}" >&2
+            exit 1
+          fi
+          mv "${release_apks[0]}" "$output_dir/dualfocus.apk"
+        if: success()
+
+      - name: Upload APK to GitHub
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-release
+          path: app/dualfocus/androidApp/build/outputs/apk/release/dualfocus.apk
+        if: success()
+
+
+  build-ios:
+    runs-on: macos-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: Make gradlew executable
+        run: chmod +x ./gradlew
+
+      - name: Build iOS
+        run: ./gradlew :app:dualfocus:shared:linkReleaseFrameworkIosArm64
+
+      - name: Verify iOS framework
+        run: test -d app/dualfocus/shared/build/bin/iosArm64/releaseFramework/AppDualFocus.framework
+
+  build-js:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: Make gradlew executable
+        run: chmod +x ./gradlew
+
+      - name: Build js
+        run: ./gradlew :app:dualfocus:webApp:jsJar
+
+  build-wasm:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: Make gradlew executable
+        run: chmod +x ./gradlew
+
+      - name: Build wasm
+        run: ./gradlew :app:dualfocus:webApp:wasmJsJar
+
+  build-jvm:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: Make gradlew executable
+        run: chmod +x ./gradlew
+
+      - name: Build jvm
+        run: ./gradlew :app:dualfocus:desktopApp:jar
