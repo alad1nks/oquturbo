@@ -81,6 +81,9 @@ kotlin {
         jvmMain.dependencies {
             implementation(projects.core.storage.datastore)
         }
+        jvmTest.dependencies {
+            implementation(libs.kotlinx.coroutines.test)
+        }
         webMain.dependencies {
             implementation(projects.core.storage.web)
         }
