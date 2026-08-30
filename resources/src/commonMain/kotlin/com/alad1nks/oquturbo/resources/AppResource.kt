@@ -49,6 +49,37 @@ import oquturbo.resources.generated.resources.baspa_letters
 import oquturbo.resources.generated.resources.baspa_statements
 import oquturbo.resources.generated.resources.baspa_title
 import oquturbo.resources.generated.resources.baspa_word_lengths
+import oquturbo.resources.generated.resources.dual_focus_back
+import oquturbo.resources.generated.resources.dual_focus_back_to_games
+import oquturbo.resources.generated.resources.dual_focus_card_accessibility
+import oquturbo.resources.generated.resources.dual_focus_correct
+import oquturbo.resources.generated.resources.dual_focus_failure_detail
+import oquturbo.resources.generated.resources.dual_focus_instructions
+import oquturbo.resources.generated.resources.dual_focus_lane_one
+import oquturbo.resources.generated.resources.dual_focus_lane_target
+import oquturbo.resources.generated.resources.dual_focus_lane_two
+import oquturbo.resources.generated.resources.dual_focus_loading_record
+import oquturbo.resources.generated.resources.dual_focus_loading_record_placeholder
+import oquturbo.resources.generated.resources.dual_focus_match
+import oquturbo.resources.generated.resources.dual_focus_match_mode
+import oquturbo.resources.generated.resources.dual_focus_missed_shape
+import oquturbo.resources.generated.resources.dual_focus_missed_title
+import oquturbo.resources.generated.resources.dual_focus_new_record
+import oquturbo.resources.generated.resources.dual_focus_non_match
+import oquturbo.resources.generated.resources.dual_focus_record
+import oquturbo.resources.generated.resources.dual_focus_record_value
+import oquturbo.resources.generated.resources.dual_focus_replay
+import oquturbo.resources.generated.resources.dual_focus_result_details
+import oquturbo.resources.generated.resources.dual_focus_score
+import oquturbo.resources.generated.resources.dual_focus_score_value
+import oquturbo.resources.generated.resources.dual_focus_shape_circle
+import oquturbo.resources.generated.resources.dual_focus_shape_diamond
+import oquturbo.resources.generated.resources.dual_focus_shape_square
+import oquturbo.resources.generated.resources.dual_focus_shape_triangle
+import oquturbo.resources.generated.resources.dual_focus_start
+import oquturbo.resources.generated.resources.dual_focus_title
+import oquturbo.resources.generated.resources.dual_focus_waiting
+import oquturbo.resources.generated.resources.dual_focus_wrong_title
 import oquturbo.resources.generated.resources.games_coming_soon_title
 import oquturbo.resources.generated.resources.games_dont_tap_description
 import oquturbo.resources.generated.resources.games_dual_focus_description
@@ -416,6 +447,38 @@ object AppResource {
     }
 
     object String {
+        val dual_focus_correct = Res.string.dual_focus_correct
+        val dual_focus_title = Res.string.dual_focus_title
+        val dual_focus_instructions = Res.string.dual_focus_instructions
+        val dual_focus_start = Res.string.dual_focus_start
+        val dual_focus_loading_record = Res.string.dual_focus_loading_record
+        val dual_focus_loading_record_placeholder = Res.string.dual_focus_loading_record_placeholder
+        val dual_focus_score = Res.string.dual_focus_score
+        val dual_focus_record = Res.string.dual_focus_record
+        val dual_focus_record_value = Res.string.dual_focus_record_value
+        val dual_focus_score_value = Res.string.dual_focus_score_value
+        val dual_focus_back = Res.string.dual_focus_back
+        val dual_focus_replay = Res.string.dual_focus_replay
+        val dual_focus_back_to_games = Res.string.dual_focus_back_to_games
+        val dual_focus_waiting = Res.string.dual_focus_waiting
+        val dual_focus_lane_target = Res.string.dual_focus_lane_target
+        val dual_focus_lane_one = Res.string.dual_focus_lane_one
+        val dual_focus_lane_two = Res.string.dual_focus_lane_two
+        val dual_focus_shape_circle = Res.string.dual_focus_shape_circle
+        val dual_focus_shape_square = Res.string.dual_focus_shape_square
+        val dual_focus_shape_triangle = Res.string.dual_focus_shape_triangle
+        val dual_focus_shape_diamond = Res.string.dual_focus_shape_diamond
+        val dual_focus_match = Res.string.dual_focus_match
+        val dual_focus_non_match = Res.string.dual_focus_non_match
+        val dual_focus_card_accessibility = Res.string.dual_focus_card_accessibility
+        val dual_focus_wrong_title = Res.string.dual_focus_wrong_title
+        val dual_focus_missed_title = Res.string.dual_focus_missed_title
+        val dual_focus_missed_shape = Res.string.dual_focus_missed_shape
+        val dual_focus_failure_detail = Res.string.dual_focus_failure_detail
+        val dual_focus_new_record = Res.string.dual_focus_new_record
+        val dual_focus_result_details = Res.string.dual_focus_result_details
+        val dual_focus_match_mode = Res.string.dual_focus_match_mode
+
         val home_title = Res.string.home_title
         val home_continue_training = Res.string.home_continue_training
         val home_overall_level = Res.string.home_overall_level

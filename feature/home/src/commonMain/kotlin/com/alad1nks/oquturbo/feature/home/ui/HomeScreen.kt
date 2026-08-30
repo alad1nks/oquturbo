@@ -24,6 +24,7 @@ import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.EmojiEvents
 import androidx.compose.material.icons.filled.GridView
 import androidx.compose.material.icons.filled.PlayArrow
+import androidx.compose.material.icons.filled.ViewColumn
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
@@ -427,6 +428,7 @@ private fun HomeUiState.Game.titleResource(): StringResource =
         HomeUiState.Game.DontTap -> AppResource.String.baspa_title
         HomeUiState.Game.MemoryGrid -> AppResource.String.memory_grid_title
         HomeUiState.Game.WordFlow -> AppResource.String.word_flow_title
+        HomeUiState.Game.DualFocus -> AppResource.String.dual_focus_title
     }
 
 private fun HomeUiState.Mode.titleResource(): StringResource =
@@ -449,6 +451,7 @@ private fun HomeUiState.Mode.titleResource(): StringResource =
         HomeUiState.Mode.Reverse -> AppResource.String.memory_grid_reverse_title
         HomeUiState.Mode.Flash -> AppResource.String.memory_grid_flash_title
         HomeUiState.Mode.Context -> AppResource.String.word_flow_context_mode
+        HomeUiState.Mode.Match -> AppResource.String.dual_focus_match_mode
     }
 
 @Composable
@@ -502,6 +505,7 @@ private fun HomeUiState.Game.icon(): ImageVector =
         HomeUiState.Game.DontTap -> Icons.Filled.Block
         HomeUiState.Game.MemoryGrid -> Icons.Filled.GridView
         HomeUiState.Game.WordFlow -> Icons.Filled.AutoStories
+        HomeUiState.Game.DualFocus -> Icons.Filled.ViewColumn
     }
 
 @Preview(

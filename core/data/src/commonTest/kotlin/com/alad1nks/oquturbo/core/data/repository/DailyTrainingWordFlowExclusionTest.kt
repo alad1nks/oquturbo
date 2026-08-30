@@ -11,7 +11,7 @@ import kotlin.test.assertFalse
 
 class DailyTrainingWordFlowExclusionTest {
     @Test
-    fun generatedPlanKeepsThreeExistingGamesAndExcludesWordFlow() =
+    fun generatedPlanKeepsThreeExistingGamesAndExcludesUnsupportedGames() =
         runTest {
             val plan = DailyTrainingRepository(TestStorage()).ensureTodayTraining()
             assertEquals(3, plan.entries.size)
@@ -20,6 +20,7 @@ class DailyTrainingWordFlowExclusionTest {
                 plan.entries.map { it.game }.toSet(),
             )
             assertFalse(plan.entries.any { it.game == GameId.WordFlow })
+            assertFalse(plan.entries.any { it.game == GameId.DualFocus })
         }
 
     private class TestStorage : Storage {

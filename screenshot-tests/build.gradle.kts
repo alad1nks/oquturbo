@@ -31,6 +31,7 @@ dependencies {
     implementation(projects.feature.remembernumbermenu)
     implementation(projects.feature.stats)
     implementation(projects.feature.wordflow)
+    implementation(projects.feature.dualfocus)
 
     testImplementation(libs.compose.components.resources)
     testImplementation(libs.compose.material3)

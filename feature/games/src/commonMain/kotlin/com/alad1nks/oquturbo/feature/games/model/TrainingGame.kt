@@ -6,4 +6,5 @@ enum class TrainingGame {
     DontTap,
     MemoryGrid,
     WordFlow,
+    DualFocus,
 }

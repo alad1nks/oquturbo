@@ -9,6 +9,7 @@ enum class StatsGame {
     DontTap,
     MemoryGrid,
     WordFlow,
+    DualFocus,
 }
 
 @Serializable
@@ -31,6 +32,7 @@ enum class StatsMode {
     Reverse,
     Flash,
     Context,
+    Match,
 }
 
 @Serializable
