@@ -36,7 +36,7 @@ data object WordFlowRoute
 fun NavController.navigateToWordFlow(navOptions: NavOptionsBuilder.() -> Unit = {}) =
     navigate(WordFlowRoute, navOptions)
 
-fun NavGraphBuilder.wordFlowScreen(onBackClick: () -> Unit) {
+fun NavGraphBuilder.wordFlowScreen(onBackClick: (() -> Unit)? = null) {
     composable<WordFlowRoute> {
         val locale = normalizeWordFlowLocale(Locale.current.language)
         val easy = localizedTier(WordFlowTier.Easy)

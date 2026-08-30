@@ -1,0 +1,136 @@
+name: PR checks wordflow
+
+on:
+  pull_request:
+    branches: [ main, master ]
+    paths:
+      - 'app/wordflow/**'
+      - 'feature/wordflow/**'
+      - 'feature/main/**'
+      - 'core/**'
+      - 'resources/**'
+      - '.github/workflows/**'
+      - 'build.gradle.kts'
+      - 'settings.gradle.kts'
+      - 'gradle.properties'
+      - 'gradle/**'
+      - 'gradlew'
+      - 'gradlew.bat'
+
+jobs:
+  build-android:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: Make gradlew executable
+        run: chmod +x ./gradlew
+
+      - name: Run local tests
+        run: ./gradlew test
+
+      - name: Decode Keystore
+        run: |
+          echo "${{ secrets.WORDFLOW_KEYSTORE_BASE64 }}" | base64 -d > release-key.jks
+
+      - name: Build APK
+        run: ./gradlew :app:wordflow:androidApp:assembleRelease
+        env:
+          SIGNING_KEY_ALIAS: ${{ secrets.WORDFLOW_KEY_ALIAS }}
+          SIGNING_KEY_PASSWORD: ${{ secrets.WORDFLOW_KEY_PASSWORD }}
+          SIGNING_STORE_PASSWORD: ${{ secrets.WORDFLOW_KEYSTORE_PASSWORD }}
+        if: success()
+
+      - name: Rename APK
+        run: mv app/wordflow/androidApp/build/outputs/apk/release/androidApp-release.apk app/wordflow/androidApp/build/outputs/apk/release/wordflow.apk
+        if: success()
+
+      - name: Upload APK to GitHub
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-release
+          path: app/wordflow/androidApp/build/outputs/apk/release/wordflow.apk
+        if: success()
+
+
+  build-ios:
+    runs-on: macos-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: Make gradlew executable
+        run: chmod +x ./gradlew
+
+      - name: Build iOS
+        run: ./gradlew :app:wordflow:shared:linkReleaseFrameworkIosArm64
+
+      - name: Verify iOS framework
+        run: test -d app/wordflow/shared/build/bin/iosArm64/releaseFramework/AppWordFlow.framework
+
+  build-js:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: Make gradlew executable
+        run: chmod +x ./gradlew
+
+      - name: Build js
+        run: ./gradlew :app:wordflow:webApp:jsJar
+
+  build-wasm:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: Make gradlew executable
+        run: chmod +x ./gradlew
+
+      - name: Build wasm
+        run: ./gradlew :app:wordflow:webApp:wasmJsJar
+
+  build-jvm:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: Make gradlew executable
+        run: chmod +x ./gradlew
+
+      - name: Build jvm
+        run: ./gradlew :app:wordflow:desktopApp:jar
