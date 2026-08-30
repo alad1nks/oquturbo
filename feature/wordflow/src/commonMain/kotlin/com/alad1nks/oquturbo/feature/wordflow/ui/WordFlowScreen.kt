@@ -62,20 +62,28 @@ import com.alad1nks.oquturbo.resources.AppResource
 import org.jetbrains.compose.resources.stringResource
 import kotlin.math.ceil
 
+internal fun wordFlowBackAction(
+    onBackClick: (() -> Unit)?,
+    onAbandon: () -> Unit,
+): (() -> Unit)? =
+    onBackClick?.let { callback ->
+        {
+            onAbandon()
+            callback()
+        }
+    }
+
 @Composable
 internal fun WordFlowRoute(
     viewModel: WordFlowViewModel,
-    onBackClick: () -> Unit,
+    onBackClick: (() -> Unit)?,
 ) {
     val state by viewModel.uiState.collectAsState()
     WordFlowScreen(
         state = state,
         onStartClick = viewModel::start,
         onChoiceClick = viewModel::selectAnswer,
-        onBackClick = {
-            viewModel.abandon()
-            onBackClick()
-        },
+        onBackClick = wordFlowBackAction(onBackClick, viewModel::abandon),
     )
 }
 
@@ -84,7 +92,7 @@ internal fun WordFlowScreen(
     state: WordFlowUiState,
     onStartClick: () -> Unit,
     onChoiceClick: (String) -> Unit,
-    onBackClick: () -> Unit,
+    onBackClick: (() -> Unit)?,
     modifier: Modifier = Modifier,
 ) {
     val game = state.game
@@ -115,12 +123,15 @@ internal fun WordFlowScreen(
                 } else {
                     state.record.toString()
                 },
-            leadingContent = {
-                AppBackButton(
-                    onClick = onBackClick,
-                    contentDescription = stringResource(AppResource.String.word_flow_back),
-                )
-            },
+            leadingContent =
+                onBackClick?.let { callback ->
+                    {
+                        AppBackButton(
+                            onClick = callback,
+                            contentDescription = stringResource(AppResource.String.word_flow_back),
+                        )
+                    }
+                },
             modifier =
                 Modifier.align(Alignment.TopCenter).widthIn(max = 760.dp).fillMaxWidth()
                     .statusBarsPadding().padding(horizontal = 24.dp, vertical = 16.dp),
@@ -342,7 +353,7 @@ private fun ResultContent(
     state: WordFlowUiState,
     onReplayClick: () -> Unit,
     onChoiceClick: (String) -> Unit,
-    onBackClick: () -> Unit,
+    onBackClick: (() -> Unit)?,
 ) {
     val game = state.game
     val prompt = game.round?.prompt ?: return
@@ -390,8 +401,10 @@ private fun ResultContent(
         Icon(Icons.Default.Replay, contentDescription = null)
         Text(stringResource(AppResource.String.word_flow_replay))
     }
-    OutlinedButton(onClick = onBackClick, modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp)) {
-        Text(stringResource(AppResource.String.word_flow_back))
+    if (onBackClick != null) {
+        OutlinedButton(onClick = onBackClick, modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp)) {
+            Text(stringResource(AppResource.String.word_flow_back))
+        }
     }
 }
 
@@ -448,13 +461,20 @@ private fun compactKazakhState(): WordFlowUiState =
 @ScreenshotPreview
 @Composable
 private fun WordFlowLoadingPreview() {
-    OquTurboTheme { WordFlowScreen(WordFlowUiState(), {}, {}, {}) }
+    OquTurboTheme { WordFlowScreen(WordFlowUiState(), {}, {}, null) }
 }
 
 @Preview(name = "Word Flow — ready", widthDp = 390, heightDp = 844)
 @ScreenshotPreview
 @Composable
 private fun WordFlowReadyPreview() {
+    OquTurboTheme { WordFlowScreen(WordFlowUiState(record = 4, isRecordLoading = false), {}, {}, null) }
+}
+
+@Preview(name = "Word Flow — hub ready with Back", widthDp = 390, heightDp = 844)
+@ScreenshotPreview
+@Composable
+private fun WordFlowHubReadyWithBackPreview() {
     OquTurboTheme { WordFlowScreen(WordFlowUiState(record = 4, isRecordLoading = false), {}, {}, {}) }
 }
 
@@ -462,21 +482,30 @@ private fun WordFlowReadyPreview() {
 @ScreenshotPreview
 @Composable
 private fun WordFlowActivePreview() {
-    OquTurboTheme { WordFlowScreen(previewState(WordFlowPhase.Active), {}, {}, {}) }
+    OquTurboTheme { WordFlowScreen(previewState(WordFlowPhase.Active), {}, {}, null) }
+}
+
+@Preview(name = "Word Flow — correct feedback", widthDp = 390, heightDp = 844)
+@ScreenshotPreview
+@Composable
+private fun WordFlowCorrectFeedbackPreview() {
+    OquTurboTheme {
+        WordFlowScreen(previewState(WordFlowPhase.CorrectFeedback, selected = "book"), {}, {}, null)
+    }
 }
 
 @Preview(name = "Word Flow — wrong", widthDp = 390, heightDp = 1100)
 @ScreenshotPreview
 @Composable
 private fun WordFlowWrongPreview() {
-    OquTurboTheme { WordFlowScreen(previewState(WordFlowPhase.Result, WordFlowFailure.Wrong, "window"), {}, {}, {}) }
+    OquTurboTheme { WordFlowScreen(previewState(WordFlowPhase.Result, WordFlowFailure.Wrong, "window"), {}, {}, null) }
 }
 
 @Preview(name = "Word Flow — timeout", widthDp = 390, heightDp = 1100)
 @ScreenshotPreview
 @Composable
 private fun WordFlowTimeoutPreview() {
-    OquTurboTheme { WordFlowScreen(previewState(WordFlowPhase.Result, WordFlowFailure.Timeout), {}, {}, {}) }
+    OquTurboTheme { WordFlowScreen(previewState(WordFlowPhase.Result, WordFlowFailure.Timeout), {}, {}, null) }
 }
 
 @Preview(name = "Word Flow — new record", widthDp = 390, heightDp = 1160)
@@ -484,7 +513,7 @@ private fun WordFlowTimeoutPreview() {
 @Composable
 private fun WordFlowNewRecordPreview() {
     OquTurboTheme {
-        WordFlowScreen(previewState(WordFlowPhase.Result, WordFlowFailure.Wrong, "window", 8, true), {}, {}, {})
+        WordFlowScreen(previewState(WordFlowPhase.Result, WordFlowFailure.Wrong, "window", 8, true), {}, {}, null)
     }
 }
 
@@ -492,5 +521,5 @@ private fun WordFlowNewRecordPreview() {
 @ScreenshotPreview
 @Composable
 private fun WordFlowCompactKazakhPreview() {
-    OquTurboTheme { WordFlowScreen(compactKazakhState(), {}, {}, {}) }
+    OquTurboTheme { WordFlowScreen(compactKazakhState(), {}, {}, null) }
 }
