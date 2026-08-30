@@ -16,7 +16,7 @@ import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlin.time.TimeMark
@@ -50,14 +50,15 @@ internal class WordFlowViewModel(
 
     init {
         viewModelScope.launch {
-            record =
-                activityRepository.observeRecords().first()
-                    .filter {
+            activityRepository.observeRecords().collect { records ->
+                record =
+                    records.filter {
                         it.game == GameId.WordFlow &&
                             it.mode == GameModeId.WordFlowContext &&
                             it.variantId == this@WordFlowViewModel.locale
                     }.maxOfOrNull { it.score } ?: 0
-            publish(isRecordLoading = false)
+                publish(isRecordLoading = false)
+            }
         }
     }
 
@@ -139,22 +140,23 @@ internal class WordFlowViewModel(
         val duration = attemptStartedAt?.elapsedNow()?.inWholeMilliseconds ?: 0
         val isNewRecord = finished.score > 0 && finished.score > record
         if (isNewRecord) record = finished.score
-        publish(isNewRecord = isNewRecord)
+        publish(isNewRecord = false)
         viewModelScope.launch(start = CoroutineStart.UNDISPATCHED) {
-            withContext(NonCancellable) {
-                activityRepository.recordCompletedSession(
-                    game = GameId.WordFlow,
-                    mode = GameModeId.WordFlowContext,
-                    variantId = locale,
-                    score = finished.score,
-                    correctAnswers = finished.correctAnswers,
-                    durationMillis = duration,
-                    isNewRecord = isNewRecord,
-                )
-            }
+            val recordedSession =
+                withContext(NonCancellable) {
+                    activityRepository.recordCompletedSession(
+                        game = GameId.WordFlow,
+                        mode = GameModeId.WordFlowContext,
+                        variantId = locale,
+                        score = finished.score,
+                        correctAnswers = finished.correctAnswers,
+                        durationMillis = duration,
+                        isNewRecord = isNewRecord,
+                    )
+                }
             if (token != attemptToken) return@launch
-            record = maxOf(record, finished.score)
-            publish()
+            record = maxOf(record, recordedSession.score)
+            publish(isNewRecord = recordedSession.isNewRecord)
         }
     }
 
