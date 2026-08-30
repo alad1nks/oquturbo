@@ -37,9 +37,13 @@ jobs:
         run: ./gradlew test
 
       - name: Decode Keystore
-        if: ${{ secrets.WORDFLOW_KEYSTORE_BASE64 != '' }}
+        env:
+          WORDFLOW_KEYSTORE_BASE64: ${{ secrets.WORDFLOW_KEYSTORE_BASE64 }}
+        shell: bash
         run: |
-          echo "${{ secrets.WORDFLOW_KEYSTORE_BASE64 }}" | base64 -d > release-key.jks
+          if [[ -n "$WORDFLOW_KEYSTORE_BASE64" ]]; then
+            printf '%s' "$WORDFLOW_KEYSTORE_BASE64" | base64 -d > release-key.jks
+          fi
 
       - name: Build APK
         run: ./gradlew :app:wordflow:androidApp:assembleRelease
