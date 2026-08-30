@@ -11,6 +11,7 @@ Apply only gates relevant to the diff, but every READY_TO_MERGE result must expl
 | `./gradlew :app:oquturbo:shared:compileKotlinJvm` | Shared graph/features compile for JVM | OquTurbo and dependencies, minutes | JDK 21 toolchain |
 | `./gradlew :app:oquturbo:shared:compileKotlinWasmJs` | Shared graph/features compile for Wasm | OquTurbo and dependencies, minutes | Node/Yarn artifacts may be downloaded by Gradle |
 | `./gradlew :app:oquturbo:androidApp:assembleDebug` | Debug Android app integration | OquTurbo Android, several minutes | Android SDK 37 |
+| `scripts/qa-android-emulator.sh provision/start/status/build/install/capture` | Headless Android launch, deployment, interaction, screenshots, and layout | Local/Cloud QA, first provision downloads several GB | Linux x86_64; uses KVM when available and software emulation otherwise |
 | `./gradlew :screenshot-tests:verifyRoborazziJvm` | Deterministic shared-UI screenshots | JVM visual suite, minutes | Linux CI uses `xvfb-run -a`; rendering can be host-sensitive |
 | `./gradlew :feature:memorygrid:allTests` | Existing Memory Grid common logic tests across configured targets | Focused feature, minutes | Some native/browser targets may require host tooling |
 
@@ -38,8 +39,11 @@ CI additionally runs release Android assembly (requires signing secrets), iOS fr
 ## Device and Cloud boundaries
 
 Android/iOS lifecycle, system back, IME, accessibility services, vibration/sound, process restart, and device-specific
-layout require an actual emulator/device. Full iOS app validation requires macOS/Xcode; Linux can at most compile
-supported Kotlin artifacts and must not claim iOS runtime validation. Browser interaction needs a launched browser;
+layout require an actual emulator/device. On Linux x86_64, first attempt Android runtime validation with
+`scripts/qa-android-emulator.sh`; inspect its captured PNG/layout artifacts and record the interactions performed.
+Software emulation is supported when KVM is unavailable but can boot slowly. Full iOS app validation requires
+macOS/Xcode; Linux can at most compile supported Kotlin artifacts and must not claim iOS runtime validation. Browser
+interaction needs a launched browser;
 Gradle web compilation alone is not interaction testing. Codex Cloud may also lack an Android SDK, display server,
 signing secrets, GitHub write permissions, or warm dependency caches. Report these as BLOCKED/unverified per
 criterion, not as passes. JVM Roborazzi provides useful shared rendering evidence but does not replace platform E2E.
