@@ -2,6 +2,7 @@ package com.alad1nks.oquturbo.feature.wordflow.ui
 
 import com.alad1nks.oquturbo.core.data.model.GameId
 import com.alad1nks.oquturbo.core.data.model.GameModeId
+import com.alad1nks.oquturbo.core.data.model.GameSession
 import com.alad1nks.oquturbo.core.data.repository.GameActivityRepository
 import com.alad1nks.oquturbo.core.storage.common.Storage
 import com.alad1nks.oquturbo.feature.wordflow.model.WordFlowContent
@@ -279,6 +280,143 @@ class WordFlowViewModelTest {
                 assertEquals(1, viewModel.uiState.value.record)
                 assertEquals(writesBeforeAttempt + 1, storage.gameSessionWriteCount)
                 assertFalse(repository.observeSessions().first().last().isNewRecord)
+            } finally {
+                Dispatchers.resetMain()
+            }
+        }
+
+    @Test
+    fun concurrentSameLocaleAttemptsShowExactlyOneAuthoritativeRecordBanner() =
+        runTest {
+            Dispatchers.setMain(StandardTestDispatcher(testScheduler))
+            try {
+                val sessionWriteGate = CompletableDeferred<Unit>()
+                val storage = RecordingStorage(sessionWriteGate)
+                val repository = GameActivityRepository(storage)
+                val viewModels =
+                    listOf(
+                        WordFlowViewModel("en", content(), repository),
+                        WordFlowViewModel("en-US", content(), repository),
+                    )
+                runCurrent()
+
+                viewModels.forEach { viewModel ->
+                    viewModel.start()
+                    viewModel.selectAnswer(viewModel.uiState.value.game.round!!.prompt.correctAnswer)
+                }
+                advanceTimeBy(500)
+                runCurrent()
+                viewModels.forEach { viewModel -> viewModel.advanceTimerBy(10_000) }
+                runCurrent()
+
+                assertTrue(storage.sessionWriteStarted.isCompleted)
+                assertEquals(0, storage.gameSessionWriteCount)
+                assertEquals(0, viewModels.count { it.uiState.value.isNewRecord })
+
+                sessionWriteGate.complete(Unit)
+                runCurrent()
+
+                val sessions = repository.observeSessions().first()
+                assertEquals(2, sessions.size)
+                assertEquals(1, sessions.count(GameSession::isNewRecord))
+                assertEquals(1, viewModels.count { it.uiState.value.isNewRecord })
+                assertTrue(viewModels.all { it.uiState.value.record == 1 })
+            } finally {
+                Dispatchers.resetMain()
+            }
+        }
+
+    @Test
+    fun concurrentUnequalScoresConvergeForBothWriteOrders() =
+        runTest {
+            Dispatchers.setMain(StandardTestDispatcher(testScheduler))
+            try {
+                listOf(true, false).forEach { lowScoreWritesFirst ->
+                    val sessionWriteGate = CompletableDeferred<Unit>()
+                    val storage = RecordingStorage(sessionWriteGate)
+                    val repository = GameActivityRepository(storage)
+                    val lowScore = WordFlowViewModel("en", content(), repository)
+                    val highScore = WordFlowViewModel("en-US", content(), repository)
+                    runCurrent()
+
+                    lowScore.start()
+                    highScore.start()
+                    lowScore.selectAnswer(lowScore.uiState.value.game.round!!.prompt.correctAnswer)
+                    highScore.selectAnswer(highScore.uiState.value.game.round!!.prompt.correctAnswer)
+                    advanceTimeBy(500)
+                    runCurrent()
+                    highScore.selectAnswer(highScore.uiState.value.game.round!!.prompt.correctAnswer)
+                    advanceTimeBy(500)
+                    runCurrent()
+
+                    val writeOrder =
+                        if (lowScoreWritesFirst) {
+                            listOf(lowScore, highScore)
+                        } else {
+                            listOf(highScore, lowScore)
+                        }
+                    writeOrder.forEach { viewModel -> viewModel.advanceTimerBy(10_000) }
+                    runCurrent()
+
+                    sessionWriteGate.complete(Unit)
+                    runCurrent()
+
+                    val sessionsByScore = repository.observeSessions().first().associateBy(GameSession::score)
+                    assertEquals(setOf(1, 2), sessionsByScore.keys)
+                    assertEquals(sessionsByScore.getValue(1).isNewRecord, lowScore.uiState.value.isNewRecord)
+                    assertEquals(sessionsByScore.getValue(2).isNewRecord, highScore.uiState.value.isNewRecord)
+                    assertEquals(lowScoreWritesFirst, sessionsByScore.getValue(1).isNewRecord)
+                    assertTrue(sessionsByScore.getValue(2).isNewRecord)
+                    assertEquals(2, lowScore.uiState.value.record)
+                    assertEquals(2, highScore.uiState.value.record)
+                }
+            } finally {
+                Dispatchers.resetMain()
+            }
+        }
+
+    @Test
+    fun replayBeforeUnequalWritesUnblockStillConvergesWithoutStaleBanner() =
+        runTest {
+            Dispatchers.setMain(StandardTestDispatcher(testScheduler))
+            try {
+                val sessionWriteGate = CompletableDeferred<Unit>()
+                val storage = RecordingStorage(sessionWriteGate)
+                val repository = GameActivityRepository(storage)
+                val replayedLowScore = WordFlowViewModel("en", content(), repository)
+                val highScore = WordFlowViewModel("en-US", content(), repository)
+                runCurrent()
+
+                replayedLowScore.start()
+                highScore.start()
+                replayedLowScore.selectAnswer(replayedLowScore.uiState.value.game.round!!.prompt.correctAnswer)
+                highScore.selectAnswer(highScore.uiState.value.game.round!!.prompt.correctAnswer)
+                advanceTimeBy(500)
+                runCurrent()
+                highScore.selectAnswer(highScore.uiState.value.game.round!!.prompt.correctAnswer)
+                advanceTimeBy(500)
+                runCurrent()
+
+                replayedLowScore.advanceTimerBy(10_000)
+                highScore.advanceTimerBy(10_000)
+                runCurrent()
+                assertTrue(storage.sessionWriteStarted.isCompleted)
+
+                replayedLowScore.start()
+                assertEquals(WordFlowPhase.Active, replayedLowScore.uiState.value.game.phase)
+                assertFalse(replayedLowScore.uiState.value.isNewRecord)
+
+                sessionWriteGate.complete(Unit)
+                runCurrent()
+
+                val sessionsByScore = repository.observeSessions().first().associateBy(GameSession::score)
+                assertTrue(sessionsByScore.getValue(1).isNewRecord)
+                assertTrue(sessionsByScore.getValue(2).isNewRecord)
+                assertFalse(replayedLowScore.uiState.value.isNewRecord)
+                assertTrue(highScore.uiState.value.isNewRecord)
+                assertEquals(2, replayedLowScore.uiState.value.record)
+                assertEquals(2, highScore.uiState.value.record)
+                replayedLowScore.abandon()
             } finally {
                 Dispatchers.resetMain()
             }
