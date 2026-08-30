@@ -6,6 +6,20 @@ plugins {
     alias(libs.plugins.composeCompiler)
 }
 
+val releaseSigningStoreFile =
+    System.getenv("SIGNING_STORE_FILE")
+        ?.takeIf(String::isNotBlank)
+        ?.let(::file)
+        ?: file("../../../release-key.jks")
+val releaseSigningStorePassword = System.getenv("SIGNING_STORE_PASSWORD")
+val releaseSigningKeyAlias = System.getenv("SIGNING_KEY_ALIAS")
+val releaseSigningKeyPassword = System.getenv("SIGNING_KEY_PASSWORD")
+val hasReleaseSigning =
+    releaseSigningStoreFile.isFile &&
+        !releaseSigningStorePassword.isNullOrBlank() &&
+        !releaseSigningKeyAlias.isNullOrBlank() &&
+        !releaseSigningKeyPassword.isNullOrBlank()
+
 kotlin {
     target {
         compilerOptions { jvmTarget.set(JvmTarget.JVM_11) }
@@ -31,16 +45,20 @@ android {
         resources.excludes += "/META-INF/{AL2.0,LGPL2.1}"
     }
     signingConfigs {
-        create("release") {
-            storeFile = file("../../../release-key.jks")
-            storePassword = System.getenv("SIGNING_STORE_PASSWORD")
-            keyAlias = System.getenv("SIGNING_KEY_ALIAS")
-            keyPassword = System.getenv("SIGNING_KEY_PASSWORD")
+        if (hasReleaseSigning) {
+            create("release") {
+                storeFile = releaseSigningStoreFile
+                storePassword = releaseSigningStorePassword
+                keyAlias = releaseSigningKeyAlias
+                keyPassword = releaseSigningKeyPassword
+            }
         }
     }
     buildTypes {
         release {
-            signingConfig = signingConfigs.getByName("release")
+            if (hasReleaseSigning) {
+                signingConfig = signingConfigs.getByName("release")
+            }
             isMinifyEnabled = true
             isShrinkResources = true
             isDebuggable = false

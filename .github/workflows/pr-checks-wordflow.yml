@@ -37,19 +37,34 @@ jobs:
         run: ./gradlew test
 
       - name: Decode Keystore
+        if: ${{ secrets.WORDFLOW_KEYSTORE_BASE64 != '' }}
         run: |
           echo "${{ secrets.WORDFLOW_KEYSTORE_BASE64 }}" | base64 -d > release-key.jks
 
       - name: Build APK
         run: ./gradlew :app:wordflow:androidApp:assembleRelease
         env:
+          SIGNING_STORE_FILE: ${{ github.workspace }}/release-key.jks
           SIGNING_KEY_ALIAS: ${{ secrets.WORDFLOW_KEY_ALIAS }}
           SIGNING_KEY_PASSWORD: ${{ secrets.WORDFLOW_KEY_PASSWORD }}
           SIGNING_STORE_PASSWORD: ${{ secrets.WORDFLOW_KEYSTORE_PASSWORD }}
         if: success()
 
       - name: Rename APK
-        run: mv app/wordflow/androidApp/build/outputs/apk/release/androidApp-release.apk app/wordflow/androidApp/build/outputs/apk/release/wordflow.apk
+        shell: bash
+        run: |
+          output_dir=app/wordflow/androidApp/build/outputs/apk/release
+          mapfile -t release_apks < <(
+            find "$output_dir" -maxdepth 1 -type f \
+              \( -name "androidApp-release.apk" -o -name "androidApp-release-unsigned.apk" \) \
+              -print
+          )
+          if [[ ${#release_apks[@]} -ne 1 ]]; then
+            echo "Expected exactly one signed or unsigned release APK, found ${#release_apks[@]}" >&2
+            printf "%s\n" "${release_apks[@]}" >&2
+            exit 1
+          fi
+          mv "${release_apks[0]}" "$output_dir/wordflow.apk"
         if: success()
 
       - name: Upload APK to GitHub
