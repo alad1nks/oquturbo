@@ -570,7 +570,12 @@
     <string name="memory_grid_back">Back</string>
     <string name="memory_grid_ready_title">Ready to remember?</string>
     <string name="memory_grid_rule">Watch the cells, then tap them in the same order.</string>
-    <string name="memory_grid_game_over">The correct next cell is marked.</string>
+    <string name="memory_grid_game_over">Review your accepted taps, wrong tap, and the correct next cell.</string>
+    <string name="memory_grid_game_over_flash">Review your accepted taps, wrong tap, and all remaining correct cells.</string>
+    <string name="memory_grid_legend_accepted">Accepted</string>
+    <string name="memory_grid_legend_wrong">Your tap</string>
+    <string name="memory_grid_legend_expected">Correct next</string>
+    <string name="memory_grid_legend_remaining">Still correct</string>
     <string name="memory_grid_result">Best completed route: %1$d</string>
     <string name="memory_grid_flash_result">Rounds completed: %1$d</string>
     <string name="memory_grid_start">Start</string>
@@ -581,4 +586,9 @@
     <string name="memory_grid_hint_success">Correct!</string>
     <string name="memory_grid_hint_mistake">Not quite</string>
     <string name="memory_grid_cell_description">Row %1$d, column %2$d</string>
+    <string name="memory_grid_cell_feedback_description">%1$s. %2$s</string>
+    <string name="memory_grid_cell_accepted">accepted</string>
+    <string name="memory_grid_cell_wrong">your wrong tap</string>
+    <string name="memory_grid_cell_expected">correct next cell</string>
+    <string name="memory_grid_cell_remaining">remaining correct cell</string>
 </resources>

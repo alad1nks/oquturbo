@@ -572,7 +572,12 @@
     <string name="memory_grid_back">Артқа</string>
     <string name="memory_grid_ready_title">Есте сақтауға дайынсыз ба?</string>
     <string name="memory_grid_rule">Ұяшықтарды бақылап, кейін сол ретпен басыңыз.</string>
-    <string name="memory_grid_game_over">Келесі дұрыс ұяшық белгіленді.</string>
+    <string name="memory_grid_game_over">Қабылданған басуларды, қате басуды және келесі дұрыс ұяшықты тексеріңіз.</string>
+    <string name="memory_grid_game_over_flash">Қабылданған басуларды, қате басуды және қалған барлық дұрыс ұяшықтарды тексеріңіз.</string>
+    <string name="memory_grid_legend_accepted">Қабылданды</string>
+    <string name="memory_grid_legend_wrong">Сіздің таңдауыңыз</string>
+    <string name="memory_grid_legend_expected">Келесі дұрыс</string>
+    <string name="memory_grid_legend_remaining">Дұрыс қалған</string>
     <string name="memory_grid_result">Ең ұзақ орындалған бағыт: %1$d</string>
     <string name="memory_grid_flash_result">Аяқталған раундтар: %1$d</string>
     <string name="memory_grid_start">Бастау</string>
@@ -583,4 +588,9 @@
     <string name="memory_grid_hint_success">Дұрыс!</string>
     <string name="memory_grid_hint_mistake">Дұрыс емес</string>
     <string name="memory_grid_cell_description">%1$d-жол, %2$d-баған</string>
+    <string name="memory_grid_cell_feedback_description">%1$s. %2$s</string>
+    <string name="memory_grid_cell_accepted">қабылданды</string>
+    <string name="memory_grid_cell_wrong">сіздің қате басуыңыз</string>
+    <string name="memory_grid_cell_expected">келесі дұрыс ұяшық</string>
+    <string name="memory_grid_cell_remaining">қалған дұрыс ұяшық</string>
 </resources>

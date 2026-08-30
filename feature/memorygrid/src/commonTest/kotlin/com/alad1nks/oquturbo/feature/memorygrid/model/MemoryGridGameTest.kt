@@ -88,7 +88,7 @@ class MemoryGridGameTest {
     }
 
     @Test
-    fun mistakeEndsGameAndExposesExpectedCell() {
+    fun routeMistakeEndsGameAndExposesWrongAndExpectedCells() {
         val game = MemoryGridGame(RecordingGenerator()).apply { start() }
         finishPresentation(game)
 
@@ -99,11 +99,95 @@ class MemoryGridGameTest {
         assertEquals(listOf(0), game.state.input)
         assertEquals(1, game.state.correctCellCount)
         assertEquals(1, game.state.mistakeIndex)
-        assertEquals(1, game.state.expectedCellAfterMistake)
+        assertEquals(8, game.state.failedSelectedCell)
+        assertEquals(setOf(1), game.state.expectedCellsAfterMistake)
 
         game.selectCell(1)
         game.continueAfterSuccess()
         assertEquals(MemoryGridPhase.GameOver, game.state.phase)
+    }
+
+    @Test
+    fun reverseMistakeExposesCorrectNextCellInReverseOrder() {
+        val game = MemoryGridGame(RecordingGenerator(), MemoryGridGameMode.Reverse).apply { start() }
+        finishPresentation(game)
+
+        game.selectCell(2)
+        game.selectCell(8)
+
+        assertEquals(MemoryGridPhase.GameOver, game.state.phase)
+        assertEquals(8, game.state.failedSelectedCell)
+        assertEquals(setOf(1), game.state.expectedCellsAfterMistake)
+    }
+
+    @Test
+    fun flashMistakeExposesEveryRemainingCorrectCell() {
+        val game = MemoryGridGame(RecordingGenerator(), MemoryGridGameMode.Flash).apply { start() }
+        finishPresentation(game)
+
+        game.selectCell(1)
+        game.selectCell(8)
+
+        assertEquals(MemoryGridPhase.GameOver, game.state.phase)
+        assertEquals(listOf(1), game.state.input)
+        assertEquals(8, game.state.failedSelectedCell)
+        assertEquals(setOf(0, 2), game.state.expectedCellsAfterMistake)
+    }
+
+    @Test
+    fun flashDuplicateTapKeepsAcceptedWrongAndRemainingRolesIndependent() {
+        val game = MemoryGridGame(RecordingGenerator(), MemoryGridGameMode.Flash).apply { start() }
+        finishPresentation(game)
+
+        game.selectCell(1)
+        game.selectCell(1)
+
+        assertEquals(MemoryGridPhase.GameOver, game.state.phase)
+        assertEquals(listOf(1), game.state.input)
+        assertEquals(1, game.state.failedSelectedCell)
+        assertEquals(setOf(0, 2), game.state.expectedCellsAfterMistake)
+    }
+
+    @Test
+    fun retryStartsWithCleanMistakeFeedback() {
+        val game = MemoryGridGame(RecordingGenerator()).apply { start() }
+        finishPresentation(game)
+        game.selectCell(8)
+
+        game.start()
+
+        assertEquals(MemoryGridPhase.ShowingSequence, game.state.phase)
+        assertNull(game.state.mistakeIndex)
+        assertNull(game.state.failedSelectedCell)
+        assertEquals(emptySet(), game.state.expectedCellsAfterMistake)
+        assertEquals(emptyList(), game.state.input)
+    }
+
+    @Test
+    fun repeatedCoordinatesKeepAcceptedWrongAndExpectedRolesIndependent() {
+        val generator =
+            QueueGenerator(
+                listOf(0, 1, 2),
+                listOf(0, 1, 2, 3),
+                listOf(0, 1, 2, 3, 4),
+                listOf(0, 1, 2, 3, 4, 5),
+                listOf(0, 1, 0, 2, 3, 4, 5),
+            )
+        val game = MemoryGridGame(generator).apply { start() }
+        repeat(4) {
+            finishPresentation(game)
+            game.state.sequence.forEach(game::selectCell)
+            game.continueAfterSuccess()
+        }
+        finishPresentation(game)
+
+        game.selectCell(0)
+        game.selectCell(1)
+        game.selectCell(1)
+
+        assertEquals(listOf(0, 1), game.state.input)
+        assertEquals(1, game.state.failedSelectedCell)
+        assertEquals(setOf(0), game.state.expectedCellsAfterMistake)
     }
 
     @Test
@@ -162,5 +246,12 @@ class MemoryGridGameTest {
             requests += GenerationRequest(cellCount, length, allowRepeatedCells)
             return List(length) { it % cellCount }
         }
+    }
+
+    private class QueueGenerator(vararg sequences: List<Int>) : MemoryGridSequenceGenerator {
+        private val sequences = sequences.toMutableList()
+
+        override fun generate(cellCount: Int, length: Int, allowRepeatedCells: Boolean): List<Int> =
+            sequences.removeAt(0)
     }
 }

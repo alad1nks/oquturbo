@@ -593,7 +593,12 @@
     <string name="memory_grid_back">Назад</string>
     <string name="memory_grid_ready_title">Готовы запоминать?</string>
     <string name="memory_grid_rule">Следите за клетками, затем нажмите их в том же порядке.</string>
-    <string name="memory_grid_game_over">Правильная следующая клетка отмечена.</string>
+    <string name="memory_grid_game_over">Проверьте принятые нажатия, ошибочное нажатие и следующую правильную клетку.</string>
+    <string name="memory_grid_game_over_flash">Проверьте принятые нажатия, ошибочное нажатие и все оставшиеся правильные клетки.</string>
+    <string name="memory_grid_legend_accepted">Принято</string>
+    <string name="memory_grid_legend_wrong">Ваш выбор</string>
+    <string name="memory_grid_legend_expected">Следующая</string>
+    <string name="memory_grid_legend_remaining">Осталась</string>
     <string name="memory_grid_result">Лучший пройденный маршрут: %1$d</string>
     <string name="memory_grid_flash_result">Пройдено раундов: %1$d</string>
     <string name="memory_grid_start">Начать</string>
@@ -604,4 +609,9 @@
     <string name="memory_grid_hint_success">Верно!</string>
     <string name="memory_grid_hint_mistake">Не совсем</string>
     <string name="memory_grid_cell_description">Строка %1$d, столбец %2$d</string>
+    <string name="memory_grid_cell_feedback_description">%1$s. %2$s</string>
+    <string name="memory_grid_cell_accepted">принято</string>
+    <string name="memory_grid_cell_wrong">ваше ошибочное нажатие</string>
+    <string name="memory_grid_cell_expected">следующая правильная клетка</string>
+    <string name="memory_grid_cell_remaining">оставшаяся правильная клетка</string>
 </resources>
