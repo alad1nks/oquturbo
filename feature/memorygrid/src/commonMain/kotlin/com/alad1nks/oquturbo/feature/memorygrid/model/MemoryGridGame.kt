@@ -53,16 +53,18 @@ class MemoryGridGame(
                 cellIndex == expectedCell
             }
         if (!isCorrect) {
+            val expectedCells =
+                if (mode == MemoryGridGameMode.Flash) {
+                    current.sequence.filterNot { it in current.input }.toSet()
+                } else {
+                    setOf(expectedCell)
+                }
             state =
                 current.copy(
                     phase = MemoryGridPhase.GameOver,
                     mistakeIndex = current.input.size,
-                    expectedCellAfterMistake =
-                        if (mode == MemoryGridGameMode.Flash) {
-                            current.sequence.firstOrNull { it !in current.input }
-                        } else {
-                            expectedCell
-                        },
+                    failedSelectedCell = cellIndex,
+                    expectedCellsAfterMistake = expectedCells,
                 )
             return
         }
@@ -179,7 +181,8 @@ data class MemoryGridState(
     val correctCellCount: Int = 0,
     val cellPresentationMillis: Long = MemoryGridGame.INITIAL_PRESENTATION_MILLIS,
     val mistakeIndex: Int? = null,
-    val expectedCellAfterMistake: Int? = null,
+    val failedSelectedCell: Int? = null,
+    val expectedCellsAfterMistake: Set<Int> = emptySet(),
     val record: Int = 0,
     val isNewRecord: Boolean = false,
 ) {

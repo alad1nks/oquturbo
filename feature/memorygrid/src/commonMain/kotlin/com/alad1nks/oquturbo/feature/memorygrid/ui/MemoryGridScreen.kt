@@ -3,10 +3,12 @@
 package com.alad1nks.oquturbo.feature.memorygrid.ui
 
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
@@ -16,8 +18,10 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.sizeIn
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Replay
@@ -85,6 +89,9 @@ internal fun MemoryGridScreen(
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
             MemoryGridBoard(state, mode, onCellClick)
+            if (state.phase == MemoryGridPhase.GameOver) {
+                MistakeLegend(mode)
+            }
             if (state.phase == MemoryGridPhase.Ready || state.phase == MemoryGridPhase.GameOver) {
                 ResultPanel(state, mode, onStartClick)
             }
@@ -126,10 +133,38 @@ private fun MemoryGridBoard(state: MemoryGridState, mode: MemoryGridGameMode, on
                 repeat(state.gridSize) { column ->
                     val index = row * state.gridSize + column
                     val active = index in highlightedCells
-                    val error = state.phase == MemoryGridPhase.GameOver && state.expectedCellAfterMistake == index
+                    val accepted = state.phase == MemoryGridPhase.GameOver && index in state.input
+                    val wrong = state.phase == MemoryGridPhase.GameOver && state.failedSelectedCell == index
+                    val expected = state.phase == MemoryGridPhase.GameOver && index in state.expectedCellsAfterMistake
                     val enabled = state.phase == MemoryGridPhase.AwaitingInput
-                    val description =
+                    val positionDescription =
                         stringResource(AppResource.String.memory_grid_cell_description, row + 1, column + 1)
+                    val roleDescriptions =
+                        buildList {
+                            if (accepted) add(stringResource(AppResource.String.memory_grid_cell_accepted))
+                            if (wrong) add(stringResource(AppResource.String.memory_grid_cell_wrong))
+                            if (expected) {
+                                add(
+                                    stringResource(
+                                        if (mode == MemoryGridGameMode.Flash) {
+                                            AppResource.String.memory_grid_cell_remaining
+                                        } else {
+                                            AppResource.String.memory_grid_cell_expected
+                                        },
+                                    ),
+                                )
+                            }
+                        }
+                    val description =
+                        if (roleDescriptions.isEmpty()) {
+                            positionDescription
+                        } else {
+                            stringResource(
+                                AppResource.String.memory_grid_cell_feedback_description,
+                                positionDescription,
+                                roleDescriptions.joinToString(),
+                            )
+                        }
                     Surface(
                         modifier =
                             Modifier.weight(1f).fillMaxSize().sizeIn(minWidth = 48.dp, minHeight = 48.dp)
@@ -142,23 +177,43 @@ private fun MemoryGridBoard(state: MemoryGridState, mode: MemoryGridGameMode, on
                         shape = RoundedCornerShape(14.dp),
                         color =
                             when {
-                                error -> MaterialTheme.colorScheme.errorContainer
+                                wrong -> MaterialTheme.colorScheme.errorContainer
+                                expected -> MaterialTheme.colorScheme.tertiaryContainer
                                 active -> MaterialTheme.colorScheme.primary
-                                index in state.input -> MaterialTheme.colorScheme.primaryContainer
+                                accepted -> MaterialTheme.colorScheme.primaryContainer
                                 else -> MaterialTheme.colorScheme.surfaceContainerHigh
                             },
                         border =
                             BorderStroke(
-                                if (active || error) 3.dp else 1.dp,
-                                if (error) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.outlineVariant,
+                                if (active || wrong || expected) 3.dp else 1.dp,
+                                when {
+                                    wrong -> MaterialTheme.colorScheme.error
+                                    expected -> MaterialTheme.colorScheme.tertiary
+                                    else -> MaterialTheme.colorScheme.outlineVariant
+                                },
                             ),
                     ) {
-                        if (error) {
-                            Box(contentAlignment = Alignment.Center) {
+                        Box {
+                            if (accepted) {
+                                Icon(
+                                    Icons.Default.Check,
+                                    contentDescription = null,
+                                    tint = MaterialTheme.colorScheme.primary,
+                                    modifier = Modifier.align(Alignment.TopEnd).padding(6.dp),
+                                )
+                            }
+                            if (wrong) {
                                 Icon(
                                     Icons.Default.Close,
                                     contentDescription = null,
                                     tint = MaterialTheme.colorScheme.error,
+                                    modifier = Modifier.align(Alignment.Center),
+                                )
+                            } else if (expected) {
+                                Box(
+                                    modifier =
+                                        Modifier.align(Alignment.Center).sizeIn(minWidth = 28.dp, minHeight = 28.dp)
+                                            .border(3.dp, MaterialTheme.colorScheme.onSurface, CircleShape),
                                 )
                             }
                         }
@@ -168,6 +223,76 @@ private fun MemoryGridBoard(state: MemoryGridState, mode: MemoryGridGameMode, on
         }
     }
 }
+
+@Composable
+private fun MistakeLegend(mode: MemoryGridGameMode) {
+    FlowRow(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(16.dp, Alignment.CenterHorizontally),
+        verticalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+        LegendItem(AppResource.String.memory_grid_legend_wrong, LegendRole.Wrong)
+        LegendItem(
+            if (mode == MemoryGridGameMode.Flash) {
+                AppResource.String.memory_grid_legend_remaining
+            } else {
+                AppResource.String.memory_grid_legend_expected
+            },
+            LegendRole.Expected,
+        )
+        LegendItem(AppResource.String.memory_grid_legend_accepted, LegendRole.Accepted)
+    }
+}
+
+@Composable
+private fun LegendItem(labelResource: org.jetbrains.compose.resources.StringResource, role: LegendRole) {
+    Row(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalAlignment = Alignment.CenterVertically) {
+        Surface(
+            modifier = Modifier.sizeIn(minWidth = 24.dp, minHeight = 24.dp),
+            shape = RoundedCornerShape(6.dp),
+            color =
+                when (role) {
+                    LegendRole.Accepted -> MaterialTheme.colorScheme.primaryContainer
+                    LegendRole.Wrong -> MaterialTheme.colorScheme.errorContainer
+                    LegendRole.Expected -> MaterialTheme.colorScheme.surfaceContainerHigh
+                },
+            border =
+                BorderStroke(
+                    if (role == LegendRole.Expected) 3.dp else 1.dp,
+                    when (role) {
+                        LegendRole.Accepted -> MaterialTheme.colorScheme.primary
+                        LegendRole.Wrong -> MaterialTheme.colorScheme.error
+                        LegendRole.Expected -> MaterialTheme.colorScheme.tertiary
+                    },
+                ),
+        ) {
+            Box(contentAlignment = Alignment.Center) {
+                when (role) {
+                    LegendRole.Accepted ->
+                        Icon(
+                            Icons.Default.Check,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.primary,
+                        )
+                    LegendRole.Wrong ->
+                        Icon(
+                            Icons.Default.Close,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.error,
+                        )
+                    LegendRole.Expected ->
+                        Box(
+                            Modifier.sizeIn(minWidth = 12.dp, minHeight = 12.dp)
+                                .border(2.dp, MaterialTheme.colorScheme.onSurface, CircleShape),
+                        )
+                }
+            }
+        }
+        Text(stringResource(labelResource), style = MaterialTheme.typography.labelMedium)
+    }
+}
+
+private enum class LegendRole { Accepted, Wrong, Expected }
 
 @Composable
 private fun ResultPanel(state: MemoryGridState, mode: MemoryGridGameMode, onStartClick: () -> Unit) {
@@ -191,7 +316,13 @@ private fun ResultPanel(state: MemoryGridState, mode: MemoryGridGameMode, onStar
             )
             Text(
                 stringResource(
-                    if (state.phase == MemoryGridPhase.Ready) mode.ruleResource else AppResource.String.memory_grid_game_over,
+                    if (state.phase == MemoryGridPhase.Ready) {
+                        mode.ruleResource
+                    } else if (mode == MemoryGridGameMode.Flash) {
+                        AppResource.String.memory_grid_game_over_flash
+                    } else {
+                        AppResource.String.memory_grid_game_over
+                    },
                 ),
             )
             Button(onClick = onStartClick) {
@@ -227,8 +358,33 @@ private val MemoryGridGameMode.ruleResource
         }
 
 @Preview(widthDp = 390, heightDp = 844)
-@ScreenshotPreview
 @Composable
 private fun MemoryGridPreview() {
     OquTurboTheme { MemoryGridScreen(MemoryGridState(), MemoryGridGameMode.Route, {}, {}, {}) }
+}
+
+@Preview(name = "Memory Grid — layered mistake", widthDp = 390, heightDp = 844)
+@ScreenshotPreview
+@Composable
+private fun MemoryGridLayeredMistakePreview() {
+    OquTurboTheme {
+        MemoryGridScreen(
+            state =
+                MemoryGridState(
+                    phase = MemoryGridPhase.GameOver,
+                    gridSize = 3,
+                    sequence = listOf(0, 1, 0, 4),
+                    input = listOf(0, 1),
+                    score = 3,
+                    correctCellCount = 6,
+                    failedSelectedCell = 1,
+                    expectedCellsAfterMistake = setOf(0),
+                    record = 5,
+                ),
+            mode = MemoryGridGameMode.Route,
+            onStartClick = {},
+            onCellClick = {},
+            onBackClick = {},
+        )
+    }
 }

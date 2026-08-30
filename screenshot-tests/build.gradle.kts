@@ -25,6 +25,7 @@ dependencies {
     implementation(projects.feature.home)
     implementation(projects.feature.kenkozgame)
     implementation(projects.feature.kenkozgamemenu)
+    implementation(projects.feature.memorygrid)
     implementation(projects.feature.profile)
     implementation(projects.feature.remembernumber)
     implementation(projects.feature.remembernumbermenu)

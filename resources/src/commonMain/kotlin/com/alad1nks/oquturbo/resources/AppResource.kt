@@ -125,17 +125,27 @@ import oquturbo.resources.generated.resources.kenkoz_game_words
 import oquturbo.resources.generated.resources.kenkoz_game_your_answer
 import oquturbo.resources.generated.resources.kenkoz_title
 import oquturbo.resources.generated.resources.memory_grid_back
+import oquturbo.resources.generated.resources.memory_grid_cell_accepted
 import oquturbo.resources.generated.resources.memory_grid_cell_description
+import oquturbo.resources.generated.resources.memory_grid_cell_expected
+import oquturbo.resources.generated.resources.memory_grid_cell_feedback_description
+import oquturbo.resources.generated.resources.memory_grid_cell_remaining
+import oquturbo.resources.generated.resources.memory_grid_cell_wrong
 import oquturbo.resources.generated.resources.memory_grid_flash_result
 import oquturbo.resources.generated.resources.memory_grid_flash_rule
 import oquturbo.resources.generated.resources.memory_grid_flash_subtitle
 import oquturbo.resources.generated.resources.memory_grid_flash_title
 import oquturbo.resources.generated.resources.memory_grid_game_over
+import oquturbo.resources.generated.resources.memory_grid_game_over_flash
 import oquturbo.resources.generated.resources.memory_grid_hint_mistake
 import oquturbo.resources.generated.resources.memory_grid_hint_ready
 import oquturbo.resources.generated.resources.memory_grid_hint_repeat
 import oquturbo.resources.generated.resources.memory_grid_hint_success
 import oquturbo.resources.generated.resources.memory_grid_hint_watch
+import oquturbo.resources.generated.resources.memory_grid_legend_accepted
+import oquturbo.resources.generated.resources.memory_grid_legend_expected
+import oquturbo.resources.generated.resources.memory_grid_legend_remaining
+import oquturbo.resources.generated.resources.memory_grid_legend_wrong
 import oquturbo.resources.generated.resources.memory_grid_length
 import oquturbo.resources.generated.resources.memory_grid_menu_subtitle
 import oquturbo.resources.generated.resources.memory_grid_menu_title
@@ -426,6 +436,11 @@ object AppResource {
         val memory_grid_ready_title = Res.string.memory_grid_ready_title
         val memory_grid_rule = Res.string.memory_grid_rule
         val memory_grid_game_over = Res.string.memory_grid_game_over
+        val memory_grid_game_over_flash = Res.string.memory_grid_game_over_flash
+        val memory_grid_legend_accepted = Res.string.memory_grid_legend_accepted
+        val memory_grid_legend_wrong = Res.string.memory_grid_legend_wrong
+        val memory_grid_legend_expected = Res.string.memory_grid_legend_expected
+        val memory_grid_legend_remaining = Res.string.memory_grid_legend_remaining
         val memory_grid_result = Res.string.memory_grid_result
         val memory_grid_rounds = Res.string.memory_grid_rounds
         val memory_grid_start = Res.string.memory_grid_start
@@ -436,6 +451,11 @@ object AppResource {
         val memory_grid_hint_success = Res.string.memory_grid_hint_success
         val memory_grid_hint_mistake = Res.string.memory_grid_hint_mistake
         val memory_grid_cell_description = Res.string.memory_grid_cell_description
+        val memory_grid_cell_feedback_description = Res.string.memory_grid_cell_feedback_description
+        val memory_grid_cell_accepted = Res.string.memory_grid_cell_accepted
+        val memory_grid_cell_wrong = Res.string.memory_grid_cell_wrong
+        val memory_grid_cell_expected = Res.string.memory_grid_cell_expected
+        val memory_grid_cell_remaining = Res.string.memory_grid_cell_remaining
         val games_memory_grid_description = Res.string.games_memory_grid_description
         val games_dual_focus_title = Res.string.games_dual_focus_title
         val games_dual_focus_description = Res.string.games_dual_focus_description
