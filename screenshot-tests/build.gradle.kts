@@ -30,6 +30,7 @@ dependencies {
     implementation(projects.feature.remembernumber)
     implementation(projects.feature.remembernumbermenu)
     implementation(projects.feature.stats)
+    implementation(projects.feature.wordflow)
 
     testImplementation(libs.compose.components.resources)
     testImplementation(libs.compose.material3)

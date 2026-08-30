@@ -17,6 +17,7 @@ import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AutoStories
 import androidx.compose.material.icons.filled.Block
 import androidx.compose.material.icons.filled.Bolt
 import androidx.compose.material.icons.filled.CheckCircle
@@ -425,6 +426,7 @@ private fun HomeUiState.Game.titleResource(): StringResource =
         HomeUiState.Game.WideEye -> AppResource.String.kenkoz_title
         HomeUiState.Game.DontTap -> AppResource.String.baspa_title
         HomeUiState.Game.MemoryGrid -> AppResource.String.memory_grid_title
+        HomeUiState.Game.WordFlow -> AppResource.String.word_flow_title
     }
 
 private fun HomeUiState.Mode.titleResource(): StringResource =
@@ -446,11 +448,16 @@ private fun HomeUiState.Mode.titleResource(): StringResource =
         HomeUiState.Mode.Route -> AppResource.String.memory_grid_route_title
         HomeUiState.Mode.Reverse -> AppResource.String.memory_grid_reverse_title
         HomeUiState.Mode.Flash -> AppResource.String.memory_grid_flash_title
+        HomeUiState.Mode.Context -> AppResource.String.word_flow_context_mode
     }
 
 @Composable
 private fun HomeUiState.RecentRecord.modeTitle(): String {
     val title = stringResource(mode.titleResource())
+    if (mode == HomeUiState.Mode.Context) {
+        val language = variantId?.wordFlowLanguageResource()?.let { stringResource(it) } ?: return title
+        return "$title · $language"
+    }
     val settings = variantId?.toCustomSettings() ?: return title
     return buildString {
         append(title)
@@ -464,6 +471,14 @@ private fun HomeUiState.RecentRecord.modeTitle(): String {
         append(settings.digits)
     }
 }
+
+private fun String.wordFlowLanguageResource(): StringResource? =
+    when (this) {
+        "en" -> AppResource.String.language_english
+        "ru" -> AppResource.String.language_russian
+        "kk" -> AppResource.String.language_kazakh
+        else -> null
+    }
 
 private fun String.toCustomSettings(): CustomSettings? {
     val values =
@@ -486,6 +501,7 @@ private fun HomeUiState.Game.icon(): ImageVector =
         HomeUiState.Game.WideEye -> Icons.Filled.Visibility
         HomeUiState.Game.DontTap -> Icons.Filled.Block
         HomeUiState.Game.MemoryGrid -> Icons.Filled.GridView
+        HomeUiState.Game.WordFlow -> Icons.Filled.AutoStories
     }
 
 @Preview(

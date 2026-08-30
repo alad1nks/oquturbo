@@ -1,6 +1,7 @@
 package com.alad1nks.oquturbo.feature.stats.ui
 
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AutoStories
 import androidx.compose.material.icons.filled.Block
 import androidx.compose.material.icons.filled.Bolt
 import androidx.compose.material.icons.filled.GridView
@@ -25,6 +26,7 @@ internal fun StatsGame.titleResource(): StringResource =
         StatsGame.WideEye -> AppResource.String.kenkoz_title
         StatsGame.DontTap -> AppResource.String.baspa_title
         StatsGame.MemoryGrid -> AppResource.String.memory_grid_title
+        StatsGame.WordFlow -> AppResource.String.word_flow_title
     }
 
 internal fun StatsGame.icon(): ImageVector =
@@ -33,6 +35,7 @@ internal fun StatsGame.icon(): ImageVector =
         StatsGame.WideEye -> Icons.Filled.Visibility
         StatsGame.DontTap -> Icons.Filled.Block
         StatsGame.MemoryGrid -> Icons.Filled.GridView
+        StatsGame.WordFlow -> Icons.Filled.AutoStories
     }
 
 internal fun StatsMode.titleResource(): StringResource =
@@ -54,6 +57,7 @@ internal fun StatsMode.titleResource(): StringResource =
         StatsMode.Route -> AppResource.String.memory_grid_route_title
         StatsMode.Reverse -> AppResource.String.memory_grid_reverse_title
         StatsMode.Flash -> AppResource.String.memory_grid_flash_title
+        StatsMode.Context -> AppResource.String.word_flow_context_mode
     }
 
 @Composable
@@ -65,6 +69,10 @@ internal fun modeTitle(
     variantId: String?,
 ): String {
     val title = stringResource(mode.titleResource())
+    if (mode == StatsMode.Context) {
+        val language = variantId?.wordFlowLanguageResource()?.let { stringResource(it) } ?: return title
+        return "$title · $language"
+    }
     val customSettings = variantId?.toCustomSettings() ?: return title
     return buildString {
         append(title)
@@ -78,6 +86,14 @@ internal fun modeTitle(
         append(customSettings.digits)
     }
 }
+
+private fun String.wordFlowLanguageResource(): StringResource? =
+    when (this) {
+        "en" -> AppResource.String.language_english
+        "ru" -> AppResource.String.language_russian
+        "kk" -> AppResource.String.language_kazakh
+        else -> null
+    }
 
 private fun String.toCustomSettings(): CustomSettings? {
     val values =
@@ -130,6 +146,7 @@ internal fun StatsSkill.titleResource(): StringResource =
         StatsSkill.Reaction -> AppResource.String.stats_skill_reaction
         StatsSkill.PeripheralVision -> AppResource.String.stats_skill_peripheral_vision
         StatsSkill.RecognitionSpeed -> AppResource.String.stats_skill_recognition_speed
+        StatsSkill.Reading -> AppResource.String.stats_skill_reading
     }
 
 internal fun StatsTrend.titleResource(): StringResource =

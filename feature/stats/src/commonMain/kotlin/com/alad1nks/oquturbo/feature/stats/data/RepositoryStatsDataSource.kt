@@ -48,7 +48,7 @@ internal class RepositoryStatsDataSource(
         }
 }
 
-private fun createSnapshot(
+internal fun createSnapshot(
     period: StatsPeriod,
     sessions: List<GameSession>,
     records: List<GameRecord>,
@@ -383,7 +383,7 @@ private fun seriesVariants(
     records: List<GameRecord>,
     totals: GameActivityTotals,
 ): List<String?> {
-    if (mode != GameModeId.NumberSprintCustom) return listOf(null)
+    if (!mode.hasVariants()) return listOf(null)
     return buildList {
         currentSessions
             .asReversed()
@@ -415,7 +415,7 @@ private fun GameSession.belongsTo(
 ): Boolean =
     this.game == game &&
         this.mode == mode &&
-        (mode != GameModeId.NumberSprintCustom || this.variantId == variantId)
+        (!mode.hasVariants() || this.variantId == variantId)
 
 private fun GameRecord.belongsTo(
     game: GameId,
@@ -424,7 +424,7 @@ private fun GameRecord.belongsTo(
 ): Boolean =
     this.game == game &&
         this.mode == mode &&
-        (mode != GameModeId.NumberSprintCustom || this.variantId == variantId)
+        (!mode.hasVariants() || this.variantId == variantId)
 
 private fun GameSeriesTotals.belongsTo(
     game: GameId,
@@ -433,7 +433,7 @@ private fun GameSeriesTotals.belongsTo(
 ): Boolean =
     this.game == game &&
         this.mode == mode &&
-        (mode != GameModeId.NumberSprintCustom || this.variantId == variantId)
+        (!mode.hasVariants() || this.variantId == variantId)
 
 private fun GameSeriesTotals.averageScore(): Int? =
     sessionCount.takeIf { it > 0 }?.let { (scoreTotal.toDouble() / it).roundToInt() }
@@ -442,8 +442,11 @@ private fun GameSession.seriesKey() =
     SeriesKey(
         game = game,
         mode = mode,
-        variantId = variantId.takeIf { mode == GameModeId.NumberSprintCustom },
+        variantId = variantId.takeIf { mode.hasVariants() },
     )
+
+private fun GameModeId.hasVariants(): Boolean =
+    this == GameModeId.NumberSprintCustom || this == GameModeId.WordFlowContext
 
 private fun GameId.modeCatalog(): List<GameModeId> =
     when (this) {
@@ -472,6 +475,7 @@ private fun GameId.modeCatalog(): List<GameModeId> =
             )
         GameId.MemoryGrid ->
             listOf(GameModeId.MemoryGridRoute, GameModeId.MemoryGridReverse, GameModeId.MemoryGridFlash)
+        GameId.WordFlow -> listOf(GameModeId.WordFlowContext)
     }
 
 private fun GameId.toStatsGame(): StatsGame =
@@ -480,6 +484,7 @@ private fun GameId.toStatsGame(): StatsGame =
         GameId.WideEye -> StatsGame.WideEye
         GameId.DontTap -> StatsGame.DontTap
         GameId.MemoryGrid -> StatsGame.MemoryGrid
+        GameId.WordFlow -> StatsGame.WordFlow
     }
 
 private fun GameModeId.toStatsMode(): StatsMode =
@@ -501,6 +506,7 @@ private fun GameModeId.toStatsMode(): StatsMode =
         GameModeId.MemoryGridRoute -> StatsMode.Route
         GameModeId.MemoryGridReverse -> StatsMode.Reverse
         GameModeId.MemoryGridFlash -> StatsMode.Flash
+        GameModeId.WordFlowContext -> StatsMode.Context
     }
 
 private fun StatsSkill.gameIds(): Set<GameId> =
@@ -511,6 +517,7 @@ private fun StatsSkill.gameIds(): Set<GameId> =
         StatsSkill.PeripheralVision,
         StatsSkill.RecognitionSpeed,
         -> setOf(GameId.WideEye)
+        StatsSkill.Reading -> setOf(GameId.WordFlow)
     }
 
 private fun Long.toMinutesCount(): Int =

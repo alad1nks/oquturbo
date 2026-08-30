@@ -8,6 +8,7 @@ enum class GameId {
     WideEye,
     DontTap,
     MemoryGrid,
+    WordFlow,
 }
 
 @Serializable
@@ -29,6 +30,7 @@ enum class GameModeId {
     MemoryGridRoute,
     MemoryGridReverse,
     MemoryGridFlash,
+    WordFlowContext,
 }
 
 @Serializable

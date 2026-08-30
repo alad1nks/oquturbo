@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="word_flow_easy_templates">
+        <item>Таза ауа кірсін деп, ол %1$s ашты.</item>
+        <item>Ұйықтар алдында ол %1$s арасын тіс жібімен тазалады.</item>
+        <item>Сорпа ыстық болғандықтан, мен %1$s алдым.</item>
+        <item>Жаңбыр басталғанда, Мина %1$s ашты.</item>
+        <item>Азық-түлік салқын тұруы үшін оны %1$s салдық.</item>
+        <item>Оқырман бетбелгі салып, %1$s жапты.</item>
+    </string-array>
+    <string-array name="word_flow_easy_correct">
+        <item>терезені</item><item>тістерінің</item><item>қасықты</item><item>қолшатырын</item><item>тоңазытқышқа</item><item>кітапты</item>
+    </string-array>
+    <string-array name="word_flow_easy_wrong_a">
+        <item>жастықты</item><item>аяқкиімінің</item><item>қарындашты</item><item>сатыны</item><item>жәшікке</item><item>тәрелкені</item>
+    </string-array>
+    <string-array name="word_flow_easy_wrong_b">
+        <item>себетті</item><item>кілттерінің</item><item>шұлықты</item><item>көрпесін</item><item>гаражға</item><item>шамды</item>
+    </string-array>
+    <string-array name="word_flow_medium_templates">
+        <item>Соқпақ қараңғы болғандықтан, біз %1$s жақтық.</item>
+        <item>Тезірек жету үшін олар екі бағытты салыстырып, %1$s жолды таңдады.</item>
+        <item>Стақан түсіп кетті, бірақ жұмсақ төсеніш оның %1$s жол бермеді.</item>
+        <item>Сәбиді оятпау үшін, ол %1$s жатқанда Нора даусын бәсеңдетті.</item>
+        <item>Топ серуенді %1$s алдында ауа райын тексерді.</item>
+        <item>Автобус лық толы болса да, жолаушы басқа адам оның %1$s отырсын деп орнынан тұрды.</item>
+    </string-array>
+    <string-array name="word_flow_medium_correct">
+        <item>қолшамды</item><item>қысқа</item><item>сынуына</item><item>ұйықтап</item><item>жоспарлау</item><item>орнына</item>
+    </string-array>
+    <string-array name="word_flow_medium_wrong_a">
+        <item>күнтізбені</item><item>қатты</item><item>қатуына</item><item>күліп</item><item>бүктеу</item><item>билетіне</item>
+    </string-array>
+    <string-array name="word_flow_medium_wrong_b">
+        <item>айнаны</item><item>ауыр</item><item>өсуіне</item><item>пісіріп</item><item>бояу</item><item>картасына</item>
+    </string-array>
+    <string-array name="word_flow_hard_templates">
+        <item>Комитет дауыс беруді жетіспейтін дәлелдер %1$s дейін кейінге қалдырды.</item>
+        <item>Оның түсіндірмесі қысқа болғанымен, түсінбеушілікті жоюға жеткілікті %1$s еді.</item>
+        <item>Редактор соңғы абзацты алып тастады, өйткені ол алдыңғы ойды тек %1$s.</item>
+        <item>Өлшемдер әртүрлі болғандықтан, қорытынды %1$s күйінде қалды.</item>
+        <item>Ескі көпір тар, сондықтан екі жақтағы көліктер кезекпен %1$s тиіс.</item>
+        <item>Ұсыныс тиімді көрінді, бірақ жасырын шығындар оны азырақ %1$s етті.</item>
+    </string-array>
+    <string-array name="word_flow_hard_correct">
+        <item>тексерілгенге</item><item>анық</item><item>қайталады</item><item>алдын ала</item><item>өтуі</item><item>тиімді</item>
+    </string-array>
+    <string-array name="word_flow_hard_wrong_a">
+        <item>тойланғанға</item><item>үнсіз</item><item>өлшеді</item><item>тұрақты</item><item>жиналуы</item><item>түрлі-түсті</item>
+    </string-array>
+    <string-array name="word_flow_hard_wrong_b">
+        <item>ұмытылғанға</item><item>алыс</item><item>қарызға алды</item><item>ұқыпсыз</item><item>адасуы</item><item>таныс</item>
+    </string-array>
+</resources>

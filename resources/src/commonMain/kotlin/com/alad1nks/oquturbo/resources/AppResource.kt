@@ -124,6 +124,9 @@ import oquturbo.resources.generated.resources.kenkoz_game_try_again
 import oquturbo.resources.generated.resources.kenkoz_game_words
 import oquturbo.resources.generated.resources.kenkoz_game_your_answer
 import oquturbo.resources.generated.resources.kenkoz_title
+import oquturbo.resources.generated.resources.language_english
+import oquturbo.resources.generated.resources.language_kazakh
+import oquturbo.resources.generated.resources.language_russian
 import oquturbo.resources.generated.resources.memory_grid_back
 import oquturbo.resources.generated.resources.memory_grid_cell_accepted
 import oquturbo.resources.generated.resources.memory_grid_cell_description
@@ -336,6 +339,7 @@ import oquturbo.resources.generated.resources.stats_skill_not_enough
 import oquturbo.resources.generated.resources.stats_skill_peripheral_vision
 import oquturbo.resources.generated.resources.stats_skill_positive_change
 import oquturbo.resources.generated.resources.stats_skill_reaction
+import oquturbo.resources.generated.resources.stats_skill_reading
 import oquturbo.resources.generated.resources.stats_skill_recognition_speed
 import oquturbo.resources.generated.resources.stats_skill_training_count
 import oquturbo.resources.generated.resources.stats_skills_title
@@ -355,6 +359,33 @@ import oquturbo.resources.generated.resources.stats_weekday_thu
 import oquturbo.resources.generated.resources.stats_weekday_tue
 import oquturbo.resources.generated.resources.stats_weekday_wed
 import oquturbo.resources.generated.resources.stats_yesterday
+import oquturbo.resources.generated.resources.word_flow_back
+import oquturbo.resources.generated.resources.word_flow_blank
+import oquturbo.resources.generated.resources.word_flow_choice_accessibility
+import oquturbo.resources.generated.resources.word_flow_completed_sentence
+import oquturbo.resources.generated.resources.word_flow_context_mode
+import oquturbo.resources.generated.resources.word_flow_correct
+import oquturbo.resources.generated.resources.word_flow_correct_answer
+import oquturbo.resources.generated.resources.word_flow_instructions
+import oquturbo.resources.generated.resources.word_flow_loading_record
+import oquturbo.resources.generated.resources.word_flow_new_record
+import oquturbo.resources.generated.resources.word_flow_ready_title
+import oquturbo.resources.generated.resources.word_flow_record
+import oquturbo.resources.generated.resources.word_flow_record_value
+import oquturbo.resources.generated.resources.word_flow_replay
+import oquturbo.resources.generated.resources.word_flow_score
+import oquturbo.resources.generated.resources.word_flow_score_value
+import oquturbo.resources.generated.resources.word_flow_seconds
+import oquturbo.resources.generated.resources.word_flow_sentence_accessibility
+import oquturbo.resources.generated.resources.word_flow_start
+import oquturbo.resources.generated.resources.word_flow_time
+import oquturbo.resources.generated.resources.word_flow_timeout_message
+import oquturbo.resources.generated.resources.word_flow_timeout_title
+import oquturbo.resources.generated.resources.word_flow_timer_accessibility
+import oquturbo.resources.generated.resources.word_flow_title
+import oquturbo.resources.generated.resources.word_flow_wrong_message
+import oquturbo.resources.generated.resources.word_flow_wrong_title
+import oquturbo.resources.generated.resources.word_flow_your_answer
 
 object AppResource {
     object Array {
@@ -461,6 +492,37 @@ object AppResource {
         val games_dual_focus_description = Res.string.games_dual_focus_description
         val games_word_flow_title = Res.string.games_word_flow_title
         val games_word_flow_description = Res.string.games_word_flow_description
+        val word_flow_title = Res.string.word_flow_title
+        val word_flow_ready_title = Res.string.word_flow_ready_title
+        val word_flow_instructions = Res.string.word_flow_instructions
+        val word_flow_start = Res.string.word_flow_start
+        val word_flow_loading_record = Res.string.word_flow_loading_record
+        val word_flow_score = Res.string.word_flow_score
+        val word_flow_record = Res.string.word_flow_record
+        val word_flow_score_value = Res.string.word_flow_score_value
+        val word_flow_record_value = Res.string.word_flow_record_value
+        val word_flow_time = Res.string.word_flow_time
+        val word_flow_seconds = Res.string.word_flow_seconds
+        val word_flow_back = Res.string.word_flow_back
+        val word_flow_correct = Res.string.word_flow_correct
+        val word_flow_wrong_title = Res.string.word_flow_wrong_title
+        val word_flow_wrong_message = Res.string.word_flow_wrong_message
+        val word_flow_timeout_title = Res.string.word_flow_timeout_title
+        val word_flow_timeout_message = Res.string.word_flow_timeout_message
+        val word_flow_your_answer = Res.string.word_flow_your_answer
+        val word_flow_correct_answer = Res.string.word_flow_correct_answer
+        val word_flow_completed_sentence = Res.string.word_flow_completed_sentence
+        val word_flow_replay = Res.string.word_flow_replay
+        val word_flow_new_record = Res.string.word_flow_new_record
+        val word_flow_blank = Res.string.word_flow_blank
+        val word_flow_sentence_accessibility = Res.string.word_flow_sentence_accessibility
+        val word_flow_choice_accessibility = Res.string.word_flow_choice_accessibility
+        val word_flow_timer_accessibility = Res.string.word_flow_timer_accessibility
+        val word_flow_context_mode = Res.string.word_flow_context_mode
+        val language_english = Res.string.language_english
+        val language_russian = Res.string.language_russian
+        val language_kazakh = Res.string.language_kazakh
+        val stats_skill_reading = Res.string.stats_skill_reading
         val games_soon = Res.string.games_soon
         val games_motivation_title = Res.string.games_motivation_title
         val games_motivation_subtitle = Res.string.games_motivation_subtitle

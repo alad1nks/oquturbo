@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="word_flow_easy_templates">
+        <item>She opened the %1$s to let fresh air inside.</item>
+        <item>Before bed, he used floss between his %1$s.</item>
+        <item>The soup was hot, so I used a %1$s.</item>
+        <item>Rain began, and Mina opened her %1$s.</item>
+        <item>We put the groceries in the %1$s to keep them cold.</item>
+        <item>The reader placed a bookmark before closing the %1$s.</item>
+    </string-array>
+    <string-array name="word_flow_easy_correct">
+        <item>window</item><item>teeth</item><item>spoon</item><item>umbrella</item><item>fridge</item><item>book</item>
+    </string-array>
+    <string-array name="word_flow_easy_wrong_a">
+        <item>pillow</item><item>shoes</item><item>pencil</item><item>ladder</item><item>drawer</item><item>plate</item>
+    </string-array>
+    <string-array name="word_flow_easy_wrong_b">
+        <item>basket</item><item>keys</item><item>sock</item><item>blanket</item><item>garage</item><item>lamp</item>
+    </string-array>
+    <string-array name="word_flow_medium_templates">
+        <item>The path was dark, so we switched on a %1$s.</item>
+        <item>To arrive sooner, they compared both routes and chose the %1$s one.</item>
+        <item>The glass slipped, but the soft mat prevented it from %1$s.</item>
+        <item>Nora lowered her voice so she would not wake the baby, who was %1$s.</item>
+        <item>The team checked the forecast before %1$s the picnic.</item>
+        <item>Although the bus was crowded, a passenger stood so another rider could take his %1$s.</item>
+    </string-array>
+    <string-array name="word_flow_medium_correct">
+        <item>flashlight</item><item>shorter</item><item>breaking</item><item>sleeping</item><item>planning</item><item>seat</item>
+    </string-array>
+    <string-array name="word_flow_medium_wrong_a">
+        <item>calendar</item><item>louder</item><item>freezing</item><item>laughing</item><item>folding</item><item>ticket</item>
+    </string-array>
+    <string-array name="word_flow_medium_wrong_b">
+        <item>mirror</item><item>heavier</item><item>growing</item><item>cooking</item><item>painting</item><item>map</item>
+    </string-array>
+    <string-array name="word_flow_hard_templates">
+        <item>The committee postponed the vote until the missing evidence could be %1$s.</item>
+        <item>Her explanation was brief yet sufficiently %1$s to settle the confusion.</item>
+        <item>The editor removed the final paragraph because it merely %1$s the earlier point.</item>
+        <item>Since the measurements varied, the conclusion remained %1$s.</item>
+        <item>The old bridge is narrow; therefore, traffic must %1$s from each side.</item>
+        <item>The proposal sounded efficient, but its hidden costs made it less %1$s.</item>
+    </string-array>
+    <string-array name="word_flow_hard_correct">
+        <item>reviewed</item><item>clear</item><item>repeated</item><item>tentative</item><item>alternate</item><item>practical</item>
+    </string-array>
+    <string-array name="word_flow_hard_wrong_a">
+        <item>celebrated</item><item>silent</item><item>measured</item><item>permanent</item><item>gather</item><item>colorful</item>
+    </string-array>
+    <string-array name="word_flow_hard_wrong_b">
+        <item>forgotten</item><item>distant</item><item>borrowed</item><item>careless</item><item>wander</item><item>familiar</item>
+    </string-array>
+</resources>

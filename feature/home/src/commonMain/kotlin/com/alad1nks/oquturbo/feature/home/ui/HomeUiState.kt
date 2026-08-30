@@ -14,6 +14,7 @@ internal data class HomeUiState(
         WideEye,
         DontTap,
         MemoryGrid,
+        WordFlow,
     }
 
     enum class Mode {
@@ -34,6 +35,7 @@ internal data class HomeUiState(
         Route,
         Reverse,
         Flash,
+        Context,
     }
 
     data class RecentRecord(
