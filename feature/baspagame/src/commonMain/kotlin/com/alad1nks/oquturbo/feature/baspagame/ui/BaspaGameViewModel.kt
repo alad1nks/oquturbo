@@ -150,6 +150,7 @@ internal class BaspaGameViewModel(
                 shouldTap = stimulus.shouldTap,
                 stimulusColorId = stimulus.colorId,
                 stimulusColorName = stimulus.colorName,
+                stimulusRoundId = it.stimulusRoundId + 1,
             )
         }
         if (_uiState.value.phase == BaspaGameUiState.Phase.Playing) startTimer()
@@ -168,16 +169,17 @@ internal class BaspaGameViewModel(
     }
 
     private fun startTimer() {
+        val stimulusRoundId = _uiState.value.stimulusRoundId
         timerJob =
             viewModelScope.launch {
                 delay(_uiState.value.intervalMillis.milliseconds)
-                onStimulusTimeout()
+                onStimulusTimeout(stimulusRoundId)
             }
     }
 
-    internal fun onStimulusTimeout() {
+    internal fun onStimulusTimeout(stimulusRoundId: Long) {
         val state = _uiState.value
-        if (state.phase != BaspaGameUiState.Phase.Playing || !sessionInProgress) return
+        if (!state.isCurrentStimulusRound(stimulusRoundId) || !sessionInProgress) return
         val mistakeReason = state.mistakeReasonOnTimeout()
         if (mistakeReason != null) {
             mistake(mistakeReason)

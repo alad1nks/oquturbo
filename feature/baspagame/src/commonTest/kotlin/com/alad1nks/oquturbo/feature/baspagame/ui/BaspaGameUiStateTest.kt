@@ -3,6 +3,7 @@ package com.alad1nks.oquturbo.feature.baspagame.ui
 import com.alad1nks.oquturbo.feature.baspagame.model.BaspaGameMode
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFalse
 import kotlin.test.assertNull
 import kotlin.test.assertSame
 
@@ -79,6 +80,32 @@ class BaspaGameUiStateTest {
         assertEquals(0, restartedState.score)
         assertEquals(2_000L, restartedState.intervalMillis)
         assertEquals(BaspaGameUiState.Phase.Playing, restartedState.phase)
+    }
+
+    @Test
+    fun thresholdRuleChangeCannotPairPreviousItemWithNewRule() {
+        val previousRound =
+            playingState(shouldTap = true).copy(
+                categoryName = "animals",
+                stimulusRoundId = 10L,
+                score = 9,
+            )
+        val thresholdGap =
+            previousRound.copy(
+                categoryName = "vehicles",
+                stimulus = "",
+                score = 10,
+            )
+        val nextRound =
+            thresholdGap.copy(
+                stimulus = "CAR",
+                stimulusRoundId = 11L,
+            )
+
+        assertFalse(thresholdGap.isCurrentStimulusRound(previousRound.stimulusRoundId))
+        assertFalse(nextRound.isCurrentStimulusRound(previousRound.stimulusRoundId))
+        assertNull(thresholdGap.mistakeReason)
+        assertEquals(BaspaGameUiState.Phase.Playing, thresholdGap.phase)
     }
 
     private fun playingState(shouldTap: Boolean) =

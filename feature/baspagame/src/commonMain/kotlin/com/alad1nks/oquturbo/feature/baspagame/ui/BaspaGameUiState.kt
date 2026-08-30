@@ -13,6 +13,7 @@ internal data class BaspaGameUiState(
     val targetColorName: String = "",
     val stimulusColorId: String = "",
     val stimulusColorName: String = "",
+    val stimulusRoundId: Long = 0L,
     val shouldTap: Boolean = false,
     val score: Int = 0,
     val record: Int = 0,
@@ -45,6 +46,9 @@ internal fun BaspaGameUiState.mistakeReasonOnTap(): BaspaMistakeReason? =
 
 internal fun BaspaGameUiState.mistakeReasonOnTimeout(): BaspaMistakeReason? =
     BaspaMistakeReason.MissedMatch.takeIf { shouldTap }
+
+internal fun BaspaGameUiState.isCurrentStimulusRound(roundId: Long): Boolean =
+    phase == BaspaGameUiState.Phase.Playing && stimulus.isNotEmpty() && stimulusRoundId == roundId
 
 internal fun BaspaGameUiState.withMistake(
     reason: BaspaMistakeReason,

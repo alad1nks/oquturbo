@@ -46,9 +46,10 @@ class BaspaGameViewModelTest {
                 val viewModel = createViewModel(storage = storage, stimulusShouldMatch = false)
                 runCurrent()
                 startAndShowStimulus(viewModel)
+                val stimulusRoundId = viewModel.uiState.value.stimulusRoundId
 
                 viewModel.tap()
-                viewModel.onStimulusTimeout()
+                viewModel.onStimulusTimeout(stimulusRoundId)
                 runCurrent()
 
                 assertEquals(BaspaMistakeReason.IncorrectTap, viewModel.uiState.value.mistakeReason)
@@ -90,7 +91,7 @@ class BaspaGameViewModelTest {
                 assertEquals(1, viewModel.uiState.value.score)
                 assertTrue(viewModel.uiState.value.shouldTap)
 
-                viewModel.onStimulusTimeout()
+                viewModel.onStimulusTimeout(viewModel.uiState.value.stimulusRoundId)
                 viewModel.tap()
                 runCurrent()
 
@@ -135,10 +136,39 @@ class BaspaGameViewModelTest {
                         .name
                 assertEquals(expectedColorName, state.stimulusColorName)
                 if (state.shouldTap) {
-                    viewModel.onStimulusTimeout()
+                    viewModel.onStimulusTimeout(state.stimulusRoundId)
                 } else {
                     viewModel.tap()
                 }
+                runCurrent()
+            } finally {
+                Dispatchers.resetMain()
+            }
+        }
+
+    @Test
+    fun lateTimeoutAfterMatchingTapDuringBlankGapIsIgnored() =
+        runTest {
+            Dispatchers.setMain(StandardTestDispatcher(testScheduler))
+            try {
+                val storage = RecordingStorage()
+                val viewModel = createViewModel(storage = storage, stimulusShouldMatch = true)
+                runCurrent()
+                startAndShowStimulus(viewModel)
+                val completedRoundId = viewModel.uiState.value.stimulusRoundId
+
+                viewModel.tap()
+                assertEquals("", viewModel.uiState.value.stimulus)
+                viewModel.onStimulusTimeout(completedRoundId)
+                runCurrent()
+
+                val state = viewModel.uiState.value
+                assertEquals(BaspaGameUiState.Phase.Playing, state.phase)
+                assertEquals(1, state.score)
+                assertEquals(null, state.mistakeReason)
+                assertEquals(0, storage.gameSessionWriteCount)
+
+                viewModel.togglePause()
                 runCurrent()
             } finally {
                 Dispatchers.resetMain()
