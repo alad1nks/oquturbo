@@ -82,8 +82,9 @@ internal class BaspaGameViewModel(
     }
 
     fun tap() {
-        if (_uiState.value.phase != BaspaGameUiState.Phase.Playing || _uiState.value.stimulus.isEmpty()) return
-        if (_uiState.value.shouldTap) success() else mistake()
+        val state = _uiState.value
+        if (state.phase != BaspaGameUiState.Phase.Playing || state.stimulus.isEmpty()) return
+        state.mistakeReasonOnTap()?.let(::mistake) ?: success()
     }
 
     fun togglePause() {
@@ -121,17 +122,12 @@ internal class BaspaGameViewModel(
         hasContinuedTraining = false
         startSessionTelemetry()
         _uiState.update {
-            it.copy(
-                score = 0,
+            it.restartingSession().copy(
                 categoryName = content.categories[categoryIndex].name,
                 categoryId = content.categories[categoryIndex].id,
                 letter = content.letters[letterIndex],
                 wordLength = content.wordLengths[wordLengthIndex],
                 targetColorName = content.colors[colorIndex].name,
-                intervalMillis = INITIAL_INTERVAL_MILLIS,
-                phase = BaspaGameUiState.Phase.Playing,
-                isTrainingCompletionReady = false,
-                trainingNextEntry = null,
             )
         }
         scheduleNextRound()
@@ -153,6 +149,8 @@ internal class BaspaGameViewModel(
                 stimulus = stimulus.text,
                 shouldTap = stimulus.shouldTap,
                 stimulusColorId = stimulus.colorId,
+                stimulusColorName = stimulus.colorName,
+                stimulusRoundId = it.stimulusRoundId + 1,
             )
         }
         if (_uiState.value.phase == BaspaGameUiState.Phase.Playing) startTimer()
@@ -171,16 +169,24 @@ internal class BaspaGameViewModel(
     }
 
     private fun startTimer() {
+        val stimulusRoundId = _uiState.value.stimulusRoundId
         timerJob =
             viewModelScope.launch {
                 delay(_uiState.value.intervalMillis.milliseconds)
-                if (_uiState.value.shouldTap) {
-                    mistake()
-                } else {
-                    correctAnswers++
-                    scheduleNextRound()
-                }
+                onStimulusTimeout(stimulusRoundId)
             }
+    }
+
+    internal fun onStimulusTimeout(stimulusRoundId: Long) {
+        val state = _uiState.value
+        if (!state.isCurrentStimulusRound(stimulusRoundId) || !sessionInProgress) return
+        val mistakeReason = state.mistakeReasonOnTimeout()
+        if (mistakeReason != null) {
+            mistake(mistakeReason)
+        } else {
+            correctAnswers++
+            scheduleNextRound()
+        }
     }
 
     private fun success() {
@@ -211,14 +217,13 @@ internal class BaspaGameViewModel(
         }
     }
 
-    private fun mistake() {
-        if (_uiState.value.phase != BaspaGameUiState.Phase.Playing || !sessionInProgress) return
+    private fun mistake(reason: BaspaMistakeReason) {
+        val mistakeState = transitionToMistake(reason) ?: return
         timerJob?.cancel()
         val sessionDurationMillis = finishSessionTelemetry()
-        val sessionScore = _uiState.value.score
+        val sessionScore = mistakeState.score
         val sessionCorrectAnswers = correctAnswers
         val isNewRecord = sessionScore > recordAtSessionStart
-        _uiState.update { it.copy(phase = BaspaGameUiState.Phase.Mistake) }
         viewModelScope.launch(start = CoroutineStart.UNDISPATCHED) {
             withContext(NonCancellable) {
                 gameActivityRepository.recordCompletedSession(
@@ -243,6 +248,15 @@ internal class BaspaGameViewModel(
                     }
                 }
             }
+        }
+    }
+
+    private fun transitionToMistake(reason: BaspaMistakeReason): BaspaGameUiState? {
+        while (true) {
+            val currentState = _uiState.value
+            val mistakeState = currentState.withMistake(reason, sessionInProgress)
+            if (mistakeState === currentState) return null
+            if (_uiState.compareAndSet(currentState, mistakeState)) return mistakeState
         }
     }
 
@@ -306,6 +320,7 @@ internal class BaspaGameViewModel(
                         },
                     shouldTap = shouldTap,
                     colorId = displayedColor.id,
+                    colorName = displayedColor.name,
                 )
             }
             BaspaGameMode.TrueFalse -> content.statements.random().toStimulus()
@@ -393,10 +408,10 @@ internal class BaspaGameViewModel(
         val text: String,
         val shouldTap: Boolean,
         val colorId: String = "",
+        val colorName: String = "",
     )
 
     private companion object {
-        const val INITIAL_INTERVAL_MILLIS = 2_000L
         const val SPEED_FACTOR_PERCENT = 95L
         const val WORDS_GAP_MILLIS = 300L
         const val CHALLENGE_CHANGE_GAP_MILLIS = 1_000L

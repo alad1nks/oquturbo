@@ -268,6 +268,9 @@
     <string name="baspa_game_start">Start Game!</string>
     <string name="baspa_game_continue">Continue</string>
     <string name="baspa_game_try_again">Try again?</string>
+    <string name="baspa_game_mistake_incorrect_tap">You tapped, but the item “%1$s” did not match the rule “%2$s”.</string>
+    <string name="baspa_game_mistake_missed_match">You did not tap the item “%1$s” that matched the rule “%2$s”.</string>
+    <string name="baspa_game_mistake_text_color_item">%1$s (%2$s)</string>
     <string-array name="baspa_categories"><item>animals|animals|CAT,DOG,TIGER,LION,HORSE,WOLF,BEAR,FOX,RABBIT,MOUSE</item><item>fruits|fruits|APPLE,PEAR,BANANA,ORANGE,LEMON,PEACH,PLUM,CHERRY,MANGO,GRAPE</item><item>vehicles|vehicles|CAR,BUS,TRAIN,PLANE,BICYCLE,TRUCK,BOAT,TRAM,METRO,SCOOTER</item><item>professions|professions|DOCTOR,TEACHER,DRIVER,COOK,PILOT,BUILDER,ARTIST,FARMER,LAWYER,ACTOR</item><item>clothes|clothes|SHIRT,COAT,HAT,DRESS,SOCKS,JACKET,SKIRT,SHOES,GLOVES,SCARF</item><item>nature|nature|FOREST,RIVER,MOUNTAIN,SEA,CLOUD,RAIN,SNOW,WIND,STONE,FLOWER</item><item>food|food|BREAD,SOUP,CHEESE,RICE,PASTA,SALAD,CAKE,PIZZA,MEAT,FISH</item><item>home|home items|TABLE,CHAIR,LAMP,SOFA,BED,CLOCK,MIRROR,CUP,PLATE,SPOON</item><item>sports|sports|FOOTBALL,TENNIS,HOCKEY,BOXING,SKIING,RUNNING,SWIMMING,CHESS,GOLF,RUGBY</item><item>school|school items|BOOK,PEN,PENCIL,RULER,ERASER,DESK,BOARD,MAP,GLOBE,NOTEBOOK</item></string-array>
     <string-array name="baspa_letters"><item>A</item><item>E</item><item>S</item><item>T</item><item>R</item></string-array>
     <string-array name="baspa_word_lengths"><item>3</item><item>4</item><item>5</item><item>6</item></string-array>

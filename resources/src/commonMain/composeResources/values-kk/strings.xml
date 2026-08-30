@@ -270,6 +270,9 @@
     <string name="baspa_game_start">Ойынды бастау!</string>
     <string name="baspa_game_continue">Жалғастыру</string>
     <string name="baspa_game_try_again">Қайта байқап көресіз бе?</string>
+    <string name="baspa_game_mistake_incorrect_tap">Сіз бастыңыз, бірақ «%1$s» элементі «%2$s» ережесіне сәйкес келмеді.</string>
+    <string name="baspa_game_mistake_missed_match">Сіз «%2$s» ережесіне сәйкес келген «%1$s» элементін баспадыңыз.</string>
+    <string name="baspa_game_mistake_text_color_item">%1$s (%2$s)</string>
     <string-array name="baspa_categories"><item>animals|жануарларды|МЫСЫҚ,ИТ,ЖОЛБАРЫС,АРЫСТАН,ЖЫЛҚЫ,ҚАСҚЫР,АЮ,ТҮЛКІ,ҚОЯН,ТЫШҚАН</item><item>fruits|жемістерді|АЛМА,АЛМҰРТ,БАНАН,АПЕЛЬСИН,ЛИМОН,ШАБДАЛЫ,АЛХОРЫ,ШИЕ,МАНГО,ЖҮЗІМ</item><item>vehicles|көліктерді|КӨЛІК,АВТОБУС,ПОЙЫЗ,ҰШАҚ,ВЕЛОСИПЕД,ЖҮККӨЛІК,ҚАЙЫҚ,ТРАМВАЙ,МЕТРО,САМОКАТ</item><item>professions|мамандықтарды|ДӘРІГЕР,МҰҒАЛІМ,ЖҮРГІЗУШІ,АСПАЗ,ҰШҚЫШ,ҚҰРЫЛЫСШЫ,СУРЕТШІ,ФЕРМЕР,ЗАҢГЕР,АКТЕР</item><item>clothes|киімдерді|КӨЙЛЕК,ПАЛЬТО,БӨРІК,ЖЕЙДЕ,ШҰЛЫҚ,КҮРТЕШЕ,БЕЛДЕМШЕ,АЯҚКИІМ,ҚОЛҒАП,ШАРФ</item><item>nature|табиғатты|ОРМАН,ӨЗЕН,ТАУ,ТЕҢІЗ,БҰЛТ,ЖАҢБЫР,ҚАР,ЖЕЛ,ТАС,ГҮЛ</item><item>food|тағамды|НАН,СОРПА,ІРІМШІК,КҮРІШ,МАКАРОН,САЛАТ,ТОРТ,ПИЦЦА,ЕТ,БАЛЫҚ</item><item>home|үй заттарын|ҮСТЕЛ,ОРЫНДЫҚ,ШАМ,ДИВАН,КЕРЕУЕТ,САҒАТ,АЙНА,КЕСЕ,ТӘРЕЛКЕ,ҚАСЫҚ</item><item>sports|спортты|ФУТБОЛ,ТЕННИС,ХОККЕЙ,БОКС,ШАҢҒЫ,ЖҮГІРУ,ЖҮЗУ,ШАХМАТ,ГОЛЬФ,РЕГБИ</item><item>school|мектеп заттарын|КІТАП,ҚАЛАМ,ҚАРЫНДАШ,СЫЗҒЫШ,ӨШІРГІШ,ПАРТА,ТАҚТА,КАРТА,ГЛОБУС,ДӘПТЕР</item></string-array>
     <string-array name="baspa_letters"><item>А</item><item>Қ</item><item>М</item><item>С</item><item>Т</item></string-array>
     <string-array name="baspa_word_lengths"><item>2</item><item>4</item><item>5</item></string-array>

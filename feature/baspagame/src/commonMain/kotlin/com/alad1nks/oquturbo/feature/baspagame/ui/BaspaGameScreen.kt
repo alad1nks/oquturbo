@@ -17,6 +17,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.automirrored.outlined.FactCheck
@@ -239,12 +240,43 @@ private fun MistakeOverlay(
         onClick = if (trainingGoalReached) onTrainingContinue else onRestart,
         enabled = !uiState.isTraining || uiState.isTrainingCompletionReady,
         extraContent = {
+            MistakeReasonCard(uiState = uiState)
             GameResultCard(
                 primaryText = "${stringResource(AppResource.String.baspa_game_score_label)}: ${uiState.score}",
                 secondaryText = "${stringResource(AppResource.String.baspa_game_record_label)}: ${uiState.record}",
             )
         },
     )
+}
+
+@Composable
+private fun MistakeReasonCard(
+    uiState: BaspaGameUiState,
+    modifier: Modifier = Modifier,
+) {
+    val item = uiState.mistakeItemName()
+    val rule = uiState.ruleText()
+    val message =
+        when (requireNotNull(uiState.mistakeReason)) {
+            BaspaMistakeReason.IncorrectTap ->
+                stringResource(AppResource.String.baspa_game_mistake_incorrect_tap, item, rule)
+            BaspaMistakeReason.MissedMatch ->
+                stringResource(AppResource.String.baspa_game_mistake_missed_match, item, rule)
+        }
+    Surface(
+        modifier = modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(20.dp),
+        color = MaterialTheme.colorScheme.surfaceContainer,
+        contentColor = MaterialTheme.colorScheme.onSurface,
+        tonalElevation = 1.dp,
+    ) {
+        Text(
+            text = message,
+            modifier = Modifier.padding(horizontal = 20.dp, vertical = 16.dp),
+            style = MaterialTheme.typography.bodyLarge,
+            textAlign = TextAlign.Center,
+        )
+    }
 }
 
 @Composable
@@ -333,14 +365,7 @@ private fun GameBackButton(
 
 @Composable
 private fun RuleCard(uiState: BaspaGameUiState, modifier: Modifier = Modifier) {
-    val rule =
-        when (uiState.mode) {
-            BaspaGameMode.Categories -> stringResource(uiState.mode.ruleResource(), uiState.categoryName)
-            BaspaGameMode.Letter -> stringResource(uiState.mode.ruleResource(), uiState.letter)
-            BaspaGameMode.WordLength -> stringResource(uiState.mode.ruleResource(), uiState.wordLength)
-            BaspaGameMode.TextColor -> stringResource(uiState.mode.ruleResource(), uiState.targetColorName)
-            else -> stringResource(uiState.mode.ruleResource())
-        }
+    val rule = uiState.ruleText()
     val accent =
         when (uiState.mode) {
             BaspaGameMode.Categories -> stringResource(uiState.mode.ruleAccentResource(), uiState.categoryName)
@@ -378,6 +403,28 @@ private fun RuleCard(uiState: BaspaGameUiState, modifier: Modifier = Modifier) {
         }
     }
 }
+
+@Composable
+private fun BaspaGameUiState.ruleText(): String =
+    when (mode) {
+        BaspaGameMode.Categories -> stringResource(mode.ruleResource(), categoryName)
+        BaspaGameMode.Letter -> stringResource(mode.ruleResource(), letter)
+        BaspaGameMode.WordLength -> stringResource(mode.ruleResource(), wordLength)
+        BaspaGameMode.TextColor -> stringResource(mode.ruleResource(), targetColorName)
+        else -> stringResource(mode.ruleResource())
+    }
+
+@Composable
+private fun BaspaGameUiState.mistakeItemName(): String =
+    if (mode == BaspaGameMode.TextColor) {
+        stringResource(
+            AppResource.String.baspa_game_mistake_text_color_item,
+            stimulus,
+            stimulusColorName,
+        )
+    } else {
+        stimulus
+    }
 
 private fun ruleIcon(uiState: BaspaGameUiState): ImageVector =
     when (uiState.mode) {
@@ -516,10 +563,41 @@ private fun BaspaGameScreenMistakePreview() {
                 mode = BaspaGameMode.Categories,
                 stimulus = "CAR",
                 categoryName = "animals",
+                shouldTap = false,
                 score = 24,
                 record = 57,
                 isRecordLoaded = true,
                 phase = BaspaGameUiState.Phase.Mistake,
+                mistakeReason = BaspaMistakeReason.IncorrectTap,
+            ),
+    )
+}
+
+@Preview(
+    name = "Don't Tap — missed match training",
+    widthDp = 390,
+    heightDp = 844,
+    locale = "kk",
+)
+@ScreenshotPreview
+@Composable
+private fun BaspaGameScreenMissedMatchTrainingPreview() {
+    BaspaGamePreview(
+        uiState =
+            BaspaGameUiState(
+                mode = BaspaGameMode.TextColor,
+                stimulus = "ҚЫЗЫЛ",
+                targetColorName = "қызыл",
+                stimulusColorId = "red",
+                stimulusColorName = "қызыл",
+                shouldTap = true,
+                score = 24,
+                record = 57,
+                isRecordLoaded = true,
+                phase = BaspaGameUiState.Phase.Mistake,
+                mistakeReason = BaspaMistakeReason.MissedMatch,
+                trainingRequiredScore = 20,
+                isTrainingCompletionReady = true,
             ),
     )
 }
