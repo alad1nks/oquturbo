@@ -56,6 +56,9 @@ import androidx.compose.ui.draw.blur
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.semantics.LiveRegionMode
+import androidx.compose.ui.semantics.liveRegion
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
@@ -241,6 +244,19 @@ private fun MistakeOverlay(
         enabled = !uiState.isTraining || uiState.isTrainingCompletionReady,
         extraContent = {
             MistakeReasonCard(uiState = uiState)
+            if (uiState.isNewRecord) {
+                Text(
+                    text = stringResource(AppResource.String.baspa_game_new_record),
+                    modifier =
+                        Modifier
+                            .fillMaxWidth()
+                            .semantics { liveRegion = LiveRegionMode.Polite },
+                    color = MaterialTheme.colorScheme.primary,
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold,
+                    textAlign = TextAlign.Center,
+                )
+            }
             GameResultCard(
                 primaryText = "${stringResource(AppResource.String.baspa_game_score_label)}: ${uiState.score}",
                 secondaryText = "${stringResource(AppResource.String.baspa_game_record_label)}: ${uiState.record}",
@@ -566,6 +582,31 @@ private fun BaspaGameScreenMistakePreview() {
                 shouldTap = false,
                 score = 24,
                 record = 57,
+                isRecordLoaded = true,
+                phase = BaspaGameUiState.Phase.Mistake,
+                mistakeReason = BaspaMistakeReason.IncorrectTap,
+            ),
+    )
+}
+
+@Preview(
+    name = "Don’t Tap — new record",
+    widthDp = 390,
+    heightDp = 844,
+)
+@ScreenshotPreview
+@Composable
+private fun BaspaGameScreenNewRecordPreview() {
+    BaspaGamePreview(
+        uiState =
+            BaspaGameUiState(
+                mode = BaspaGameMode.Categories,
+                stimulus = "CAR",
+                categoryName = "animals",
+                shouldTap = false,
+                score = 58,
+                record = 58,
+                isNewRecord = true,
                 isRecordLoaded = true,
                 phase = BaspaGameUiState.Phase.Mistake,
                 mistakeReason = BaspaMistakeReason.IncorrectTap,

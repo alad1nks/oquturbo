@@ -25,6 +25,7 @@ import oquturbo.resources.generated.resources.baspa_game_menu_word_length_title
 import oquturbo.resources.generated.resources.baspa_game_mistake_incorrect_tap
 import oquturbo.resources.generated.resources.baspa_game_mistake_missed_match
 import oquturbo.resources.generated.resources.baspa_game_mistake_text_color_item
+import oquturbo.resources.generated.resources.baspa_game_new_record
 import oquturbo.resources.generated.resources.baspa_game_record_label
 import oquturbo.resources.generated.resources.baspa_game_rule_categories
 import oquturbo.resources.generated.resources.baspa_game_rule_categories_accent
@@ -786,6 +787,7 @@ object AppResource {
         val baspa_game_mistake_incorrect_tap = Res.string.baspa_game_mistake_incorrect_tap
         val baspa_game_mistake_missed_match = Res.string.baspa_game_mistake_missed_match
         val baspa_game_mistake_text_color_item = Res.string.baspa_game_mistake_text_color_item
+        val baspa_game_new_record = Res.string.baspa_game_new_record
         val baspa_game_try_again = Res.string.baspa_game_try_again
         val baspa_game_menu_categories_subtitle = Res.string.baspa_game_menu_categories_subtitle
         val baspa_game_menu_categories_title = Res.string.baspa_game_menu_categories_title

@@ -53,6 +53,7 @@ internal class BaspaGameViewModel(
     private var recordAtSessionStart = 0
     private var sessionInProgress = false
     private var hasContinuedTraining = false
+    private var currentAttemptId = 0L
 
     init {
         require((trainingEntryId == null) == (trainingRequiredScore == null)) {
@@ -224,29 +225,47 @@ internal class BaspaGameViewModel(
         val sessionScore = mistakeState.score
         val sessionCorrectAnswers = correctAnswers
         val isNewRecord = sessionScore > recordAtSessionStart
+        val completedAttemptId = currentAttemptId
         viewModelScope.launch(start = CoroutineStart.UNDISPATCHED) {
             withContext(NonCancellable) {
-                gameActivityRepository.recordCompletedSession(
-                    game = GameId.DontTap,
-                    mode = mode.toGameModeId(),
-                    variantId = null,
-                    score = sessionScore,
-                    correctAnswers = sessionCorrectAnswers,
-                    durationMillis = sessionDurationMillis,
-                    isNewRecord = isNewRecord,
-                )
-                if (isNewRecord) {
-                    repository.setRecord(mode.name, sessionScore)
+                val recordedSession =
+                    gameActivityRepository.recordCompletedSession(
+                        game = GameId.DontTap,
+                        mode = mode.toGameModeId(),
+                        variantId = null,
+                        score = sessionScore,
+                        correctAnswers = sessionCorrectAnswers,
+                        durationMillis = sessionDurationMillis,
+                        isNewRecord = isNewRecord,
+                    )
+                updateCompletedAttempt(completedAttemptId) {
+                    it.copy(isNewRecord = recordedSession.isNewRecord)
+                }
+                if (recordedSession.isNewRecord) {
+                    repository.setRecord(mode.name, recordedSession.score)
                 }
                 trainingEntryId?.let { entryId ->
                     val trainingPlan = dailyTrainingRepository.completeEntry(entryId, sessionScore)
-                    _uiState.update {
+                    updateCompletedAttempt(completedAttemptId) {
                         it.copy(
                             isTrainingCompletionReady = true,
                             trainingNextEntry = trainingPlan.nextEntry,
                         )
                     }
                 }
+            }
+        }
+    }
+
+    private inline fun updateCompletedAttempt(
+        attemptId: Long,
+        transform: (BaspaGameUiState) -> BaspaGameUiState,
+    ) {
+        _uiState.update { state ->
+            if (attemptId == currentAttemptId && state.phase == BaspaGameUiState.Phase.Mistake) {
+                transform(state)
+            } else {
+                state
             }
         }
     }
@@ -261,6 +280,7 @@ internal class BaspaGameViewModel(
     }
 
     private fun startSessionTelemetry() {
+        currentAttemptId++
         correctAnswers = 0
         activeDurationMillis = 0L
         recordAtSessionStart = _uiState.value.record
