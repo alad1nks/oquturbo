@@ -673,7 +673,21 @@
     <string name="dual_focus_missed_shape">фигура не нажата</string>
     <string name="dual_focus_failure_detail">%1$s. Цель: %2$s. Показано: %3$s.</string>
     <string name="dual_focus_new_record">Новый рекорд!</string>
-    <string name="dual_focus_result_details">Прошлый рекорд: %1$d · Верно: %2$d · Время: %3$d мс</string>
+    <string name="dual_focus_result_details">Прошлый рекорд: %1$d · Верно: %2$d · Время: %3$s</string>
+    <string name="dual_focus_duration_less_than_one_second">меньше 1 секунды</string>
+    <plurals name="dual_focus_duration_seconds">
+        <item quantity="one">%1$d секунда</item>
+        <item quantity="few">%1$d секунды</item>
+        <item quantity="many">%1$d секунд</item>
+        <item quantity="other">%1$d секунды</item>
+    </plurals>
+    <plurals name="dual_focus_duration_minutes">
+        <item quantity="one">%1$d минута</item>
+        <item quantity="few">%1$d минуты</item>
+        <item quantity="many">%1$d минут</item>
+        <item quantity="other">%1$d минуты</item>
+    </plurals>
+    <string name="dual_focus_duration_minutes_seconds">%1$s %2$s</string>
     <string name="dual_focus_match_mode">Совпадение</string>
     <string name="dual_focus_correct">Верно</string>
 </resources>

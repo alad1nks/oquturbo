@@ -652,7 +652,17 @@
     <string name="dual_focus_missed_shape">пішін басылмады</string>
     <string name="dual_focus_failure_detail">%1$s. Нысана: %2$s. Көрсетілгені: %3$s.</string>
     <string name="dual_focus_new_record">Жаңа рекорд!</string>
-    <string name="dual_focus_result_details">Алдыңғы рекорд: %1$d · Дұрыс: %2$d · Уақыт: %3$d мс</string>
+    <string name="dual_focus_result_details">Алдыңғы рекорд: %1$d · Дұрыс: %2$d · Уақыт: %3$s</string>
+    <string name="dual_focus_duration_less_than_one_second">1 секундтан аз</string>
+    <plurals name="dual_focus_duration_seconds">
+        <item quantity="one">%1$d секунд</item>
+        <item quantity="other">%1$d секунд</item>
+    </plurals>
+    <plurals name="dual_focus_duration_minutes">
+        <item quantity="one">%1$d минут</item>
+        <item quantity="other">%1$d минут</item>
+    </plurals>
+    <string name="dual_focus_duration_minutes_seconds">%1$s %2$s</string>
     <string name="dual_focus_match_mode">Сәйкестік</string>
     <string name="dual_focus_correct">Дұрыс</string>
 </resources>

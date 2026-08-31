@@ -66,6 +66,7 @@ import com.alad1nks.oquturbo.feature.dualfocus.model.DualFocusResult
 import com.alad1nks.oquturbo.feature.dualfocus.model.DualFocusShape
 import com.alad1nks.oquturbo.feature.dualfocus.model.DualFocusState
 import com.alad1nks.oquturbo.resources.AppResource
+import org.jetbrains.compose.resources.pluralStringResource
 import org.jetbrains.compose.resources.stringResource
 
 internal fun dualFocusBackAction(onBackClick: (() -> Unit)?, onAbandon: () -> Unit): (() -> Unit)? =
@@ -330,7 +331,7 @@ private fun ResultContent(state: DualFocusUiState, onReplayClick: () -> Unit, on
                 AppResource.String.dual_focus_result_details,
                 state.previousRecord,
                 state.game.correctAnswers,
-                state.durationMillis,
+                durationText(state.durationMillis),
             ),
         modifier = Modifier.fillMaxWidth(),
     )
@@ -344,6 +345,39 @@ private fun ResultContent(state: DualFocusUiState, onReplayClick: () -> Unit, on
         }
     }
 }
+
+@Composable
+private fun durationText(durationMillis: Long): String =
+    when (val parts = durationDisplayParts(durationMillis)) {
+        DurationDisplayParts.LessThanOneSecond ->
+            stringResource(AppResource.String.dual_focus_duration_less_than_one_second)
+        is DurationDisplayParts.Seconds ->
+            pluralStringResource(
+                AppResource.Plural.dual_focus_duration_seconds,
+                parts.seconds.pluralQuantity(),
+                parts.seconds,
+            )
+        is DurationDisplayParts.MinutesSeconds -> {
+            val minutes =
+                pluralStringResource(
+                    AppResource.Plural.dual_focus_duration_minutes,
+                    parts.minutes.pluralQuantity(),
+                    parts.minutes,
+                )
+            val seconds = parts.seconds ?: return minutes
+            stringResource(
+                AppResource.String.dual_focus_duration_minutes_seconds,
+                minutes,
+                pluralStringResource(
+                    AppResource.Plural.dual_focus_duration_seconds,
+                    seconds.pluralQuantity(),
+                    seconds,
+                ),
+            )
+        }
+    }
+
+private fun Long.pluralQuantity(): Int = coerceAtMost(Int.MAX_VALUE.toLong()).toInt()
 
 @Composable
 private fun laneLabel(
@@ -422,7 +456,11 @@ private fun androidx.compose.ui.graphics.drawscope.DrawScope.polygon(points: Lis
     drawPath(path, color, style = stroke)
 }
 
-private fun previewState(failure: DualFocusFailure? = null, score: Int = 3): DualFocusUiState {
+private fun previewState(
+    failure: DualFocusFailure? = null,
+    score: Int = 3,
+    durationMillis: Long = 4_300,
+): DualFocusUiState {
     val targets = mapOf(DualFocusLane.One to DualFocusShape.Circle, DualFocusLane.Two to DualFocusShape.Triangle)
     val windowMillis = DualFocusGame.timingFor(score).windowMillis
     val laneOneAppearedAtMillis = if (score >= 15) 500L else 0L
@@ -468,7 +506,7 @@ private fun previewState(failure: DualFocusFailure? = null, score: Int = 3): Dua
         ),
         record = 5,
         previousRecord = 5,
-        durationMillis = 4300,
+        durationMillis = durationMillis,
         isRecordLoading = false,
         isNewRecord = score > 5,
     )
@@ -538,7 +576,14 @@ private fun DualFocusMissedPreview() {
 @ScreenshotPreview
 @Composable
 private fun DualFocusNewRecordCompactPreview() {
-    OquTurboTheme { DualFocusScreen(previewState(DualFocusFailure.WrongTap, 6), {}, { _, _ -> }, {}) }
+    OquTurboTheme {
+        DualFocusScreen(
+            previewState(DualFocusFailure.WrongTap, score = 6, durationMillis = 725_300),
+            {},
+            { _, _ -> },
+            {},
+        )
+    }
 }
 
 @Preview(name = "Dual Focus — ready Russian", widthDp = 390, heightDp = 844, locale = "ru")
@@ -548,9 +593,30 @@ private fun DualFocusReadyRussianPreview() {
     OquTurboTheme { DualFocusScreen(DualFocusUiState(record = 4, isRecordLoading = false), {}, { _, _ -> }, null) }
 }
 
+@Preview(name = "Dual Focus — result Russian", widthDp = 390, heightDp = 1000, locale = "ru")
+@ScreenshotPreview
+@Composable
+private fun DualFocusResultRussianPreview() {
+    OquTurboTheme {
+        DualFocusScreen(
+            previewState(DualFocusFailure.WrongTap, durationMillis = 120_000),
+            {},
+            { _, _ -> },
+            {},
+        )
+    }
+}
+
 @Preview(name = "Dual Focus — result Kazakh", widthDp = 320, heightDp = 1000, locale = "kk")
 @ScreenshotPreview
 @Composable
 private fun DualFocusResultKazakhPreview() {
-    OquTurboTheme { DualFocusScreen(previewState(DualFocusFailure.MissedTarget), {}, { _, _ -> }, {}) }
+    OquTurboTheme {
+        DualFocusScreen(
+            previewState(DualFocusFailure.MissedTarget, durationMillis = 65_300),
+            {},
+            { _, _ -> },
+            {},
+        )
+    }
 }

@@ -53,6 +53,10 @@ import oquturbo.resources.generated.resources.dual_focus_back
 import oquturbo.resources.generated.resources.dual_focus_back_to_games
 import oquturbo.resources.generated.resources.dual_focus_card_accessibility
 import oquturbo.resources.generated.resources.dual_focus_correct
+import oquturbo.resources.generated.resources.dual_focus_duration_less_than_one_second
+import oquturbo.resources.generated.resources.dual_focus_duration_minutes
+import oquturbo.resources.generated.resources.dual_focus_duration_minutes_seconds
+import oquturbo.resources.generated.resources.dual_focus_duration_seconds
 import oquturbo.resources.generated.resources.dual_focus_failure_detail
 import oquturbo.resources.generated.resources.dual_focus_instructions
 import oquturbo.resources.generated.resources.dual_focus_lane_one
@@ -433,6 +437,8 @@ object AppResource {
     }
 
     object Plural {
+        val dual_focus_duration_minutes = Res.plurals.dual_focus_duration_minutes
+        val dual_focus_duration_seconds = Res.plurals.dual_focus_duration_seconds
         val profile_days_format = Res.plurals.profile_days_format
         val profile_levels_to_next_rank_format = Res.plurals.profile_levels_to_next_rank_format
         val profile_unlock_training_format = Res.plurals.profile_unlock_training_format
@@ -448,6 +454,8 @@ object AppResource {
 
     object String {
         val dual_focus_correct = Res.string.dual_focus_correct
+        val dual_focus_duration_less_than_one_second = Res.string.dual_focus_duration_less_than_one_second
+        val dual_focus_duration_minutes_seconds = Res.string.dual_focus_duration_minutes_seconds
         val dual_focus_title = Res.string.dual_focus_title
         val dual_focus_instructions = Res.string.dual_focus_instructions
         val dual_focus_start = Res.string.dual_focus_start
