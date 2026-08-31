@@ -12,6 +12,7 @@ import com.alad1nks.oquturbo.feature.baspagame.model.BaspaGameContent
 import com.alad1nks.oquturbo.feature.baspagame.model.BaspaGameMode
 import com.alad1nks.oquturbo.feature.baspagame.model.Category
 import com.alad1nks.oquturbo.feature.baspagame.model.GameColor
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
@@ -30,6 +31,7 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertNotNull
+import kotlin.test.assertNull
 import kotlin.test.assertTrue
 import kotlin.time.Clock
 import kotlin.time.ExperimentalTime
@@ -61,6 +63,7 @@ class BaspaGameViewModelTest {
                 assertEquals(0, session.score)
                 assertEquals(0, session.correctAnswers)
                 assertFalse(session.isNewRecord)
+                assertFalse(viewModel.uiState.value.isNewRecord)
                 assertEquals(0, storage.dailyTrainingWriteCount)
                 assertEquals(0, storage.baspaRecordWriteCount)
             } finally {
@@ -108,6 +111,111 @@ class BaspaGameViewModelTest {
                 assertEquals(1, session.score)
                 assertEquals(1, session.correctAnswers)
                 assertTrue(session.isNewRecord)
+                assertTrue(state.isNewRecord)
+            } finally {
+                Dispatchers.resetMain()
+            }
+        }
+
+    @Test
+    fun restartSynchronouslyClearsNewRecord() =
+        runTest {
+            Dispatchers.setMain(StandardTestDispatcher(testScheduler))
+            try {
+                val storage = RecordingStorage()
+                val viewModel = createViewModel(storage = storage, stimulusShouldMatch = true)
+                runCurrent()
+
+                startAndShowStimulus(viewModel)
+                viewModel.tap()
+                advanceTimeBy(STIMULUS_GAP_MILLIS)
+                runCurrent()
+                viewModel.onStimulusTimeout(viewModel.uiState.value.stimulusRoundId)
+                runCurrent()
+                assertTrue(viewModel.uiState.value.isNewRecord)
+
+                viewModel.restart()
+
+                assertFalse(viewModel.uiState.value.isNewRecord)
+                assertEquals(BaspaGameUiState.Phase.Playing, viewModel.uiState.value.phase)
+                viewModel.togglePause()
+            } finally {
+                Dispatchers.resetMain()
+            }
+        }
+
+    @Test
+    fun repositoryRejectedRecordDoesNotShowNewRecord() =
+        runTest {
+            Dispatchers.setMain(StandardTestDispatcher(testScheduler))
+            try {
+                val storage = RecordingStorage()
+                val activityRepository = GameActivityRepository(storage)
+                activityRepository.recordCompletedSession(
+                    game = GameId.DontTap,
+                    mode = GameModeId.DontTapMath,
+                    score = 10,
+                    durationMillis = 1,
+                    isNewRecord = true,
+                )
+                val viewModel = createViewModel(storage = storage, stimulusShouldMatch = true)
+                runCurrent()
+
+                startAndShowStimulus(viewModel)
+                viewModel.tap()
+                advanceTimeBy(STIMULUS_GAP_MILLIS)
+                runCurrent()
+                viewModel.onStimulusTimeout(viewModel.uiState.value.stimulusRoundId)
+                runCurrent()
+
+                val sessions = activityRepository.observeSessions().first()
+                assertEquals(2, sessions.size)
+                assertFalse(sessions.last().isNewRecord)
+                assertFalse(viewModel.uiState.value.isNewRecord)
+                assertEquals(0, storage.baspaRecordWriteCount)
+                assertNull(storage.baspaRecords[BaspaGameMode.Math.name]?.value)
+            } finally {
+                Dispatchers.resetMain()
+            }
+        }
+
+    @Test
+    fun lateCompletedAttemptCannotMutateReplayOrLaterResult() =
+        runTest {
+            Dispatchers.setMain(StandardTestDispatcher(testScheduler))
+            try {
+                val sessionWriteGate = CompletableDeferred<Unit>()
+                val storage = RecordingStorage(sessionWriteGate)
+                val activityRepository = GameActivityRepository(storage)
+                val viewModel = createViewModel(storage = storage, stimulusShouldMatch = true)
+                runCurrent()
+
+                startAndShowStimulus(viewModel)
+                viewModel.tap()
+                advanceTimeBy(STIMULUS_GAP_MILLIS)
+                runCurrent()
+                viewModel.onStimulusTimeout(viewModel.uiState.value.stimulusRoundId)
+                runCurrent()
+                assertTrue(storage.sessionWriteStarted.isCompleted)
+                assertEquals(0, storage.gameSessionWriteCount)
+                assertFalse(viewModel.uiState.value.isNewRecord)
+
+                viewModel.restart()
+                assertFalse(viewModel.uiState.value.isNewRecord)
+                advanceTimeBy(STIMULUS_GAP_MILLIS)
+                runCurrent()
+                viewModel.onStimulusTimeout(viewModel.uiState.value.stimulusRoundId)
+                runCurrent()
+
+                sessionWriteGate.complete(Unit)
+                runCurrent()
+
+                val sessions = activityRepository.observeSessions().first()
+                assertEquals(2, sessions.size)
+                assertTrue(sessions.first().isNewRecord)
+                assertFalse(sessions.last().isNewRecord)
+                assertEquals(BaspaGameUiState.Phase.Mistake, viewModel.uiState.value.phase)
+                assertFalse(viewModel.uiState.value.isNewRecord)
             } finally {
                 Dispatchers.resetMain()
             }
@@ -218,7 +326,9 @@ class BaspaGameViewModelTest {
             equations = listOf("1 + 1 = 2" to stimulusShouldMatch),
         )
 
-    private class RecordingStorage : Storage {
+    private class RecordingStorage(
+        private val sessionWriteGate: CompletableDeferred<Unit>? = null,
+    ) : Storage {
         private val darkTheme = MutableStateFlow<Boolean?>(null)
         private val languageCode = MutableStateFlow<String?>(null)
         private val soundEnabled = MutableStateFlow<Boolean?>(null)
@@ -237,6 +347,7 @@ class BaspaGameViewModelTest {
             private set
         var baspaRecordWriteCount = 0
             private set
+        val sessionWriteStarted = CompletableDeferred<Unit>()
 
         fun installTrainingPlan(): DailyTrainingEntry {
             val epochDay = Clock.System.now().toEpochMilliseconds() / MILLIS_PER_DAY
@@ -317,6 +428,8 @@ class BaspaGameViewModelTest {
         }
 
         override suspend fun setGameSessionsJson(value: String) {
+            sessionWriteStarted.complete(Unit)
+            sessionWriteGate?.await()
             gameSessionWriteCount++
             gameSessionsJson.value = value
         }

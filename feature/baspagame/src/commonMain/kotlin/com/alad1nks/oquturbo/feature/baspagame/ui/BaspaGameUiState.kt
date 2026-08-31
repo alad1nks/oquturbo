@@ -17,6 +17,7 @@ internal data class BaspaGameUiState(
     val shouldTap: Boolean = false,
     val score: Int = 0,
     val record: Int = 0,
+    val isNewRecord: Boolean = false,
     val isRecordLoaded: Boolean = false,
     val intervalMillis: Long = 2_000L,
     val phase: Phase = Phase.Initial,
@@ -69,6 +70,7 @@ internal fun BaspaGameUiState.restartingSession(): BaspaGameUiState =
         intervalMillis = 2_000L,
         phase = BaspaGameUiState.Phase.Playing,
         mistakeReason = null,
+        isNewRecord = false,
         isTrainingCompletionReady = false,
         trainingNextEntry = null,
     )

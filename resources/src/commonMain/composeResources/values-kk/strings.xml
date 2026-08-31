@@ -270,6 +270,7 @@
     <string name="baspa_game_start">Ойынды бастау!</string>
     <string name="baspa_game_continue">Жалғастыру</string>
     <string name="baspa_game_try_again">Қайта байқап көресіз бе?</string>
+    <string name="baspa_game_new_record">Жаңа рекорд!</string>
     <string name="baspa_game_mistake_incorrect_tap">Сіз бастыңыз, бірақ «%1$s» элементі «%2$s» ережесіне сәйкес келмеді.</string>
     <string name="baspa_game_mistake_missed_match">Сіз «%2$s» ережесіне сәйкес келген «%1$s» элементін баспадыңыз.</string>
     <string name="baspa_game_mistake_text_color_item">%1$s (%2$s)</string>
