@@ -304,10 +304,14 @@ import oquturbo.resources.generated.resources.profile_unlock_training_format
 import oquturbo.resources.generated.resources.profile_unlocked
 import oquturbo.resources.generated.resources.profile_xp_format
 import oquturbo.resources.generated.resources.profile_xp_to_next_format
+import oquturbo.resources.generated.resources.remember_number_game_correct_answer
+import oquturbo.resources.generated.resources.remember_number_game_correct_answer_description
 import oquturbo.resources.generated.resources.remember_number_game_record
 import oquturbo.resources.generated.resources.remember_number_game_score
 import oquturbo.resources.generated.resources.remember_number_game_start
 import oquturbo.resources.generated.resources.remember_number_game_try_again
+import oquturbo.resources.generated.resources.remember_number_game_your_answer
+import oquturbo.resources.generated.resources.remember_number_game_your_answer_description
 import oquturbo.resources.generated.resources.remember_number_menu_item_binary_subtitle
 import oquturbo.resources.generated.resources.remember_number_menu_item_binary_title
 import oquturbo.resources.generated.resources.remember_number_menu_item_classic_subtitle
@@ -833,10 +837,15 @@ object AppResource {
         val kenkoz_game_try_again = Res.string.kenkoz_game_try_again
         val kenkoz_game_your_answer = Res.string.kenkoz_game_your_answer
         val kenkoz_title = Res.string.kenkoz_title
+        val remember_number_game_correct_answer = Res.string.remember_number_game_correct_answer
+        val remember_number_game_correct_answer_description =
+            Res.string.remember_number_game_correct_answer_description
         val remember_number_game_record = Res.string.remember_number_game_record
         val remember_number_game_score = Res.string.remember_number_game_score
         val remember_number_game_start = Res.string.remember_number_game_start
         val remember_number_game_try_again = Res.string.remember_number_game_try_again
+        val remember_number_game_your_answer = Res.string.remember_number_game_your_answer
+        val remember_number_game_your_answer_description = Res.string.remember_number_game_your_answer_description
         val remember_number_menu_item_binary_subtitle = Res.string.remember_number_menu_item_binary_subtitle
         val remember_number_menu_item_binary_title = Res.string.remember_number_menu_item_binary_title
         val remember_number_menu_item_classic_subtitle = Res.string.remember_number_menu_item_classic_subtitle

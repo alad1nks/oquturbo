@@ -9,6 +9,7 @@ plugins {
     alias(libs.plugins.kotlinxSerialization)
 }
 
+@OptIn(org.jetbrains.compose.ExperimentalComposeLibrary::class)
 kotlin {
     android {
         namespace = "com.alad1nks.oquturbo.feature.remembernumber"
@@ -64,6 +65,15 @@ kotlin {
             implementation(projects.core.designsystem)
             implementation(projects.core.ui)
             implementation(projects.resources)
+        }
+
+        commonTest.dependencies {
+            implementation(libs.kotlin.test)
+        }
+
+        jvmTest.dependencies {
+            implementation(compose.uiTest)
+            runtimeOnly(compose.desktop.currentOs)
         }
     }
 }
