@@ -534,10 +534,14 @@
     <string name="kenkoz_game_menu_subtitle">Train your attention and reading speed</string>
     <string name="kenkoz_game_menu_title">Choose a Mode</string>
     <string name="kenkoz_title">Wide Eye</string>
+    <string name="remember_number_game_correct_answer">Correct answer</string>
+    <string name="remember_number_game_correct_answer_description">Correct answer: %1$s</string>
     <string name="remember_number_game_record">Record: %1$d</string>
     <string name="remember_number_game_score">Score: %1$d</string>
     <string name="remember_number_game_start">Start Game!</string>
     <string name="remember_number_game_try_again">Try Again?</string>
+    <string name="remember_number_game_your_answer">Your answer</string>
+    <string name="remember_number_game_your_answer_description">Your answer: %1$s</string>
     <string name="remember_number_menu_item_binary_subtitle">Memorize a sequence of zeros and ones</string>
     <string name="remember_number_menu_item_binary_title">Binary String</string>
     <string name="remember_number_menu_item_classic_subtitle">Memorize four-digit numbers within a limited time</string>

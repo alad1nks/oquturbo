@@ -224,6 +224,31 @@ internal fun RememberNumberScreen(
                 modifier = Modifier.fillMaxSize(),
                 extraContent = {
                     if (displayedMistake != null) {
+                        val comparison = displayedMistake.answerComparisonOrNull()
+                        if (comparison != null) {
+                            RememberNumberAnswerCard(
+                                comparison = comparison,
+                                submittedLabel =
+                                    stringResource(
+                                        AppResource.String.remember_number_game_your_answer,
+                                    ),
+                                submittedDescription =
+                                    stringResource(
+                                        AppResource.String.remember_number_game_your_answer_description,
+                                        comparison.submitted.digitSpacedValue,
+                                    ),
+                                correctLabel =
+                                    stringResource(
+                                        AppResource.String.remember_number_game_correct_answer,
+                                    ),
+                                correctDescription =
+                                    stringResource(
+                                        AppResource.String.remember_number_game_correct_answer_description,
+                                        comparison.correct.digitSpacedValue,
+                                    ),
+                                modifier = Modifier.fillMaxWidth(),
+                            )
+                        }
                         GameResultCard(
                             primaryText =
                                 stringResource(
@@ -333,6 +358,33 @@ private fun RememberNumberScreenMistakePreview() {
             uiState = RememberNumberUiState.Mistake(text = "1234", score = 4, correctText = "1334", record = 7),
             focusEvent = null,
             maxLength = 4,
+            writeText = {},
+            onStartClick = {},
+            onBackClick = {},
+        )
+    }
+}
+
+@Preview(
+    name = "Number Sprint — 10-digit mistake",
+    widthDp = 390,
+    heightDp = 1000,
+    showBackground = true,
+)
+@ScreenshotPreview
+@Composable
+private fun RememberNumberScreenTenDigitMistakePreview() {
+    OquTurboTheme {
+        RememberNumberScreen(
+            uiState =
+                RememberNumberUiState.Mistake(
+                    text = "0123456789",
+                    score = 8,
+                    correctText = "9123456780",
+                    record = 12,
+                ),
+            focusEvent = null,
+            maxLength = 10,
             writeText = {},
             onStartClick = {},
             onBackClick = {},
