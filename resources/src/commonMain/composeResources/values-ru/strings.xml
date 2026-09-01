@@ -335,6 +335,7 @@
     <string name="kenkoz_game_position_fourth">четвертым</string>
     <string name="kenkoz_game_question_word">Какое слово было %1$s?</string>
     <string name="kenkoz_game_correct_answer">Правильный ответ</string>
+    <string name="kenkoz_game_new_record">Новый рекорд!</string>
     <string name="kenkoz_game_record">Рекорд: %1$d</string>
     <string name="kenkoz_game_score">Счёт</string>
     <string name="kenkoz_game_score_value">Счёт: %1$d</string>

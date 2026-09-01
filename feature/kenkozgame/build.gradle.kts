@@ -9,6 +9,7 @@ plugins {
     alias(libs.plugins.kotlinxSerialization)
 }
 
+@OptIn(org.jetbrains.compose.ExperimentalComposeLibrary::class)
 kotlin {
     android {
         namespace = "com.alad1nks.oquturbo.feature.kenkozgame"
@@ -63,6 +64,12 @@ kotlin {
         }
         commonTest.dependencies {
             implementation(libs.kotlin.test)
+            implementation(libs.kotlinx.coroutines.test)
+            implementation(projects.core.storage.common)
+        }
+        jvmTest.dependencies {
+            implementation(compose.uiTest)
+            runtimeOnly(compose.desktop.currentOs)
         }
     }
 }
