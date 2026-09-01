@@ -188,6 +188,7 @@ import oquturbo.resources.generated.resources.memory_grid_legend_wrong
 import oquturbo.resources.generated.resources.memory_grid_length
 import oquturbo.resources.generated.resources.memory_grid_menu_subtitle
 import oquturbo.resources.generated.resources.memory_grid_menu_title
+import oquturbo.resources.generated.resources.memory_grid_new_record
 import oquturbo.resources.generated.resources.memory_grid_ready_title
 import oquturbo.resources.generated.resources.memory_grid_result
 import oquturbo.resources.generated.resources.memory_grid_retry
@@ -544,6 +545,7 @@ object AppResource {
         val memory_grid_rule = Res.string.memory_grid_rule
         val memory_grid_game_over = Res.string.memory_grid_game_over
         val memory_grid_game_over_flash = Res.string.memory_grid_game_over_flash
+        val memory_grid_new_record = Res.string.memory_grid_new_record
         val memory_grid_legend_accepted = Res.string.memory_grid_legend_accepted
         val memory_grid_legend_wrong = Res.string.memory_grid_legend_wrong
         val memory_grid_legend_expected = Res.string.memory_grid_legend_expected

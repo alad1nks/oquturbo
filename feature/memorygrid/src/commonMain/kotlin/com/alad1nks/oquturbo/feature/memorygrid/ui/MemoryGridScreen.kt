@@ -18,8 +18,10 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.sizeIn
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
@@ -38,10 +40,13 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.scale
+import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.disabled
+import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.alad1nks.oquturbo.core.designsystem.theme.OquTurboTheme
@@ -75,13 +80,21 @@ internal fun MemoryGridScreen(
 ) {
     val scoreLabel = stringResource(AppResource.String.memory_grid_score)
     val backDescription = stringResource(AppResource.String.memory_grid_back)
+    val gameOver = state.phase == MemoryGridPhase.GameOver
+    val contentModifier =
+        if (gameOver) {
+            Modifier.verticalScroll(rememberScrollState())
+        } else {
+            Modifier
+        }
     Box(modifier.fillMaxSize().appBackground()) {
         Column(
             modifier =
-                Modifier.align(Alignment.Center).widthIn(max = 560.dp).fillMaxWidth()
-                    .navigationBarsPadding().padding(horizontal = 24.dp, vertical = 96.dp),
+                contentModifier.align(Alignment.Center).widthIn(max = 560.dp).fillMaxWidth()
+                    .navigationBarsPadding()
+                    .padding(horizontal = 24.dp, vertical = if (gameOver) 88.dp else 96.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(24.dp),
+            verticalArrangement = Arrangement.spacedBy(if (gameOver) 20.dp else 24.dp),
         ) {
             Text(
                 text = phaseHint(state.phase),
@@ -325,6 +338,19 @@ private fun ResultPanel(state: MemoryGridState, mode: MemoryGridGameMode, onStar
                     },
                 ),
             )
+            if (state.isNewRecord) {
+                Text(
+                    text = stringResource(AppResource.String.memory_grid_new_record),
+                    modifier =
+                        Modifier
+                            .fillMaxWidth()
+                            .semantics { liveRegion = LiveRegionMode.Polite },
+                    color = MaterialTheme.colorScheme.primary,
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold,
+                    textAlign = TextAlign.Center,
+                )
+            }
             Button(onClick = onStartClick) {
                 Icon(if (state.phase == MemoryGridPhase.Ready) Icons.Default.PlayArrow else Icons.Default.Replay, null)
                 Text(
@@ -380,6 +406,33 @@ private fun MemoryGridLayeredMistakePreview() {
                     failedSelectedCell = 1,
                     expectedCellsAfterMistake = setOf(0),
                     record = 5,
+                ),
+            mode = MemoryGridGameMode.Route,
+            onStartClick = {},
+            onCellClick = {},
+            onBackClick = {},
+        )
+    }
+}
+
+@Preview(name = "Memory Grid — new record", widthDp = 390, heightDp = 844)
+@ScreenshotPreview
+@Composable
+private fun MemoryGridNewRecordPreview() {
+    OquTurboTheme {
+        MemoryGridScreen(
+            state =
+                MemoryGridState(
+                    phase = MemoryGridPhase.GameOver,
+                    gridSize = 3,
+                    sequence = listOf(0, 1, 0, 4),
+                    input = listOf(0, 1),
+                    score = 3,
+                    correctCellCount = 6,
+                    failedSelectedCell = 1,
+                    expectedCellsAfterMistake = setOf(0),
+                    record = 3,
+                    isNewRecord = true,
                 ),
             mode = MemoryGridGameMode.Route,
             onStartClick = {},
