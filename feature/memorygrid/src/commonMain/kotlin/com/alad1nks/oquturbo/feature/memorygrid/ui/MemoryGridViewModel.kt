@@ -8,12 +8,16 @@ import com.alad1nks.oquturbo.core.data.repository.GameActivityRepository
 import com.alad1nks.oquturbo.feature.memorygrid.model.MemoryGridGame
 import com.alad1nks.oquturbo.feature.memorygrid.model.MemoryGridGameMode
 import com.alad1nks.oquturbo.feature.memorygrid.model.MemoryGridPhase
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import kotlin.time.TimeSource
 
 internal class MemoryGridViewModel(
@@ -28,6 +32,7 @@ internal class MemoryGridViewModel(
     private var record = 0
     private var sessionRecorded = false
     private var completedWithNewRecord = false
+    private var currentAttemptId = 0L
 
     init {
         viewModelScope.launch {
@@ -41,6 +46,7 @@ internal class MemoryGridViewModel(
 
     fun start() {
         presentationJob?.cancel()
+        currentAttemptId++
         startedAt = TimeSource.Monotonic.markNow()
         sessionRecorded = false
         completedWithNewRecord = false
@@ -91,18 +97,31 @@ internal class MemoryGridViewModel(
         sessionRecorded = true
         val finishedState = game.state
         val isNewRecord = finishedState.score > record
-        completedWithNewRecord = isNewRecord
-        if (isNewRecord) record = finishedState.score
-        publish()
-        viewModelScope.launch {
-            activityRepository.recordCompletedSession(
-                game = GameId.MemoryGrid,
-                mode = mode.activityMode,
-                score = finishedState.score,
-                correctAnswers = finishedState.correctCellCount,
-                durationMillis = startedAt.elapsedNow().inWholeMilliseconds,
-                isNewRecord = isNewRecord,
-            )
+        val completedAttemptId = currentAttemptId
+        viewModelScope.launch(start = CoroutineStart.UNDISPATCHED) {
+            try {
+                withContext(NonCancellable) {
+                    val recordedSession =
+                        activityRepository.recordCompletedSession(
+                            game = GameId.MemoryGrid,
+                            mode = mode.activityMode,
+                            score = finishedState.score,
+                            correctAnswers = finishedState.correctCellCount,
+                            durationMillis = startedAt.elapsedNow().inWholeMilliseconds,
+                            isNewRecord = isNewRecord,
+                        )
+                    if (completedAttemptId == currentAttemptId && game.state.phase == MemoryGridPhase.GameOver) {
+                        completedWithNewRecord = recordedSession.isNewRecord
+                        if (recordedSession.isNewRecord) record = recordedSession.score
+                        publish()
+                    }
+                }
+            } catch (error: CancellationException) {
+                throw error
+            } catch (_: Exception) {
+                // A failed activity write must not make the completed game unusable.
+                // The acknowledgement remains false until a repository-confirmed record exists.
+            }
         }
     }
 

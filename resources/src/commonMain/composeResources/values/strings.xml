@@ -577,6 +577,7 @@
     <string name="memory_grid_rule">Watch the cells, then tap them in the same order.</string>
     <string name="memory_grid_game_over">Review your accepted taps, wrong tap, and the correct next cell.</string>
     <string name="memory_grid_game_over_flash">Review your accepted taps, wrong tap, and all remaining correct cells.</string>
+    <string name="memory_grid_new_record">New record!</string>
     <string name="memory_grid_legend_accepted">Accepted</string>
     <string name="memory_grid_legend_wrong">Your tap</string>
     <string name="memory_grid_legend_expected">Correct next</string>
