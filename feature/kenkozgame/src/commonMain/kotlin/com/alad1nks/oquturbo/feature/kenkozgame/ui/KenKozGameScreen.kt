@@ -37,6 +37,9 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.blur
+import androidx.compose.ui.semantics.LiveRegionMode
+import androidx.compose.ui.semantics.liveRegion
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
@@ -74,7 +77,7 @@ internal fun KenKozGameRoute(
 }
 
 @Composable
-private fun KenKozGameScreen(
+internal fun KenKozGameScreen(
     uiState: KenKozGameUiState,
     onBackClick: () -> Unit,
     onStartClick: () -> Unit,
@@ -211,6 +214,22 @@ private fun KenKozGameScreen(
                                 ),
                             modifier = Modifier.fillMaxWidth(),
                         )
+                        if (
+                            uiState.phase == KenKozGameUiState.Phase.Mistake &&
+                            uiState.isNewRecord
+                        ) {
+                            Text(
+                                text = stringResource(AppResource.String.kenkoz_game_new_record),
+                                modifier =
+                                    Modifier
+                                        .fillMaxWidth()
+                                        .semantics { liveRegion = LiveRegionMode.Polite },
+                                color = MaterialTheme.colorScheme.primary,
+                                style = MaterialTheme.typography.titleMedium,
+                                fontWeight = FontWeight.Bold,
+                                textAlign = TextAlign.Center,
+                            )
+                        }
                         GameResultCard(
                             primaryText =
                                 stringResource(
@@ -524,6 +543,34 @@ private fun KenKozGameScreenMistakePreview() {
                     mode = KenKozGameMode.Words,
                     score = 4,
                     record = 7,
+                    phase = KenKozGameUiState.Phase.Mistake,
+                    correctAnswer = "mountain",
+                    selectedAnswer = "morning",
+                ),
+            onBackClick = {},
+            onStartClick = {},
+            onTrainingContinueClick = {},
+            onAnswerClick = {},
+        )
+    }
+}
+
+@Preview(
+    name = "Wide Eye — new record",
+    widthDp = 390,
+    heightDp = 844,
+)
+@ScreenshotPreview
+@Composable
+private fun KenKozGameScreenNewRecordPreview() {
+    OquTurboTheme {
+        KenKozGameScreen(
+            uiState =
+                KenKozGameUiState(
+                    mode = KenKozGameMode.Words,
+                    score = 8,
+                    record = 8,
+                    isNewRecord = true,
                     phase = KenKozGameUiState.Phase.Mistake,
                     correctAnswer = "mountain",
                     selectedAnswer = "morning",

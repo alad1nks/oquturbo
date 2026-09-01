@@ -144,6 +144,7 @@ import oquturbo.resources.generated.resources.kenkoz_game_menu_item_words_subtit
 import oquturbo.resources.generated.resources.kenkoz_game_menu_item_words_title
 import oquturbo.resources.generated.resources.kenkoz_game_menu_subtitle
 import oquturbo.resources.generated.resources.kenkoz_game_menu_title
+import oquturbo.resources.generated.resources.kenkoz_game_new_record
 import oquturbo.resources.generated.resources.kenkoz_game_position_first
 import oquturbo.resources.generated.resources.kenkoz_game_position_fourth
 import oquturbo.resources.generated.resources.kenkoz_game_position_second
@@ -826,6 +827,7 @@ object AppResource {
         val kenkoz_game_menu_item_words_title = Res.string.kenkoz_game_menu_item_words_title
         val kenkoz_game_menu_subtitle = Res.string.kenkoz_game_menu_subtitle
         val kenkoz_game_menu_title = Res.string.kenkoz_game_menu_title
+        val kenkoz_game_new_record = Res.string.kenkoz_game_new_record
         val kenkoz_game_question_character = Res.string.kenkoz_game_question_character
         val kenkoz_game_question_difference = Res.string.kenkoz_game_question_difference
         val kenkoz_game_question_wide_line = Res.string.kenkoz_game_question_wide_line

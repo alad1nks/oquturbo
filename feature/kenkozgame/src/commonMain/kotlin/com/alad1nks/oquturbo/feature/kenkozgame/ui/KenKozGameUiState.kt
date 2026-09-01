@@ -10,6 +10,7 @@ internal data class KenKozGameUiState(
     val isTrainingCompletionReady: Boolean = false,
     val score: Int = 0,
     val record: Int = 0,
+    val isNewRecord: Boolean = false,
     val phase: Phase = Phase.Initial,
     val items: List<String> = emptyList(),
     val answers: List<String> = emptyList(),
@@ -21,6 +22,7 @@ internal data class KenKozGameUiState(
     fun startingSession(): KenKozGameUiState =
         copy(
             score = 0,
+            isNewRecord = false,
             trainingNextEntry = null,
             isTrainingCompletionReady = false,
             selectedAnswer = null,

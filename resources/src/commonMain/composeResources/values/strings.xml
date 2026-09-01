@@ -311,6 +311,7 @@
     <string name="kenkoz_game_position_fourth">fourth</string>
     <string name="kenkoz_game_question_word">Which word was %1$s?</string>
     <string name="kenkoz_game_correct_answer">Correct answer</string>
+    <string name="kenkoz_game_new_record">New record!</string>
     <string name="kenkoz_game_record">Record: %1$d</string>
     <string name="kenkoz_game_score">Score</string>
     <string name="kenkoz_game_score_value">Score: %1$d</string>

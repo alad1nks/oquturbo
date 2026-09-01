@@ -3,6 +3,7 @@ package com.alad1nks.oquturbo.feature.kenkozgame.ui
 import com.alad1nks.oquturbo.feature.kenkozgame.model.KenKozGameMode
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFalse
 import kotlin.test.assertNull
 
 class KenKozGameUiStateTest {
@@ -11,6 +12,7 @@ class KenKozGameUiStateTest {
         val answeringState =
             KenKozGameUiState(
                 mode = KenKozGameMode.Words,
+                isNewRecord = true,
                 phase = KenKozGameUiState.Phase.Answering,
                 correctAnswer = "mountain",
             )
@@ -24,5 +26,6 @@ class KenKozGameUiStateTest {
         val restartedState = mistakeState.startingSession()
 
         assertNull(restartedState.selectedAnswer)
+        assertFalse(restartedState.isNewRecord)
     }
 }

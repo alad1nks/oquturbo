@@ -9,6 +9,7 @@ import com.alad1nks.oquturbo.core.data.repository.DailyTrainingRepository
 import com.alad1nks.oquturbo.core.data.repository.GameActivityRepository
 import com.alad1nks.oquturbo.core.data.repository.KenKozGameRepository
 import com.alad1nks.oquturbo.feature.kenkozgame.model.KenKozGameMode
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.NonCancellable
@@ -47,6 +48,7 @@ internal class KenKozGameViewModel(
     private var roundJob: Job? = null
     private var sessionStartMark: TimeMark? = null
     private var hasContinuedTraining = false
+    private var currentAttemptId = 0L
 
     init {
         require((trainingEntryId == null) == (trainingRequiredScore == null)) {
@@ -65,6 +67,7 @@ internal class KenKozGameViewModel(
     }
 
     fun start() {
+        currentAttemptId++
         showingDurationMillis = INITIAL_SHOWING_DURATION_MILLIS
         sessionStartMark = TimeSource.Monotonic.markNow()
         hasContinuedTraining = false
@@ -100,32 +103,83 @@ internal class KenKozGameViewModel(
         val startMark = sessionStartMark ?: return
         sessionStartMark = null
         val sessionDurationMillis = startMark.elapsedNow().inWholeMilliseconds
+        val completedAttemptId = currentAttemptId
         viewModelScope.launch(start = CoroutineStart.UNDISPATCHED) {
-            withContext(NonCancellable) {
-                val storedRecord = kenKozGameRepository.getRecord(mode.name).first() ?: 0
-                val currentRecord = maxOf(storedRecord, score)
-                _uiState.update { it.copy(record = currentRecord) }
-                gameActivityRepository.recordCompletedSession(
-                    game = GameId.WideEye,
-                    mode = mode.toGameModeId(),
-                    variantId = null,
-                    score = score,
-                    correctAnswers = score,
-                    durationMillis = sessionDurationMillis,
-                    isNewRecord = currentRecord > storedRecord,
-                )
-                if (currentRecord > storedRecord) {
-                    kenKozGameRepository.setRecord(mode.name, currentRecord)
+            try {
+                withContext(NonCancellable) {
+                    val storedRecord =
+                        try {
+                            kenKozGameRepository.getRecord(mode.name).first() ?: 0
+                        } catch (error: CancellationException) {
+                            throw error
+                        } catch (_: Exception) {
+                            null
+                        }
+                    val recordedSession =
+                        gameActivityRepository.recordCompletedSession(
+                            game = GameId.WideEye,
+                            mode = mode.toGameModeId(),
+                            variantId = null,
+                            score = score,
+                            correctAnswers = score,
+                            durationMillis = sessionDurationMillis,
+                            isNewRecord = storedRecord != null && score > storedRecord,
+                        )
+                    updateCompletedAttempt(completedAttemptId) {
+                        it.copy(
+                            record =
+                                if (recordedSession.isNewRecord) {
+                                    maxOf(it.record, recordedSession.score)
+                                } else {
+                                    it.record
+                                },
+                            isNewRecord = recordedSession.isNewRecord,
+                        )
+                    }
+                    if (recordedSession.isNewRecord) {
+                        try {
+                            kenKozGameRepository.setRecord(mode.name, recordedSession.score)
+                        } catch (error: CancellationException) {
+                            throw error
+                        } catch (_: Exception) {
+                            // Activity persistence remains authoritative for the acknowledgement.
+                        }
+                    }
                 }
-                trainingEntryId?.let { entryId ->
-                    val plan = dailyTrainingRepository.completeEntry(entryId, score)
-                    _uiState.update {
+            } catch (error: CancellationException) {
+                throw error
+            } catch (_: Exception) {
+                // A failed activity write must not make the completed result unusable.
+            }
+        }
+        trainingEntryId?.let { entryId ->
+            viewModelScope.launch(start = CoroutineStart.UNDISPATCHED) {
+                try {
+                    val plan = withContext(NonCancellable) { dailyTrainingRepository.completeEntry(entryId, score) }
+                    updateCompletedAttempt(completedAttemptId) {
                         it.copy(
                             trainingNextEntry = plan.nextEntry,
                             isTrainingCompletionReady = true,
                         )
                     }
+                } catch (error: CancellationException) {
+                    throw error
+                } catch (_: Exception) {
+                    // Keep the result usable while leaving training continuation disabled.
                 }
+            }
+        }
+    }
+
+    private inline fun updateCompletedAttempt(
+        attemptId: Long,
+        transform: (KenKozGameUiState) -> KenKozGameUiState,
+    ) {
+        _uiState.update { state ->
+            if (attemptId == currentAttemptId && state.phase == KenKozGameUiState.Phase.Mistake) {
+                transform(state)
+            } else {
+                state
             }
         }
     }
