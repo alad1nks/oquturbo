@@ -538,6 +538,7 @@
     <string name="kenkoz_title">Wide Eye</string>
     <string name="remember_number_game_correct_answer">Correct answer</string>
     <string name="remember_number_game_correct_answer_description">Correct answer: %1$s</string>
+    <string name="remember_number_game_new_record">New record!</string>
     <string name="remember_number_game_record">Record: %1$d</string>
     <string name="remember_number_game_score">Score: %1$d</string>
     <string name="remember_number_game_start">Start Game!</string>

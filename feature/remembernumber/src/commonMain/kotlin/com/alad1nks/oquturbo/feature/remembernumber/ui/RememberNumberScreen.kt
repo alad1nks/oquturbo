@@ -12,6 +12,7 @@ import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Replay
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -22,6 +23,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusProperties
 import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.semantics.LiveRegionMode
+import androidx.compose.ui.semantics.liveRegion
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.alad1nks.oquturbo.core.data.model.DailyTrainingEntry
@@ -249,6 +255,19 @@ internal fun RememberNumberScreen(
                                 modifier = Modifier.fillMaxWidth(),
                             )
                         }
+                        if (uiState is RememberNumberUiState.Mistake && uiState.isNewRecord) {
+                            Text(
+                                text = stringResource(AppResource.String.remember_number_game_new_record),
+                                modifier =
+                                    Modifier
+                                        .fillMaxWidth()
+                                        .semantics { liveRegion = LiveRegionMode.Polite },
+                                color = MaterialTheme.colorScheme.primary,
+                                style = MaterialTheme.typography.titleMedium,
+                                fontWeight = FontWeight.Bold,
+                                textAlign = TextAlign.Center,
+                            )
+                        }
                         GameResultCard(
                             primaryText =
                                 stringResource(
@@ -358,6 +377,35 @@ private fun RememberNumberScreenMistakePreview() {
             uiState = RememberNumberUiState.Mistake(text = "1234", score = 4, correctText = "1334", record = 7),
             focusEvent = null,
             maxLength = 4,
+            writeText = {},
+            onStartClick = {},
+            onBackClick = {},
+        )
+    }
+}
+
+@Preview(
+    name = "Number Sprint — new record",
+    widthDp = 390,
+    heightDp = 844,
+    showBackground = true,
+)
+@ScreenshotPreview
+@Composable
+private fun RememberNumberScreenNewRecordPreview() {
+    OquTurboTheme {
+        RememberNumberScreen(
+            uiState =
+                RememberNumberUiState.Mistake(
+                    text = "1234",
+                    score = 8,
+                    correctText = "1334",
+                    record = 8,
+                    isNewRecord = true,
+                ),
+            focusEvent = null,
+            maxLength = 4,
+            record = 8,
             writeText = {},
             onStartClick = {},
             onBackClick = {},

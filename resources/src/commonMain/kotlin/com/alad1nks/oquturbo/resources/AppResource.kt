@@ -309,6 +309,7 @@ import oquturbo.resources.generated.resources.profile_xp_format
 import oquturbo.resources.generated.resources.profile_xp_to_next_format
 import oquturbo.resources.generated.resources.remember_number_game_correct_answer
 import oquturbo.resources.generated.resources.remember_number_game_correct_answer_description
+import oquturbo.resources.generated.resources.remember_number_game_new_record
 import oquturbo.resources.generated.resources.remember_number_game_record
 import oquturbo.resources.generated.resources.remember_number_game_score
 import oquturbo.resources.generated.resources.remember_number_game_start
@@ -846,6 +847,7 @@ object AppResource {
         val remember_number_game_correct_answer = Res.string.remember_number_game_correct_answer
         val remember_number_game_correct_answer_description =
             Res.string.remember_number_game_correct_answer_description
+        val remember_number_game_new_record = Res.string.remember_number_game_new_record
         val remember_number_game_record = Res.string.remember_number_game_record
         val remember_number_game_score = Res.string.remember_number_game_score
         val remember_number_game_start = Res.string.remember_number_game_start

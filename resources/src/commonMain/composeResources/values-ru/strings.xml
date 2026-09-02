@@ -561,6 +561,7 @@
     <string name="kenkoz_title">Широкий взгляд</string>
     <string name="remember_number_game_correct_answer">Правильный ответ</string>
     <string name="remember_number_game_correct_answer_description">Правильный ответ: %1$s</string>
+    <string name="remember_number_game_new_record">Новый рекорд!</string>
     <string name="remember_number_game_record">Рекорд: %1$d</string>
     <string name="remember_number_game_score">Счёт: %1$d</string>
     <string name="remember_number_game_start">Начать игру!</string>
