@@ -6,13 +6,16 @@ import com.alad1nks.oquturbo.core.data.repository.GameActivityRepository
 import com.alad1nks.oquturbo.core.storage.common.Storage
 import com.alad1nks.oquturbo.feature.dualfocus.model.DualFocusGame
 import com.alad1nks.oquturbo.feature.dualfocus.model.DualFocusLane
+import com.alad1nks.oquturbo.feature.dualfocus.model.DualFocusPhase
 import com.alad1nks.oquturbo.feature.dualfocus.model.DualFocusRandom
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.StandardTestDispatcher
+import kotlinx.coroutines.test.advanceTimeBy
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
@@ -21,8 +24,12 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertNull
+import kotlin.test.assertTrue
+import kotlin.time.Duration.Companion.milliseconds
+import kotlin.time.ExperimentalTime
+import kotlin.time.TestTimeSource
 
-@OptIn(ExperimentalCoroutinesApi::class)
+@OptIn(ExperimentalCoroutinesApi::class, ExperimentalTime::class)
 class DualFocusViewModelTest {
     @Test
     fun wrongZeroAndDuplicateInputPersistExactlyOnceInMatchSeries() =
@@ -106,6 +113,223 @@ class DualFocusViewModelTest {
             }
         }
 
+    @Test
+    fun pausedSessionDoesNotAdvanceMutateOrWriteAndCanBeAbandoned() =
+        runTest {
+            Dispatchers.setMain(StandardTestDispatcher(testScheduler))
+            try {
+                val storage = RecordingStorage()
+                val timeSource = TestTimeSource()
+                val viewModel =
+                    DualFocusViewModel(
+                        GameActivityRepository(storage),
+                        DualFocusGame(SequenceRandom(0, 0, 0, 2, 1, 2, 1)),
+                        timeSource,
+                    )
+                runCurrent()
+                viewModel.start()
+                timeSource += 800.milliseconds
+                viewModel.pause()
+                val paused = viewModel.uiState.value
+
+                viewModel.pause()
+                viewModel.advanceTo(60_000)
+                timeSource += 60_000.milliseconds
+                advanceTimeBy(60_000)
+                runCurrent()
+
+                assertEquals(DualFocusPhase.Paused, paused.game.phase)
+                assertEquals(paused, viewModel.uiState.value)
+                assertEquals(0, storage.gameSessionWriteCount)
+
+                viewModel.abandon()
+                runCurrent()
+                assertEquals(0, storage.gameSessionWriteCount)
+            } finally {
+                Dispatchers.resetMain()
+            }
+        }
+
+    @Test
+    fun correctFeedbackUsesOnlyItsRemainingActiveIntervalAfterResume() =
+        runTest {
+            Dispatchers.setMain(StandardTestDispatcher(testScheduler))
+            try {
+                val timeSource = TestTimeSource()
+                val viewModel =
+                    DualFocusViewModel(
+                        GameActivityRepository(RecordingStorage()),
+                        DualFocusGame(SequenceRandom(0, 0, 0, 0)),
+                        timeSource,
+                    )
+                runCurrent()
+                viewModel.start()
+                val target = viewModel.uiState.value.game.cards.getValue(DualFocusLane.One)
+                viewModel.tap(DualFocusLane.One, target.id)
+                timeSource += 100.milliseconds
+                viewModel.pause()
+
+                timeSource += 10_000.milliseconds
+                advanceTimeBy(10_000)
+                runCurrent()
+                assertEquals(DualFocusLane.One, viewModel.uiState.value.correctFeedbackLane)
+
+                viewModel.resume()
+                timeSource += 149.milliseconds
+                advanceTimeBy(149)
+                runCurrent()
+                assertEquals(DualFocusLane.One, viewModel.uiState.value.correctFeedbackLane)
+                timeSource += 1.milliseconds
+                advanceTimeBy(1)
+                runCurrent()
+                assertNull(viewModel.uiState.value.correctFeedbackLane)
+                viewModel.abandon()
+                runCurrent()
+            } finally {
+                Dispatchers.resetMain()
+            }
+        }
+
+    @Test
+    fun publicPauseCyclesPreserveExactEventRemaindersAndPersistOnlyActiveDurationOnce() =
+        runTest {
+            Dispatchers.setMain(StandardTestDispatcher(testScheduler))
+            try {
+                val storage = RecordingStorage()
+                val repository = GameActivityRepository(storage)
+                val timeSource = TestTimeSource()
+                val viewModel =
+                    DualFocusViewModel(
+                        repository,
+                        DualFocusGame(SequenceRandom(0, 0, 0, 2, 1, 2, 1, 0, 1)),
+                        timeSource,
+                    )
+                runCurrent()
+                viewModel.start()
+                timeSource += 700.milliseconds
+                advanceTimeBy(700)
+                runCurrent()
+                val originalCards = viewModel.uiState.value.game.cards
+                assertEquals(setOf(1L, 2L), originalCards.values.map { it.id }.toSet())
+                assertEquals(1_100L, originalCards.getValue(DualFocusLane.One).expiresAtMillis)
+                assertEquals(1_800L, originalCards.getValue(DualFocusLane.Two).expiresAtMillis)
+
+                viewModel.pause()
+                val firstPause = viewModel.uiState.value
+                viewModel.pause()
+                timeSource += 30_000.milliseconds
+                advanceTimeBy(30_000)
+                runCurrent()
+                assertEquals(firstPause, viewModel.uiState.value)
+                viewModel.resume()
+                viewModel.resume()
+
+                timeSource += 399.milliseconds
+                advanceTimeBy(399)
+                runCurrent()
+                assertEquals(setOf(1L, 2L), viewModel.uiState.value.game.cards.values.map { it.id }.toSet())
+                timeSource += 1.milliseconds
+                advanceTimeBy(1)
+                runCurrent()
+                assertEquals(setOf(2L), viewModel.uiState.value.game.cards.values.map { it.id }.toSet())
+
+                timeSource += 100.milliseconds
+                advanceTimeBy(100)
+                runCurrent()
+                viewModel.pause()
+                val secondPause = viewModel.uiState.value
+                viewModel.pause()
+                timeSource += 45_000.milliseconds
+                advanceTimeBy(45_000)
+                runCurrent()
+                assertEquals(secondPause, viewModel.uiState.value)
+                viewModel.resume()
+
+                timeSource += 199.milliseconds
+                advanceTimeBy(199)
+                runCurrent()
+                assertEquals(setOf(2L), viewModel.uiState.value.game.cards.values.map { it.id }.toSet())
+                timeSource += 1.milliseconds
+                advanceTimeBy(1)
+                runCurrent()
+                val spawnedCards = viewModel.uiState.value.game.cards
+                assertEquals(setOf(2L, 3L), spawnedCards.values.map { it.id }.toSet())
+                assertEquals(1_400L, spawnedCards.getValue(DualFocusLane.One).appearedAtMillis)
+
+                timeSource += 399.milliseconds
+                advanceTimeBy(399)
+                runCurrent()
+                assertEquals(setOf(2L, 3L), viewModel.uiState.value.game.cards.values.map { it.id }.toSet())
+                timeSource += 1.milliseconds
+                advanceTimeBy(1)
+                runCurrent()
+                assertEquals(setOf(3L), viewModel.uiState.value.game.cards.values.map { it.id }.toSet())
+
+                timeSource += 699.milliseconds
+                advanceTimeBy(699)
+                runCurrent()
+                assertEquals(DualFocusPhase.Active, viewModel.uiState.value.game.phase)
+                timeSource += 1.milliseconds
+                advanceTimeBy(1)
+                runCurrent()
+
+                assertEquals(DualFocusPhase.Result, viewModel.uiState.value.game.phase)
+                assertEquals(1, storage.gameSessionWriteCount)
+                val session = repository.observeSessions().first().single()
+                assertEquals(2_500, session.durationMillis)
+                assertEquals(2_500, viewModel.uiState.value.durationMillis)
+                assertEquals(0, session.score)
+                assertEquals(0, session.correctAnswers)
+                assertFalse(session.isNewRecord)
+            } finally {
+                Dispatchers.resetMain()
+            }
+        }
+
+    @Test
+    fun delayedPriorCompletionCannotMutateAnActiveReplay() =
+        runTest {
+            Dispatchers.setMain(StandardTestDispatcher(testScheduler))
+            try {
+                val storage = RecordingStorage(blockNextGameSessionWrite = true)
+                val repository = GameActivityRepository(storage)
+                val timeSource = TestTimeSource()
+                val viewModel =
+                    DualFocusViewModel(
+                        repository,
+                        DualFocusGame(SequenceRandom(0, 0, 0, 0, 1, 1, 0, 0, 0)),
+                        timeSource,
+                    )
+                runCurrent()
+                viewModel.start()
+                val target = viewModel.uiState.value.game.cards.getValue(DualFocusLane.One)
+                viewModel.tap(DualFocusLane.One, target.id)
+                timeSource += 700.milliseconds
+                viewModel.advanceTo(700)
+                val wrongCard = viewModel.uiState.value.game.cards.getValue(DualFocusLane.Two)
+                viewModel.tap(DualFocusLane.Two, wrongCard.id)
+                storage.gameSessionWriteStarted.await()
+
+                viewModel.start()
+                val replay = viewModel.uiState.value
+                assertEquals(DualFocusPhase.Active, replay.game.phase)
+                assertTrue(replay.game.cards.isNotEmpty())
+                assertNull(replay.correctFeedbackLane)
+                assertFalse(replay.isNewRecord)
+
+                storage.releaseGameSessionWrite.complete(Unit)
+                runCurrent()
+
+                assertEquals(replay, viewModel.uiState.value)
+                assertEquals(1, storage.gameSessionWriteCount)
+                assertEquals(1, repository.observeSessions().first().size)
+                viewModel.abandon()
+                runCurrent()
+            } finally {
+                Dispatchers.resetMain()
+            }
+        }
+
     private class SequenceRandom(vararg values: Int) : DualFocusRandom {
         private val values = values.toList()
         private var index = 0
@@ -113,7 +337,9 @@ class DualFocusViewModelTest {
         override fun nextInt(until: Int): Int = values[index++ % values.size] % until
     }
 
-    private class RecordingStorage : Storage {
+    private class RecordingStorage(
+        private var blockNextGameSessionWrite: Boolean = false,
+    ) : Storage {
         private val darkTheme = MutableStateFlow<Boolean?>(null)
         private val languageCode = MutableStateFlow<String?>(null)
         private val soundEnabled = MutableStateFlow<Boolean?>(null)
@@ -128,6 +354,8 @@ class DualFocusViewModelTest {
         private val rememberNumberRecords = mutableMapOf<Pair<Int, String>, MutableStateFlow<Int?>>()
         var gameSessionWriteCount = 0
             private set
+        val gameSessionWriteStarted = CompletableDeferred<Unit>()
+        val releaseGameSessionWrite = CompletableDeferred<Unit>()
 
         override fun getDarkTheme(): Flow<Boolean?> = darkTheme
 
@@ -182,6 +410,11 @@ class DualFocusViewModelTest {
 
         override suspend fun setGameSessionsJson(value: String) {
             gameSessionWriteCount++
+            if (blockNextGameSessionWrite) {
+                blockNextGameSessionWrite = false
+                gameSessionWriteStarted.complete(Unit)
+                releaseGameSessionWrite.await()
+            }
             gameSessionsJson.value = value
         }
 

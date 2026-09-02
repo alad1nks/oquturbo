@@ -633,6 +633,10 @@
     <string name="dual_focus_title">Dual Focus</string>
     <string name="dual_focus_instructions">Watch both lanes. Tap only a shape that matches that lane’s target.</string>
     <string name="dual_focus_start">Start</string>
+    <string name="dual_focus_pause">Pause</string>
+    <string name="dual_focus_paused_title">Paused</string>
+    <string name="dual_focus_paused_message">Your session is frozen. Resume when you’re ready.</string>
+    <string name="dual_focus_resume">Resume</string>
     <string name="dual_focus_loading_record">Loading record…</string>
     <string name="dual_focus_loading_record_placeholder">—</string>
     <string name="dual_focus_score">Score</string>

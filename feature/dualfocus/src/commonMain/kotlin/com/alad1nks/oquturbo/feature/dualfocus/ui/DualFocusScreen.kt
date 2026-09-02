@@ -19,10 +19,13 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Pause
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Replay
 import androidx.compose.material3.Button
@@ -42,9 +45,11 @@ import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
@@ -54,6 +59,7 @@ import androidx.compose.ui.unit.dp
 import com.alad1nks.oquturbo.core.designsystem.theme.OquTurboTheme
 import com.alad1nks.oquturbo.core.ui.component.AppBackButton
 import com.alad1nks.oquturbo.core.ui.component.GameHeader
+import com.alad1nks.oquturbo.core.ui.component.GameHeaderActionButton
 import com.alad1nks.oquturbo.core.ui.component.GameResultCard
 import com.alad1nks.oquturbo.core.ui.component.appBackground
 import com.alad1nks.oquturbo.core.ui.preview.ScreenshotPreview
@@ -80,7 +86,14 @@ internal fun dualFocusBackAction(onBackClick: (() -> Unit)?, onAbandon: () -> Un
 @Composable
 internal fun DualFocusRoute(viewModel: DualFocusViewModel, onBackClick: (() -> Unit)?) {
     val state by viewModel.uiState.collectAsState()
-    DualFocusScreen(state, viewModel::start, viewModel::tap, dualFocusBackAction(onBackClick, viewModel::abandon))
+    DualFocusScreen(
+        state,
+        viewModel::start,
+        viewModel::tap,
+        dualFocusBackAction(onBackClick, viewModel::abandon),
+        onPauseClick = viewModel::pause,
+        onResumeClick = viewModel::resume,
+    )
 }
 
 @Composable
@@ -90,6 +103,8 @@ internal fun DualFocusScreen(
     onCardClick: (DualFocusLane, Long) -> Unit,
     onBackClick: (() -> Unit)?,
     modifier: Modifier = Modifier,
+    onPauseClick: () -> Unit = {},
+    onResumeClick: () -> Unit = {},
 ) {
     Box(modifier.fillMaxSize().appBackground()) {
         Column(
@@ -102,7 +117,8 @@ internal fun DualFocusScreen(
         ) {
             when (state.game.phase) {
                 DualFocusPhase.Ready -> ReadyContent(state, onStartClick)
-                DualFocusPhase.Active -> ActiveContent(state, onCardClick)
+                DualFocusPhase.Active -> ActiveContent(state, onCardClick, onPauseClick)
+                DualFocusPhase.Paused -> PausedContent(onResumeClick)
                 DualFocusPhase.Result -> ResultContent(state, onStartClick, onBackClick)
             }
         }
@@ -178,19 +194,87 @@ private fun ReadyContent(state: DualFocusUiState, onStartClick: () -> Unit) {
 }
 
 @Composable
-private fun ActiveContent(state: DualFocusUiState, onCardClick: (DualFocusLane, Long) -> Unit) {
+private fun ActiveContent(
+    state: DualFocusUiState,
+    onCardClick: (DualFocusLane, Long) -> Unit,
+    onPauseClick: () -> Unit,
+) {
     val game = state.game
-    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-        DualFocusLane.entries.forEach { lane ->
-            LanePanel(
-                lane,
-                game.targets.getValue(lane),
-                game.cards[lane],
-                game.nowMillis,
-                state.correctFeedbackLane == lane,
-                onCardClick,
-                Modifier.weight(1f),
+    Column(
+        Modifier.fillMaxWidth(),
+        verticalArrangement = Arrangement.spacedBy(16.dp),
+    ) {
+        GameHeaderActionButton(
+            icon = Icons.Filled.Pause,
+            onClick = onPauseClick,
+            contentDescription = stringResource(AppResource.String.dual_focus_pause),
+            modifier = Modifier.align(Alignment.End),
+        )
+        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            DualFocusLane.entries.forEach { lane ->
+                LanePanel(
+                    lane,
+                    game.targets.getValue(lane),
+                    game.cards[lane],
+                    game.nowMillis,
+                    state.correctFeedbackLane == lane,
+                    onCardClick,
+                    Modifier.weight(1f),
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun PausedContent(onResumeClick: () -> Unit) {
+    Surface(
+        modifier =
+            Modifier
+                .fillMaxWidth()
+                .widthIn(max = 420.dp)
+                .semantics { liveRegion = LiveRegionMode.Polite },
+        shape = RoundedCornerShape(28.dp),
+        color = MaterialTheme.colorScheme.surfaceContainerHighest,
+    ) {
+        Column(
+            Modifier.padding(horizontal = 24.dp, vertical = 28.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(16.dp),
+        ) {
+            Surface(
+                modifier = Modifier.size(72.dp),
+                shape = CircleShape,
+                color = MaterialTheme.colorScheme.primaryContainer,
+            ) {
+                Box(contentAlignment = Alignment.Center) {
+                    Icon(
+                        Icons.Filled.Pause,
+                        contentDescription = null,
+                        modifier = Modifier.size(36.dp),
+                        tint = MaterialTheme.colorScheme.primary,
+                    )
+                }
+            }
+            Text(
+                stringResource(AppResource.String.dual_focus_paused_title),
+                modifier = Modifier.semantics { heading() },
+                style = MaterialTheme.typography.headlineMedium,
+                fontWeight = FontWeight.Bold,
+                textAlign = TextAlign.Center,
             )
+            Text(
+                stringResource(AppResource.String.dual_focus_paused_message),
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                textAlign = TextAlign.Center,
+            )
+            Button(
+                onClick = onResumeClick,
+                modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp),
+            ) {
+                Icon(Icons.Filled.PlayArrow, contentDescription = null)
+                Text(stringResource(AppResource.String.dual_focus_resume))
+            }
         }
     }
 }
@@ -512,6 +596,12 @@ private fun previewState(
     )
 }
 
+private fun pausedPreviewState(): DualFocusUiState =
+    previewState(score = 15).copy(
+        correctFeedbackLane = DualFocusLane.One,
+        game = previewState(score = 15).game.copy(phase = DualFocusPhase.Paused),
+    )
+
 @Preview(name = "Dual Focus — loading", widthDp = 390, heightDp = 844)
 @ScreenshotPreview
 @Composable
@@ -556,6 +646,49 @@ private fun DualFocusCorrectFeedbackPreview() {
             null,
         )
     }
+}
+
+@Preview(name = "Dual Focus — paused compact", widthDp = 320, heightDp = 844)
+@ScreenshotPreview
+@Composable
+private fun DualFocusPausedCompactPreview() {
+    OquTurboTheme {
+        DualFocusScreen(
+            pausedPreviewState(),
+            {},
+            { _, _ -> },
+            {},
+            onResumeClick = {},
+        )
+    }
+}
+
+@Preview(name = "Dual Focus — paused standalone", widthDp = 390, heightDp = 844)
+@Composable
+private fun DualFocusPausedStandalonePreview() {
+    OquTurboTheme {
+        DualFocusScreen(
+            pausedPreviewState(),
+            {},
+            { _, _ -> },
+            null,
+            onResumeClick = {},
+        )
+    }
+}
+
+@Preview(name = "Dual Focus — paused Russian compact", widthDp = 320, heightDp = 844, locale = "ru")
+@ScreenshotPreview
+@Composable
+private fun DualFocusPausedRussianCompactPreview() {
+    OquTurboTheme { DualFocusScreen(pausedPreviewState(), {}, { _, _ -> }, {}, onResumeClick = {}) }
+}
+
+@Preview(name = "Dual Focus — paused Kazakh compact", widthDp = 320, heightDp = 844, locale = "kk")
+@ScreenshotPreview
+@Composable
+private fun DualFocusPausedKazakhCompactPreview() {
+    OquTurboTheme { DualFocusScreen(pausedPreviewState(), {}, { _, _ -> }, {}, onResumeClick = {}) }
 }
 
 @Preview(name = "Dual Focus — wrong", widthDp = 390, heightDp = 1000)

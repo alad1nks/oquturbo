@@ -656,6 +656,10 @@
     <string name="dual_focus_title">Двойной фокус</string>
     <string name="dual_focus_instructions">Следите за обеими дорожками. Нажимайте только на фигуру, совпадающую с целью дорожки.</string>
     <string name="dual_focus_start">Начать</string>
+    <string name="dual_focus_pause">Пауза</string>
+    <string name="dual_focus_paused_title">Пауза</string>
+    <string name="dual_focus_paused_message">Сессия приостановлена. Продолжите, когда будете готовы.</string>
+    <string name="dual_focus_resume">Продолжить</string>
     <string name="dual_focus_loading_record">Загрузка рекорда…</string>
     <string name="dual_focus_loading_record_placeholder">—</string>
     <string name="dual_focus_score">Счёт</string>

@@ -4,7 +4,7 @@ enum class DualFocusShape { Circle, Square, Triangle, Diamond }
 
 enum class DualFocusLane { One, Two }
 
-enum class DualFocusPhase { Ready, Active, Result }
+enum class DualFocusPhase { Ready, Active, Paused, Result }
 
 enum class DualFocusFailure { WrongTap, MissedTarget }
 
@@ -103,6 +103,16 @@ class DualFocusGame(
         } else {
             fail(DualFocusFailure.WrongTap, card, card.shownShape)
         }
+    }
+
+    fun pause() {
+        if (state.phase != DualFocusPhase.Active) return
+        state = state.copy(phase = DualFocusPhase.Paused)
+    }
+
+    fun resume() {
+        if (state.phase != DualFocusPhase.Paused) return
+        state = state.copy(phase = DualFocusPhase.Active)
     }
 
     fun advanceTo(nowMillis: Long) {
