@@ -156,6 +156,65 @@ class DualFocusGameTest {
         assertNotEquals(firstTargets, game.state.targets)
     }
 
+    @Test
+    fun pauseFreezesBothCardsEventsAndInputsUntilTheirRemainingActiveTimeElapses() {
+        val game = DualFocusGame(FakeRandom(0, 0, 0, 2, 1, 2, 1))
+        game.start()
+        game.advanceTo(700)
+        val active = game.state
+        assertEquals(2, active.cards.size)
+
+        game.pause()
+        val paused = game.state
+        game.advanceTo(60_000)
+        game.tap(DualFocusLane.One, active.cards.getValue(DualFocusLane.One).id, 60_000)
+
+        assertEquals(paused, game.state)
+        game.resume()
+        assertEquals(paused.copy(phase = DualFocusPhase.Active), game.state)
+
+        val firstExpiry = active.cards.values.minOf(DualFocusCard::expiresAtMillis)
+        game.advanceTo(firstExpiry - 1)
+        assertEquals(active.cards.keys, game.state.cards.keys)
+        game.advanceTo(firstExpiry)
+        assertEquals(1, game.state.cards.size)
+        assertEquals(DualFocusPhase.Active, game.state.phase)
+    }
+
+    @Test
+    fun pauseJustBeforeTargetExpiryPreservesTheExactExpiryBoundary() {
+        val game = DualFocusGame(FakeRandom(0, 0, 0, 0))
+        game.start()
+        val target = game.state.cards.getValue(DualFocusLane.One)
+        game.advanceTo(target.expiresAtMillis - 1)
+
+        game.pause()
+        game.advanceTo(90_000)
+        game.resume()
+        game.advanceTo(target.expiresAtMillis - 1)
+        assertEquals(DualFocusPhase.Active, game.state.phase)
+
+        game.advanceTo(target.expiresAtMillis)
+        assertEquals(DualFocusPhase.Result, game.state.phase)
+        assertEquals(DualFocusFailure.MissedTarget, game.state.result?.failure)
+    }
+
+    @Test
+    fun duplicatePauseAndResumeCallsAreIdempotent() {
+        val game = DualFocusGame(FakeRandom(0, 0, 0, 2, 1))
+        game.start()
+
+        game.pause()
+        val paused = game.state
+        game.pause()
+        assertEquals(paused, game.state)
+
+        game.resume()
+        val active = game.state
+        game.resume()
+        assertEquals(active, game.state)
+    }
+
     private class FakeRandom(vararg values: Int) : DualFocusRandom {
         private val values = values.toMutableList()
 

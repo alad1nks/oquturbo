@@ -34,15 +34,18 @@ internal data class DualFocusUiState(
 internal class DualFocusViewModel(
     private val activityRepository: GameActivityRepository,
     private val game: DualFocusGame = DualFocusGame(),
+    private val timeSource: TimeSource = TimeSource.Monotonic,
 ) : ViewModel() {
     private val _uiState = MutableStateFlow(DualFocusUiState())
     val uiState = _uiState.asStateFlow()
     private var record = 0
     private var previousRecord = 0
     private var attemptToken = 0L
-    private var attemptStartedAt: TimeMark? = null
+    private var activeSegmentStartedAt: TimeMark? = null
+    private var activeDurationMillis = 0L
     private var timerJob: Job? = null
     private var feedbackJob: Job? = null
+    private var feedbackExpiresAtMillis: Long? = null
     private val recordedAttempts = mutableSetOf<Long>()
 
     init {
@@ -66,7 +69,9 @@ internal class DualFocusViewModel(
         attemptToken++
         cancelJobs()
         previousRecord = record
-        attemptStartedAt = TimeSource.Monotonic.markNow()
+        activeDurationMillis = 0
+        activeSegmentStartedAt = timeSource.markNow()
+        feedbackExpiresAtMillis = null
         game.start(nowMillis = 0)
         publish(isNewRecord = false, durationMillis = 0, correctFeedbackLane = null)
         scheduleTimer(attemptToken)
@@ -84,21 +89,58 @@ internal class DualFocusViewModel(
         game.tap(lane, cardId, elapsedMillis())
         val correctLane = lane.takeIf { game.state.score > scoreBefore }
         publish(correctFeedbackLane = correctLane)
-        if (correctLane != null) scheduleFeedbackClear(token, correctLane)
+        if (correctLane != null) {
+            feedbackExpiresAtMillis = game.state.nowMillis + CORRECT_FEEDBACK_MILLIS
+            scheduleFeedbackClear(token, correctLane)
+        }
         if (game.state.phase == DualFocusPhase.Result) completeAttempt(token)
+    }
+
+    fun pause() {
+        pauseAt(elapsedMillis())
+    }
+
+    internal fun pauseAt(millis: Long) {
+        if (game.state.phase != DualFocusPhase.Active) return
+        advanceTo(millis)
+        if (game.state.phase != DualFocusPhase.Active) return
+        activeDurationMillis = game.state.nowMillis
+        activeSegmentStartedAt = null
+        timerJob?.cancel()
+        timerJob = null
+        feedbackJob?.cancel()
+        feedbackJob = null
+        game.pause()
+        publish()
+    }
+
+    fun resume() {
+        if (game.state.phase != DualFocusPhase.Paused) return
+        game.resume()
+        activeSegmentStartedAt = timeSource.markNow()
+        publish()
+        scheduleTimer(attemptToken)
+        _uiState.value.correctFeedbackLane?.let { scheduleFeedbackClear(attemptToken, it) }
     }
 
     fun abandon() {
         attemptToken++
         cancelJobs()
-        attemptStartedAt = null
+        activeSegmentStartedAt = null
+        activeDurationMillis = 0
+        feedbackExpiresAtMillis = null
     }
 
     internal fun advanceTo(millis: Long) {
         val token = attemptToken
         if (game.state.phase != DualFocusPhase.Active) return
         game.advanceTo(millis)
-        publish()
+        val feedbackLane =
+            _uiState.value.correctFeedbackLane.takeUnless {
+                feedbackExpiresAtMillis?.let { deadline -> game.state.nowMillis >= deadline } == true
+            }
+        if (feedbackLane == null) feedbackExpiresAtMillis = null
+        publish(correctFeedbackLane = feedbackLane)
         if (game.state.phase == DualFocusPhase.Result) completeAttempt(token)
     }
 
@@ -118,10 +160,21 @@ internal class DualFocusViewModel(
         lane: DualFocusLane,
     ) {
         feedbackJob?.cancel()
+        val remainingMillis =
+            (feedbackExpiresAtMillis ?: return) - game.state.nowMillis
+        if (remainingMillis <= 0) {
+            feedbackExpiresAtMillis = null
+            publish(correctFeedbackLane = null)
+            return
+        }
         feedbackJob =
             viewModelScope.launch {
-                delay(CORRECT_FEEDBACK_MILLIS)
-                if (token == attemptToken && _uiState.value.correctFeedbackLane == lane) {
+                delay(remainingMillis)
+                if (token == attemptToken &&
+                    game.state.phase == DualFocusPhase.Active &&
+                    _uiState.value.correctFeedbackLane == lane
+                ) {
+                    feedbackExpiresAtMillis = null
                     publish(correctFeedbackLane = null)
                 }
             }
@@ -134,8 +187,11 @@ internal class DualFocusViewModel(
         ) {
             return
         }
-        cancelJobs()
         val finished = game.state
+        cancelJobs()
+        activeSegmentStartedAt = null
+        activeDurationMillis = finished.nowMillis
+        feedbackExpiresAtMillis = null
         val duration = finished.nowMillis
         val claimedNewRecord = finished.score > 0 && finished.score > record
         if (claimedNewRecord) record = finished.score
@@ -160,7 +216,8 @@ internal class DualFocusViewModel(
     }
 
     private fun elapsedMillis(): Long =
-        attemptStartedAt?.elapsedNow()?.inWholeMilliseconds?.coerceAtLeast(0) ?: 0
+        activeDurationMillis +
+            (activeSegmentStartedAt?.elapsedNow()?.inWholeMilliseconds?.coerceAtLeast(0) ?: 0)
 
     private fun publish(
         isRecordLoading: Boolean = _uiState.value.isRecordLoading,

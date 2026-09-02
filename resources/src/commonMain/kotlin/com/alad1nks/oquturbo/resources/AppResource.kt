@@ -71,10 +71,14 @@ import oquturbo.resources.generated.resources.dual_focus_missed_shape
 import oquturbo.resources.generated.resources.dual_focus_missed_title
 import oquturbo.resources.generated.resources.dual_focus_new_record
 import oquturbo.resources.generated.resources.dual_focus_non_match
+import oquturbo.resources.generated.resources.dual_focus_pause
+import oquturbo.resources.generated.resources.dual_focus_paused_message
+import oquturbo.resources.generated.resources.dual_focus_paused_title
 import oquturbo.resources.generated.resources.dual_focus_record
 import oquturbo.resources.generated.resources.dual_focus_record_value
 import oquturbo.resources.generated.resources.dual_focus_replay
 import oquturbo.resources.generated.resources.dual_focus_result_details
+import oquturbo.resources.generated.resources.dual_focus_resume
 import oquturbo.resources.generated.resources.dual_focus_score
 import oquturbo.resources.generated.resources.dual_focus_score_value
 import oquturbo.resources.generated.resources.dual_focus_shape_circle
@@ -467,6 +471,10 @@ object AppResource {
         val dual_focus_title = Res.string.dual_focus_title
         val dual_focus_instructions = Res.string.dual_focus_instructions
         val dual_focus_start = Res.string.dual_focus_start
+        val dual_focus_pause = Res.string.dual_focus_pause
+        val dual_focus_paused_title = Res.string.dual_focus_paused_title
+        val dual_focus_paused_message = Res.string.dual_focus_paused_message
+        val dual_focus_resume = Res.string.dual_focus_resume
         val dual_focus_loading_record = Res.string.dual_focus_loading_record
         val dual_focus_loading_record_placeholder = Res.string.dual_focus_loading_record_placeholder
         val dual_focus_score = Res.string.dual_focus_score
