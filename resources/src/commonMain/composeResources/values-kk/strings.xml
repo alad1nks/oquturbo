@@ -610,6 +610,10 @@
     <string name="word_flow_record">Рекорд</string>
     <string name="word_flow_score_value">Ұпай: %1$d</string>
     <string name="word_flow_record_value">Рекорд: %1$d</string>
+    <string name="word_flow_result_details">Рекорд: %1$d\nСоңғы қиындық: %2$s</string>
+    <string name="word_flow_difficulty_easy">Оңай</string>
+    <string name="word_flow_difficulty_medium">Орташа</string>
+    <string name="word_flow_difficulty_hard">Қиын</string>
     <string name="word_flow_time">Уақыт</string>
     <string name="word_flow_seconds">%1$d с</string>
     <string name="word_flow_back">Артқа</string>
