@@ -413,6 +413,9 @@ import oquturbo.resources.generated.resources.word_flow_completed_sentence
 import oquturbo.resources.generated.resources.word_flow_context_mode
 import oquturbo.resources.generated.resources.word_flow_correct
 import oquturbo.resources.generated.resources.word_flow_correct_answer
+import oquturbo.resources.generated.resources.word_flow_difficulty_easy
+import oquturbo.resources.generated.resources.word_flow_difficulty_hard
+import oquturbo.resources.generated.resources.word_flow_difficulty_medium
 import oquturbo.resources.generated.resources.word_flow_instructions
 import oquturbo.resources.generated.resources.word_flow_loading_record
 import oquturbo.resources.generated.resources.word_flow_new_record
@@ -420,6 +423,7 @@ import oquturbo.resources.generated.resources.word_flow_ready_title
 import oquturbo.resources.generated.resources.word_flow_record
 import oquturbo.resources.generated.resources.word_flow_record_value
 import oquturbo.resources.generated.resources.word_flow_replay
+import oquturbo.resources.generated.resources.word_flow_result_details
 import oquturbo.resources.generated.resources.word_flow_score
 import oquturbo.resources.generated.resources.word_flow_score_value
 import oquturbo.resources.generated.resources.word_flow_seconds
@@ -589,6 +593,10 @@ object AppResource {
         val word_flow_record = Res.string.word_flow_record
         val word_flow_score_value = Res.string.word_flow_score_value
         val word_flow_record_value = Res.string.word_flow_record_value
+        val word_flow_result_details = Res.string.word_flow_result_details
+        val word_flow_difficulty_easy = Res.string.word_flow_difficulty_easy
+        val word_flow_difficulty_medium = Res.string.word_flow_difficulty_medium
+        val word_flow_difficulty_hard = Res.string.word_flow_difficulty_hard
         val word_flow_time = Res.string.word_flow_time
         val word_flow_seconds = Res.string.word_flow_seconds
         val word_flow_back = Res.string.word_flow_back

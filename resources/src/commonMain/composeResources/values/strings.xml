@@ -608,6 +608,10 @@
     <string name="word_flow_record">Record</string>
     <string name="word_flow_score_value">Score: %1$d</string>
     <string name="word_flow_record_value">Record: %1$d</string>
+    <string name="word_flow_result_details">Record: %1$d\nFinal difficulty: %2$s</string>
+    <string name="word_flow_difficulty_easy">Easy</string>
+    <string name="word_flow_difficulty_medium">Medium</string>
+    <string name="word_flow_difficulty_hard">Hard</string>
     <string name="word_flow_time">Time</string>
     <string name="word_flow_seconds">%1$d s</string>
     <string name="word_flow_back">Back</string>

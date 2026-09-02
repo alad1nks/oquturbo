@@ -59,6 +59,7 @@ import com.alad1nks.oquturbo.feature.wordflow.model.WordFlowRound
 import com.alad1nks.oquturbo.feature.wordflow.model.WordFlowState
 import com.alad1nks.oquturbo.feature.wordflow.model.WordFlowTier
 import com.alad1nks.oquturbo.resources.AppResource
+import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.stringResource
 import kotlin.math.ceil
 
@@ -71,6 +72,14 @@ internal fun wordFlowBackAction(
             onAbandon()
             callback()
         }
+    }
+
+internal fun WordFlowState.difficultyResource(): StringResource? =
+    when (tier) {
+        WordFlowTier.Easy -> AppResource.String.word_flow_difficulty_easy
+        WordFlowTier.Medium -> AppResource.String.word_flow_difficulty_medium
+        WordFlowTier.Hard -> AppResource.String.word_flow_difficulty_hard
+        null -> null
     }
 
 @Composable
@@ -357,6 +366,7 @@ private fun ResultContent(
 ) {
     val game = state.game
     val prompt = game.round?.prompt ?: return
+    val difficultyResource = game.difficultyResource() ?: return
     val timeout = game.failure == WordFlowFailure.Timeout
     Icon(
         if (timeout) Icons.Default.Timer else Icons.Default.Close,
@@ -394,7 +404,12 @@ private fun ResultContent(
     }
     GameResultCard(
         primaryText = stringResource(AppResource.String.word_flow_score_value, game.score),
-        secondaryText = stringResource(AppResource.String.word_flow_record_value, state.record),
+        secondaryText =
+            stringResource(
+                AppResource.String.word_flow_result_details,
+                state.record,
+                stringResource(difficultyResource),
+            ),
         modifier = Modifier.fillMaxWidth(),
     )
     Button(onClick = onReplayClick, modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp)) {
@@ -420,6 +435,7 @@ private val previewPrompt =
 private val compactKazakhPrompt =
     previewPrompt.copy(
         id = "preview-kk",
+        tier = WordFlowTier.Hard,
         sentenceTemplate = "Өлшемдер әртүрлі болғандықтан, зерттеушілер қорытындыны қосымша деректер %1\$s дейін алдын ала деп санады.",
         correctAnswer = "жиналғанға",
         wrongAnswers = listOf("жоғалғанға", "ұмытылғанға"),
@@ -431,13 +447,20 @@ private fun previewState(
     selected: String? = null,
     score: Int = 3,
     isNewRecord: Boolean = false,
+    tier: WordFlowTier = WordFlowTier.Easy,
 ) = WordFlowUiState(
     game =
         WordFlowState(
             phase = phase,
             score = score,
             correctAnswers = score,
-            round = WordFlowRound(previewPrompt, listOf("window", "book", "spoon"), 10_000, 7_000),
+            round =
+                WordFlowRound(
+                    previewPrompt.copy(tier = tier),
+                    listOf("window", "book", "spoon"),
+                    10_000,
+                    7_000,
+                ),
             selectedAnswer = selected,
             failure = failure,
         ),
@@ -505,7 +528,36 @@ private fun WordFlowWrongPreview() {
 @ScreenshotPreview
 @Composable
 private fun WordFlowTimeoutPreview() {
-    OquTurboTheme { WordFlowScreen(previewState(WordFlowPhase.Result, WordFlowFailure.Timeout), {}, {}, null) }
+    OquTurboTheme {
+        WordFlowScreen(
+            previewState(
+                phase = WordFlowPhase.Result,
+                failure = WordFlowFailure.Timeout,
+                tier = WordFlowTier.Medium,
+            ),
+            {},
+            {},
+            null,
+        )
+    }
+}
+
+@Preview(name = "Word Flow — result viewport", widthDp = 390, heightDp = 844)
+@ScreenshotPreview
+@Composable
+private fun WordFlowResultViewportPreview() {
+    OquTurboTheme {
+        WordFlowScreen(
+            previewState(
+                phase = WordFlowPhase.Result,
+                failure = WordFlowFailure.Timeout,
+                tier = WordFlowTier.Medium,
+            ),
+            {},
+            {},
+            {},
+        )
+    }
 }
 
 @Preview(name = "Word Flow — new record", widthDp = 390, heightDp = 1160)
@@ -513,13 +565,25 @@ private fun WordFlowTimeoutPreview() {
 @Composable
 private fun WordFlowNewRecordPreview() {
     OquTurboTheme {
-        WordFlowScreen(previewState(WordFlowPhase.Result, WordFlowFailure.Wrong, "window", 8, true), {}, {}, null)
+        WordFlowScreen(
+            previewState(
+                phase = WordFlowPhase.Result,
+                failure = WordFlowFailure.Wrong,
+                selected = "window",
+                score = 8,
+                isNewRecord = true,
+                tier = WordFlowTier.Medium,
+            ),
+            {},
+            {},
+            null,
+        )
     }
 }
 
-@Preview(name = "Word Flow — compact Kazakh", widthDp = 320, heightDp = 1200, locale = "kk")
+@Preview(name = "Word Flow — compact Kazakh", widthDp = 320, heightDp = 1320, locale = "kk")
 @ScreenshotPreview
 @Composable
 private fun WordFlowCompactKazakhPreview() {
-    OquTurboTheme { WordFlowScreen(compactKazakhState(), {}, {}, null) }
+    OquTurboTheme { WordFlowScreen(compactKazakhState(), {}, {}, {}) }
 }

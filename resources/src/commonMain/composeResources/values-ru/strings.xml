@@ -631,6 +631,10 @@
     <string name="word_flow_record">Рекорд</string>
     <string name="word_flow_score_value">Счёт: %1$d</string>
     <string name="word_flow_record_value">Рекорд: %1$d</string>
+    <string name="word_flow_result_details">Рекорд: %1$d\nИтоговая сложность: %2$s</string>
+    <string name="word_flow_difficulty_easy">Лёгкая</string>
+    <string name="word_flow_difficulty_medium">Средняя</string>
+    <string name="word_flow_difficulty_hard">Сложная</string>
     <string name="word_flow_time">Время</string>
     <string name="word_flow_seconds">%1$d с</string>
     <string name="word_flow_back">Назад</string>
