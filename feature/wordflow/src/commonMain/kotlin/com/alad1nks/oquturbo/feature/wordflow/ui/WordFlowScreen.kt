@@ -60,6 +60,7 @@ import com.alad1nks.oquturbo.feature.wordflow.model.WordFlowState
 import com.alad1nks.oquturbo.feature.wordflow.model.WordFlowTier
 import com.alad1nks.oquturbo.resources.AppResource
 import org.jetbrains.compose.resources.StringResource
+import org.jetbrains.compose.resources.pluralStringResource
 import org.jetbrains.compose.resources.stringResource
 import kotlin.math.ceil
 
@@ -367,6 +368,7 @@ private fun ResultContent(
     val game = state.game
     val prompt = game.round?.prompt ?: return
     val difficultyResource = game.difficultyResource() ?: return
+    val completedDurationMillis = state.completedDurationMillis ?: return
     val timeout = game.failure == WordFlowFailure.Timeout
     Icon(
         if (timeout) Icons.Default.Timer else Icons.Default.Close,
@@ -409,6 +411,7 @@ private fun ResultContent(
                 AppResource.String.word_flow_result_details,
                 state.record,
                 stringResource(difficultyResource),
+                wordFlowDurationText(completedDurationMillis),
             ),
         modifier = Modifier.fillMaxWidth(),
     )
@@ -422,6 +425,39 @@ private fun ResultContent(
         }
     }
 }
+
+@Composable
+private fun wordFlowDurationText(durationMillis: Long): String =
+    when (val parts = wordFlowDurationDisplayParts(durationMillis)) {
+        WordFlowDurationDisplayParts.LessThanOneSecond ->
+            stringResource(AppResource.String.word_flow_duration_less_than_one_second)
+        is WordFlowDurationDisplayParts.Seconds ->
+            pluralStringResource(
+                AppResource.Plural.word_flow_duration_seconds,
+                parts.seconds.pluralQuantity(),
+                parts.seconds,
+            )
+        is WordFlowDurationDisplayParts.MinutesSeconds -> {
+            val minutes =
+                pluralStringResource(
+                    AppResource.Plural.word_flow_duration_minutes,
+                    parts.minutes.pluralQuantity(),
+                    parts.minutes,
+                )
+            val seconds = parts.seconds ?: return minutes
+            stringResource(
+                AppResource.String.word_flow_duration_minutes_seconds,
+                minutes,
+                pluralStringResource(
+                    AppResource.Plural.word_flow_duration_seconds,
+                    seconds.pluralQuantity(),
+                    seconds,
+                ),
+            )
+        }
+    }
+
+private fun Long.pluralQuantity(): Int = coerceAtMost(Int.MAX_VALUE.toLong()).toInt()
 
 private val previewPrompt =
     WordFlowPrompt(
@@ -448,6 +484,7 @@ private fun previewState(
     score: Int = 3,
     isNewRecord: Boolean = false,
     tier: WordFlowTier = WordFlowTier.Easy,
+    completedDurationMillis: Long? = null,
 ) = WordFlowUiState(
     game =
         WordFlowState(
@@ -467,6 +504,7 @@ private fun previewState(
     record = maxOf(2, score),
     isRecordLoading = false,
     isNewRecord = isNewRecord,
+    completedDurationMillis = completedDurationMillis,
 )
 
 private fun compactKazakhState(): WordFlowUiState =
@@ -477,6 +515,7 @@ private fun compactKazakhState(): WordFlowUiState =
                     round = WordFlowRound(compactKazakhPrompt, compactKazakhPrompt.answers, 6_000, 0),
                 ),
             locale = "kk",
+            completedDurationMillis = 725_300L,
         )
     }
 
@@ -521,7 +560,19 @@ private fun WordFlowCorrectFeedbackPreview() {
 @ScreenshotPreview
 @Composable
 private fun WordFlowWrongPreview() {
-    OquTurboTheme { WordFlowScreen(previewState(WordFlowPhase.Result, WordFlowFailure.Wrong, "window"), {}, {}, null) }
+    OquTurboTheme {
+        WordFlowScreen(
+            previewState(
+                WordFlowPhase.Result,
+                WordFlowFailure.Wrong,
+                "window",
+                completedDurationMillis = 15_300L,
+            ),
+            {},
+            {},
+            null,
+        )
+    }
 }
 
 @Preview(name = "Word Flow — timeout", widthDp = 390, heightDp = 1100)
@@ -534,6 +585,7 @@ private fun WordFlowTimeoutPreview() {
                 phase = WordFlowPhase.Result,
                 failure = WordFlowFailure.Timeout,
                 tier = WordFlowTier.Medium,
+                completedDurationMillis = 60_000L,
             ),
             {},
             {},
@@ -552,6 +604,7 @@ private fun WordFlowResultViewportPreview() {
                 phase = WordFlowPhase.Result,
                 failure = WordFlowFailure.Timeout,
                 tier = WordFlowTier.Medium,
+                completedDurationMillis = 65_300L,
             ),
             {},
             {},
@@ -573,6 +626,7 @@ private fun WordFlowNewRecordPreview() {
                 score = 8,
                 isNewRecord = true,
                 tier = WordFlowTier.Medium,
+                completedDurationMillis = 999L,
             ),
             {},
             {},
