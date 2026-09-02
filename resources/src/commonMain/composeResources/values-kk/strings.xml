@@ -540,6 +540,7 @@
     <string name="kenkoz_title">Кең көз</string>
     <string name="remember_number_game_correct_answer">Дұрыс жауап</string>
     <string name="remember_number_game_correct_answer_description">Дұрыс жауап: %1$s</string>
+    <string name="remember_number_game_new_record">Жаңа рекорд!</string>
     <string name="remember_number_game_record">Рекорд: %1$d</string>
     <string name="remember_number_game_score">Ұпай: %1$d</string>
     <string name="remember_number_game_start">Ойынды бастау!</string>

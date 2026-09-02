@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.alad1nks.oquturbo.core.data.model.DailyTrainingEntry
 import com.alad1nks.oquturbo.core.data.model.GameId
 import com.alad1nks.oquturbo.core.data.model.GameModeId
+import com.alad1nks.oquturbo.core.data.model.GameSession
 import com.alad1nks.oquturbo.core.data.repository.DailyTrainingRepository
 import com.alad1nks.oquturbo.core.data.repository.GameActivityRepository
 import com.alad1nks.oquturbo.core.data.repository.RememberNumberRepository
@@ -13,6 +14,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlin.time.Duration.Companion.milliseconds
@@ -35,6 +37,7 @@ internal class RememberNumberViewModel(
     private var sessionStartMark: TimeMark? = null
     private var nextTrainingEntry: DailyTrainingEntry? = null
     private var hasContinuedTraining = false
+    private var currentAttemptId = 0L
 
     private val _focusEvent = MutableStateFlow<Unit?>(null)
     val focusEvent = _focusEvent.asStateFlow()
@@ -76,51 +79,61 @@ internal class RememberNumberViewModel(
                                     )
                                 delay = (delay * 95) / 100
                             } else {
+                                val completedAttemptId = currentAttemptId
+                                val completedScore = score
+                                val correctText = waitingNumber
                                 val sessionDurationMillis = finishSessionTelemetry()
-                                withContext(NonCancellable) {
-                                    val storageRecord =
-                                        rememberNumberRepository.getRememberNumberRecord(
-                                            maxLength = maxLength,
-                                            availableDigits = availableDigits,
-                                        ).first() ?: 0
-                                    val currentRecord = maxOf(storageRecord, score)
-                                    _record.value = currentRecord
+                                delay = 1000
+                                val storageRecord =
+                                    rememberNumberRepository.getRememberNumberRecord(
+                                        maxLength = maxLength,
+                                        availableDigits = availableDigits,
+                                    ).first() ?: 0
+                                val currentRecord = maxOf(storageRecord, completedScore)
+                                _record.value = maxOf(_record.value, currentRecord)
+                                if (completedAttemptId == currentAttemptId) {
                                     _uiState.value =
                                         RememberNumberUiState.Mistake(
                                             text = text,
-                                            score = score,
-                                            correctText = waitingNumber,
+                                            score = completedScore,
+                                            correctText = correctText,
                                             record = currentRecord,
                                             isTrainingResultReady = trainingEntryId == null,
                                         )
-                                    delay = 1000
-                                    sessionDurationMillis?.let { durationMillis ->
-                                        recordCompletedSession(
-                                            score = score,
-                                            durationMillis = durationMillis,
-                                            isNewRecord = currentRecord > storageRecord,
-                                        )
-                                        trainingEntryId?.let { entryId ->
-                                            nextTrainingEntry =
-                                                dailyTrainingRepository
-                                                    .completeEntry(entryId = entryId, score = score)
-                                                    .nextEntry
-                                            _uiState.value =
-                                                RememberNumberUiState.Mistake(
-                                                    text = text,
-                                                    score = score,
-                                                    correctText = waitingNumber,
-                                                    record = currentRecord,
-                                                    isTrainingResultReady = true,
+                                }
+                                viewModelScope.launch {
+                                    withContext(NonCancellable) {
+                                        sessionDurationMillis?.let { durationMillis ->
+                                            val recordedSession =
+                                                recordCompletedSession(
+                                                    score = completedScore,
+                                                    durationMillis = durationMillis,
+                                                    isNewRecord = currentRecord > storageRecord,
                                                 )
+                                            updateCompletedAttempt(completedAttemptId) {
+                                                it.copy(isNewRecord = recordedSession.isNewRecord)
+                                            }
+                                            trainingEntryId?.let { entryId ->
+                                                val trainingPlan =
+                                                    dailyTrainingRepository.completeEntry(
+                                                        entryId = entryId,
+                                                        score = completedScore,
+                                                    )
+                                                if (completedAttemptId == currentAttemptId) {
+                                                    nextTrainingEntry = trainingPlan.nextEntry
+                                                }
+                                                updateCompletedAttempt(completedAttemptId) {
+                                                    it.copy(isTrainingResultReady = true)
+                                                }
+                                            }
                                         }
-                                    }
-                                    if (currentRecord > storageRecord) {
-                                        rememberNumberRepository.setRememberNumberRecord(
-                                            maxLength,
-                                            availableDigits,
-                                            score,
-                                        )
+                                        if (currentRecord > storageRecord) {
+                                            rememberNumberRepository.setRememberNumberRecord(
+                                                maxLength,
+                                                availableDigits,
+                                                completedScore,
+                                            )
+                                        }
                                     }
                                 }
                             }
@@ -128,11 +141,13 @@ internal class RememberNumberViewModel(
                         }
                     }
                     is RememberNumberUiState.Reading -> {
+                        val readingAttemptId = currentAttemptId
                         delay(delay.milliseconds)
                         if (isFirstNumber) {
                             delay(700.milliseconds)
                             isFirstNumber = false
                         }
+                        if (readingAttemptId != currentAttemptId || _uiState.value != uiState) return@collect
                         _uiState.value =
                             RememberNumberUiState.Writing(
                                 text = "",
@@ -147,19 +162,20 @@ internal class RememberNumberViewModel(
     }
 
     fun start() {
-        viewModelScope.launch {
-            score = 0
-            isFirstNumber = true
-            nextTrainingEntry = null
-            hasContinuedTraining = false
-            sessionStartMark = TimeSource.Monotonic.markNow()
-            waitingNumber = generateNumber()
-            _uiState.value =
-                RememberNumberUiState.Reading(
-                    text = waitingNumber,
-                    score = score,
-                )
-        }
+        currentAttemptId++
+        score = 0
+        delay = 1000
+        isFirstNumber = true
+        nextTrainingEntry = null
+        hasContinuedTraining = false
+        sessionStartMark = TimeSource.Monotonic.markNow()
+        waitingNumber = generateNumber()
+        _focusEvent.value = null
+        _uiState.value =
+            RememberNumberUiState.Reading(
+                text = waitingNumber,
+                score = score,
+            )
     }
 
     fun writeText(value: String) {
@@ -192,9 +208,9 @@ internal class RememberNumberViewModel(
         score: Int,
         durationMillis: Long,
         isNewRecord: Boolean,
-    ) {
+    ): GameSession {
         val (mode, variantId) = sessionMode()
-        gameActivityRepository.recordCompletedSession(
+        return gameActivityRepository.recordCompletedSession(
             game = GameId.NumberSprint,
             mode = mode,
             variantId = variantId,
@@ -203,6 +219,19 @@ internal class RememberNumberViewModel(
             durationMillis = durationMillis,
             isNewRecord = isNewRecord,
         )
+    }
+
+    private inline fun updateCompletedAttempt(
+        attemptId: Long,
+        transform: (RememberNumberUiState.Mistake) -> RememberNumberUiState.Mistake,
+    ) {
+        _uiState.update { state ->
+            if (attemptId == currentAttemptId && state is RememberNumberUiState.Mistake) {
+                transform(state)
+            } else {
+                state
+            }
+        }
     }
 
     private fun finishSessionTelemetry(): Long? {
