@@ -416,6 +416,10 @@ import oquturbo.resources.generated.resources.word_flow_correct_answer
 import oquturbo.resources.generated.resources.word_flow_difficulty_easy
 import oquturbo.resources.generated.resources.word_flow_difficulty_hard
 import oquturbo.resources.generated.resources.word_flow_difficulty_medium
+import oquturbo.resources.generated.resources.word_flow_duration_less_than_one_second
+import oquturbo.resources.generated.resources.word_flow_duration_minutes
+import oquturbo.resources.generated.resources.word_flow_duration_minutes_seconds
+import oquturbo.resources.generated.resources.word_flow_duration_seconds
 import oquturbo.resources.generated.resources.word_flow_instructions
 import oquturbo.resources.generated.resources.word_flow_loading_record
 import oquturbo.resources.generated.resources.word_flow_new_record
@@ -455,6 +459,8 @@ object AppResource {
     object Plural {
         val dual_focus_duration_minutes = Res.plurals.dual_focus_duration_minutes
         val dual_focus_duration_seconds = Res.plurals.dual_focus_duration_seconds
+        val word_flow_duration_minutes = Res.plurals.word_flow_duration_minutes
+        val word_flow_duration_seconds = Res.plurals.word_flow_duration_seconds
         val profile_days_format = Res.plurals.profile_days_format
         val profile_levels_to_next_rank_format = Res.plurals.profile_levels_to_next_rank_format
         val profile_unlock_training_format = Res.plurals.profile_unlock_training_format
@@ -594,6 +600,8 @@ object AppResource {
         val word_flow_score_value = Res.string.word_flow_score_value
         val word_flow_record_value = Res.string.word_flow_record_value
         val word_flow_result_details = Res.string.word_flow_result_details
+        val word_flow_duration_less_than_one_second = Res.string.word_flow_duration_less_than_one_second
+        val word_flow_duration_minutes_seconds = Res.string.word_flow_duration_minutes_seconds
         val word_flow_difficulty_easy = Res.string.word_flow_difficulty_easy
         val word_flow_difficulty_medium = Res.string.word_flow_difficulty_medium
         val word_flow_difficulty_hard = Res.string.word_flow_difficulty_hard

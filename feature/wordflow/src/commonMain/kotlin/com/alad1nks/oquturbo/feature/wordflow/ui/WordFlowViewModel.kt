@@ -28,6 +28,7 @@ internal data class WordFlowUiState(
     val record: Int = 0,
     val isRecordLoading: Boolean = true,
     val isNewRecord: Boolean = false,
+    val completedDurationMillis: Long? = null,
 )
 
 internal class WordFlowViewModel(
@@ -35,6 +36,7 @@ internal class WordFlowViewModel(
     content: WordFlowContent,
     private val activityRepository: GameActivityRepository,
     private val game: WordFlowGame = WordFlowGame(content),
+    private val timeSource: TimeSource = TimeSource.Monotonic,
 ) : ViewModel() {
     private val locale = normalizeWordFlowLocale(locale)
     private val _uiState = MutableStateFlow(WordFlowUiState(locale = this.locale))
@@ -67,21 +69,22 @@ internal class WordFlowViewModel(
         attemptToken++
         cancelJobs()
         game.start()
-        attemptStartedAt = TimeSource.Monotonic.markNow()
+        attemptStartedAt = timeSource.markNow()
         activeAttemptToken = attemptToken
-        publish(isNewRecord = false)
+        publish(isNewRecord = false, completedDurationMillis = null)
         scheduleTimer(attemptToken)
     }
 
     fun selectAnswer(answer: String) {
         if (game.state.phase != WordFlowPhase.Active) return
         val token = attemptToken
+        if (activeAttemptToken != token) return
         game.selectAnswer(answer)
         if (game.state.phase == WordFlowPhase.Active) return
         timerJob?.cancel()
-        publish()
         when (game.state.phase) {
             WordFlowPhase.CorrectFeedback -> {
+                publish()
                 feedbackJob =
                     viewModelScope.launch {
                         delay(CORRECT_FEEDBACK_MILLIS)
@@ -92,7 +95,7 @@ internal class WordFlowViewModel(
                     }
             }
             WordFlowPhase.Result -> completeAttempt(token)
-            else -> Unit
+            else -> publish()
         }
     }
 
@@ -101,19 +104,23 @@ internal class WordFlowViewModel(
         activeAttemptToken = null
         attemptStartedAt = null
         cancelJobs()
+        publish(isNewRecord = false, completedDurationMillis = null)
     }
 
     internal fun advanceTimerBy(millis: Long) {
         val token = attemptToken
         if (activeAttemptToken != token || game.state.phase != WordFlowPhase.Active) return
         game.elapse(millis)
-        publish()
-        if (game.state.phase == WordFlowPhase.Result) completeAttempt(token)
+        if (game.state.phase == WordFlowPhase.Result) {
+            completeAttempt(token)
+        } else {
+            publish()
+        }
     }
 
     private fun scheduleTimer(token: Long) {
         timerJob?.cancel()
-        lastTimerMark = TimeSource.Monotonic.markNow()
+        lastTimerMark = timeSource.markNow()
         timerJob =
             viewModelScope.launch {
                 while (token == attemptToken && game.state.phase == WordFlowPhase.Active) {
@@ -121,7 +128,7 @@ internal class WordFlowViewModel(
                     if (token != attemptToken || game.state.phase != WordFlowPhase.Active) return@launch
                     val mark = lastTimerMark ?: return@launch
                     val elapsed = mark.elapsedNow().inWholeMilliseconds.coerceAtLeast(1)
-                    lastTimerMark = TimeSource.Monotonic.markNow()
+                    lastTimerMark = timeSource.markNow()
                     advanceTimerBy(elapsed)
                     if (game.state.phase == WordFlowPhase.Result) {
                         return@launch
@@ -137,10 +144,10 @@ internal class WordFlowViewModel(
         activeAttemptToken = null
         timerJob?.cancel()
         feedbackJob?.cancel()
-        val duration = attemptStartedAt?.elapsedNow()?.inWholeMilliseconds ?: 0
+        val duration = attemptStartedAt?.elapsedNow()?.inWholeMilliseconds?.coerceAtLeast(0) ?: 0
         val isNewRecord = finished.score > 0 && finished.score > record
         if (isNewRecord) record = finished.score
-        publish(isNewRecord = false)
+        publish(isNewRecord = false, completedDurationMillis = duration)
         viewModelScope.launch(start = CoroutineStart.UNDISPATCHED) {
             val recordedSession =
                 withContext(NonCancellable) {
@@ -156,13 +163,14 @@ internal class WordFlowViewModel(
                 }
             if (token != attemptToken) return@launch
             record = maxOf(record, recordedSession.score)
-            publish(isNewRecord = recordedSession.isNewRecord)
+            publish(isNewRecord = recordedSession.isNewRecord, completedDurationMillis = duration)
         }
     }
 
     private fun publish(
         isRecordLoading: Boolean = _uiState.value.isRecordLoading,
         isNewRecord: Boolean = _uiState.value.isNewRecord,
+        completedDurationMillis: Long? = _uiState.value.completedDurationMillis,
     ) {
         _uiState.value =
             WordFlowUiState(
@@ -171,6 +179,7 @@ internal class WordFlowViewModel(
                 record = record,
                 isRecordLoading = isRecordLoading,
                 isNewRecord = isNewRecord,
+                completedDurationMillis = completedDurationMillis,
             )
     }
 

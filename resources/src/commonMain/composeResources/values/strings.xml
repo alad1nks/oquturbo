@@ -608,7 +608,17 @@
     <string name="word_flow_record">Record</string>
     <string name="word_flow_score_value">Score: %1$d</string>
     <string name="word_flow_record_value">Record: %1$d</string>
-    <string name="word_flow_result_details">Record: %1$d\nFinal difficulty: %2$s</string>
+    <string name="word_flow_result_details">Record: %1$d\nFinal difficulty: %2$s\nDuration: %3$s</string>
+    <string name="word_flow_duration_less_than_one_second">less than 1 second</string>
+    <plurals name="word_flow_duration_seconds">
+        <item quantity="one">%1$d second</item>
+        <item quantity="other">%1$d seconds</item>
+    </plurals>
+    <plurals name="word_flow_duration_minutes">
+        <item quantity="one">%1$d minute</item>
+        <item quantity="other">%1$d minutes</item>
+    </plurals>
+    <string name="word_flow_duration_minutes_seconds">%1$s %2$s</string>
     <string name="word_flow_difficulty_easy">Easy</string>
     <string name="word_flow_difficulty_medium">Medium</string>
     <string name="word_flow_difficulty_hard">Hard</string>

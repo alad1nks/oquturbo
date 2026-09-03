@@ -26,9 +26,79 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
+import kotlin.time.Duration.Companion.milliseconds
+import kotlin.time.TestTimeSource
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class WordFlowViewModelTest {
+    @Test
+    fun wrongResultPublishesExactPersistedDurationAndReplayClearsIt() =
+        runTest {
+            Dispatchers.setMain(StandardTestDispatcher(testScheduler))
+            try {
+                val timeSource = TestTimeSource()
+                val storage = RecordingStorage()
+                val repository = GameActivityRepository(storage)
+                val viewModel = WordFlowViewModel("en", content(), repository, timeSource = timeSource)
+                runCurrent()
+                assertEquals(null, viewModel.uiState.value.completedDurationMillis)
+
+                viewModel.start()
+                assertEquals(WordFlowPhase.Active, viewModel.uiState.value.game.phase)
+                assertEquals(null, viewModel.uiState.value.completedDurationMillis)
+                timeSource += 1_234.milliseconds
+                viewModel.selectAnswer(viewModel.uiState.value.game.round!!.wrongAnswer())
+
+                assertEquals(WordFlowPhase.Result, viewModel.uiState.value.game.phase)
+                assertEquals(1_234L, viewModel.uiState.value.completedDurationMillis)
+                runCurrent()
+                assertEquals(1_234L, repository.observeSessions().first().single().durationMillis)
+
+                viewModel.start()
+                assertEquals(WordFlowPhase.Active, viewModel.uiState.value.game.phase)
+                assertEquals(null, viewModel.uiState.value.completedDurationMillis)
+                timeSource += 2_345.milliseconds
+                viewModel.selectAnswer(viewModel.uiState.value.game.round!!.wrongAnswer())
+                runCurrent()
+
+                assertEquals(2_345L, viewModel.uiState.value.completedDurationMillis)
+                assertEquals(2_345L, repository.observeSessions().first().last().durationMillis)
+            } finally {
+                Dispatchers.resetMain()
+            }
+        }
+
+    @Test
+    fun correctFeedbackKeepsDurationNullAndTimeoutPublishesExactPersistedDuration() =
+        runTest {
+            Dispatchers.setMain(StandardTestDispatcher(testScheduler))
+            try {
+                val timeSource = TestTimeSource()
+                val storage = RecordingStorage()
+                val repository = GameActivityRepository(storage)
+                val viewModel = WordFlowViewModel("en", content(), repository, timeSource = timeSource)
+                runCurrent()
+                viewModel.start()
+                viewModel.selectAnswer(viewModel.uiState.value.game.round!!.prompt.correctAnswer)
+                assertEquals(WordFlowPhase.CorrectFeedback, viewModel.uiState.value.game.phase)
+                assertEquals(null, viewModel.uiState.value.completedDurationMillis)
+                advanceTimeBy(500)
+                runCurrent()
+                assertEquals(WordFlowPhase.Active, viewModel.uiState.value.game.phase)
+                assertEquals(null, viewModel.uiState.value.completedDurationMillis)
+
+                timeSource += 6_500.milliseconds
+                viewModel.advanceTimerBy(10_000)
+                assertEquals(WordFlowPhase.Result, viewModel.uiState.value.game.phase)
+                assertEquals(6_500L, viewModel.uiState.value.completedDurationMillis)
+                runCurrent()
+
+                assertEquals(6_500L, repository.observeSessions().first().single().durationMillis)
+            } finally {
+                Dispatchers.resetMain()
+            }
+        }
+
     @Test
     fun startWaitsForLocaleRecordAndReplayRetainsIt() =
         runTest {
@@ -196,14 +266,17 @@ class WordFlowViewModelTest {
                 val sessionWriteGate = CompletableDeferred<Unit>()
                 val storage = RecordingStorage(sessionWriteGate)
                 val repository = GameActivityRepository(storage)
-                val viewModel = WordFlowViewModel("en", content(), repository)
+                val timeSource = TestTimeSource()
+                val viewModel = WordFlowViewModel("en", content(), repository, timeSource = timeSource)
                 runCurrent()
                 viewModel.start()
                 viewModel.selectAnswer(viewModel.uiState.value.game.round!!.prompt.correctAnswer)
                 advanceTimeBy(500)
                 runCurrent()
+                timeSource += 4_321.milliseconds
                 viewModel.advanceTimerBy(10_000)
                 runCurrent()
+                assertEquals(4_321L, viewModel.uiState.value.completedDurationMillis)
                 assertTrue(storage.sessionWriteStarted.isCompleted)
                 assertEquals(0, storage.gameSessionWriteCount)
 
@@ -214,6 +287,7 @@ class WordFlowViewModelTest {
                 assertEquals(0, replayState.game.score)
                 assertEquals(1, replayState.record)
                 assertFalse(replayState.isNewRecord)
+                assertEquals(null, replayState.completedDurationMillis)
 
                 sessionWriteGate.complete(Unit)
                 runCurrent()
@@ -226,6 +300,7 @@ class WordFlowViewModelTest {
                 assertEquals(1, session.score)
                 assertEquals(1, session.correctAnswers)
                 assertTrue(session.isNewRecord)
+                assertEquals(4_321L, session.durationMillis)
                 assertEquals(replayState, viewModel.uiState.value)
                 viewModel.abandon()
             } finally {
@@ -242,7 +317,10 @@ class WordFlowViewModelTest {
                 val viewModel = WordFlowViewModel("en", content(), GameActivityRepository(storage))
                 runCurrent()
                 viewModel.start()
+                val lateWrongAnswer = viewModel.uiState.value.game.round!!.wrongAnswer()
                 viewModel.abandon()
+                viewModel.selectAnswer(lateWrongAnswer)
+                assertEquals(null, viewModel.uiState.value.completedDurationMillis)
                 viewModel.advanceTimerBy(10_000)
                 runCurrent()
                 assertEquals(0, storage.gameSessionWriteCount)
