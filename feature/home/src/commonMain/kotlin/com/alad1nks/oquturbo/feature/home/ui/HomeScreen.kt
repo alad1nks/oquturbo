@@ -24,6 +24,7 @@ import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.EmojiEvents
 import androidx.compose.material.icons.filled.GridView
 import androidx.compose.material.icons.filled.PlayArrow
+import androidx.compose.material.icons.filled.RotateRight
 import androidx.compose.material.icons.filled.ViewColumn
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material3.Button
@@ -421,7 +422,7 @@ private fun TrainingItem(item: HomeUiState.TrainingItem) {
     }
 }
 
-private fun HomeUiState.Game.titleResource(): StringResource =
+internal fun HomeUiState.Game.titleResource(): StringResource =
     when (this) {
         HomeUiState.Game.NumberSprint -> AppResource.String.remember_number_title
         HomeUiState.Game.WideEye -> AppResource.String.kenkoz_title
@@ -429,9 +430,10 @@ private fun HomeUiState.Game.titleResource(): StringResource =
         HomeUiState.Game.MemoryGrid -> AppResource.String.memory_grid_title
         HomeUiState.Game.WordFlow -> AppResource.String.word_flow_title
         HomeUiState.Game.DualFocus -> AppResource.String.dual_focus_title
+        HomeUiState.Game.RotationMatch -> AppResource.String.rotation_match_title
     }
 
-private fun HomeUiState.Mode.titleResource(): StringResource =
+internal fun HomeUiState.Mode.titleResource(): StringResource =
     when (this) {
         HomeUiState.Mode.Classic -> AppResource.String.remember_number_menu_item_classic_title
         HomeUiState.Mode.Binary -> AppResource.String.remember_number_menu_item_binary_title
@@ -452,6 +454,7 @@ private fun HomeUiState.Mode.titleResource(): StringResource =
         HomeUiState.Mode.Flash -> AppResource.String.memory_grid_flash_title
         HomeUiState.Mode.Context -> AppResource.String.word_flow_context_mode
         HomeUiState.Mode.Match -> AppResource.String.dual_focus_match_mode
+        HomeUiState.Mode.Rotation -> AppResource.String.rotation_match_mode
     }
 
 @Composable
@@ -498,7 +501,7 @@ private fun String.toCustomSettings(): CustomSettings? {
 
 private data class CustomSettings(val length: Int, val digits: String)
 
-private fun HomeUiState.Game.icon(): ImageVector =
+internal fun HomeUiState.Game.icon(): ImageVector =
     when (this) {
         HomeUiState.Game.NumberSprint -> Icons.Filled.Bolt
         HomeUiState.Game.WideEye -> Icons.Filled.Visibility
@@ -506,6 +509,7 @@ private fun HomeUiState.Game.icon(): ImageVector =
         HomeUiState.Game.MemoryGrid -> Icons.Filled.GridView
         HomeUiState.Game.WordFlow -> Icons.Filled.AutoStories
         HomeUiState.Game.DualFocus -> Icons.Filled.ViewColumn
+        HomeUiState.Game.RotationMatch -> Icons.Filled.RotateRight
     }
 
 @Preview(

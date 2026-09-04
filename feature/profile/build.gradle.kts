@@ -66,6 +66,9 @@ kotlin {
             implementation(projects.core.ui)
             implementation(projects.resources)
         }
+        commonTest.dependencies {
+            implementation(libs.kotlin.test)
+        }
     }
 }
 

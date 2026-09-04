@@ -99,6 +99,7 @@ import oquturbo.resources.generated.resources.games_modes_count
 import oquturbo.resources.generated.resources.games_motivation_subtitle
 import oquturbo.resources.generated.resources.games_motivation_title
 import oquturbo.resources.generated.resources.games_number_sprint_description
+import oquturbo.resources.generated.resources.games_rotation_match_description
 import oquturbo.resources.generated.resources.games_settings_content_description
 import oquturbo.resources.generated.resources.games_skill_attention
 import oquturbo.resources.generated.resources.games_skill_memory
@@ -335,6 +336,48 @@ import oquturbo.resources.generated.resources.remember_number_menu_item_custom_t
 import oquturbo.resources.generated.resources.remember_number_menu_subtitle
 import oquturbo.resources.generated.resources.remember_number_menu_title
 import oquturbo.resources.generated.resources.remember_number_title
+import oquturbo.resources.generated.resources.rotation_match_answer_accessibility
+import oquturbo.resources.generated.resources.rotation_match_back
+import oquturbo.resources.generated.resources.rotation_match_back_to_games
+import oquturbo.resources.generated.resources.rotation_match_board_accessibility
+import oquturbo.resources.generated.resources.rotation_match_candidate
+import oquturbo.resources.generated.resources.rotation_match_cell_accessibility
+import oquturbo.resources.generated.resources.rotation_match_correct
+import oquturbo.resources.generated.resources.rotation_match_correct_answer
+import oquturbo.resources.generated.resources.rotation_match_different
+import oquturbo.resources.generated.resources.rotation_match_difficulty_easy
+import oquturbo.resources.generated.resources.rotation_match_difficulty_hard
+import oquturbo.resources.generated.resources.rotation_match_difficulty_medium
+import oquturbo.resources.generated.resources.rotation_match_duration_less_than_one_second
+import oquturbo.resources.generated.resources.rotation_match_duration_minutes
+import oquturbo.resources.generated.resources.rotation_match_duration_minutes_seconds
+import oquturbo.resources.generated.resources.rotation_match_duration_seconds
+import oquturbo.resources.generated.resources.rotation_match_empty
+import oquturbo.resources.generated.resources.rotation_match_filled
+import oquturbo.resources.generated.resources.rotation_match_instructions
+import oquturbo.resources.generated.resources.rotation_match_loading_record
+import oquturbo.resources.generated.resources.rotation_match_match
+import oquturbo.resources.generated.resources.rotation_match_mode
+import oquturbo.resources.generated.resources.rotation_match_new_record
+import oquturbo.resources.generated.resources.rotation_match_placeholder
+import oquturbo.resources.generated.resources.rotation_match_play_again
+import oquturbo.resources.generated.resources.rotation_match_ready_title
+import oquturbo.resources.generated.resources.rotation_match_record
+import oquturbo.resources.generated.resources.rotation_match_record_value
+import oquturbo.resources.generated.resources.rotation_match_reference
+import oquturbo.resources.generated.resources.rotation_match_result_details
+import oquturbo.resources.generated.resources.rotation_match_score
+import oquturbo.resources.generated.resources.rotation_match_score_value
+import oquturbo.resources.generated.resources.rotation_match_seconds
+import oquturbo.resources.generated.resources.rotation_match_start
+import oquturbo.resources.generated.resources.rotation_match_time
+import oquturbo.resources.generated.resources.rotation_match_timeout_message
+import oquturbo.resources.generated.resources.rotation_match_timeout_title
+import oquturbo.resources.generated.resources.rotation_match_timer_accessibility
+import oquturbo.resources.generated.resources.rotation_match_title
+import oquturbo.resources.generated.resources.rotation_match_wrong_message
+import oquturbo.resources.generated.resources.rotation_match_wrong_title
+import oquturbo.resources.generated.resources.rotation_match_your_answer
 import oquturbo.resources.generated.resources.stats_activity_completed
 import oquturbo.resources.generated.resources.stats_activity_games_only
 import oquturbo.resources.generated.resources.stats_activity_none
@@ -389,6 +432,7 @@ import oquturbo.resources.generated.resources.stats_skill_reaction
 import oquturbo.resources.generated.resources.stats_skill_reading
 import oquturbo.resources.generated.resources.stats_skill_recognition_speed
 import oquturbo.resources.generated.resources.stats_skill_training_count
+import oquturbo.resources.generated.resources.stats_skill_visual_perception
 import oquturbo.resources.generated.resources.stats_skills_title
 import oquturbo.resources.generated.resources.stats_summary_title
 import oquturbo.resources.generated.resources.stats_today
@@ -461,6 +505,8 @@ object AppResource {
         val dual_focus_duration_seconds = Res.plurals.dual_focus_duration_seconds
         val word_flow_duration_minutes = Res.plurals.word_flow_duration_minutes
         val word_flow_duration_seconds = Res.plurals.word_flow_duration_seconds
+        val rotation_match_duration_minutes = Res.plurals.rotation_match_duration_minutes
+        val rotation_match_duration_seconds = Res.plurals.rotation_match_duration_seconds
         val profile_days_format = Res.plurals.profile_days_format
         val profile_levels_to_next_rank_format = Res.plurals.profile_levels_to_next_rank_format
         val profile_unlock_training_format = Res.plurals.profile_unlock_training_format
@@ -512,6 +558,46 @@ object AppResource {
         val dual_focus_new_record = Res.string.dual_focus_new_record
         val dual_focus_result_details = Res.string.dual_focus_result_details
         val dual_focus_match_mode = Res.string.dual_focus_match_mode
+        val rotation_match_answer_accessibility = Res.string.rotation_match_answer_accessibility
+        val rotation_match_back = Res.string.rotation_match_back
+        val rotation_match_back_to_games = Res.string.rotation_match_back_to_games
+        val rotation_match_board_accessibility = Res.string.rotation_match_board_accessibility
+        val rotation_match_candidate = Res.string.rotation_match_candidate
+        val rotation_match_cell_accessibility = Res.string.rotation_match_cell_accessibility
+        val rotation_match_correct = Res.string.rotation_match_correct
+        val rotation_match_correct_answer = Res.string.rotation_match_correct_answer
+        val rotation_match_different = Res.string.rotation_match_different
+        val rotation_match_difficulty_easy = Res.string.rotation_match_difficulty_easy
+        val rotation_match_difficulty_hard = Res.string.rotation_match_difficulty_hard
+        val rotation_match_difficulty_medium = Res.string.rotation_match_difficulty_medium
+        val rotation_match_duration_less_than_one_second = Res.string.rotation_match_duration_less_than_one_second
+        val rotation_match_duration_minutes_seconds = Res.string.rotation_match_duration_minutes_seconds
+        val rotation_match_empty = Res.string.rotation_match_empty
+        val rotation_match_filled = Res.string.rotation_match_filled
+        val rotation_match_instructions = Res.string.rotation_match_instructions
+        val rotation_match_loading_record = Res.string.rotation_match_loading_record
+        val rotation_match_match = Res.string.rotation_match_match
+        val rotation_match_mode = Res.string.rotation_match_mode
+        val rotation_match_new_record = Res.string.rotation_match_new_record
+        val rotation_match_placeholder = Res.string.rotation_match_placeholder
+        val rotation_match_play_again = Res.string.rotation_match_play_again
+        val rotation_match_ready_title = Res.string.rotation_match_ready_title
+        val rotation_match_record = Res.string.rotation_match_record
+        val rotation_match_record_value = Res.string.rotation_match_record_value
+        val rotation_match_reference = Res.string.rotation_match_reference
+        val rotation_match_result_details = Res.string.rotation_match_result_details
+        val rotation_match_score = Res.string.rotation_match_score
+        val rotation_match_score_value = Res.string.rotation_match_score_value
+        val rotation_match_seconds = Res.string.rotation_match_seconds
+        val rotation_match_start = Res.string.rotation_match_start
+        val rotation_match_time = Res.string.rotation_match_time
+        val rotation_match_timeout_message = Res.string.rotation_match_timeout_message
+        val rotation_match_timeout_title = Res.string.rotation_match_timeout_title
+        val rotation_match_timer_accessibility = Res.string.rotation_match_timer_accessibility
+        val rotation_match_title = Res.string.rotation_match_title
+        val rotation_match_wrong_message = Res.string.rotation_match_wrong_message
+        val rotation_match_wrong_title = Res.string.rotation_match_wrong_title
+        val rotation_match_your_answer = Res.string.rotation_match_your_answer
 
         val home_title = Res.string.home_title
         val home_continue_training = Res.string.home_continue_training
@@ -588,6 +674,7 @@ object AppResource {
         val games_memory_grid_description = Res.string.games_memory_grid_description
         val games_dual_focus_title = Res.string.games_dual_focus_title
         val games_dual_focus_description = Res.string.games_dual_focus_description
+        val games_rotation_match_description = Res.string.games_rotation_match_description
         val games_word_flow_title = Res.string.games_word_flow_title
         val games_word_flow_description = Res.string.games_word_flow_description
         val word_flow_title = Res.string.word_flow_title
@@ -627,6 +714,7 @@ object AppResource {
         val language_russian = Res.string.language_russian
         val language_kazakh = Res.string.language_kazakh
         val stats_skill_reading = Res.string.stats_skill_reading
+        val stats_skill_visual_perception = Res.string.stats_skill_visual_perception
         val games_soon = Res.string.games_soon
         val games_motivation_title = Res.string.games_motivation_title
         val games_motivation_subtitle = Res.string.games_motivation_subtitle

@@ -5,6 +5,7 @@ import androidx.compose.material.icons.filled.AutoStories
 import androidx.compose.material.icons.filled.Block
 import androidx.compose.material.icons.filled.Bolt
 import androidx.compose.material.icons.filled.GridView
+import androidx.compose.material.icons.filled.RotateRight
 import androidx.compose.material.icons.filled.ViewColumn
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.runtime.Composable
@@ -29,6 +30,7 @@ internal fun StatsGame.titleResource(): StringResource =
         StatsGame.MemoryGrid -> AppResource.String.memory_grid_title
         StatsGame.WordFlow -> AppResource.String.word_flow_title
         StatsGame.DualFocus -> AppResource.String.dual_focus_title
+        StatsGame.RotationMatch -> AppResource.String.rotation_match_title
     }
 
 internal fun StatsGame.icon(): ImageVector =
@@ -39,6 +41,7 @@ internal fun StatsGame.icon(): ImageVector =
         StatsGame.MemoryGrid -> Icons.Filled.GridView
         StatsGame.WordFlow -> Icons.Filled.AutoStories
         StatsGame.DualFocus -> Icons.Filled.ViewColumn
+        StatsGame.RotationMatch -> Icons.Filled.RotateRight
     }
 
 internal fun StatsMode.titleResource(): StringResource =
@@ -62,6 +65,7 @@ internal fun StatsMode.titleResource(): StringResource =
         StatsMode.Flash -> AppResource.String.memory_grid_flash_title
         StatsMode.Context -> AppResource.String.word_flow_context_mode
         StatsMode.Match -> AppResource.String.dual_focus_match_mode
+        StatsMode.Rotation -> AppResource.String.rotation_match_mode
     }
 
 @Composable
@@ -151,6 +155,7 @@ internal fun StatsSkill.titleResource(): StringResource =
         StatsSkill.PeripheralVision -> AppResource.String.stats_skill_peripheral_vision
         StatsSkill.RecognitionSpeed -> AppResource.String.stats_skill_recognition_speed
         StatsSkill.Reading -> AppResource.String.stats_skill_reading
+        StatsSkill.VisualPerception -> AppResource.String.stats_skill_visual_perception
     }
 
 internal fun StatsTrend.titleResource(): StringResource =

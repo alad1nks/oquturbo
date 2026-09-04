@@ -16,6 +16,7 @@ internal data class HomeUiState(
         MemoryGrid,
         WordFlow,
         DualFocus,
+        RotationMatch,
     }
 
     enum class Mode {
@@ -38,6 +39,7 @@ internal data class HomeUiState(
         Flash,
         Context,
         Match,
+        Rotation,
     }
 
     data class RecentRecord(

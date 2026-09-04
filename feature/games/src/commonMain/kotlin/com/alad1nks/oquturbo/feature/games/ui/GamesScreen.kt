@@ -30,6 +30,7 @@ import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material.icons.filled.EmojiEvents
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Psychology
+import androidx.compose.material.icons.filled.RotateRight
 import androidx.compose.material.icons.filled.TouchApp
 import androidx.compose.material.icons.filled.ViewColumn
 import androidx.compose.material.icons.filled.Visibility
@@ -332,6 +333,44 @@ private fun GameArtwork(game: TrainingGame) {
                     modifier = Modifier.size(52.dp),
                     tint = MaterialTheme.colorScheme.primary,
                 )
+            TrainingGame.RotationMatch -> RotationMatchArtwork()
+        }
+    }
+}
+
+@Composable
+private fun RotationMatchArtwork() {
+    Row(
+        modifier = Modifier.size(64.dp),
+        horizontalArrangement = Arrangement.spacedBy(3.dp, Alignment.CenterHorizontally),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        MiniRotationPattern(rotated = false)
+        Icon(
+            imageVector = Icons.Filled.RotateRight,
+            contentDescription = null,
+            modifier = Modifier.size(18.dp),
+            tint = MaterialTheme.colorScheme.onPrimaryContainer,
+        )
+        MiniRotationPattern(rotated = true)
+    }
+}
+
+@Composable
+private fun MiniRotationPattern(rotated: Boolean) {
+    Column(verticalArrangement = Arrangement.spacedBy(1.dp)) {
+        repeat(3) { row ->
+            Row(horizontalArrangement = Arrangement.spacedBy(1.dp)) {
+                repeat(3) { column ->
+                    val index = row * 3 + column
+                    val filled = index in if (rotated) setOf(2, 5, 7, 8) else setOf(0, 1, 2, 3)
+                    Box(
+                        Modifier.size(5.dp).clip(RoundedCornerShape(1.dp)).background(
+                            if (filled) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surface,
+                        ),
+                    )
+                }
+            }
         }
     }
 }
@@ -553,6 +592,7 @@ private fun TrainingGame.titleResource(): StringResource =
         TrainingGame.MemoryGrid -> AppResource.String.memory_grid_title
         TrainingGame.WordFlow -> AppResource.String.word_flow_title
         TrainingGame.DualFocus -> AppResource.String.dual_focus_title
+        TrainingGame.RotationMatch -> AppResource.String.rotation_match_title
     }
 
 private fun TrainingGame.descriptionResource(): StringResource =
@@ -563,6 +603,7 @@ private fun TrainingGame.descriptionResource(): StringResource =
         TrainingGame.MemoryGrid -> AppResource.String.games_memory_grid_description
         TrainingGame.WordFlow -> AppResource.String.games_word_flow_description
         TrainingGame.DualFocus -> AppResource.String.games_dual_focus_description
+        TrainingGame.RotationMatch -> AppResource.String.games_rotation_match_description
     }
 
 @Composable
@@ -574,6 +615,7 @@ private fun TrainingGame.artworkBackground(): Color =
         TrainingGame.MemoryGrid -> MaterialTheme.colorScheme.primaryContainer
         TrainingGame.WordFlow -> MaterialTheme.colorScheme.secondaryContainer
         TrainingGame.DualFocus -> MaterialTheme.colorScheme.primaryContainer
+        TrainingGame.RotationMatch -> MaterialTheme.colorScheme.primaryContainer
     }
 
 private fun GamesUiState.Skill.titleResource(): StringResource =

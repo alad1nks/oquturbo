@@ -90,6 +90,7 @@ kotlin {
             implementation(projects.feature.stats)
             implementation(projects.feature.wordflow)
             implementation(projects.feature.dualfocus)
+            implementation(projects.feature.rotationmatch)
             implementation(projects.resources)
         }
         commonTest.dependencies {

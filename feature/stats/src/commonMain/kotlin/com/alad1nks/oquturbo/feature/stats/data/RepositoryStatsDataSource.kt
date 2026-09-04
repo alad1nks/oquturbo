@@ -477,6 +477,7 @@ private fun GameId.modeCatalog(): List<GameModeId> =
             listOf(GameModeId.MemoryGridRoute, GameModeId.MemoryGridReverse, GameModeId.MemoryGridFlash)
         GameId.WordFlow -> listOf(GameModeId.WordFlowContext)
         GameId.DualFocus -> listOf(GameModeId.DualFocusMatch)
+        GameId.RotationMatch -> listOf(GameModeId.RotationMatchRotation)
     }
 
 private fun GameId.toStatsGame(): StatsGame =
@@ -487,6 +488,7 @@ private fun GameId.toStatsGame(): StatsGame =
         GameId.MemoryGrid -> StatsGame.MemoryGrid
         GameId.WordFlow -> StatsGame.WordFlow
         GameId.DualFocus -> StatsGame.DualFocus
+        GameId.RotationMatch -> StatsGame.RotationMatch
     }
 
 private fun GameModeId.toStatsMode(): StatsMode =
@@ -510,6 +512,7 @@ private fun GameModeId.toStatsMode(): StatsMode =
         GameModeId.MemoryGridFlash -> StatsMode.Flash
         GameModeId.WordFlowContext -> StatsMode.Context
         GameModeId.DualFocusMatch -> StatsMode.Match
+        GameModeId.RotationMatchRotation -> StatsMode.Rotation
     }
 
 private fun StatsSkill.gameIds(): Set<GameId> =
@@ -521,6 +524,7 @@ private fun StatsSkill.gameIds(): Set<GameId> =
         StatsSkill.RecognitionSpeed,
         -> setOf(GameId.WideEye)
         StatsSkill.Reading -> setOf(GameId.WordFlow)
+        StatsSkill.VisualPerception -> setOf(GameId.RotationMatch)
     }
 
 private fun Long.toMinutesCount(): Int =

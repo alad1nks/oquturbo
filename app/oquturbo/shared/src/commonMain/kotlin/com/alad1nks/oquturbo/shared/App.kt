@@ -53,6 +53,8 @@ import com.alad1nks.oquturbo.feature.remembernumber.navigation.rememberNumberScr
 import com.alad1nks.oquturbo.feature.remembernumbermenu.navigation.RememberNumberMenuRoute
 import com.alad1nks.oquturbo.feature.remembernumbermenu.navigation.navigateToRememberNumberMenu
 import com.alad1nks.oquturbo.feature.remembernumbermenu.navigation.rememberNumberMenuScreen
+import com.alad1nks.oquturbo.feature.rotationmatch.navigation.navigateToRotationMatch
+import com.alad1nks.oquturbo.feature.rotationmatch.navigation.rotationMatchScreen
 import com.alad1nks.oquturbo.feature.stats.navigation.navigateToStatsGame
 import com.alad1nks.oquturbo.feature.stats.navigation.navigateToStatsMode
 import com.alad1nks.oquturbo.feature.stats.navigation.statsGameDetailScreen
@@ -100,6 +102,7 @@ fun App() {
                     TrainingGame.MemoryGrid -> appState.navController.navigateToMemoryGridMenu()
                     TrainingGame.WordFlow -> appState.navController.navigateToWordFlow()
                     TrainingGame.DualFocus -> appState.navController.navigateToDualFocus()
+                    TrainingGame.RotationMatch -> appState.navController.navigateToRotationMatch()
                 }
             },
         )
@@ -209,6 +212,11 @@ fun App() {
                 appState.navController.popBackStack(route = GamesRoute, inclusive = false)
             },
         )
+        rotationMatchScreen(
+            onBackClick = {
+                appState.navController.popBackStack(route = GamesRoute, inclusive = false)
+            },
+        )
     }
 }
 
@@ -222,6 +230,9 @@ private fun NavController.continueDailyTraining(nextEntry: DailyTrainingEntry?) 
 }
 
 private fun NavController.navigateToDailyTrainingEntry(entry: DailyTrainingEntry) {
+    check(entry.game.isDailyTrainingGameSupported()) {
+        "${entry.game} is not available in daily training"
+    }
     popBackStack(route = HomeRoute, inclusive = false)
     when (entry.game) {
         GameId.NumberSprint ->
@@ -257,8 +268,22 @@ private fun NavController.navigateToDailyTrainingEntry(entry: DailyTrainingEntry
         GameId.MemoryGrid -> error("Memory Grid is not available in daily training")
         GameId.WordFlow -> error("Word Flow is not available in daily training")
         GameId.DualFocus -> error("Dual Focus is not available in daily training")
+        GameId.RotationMatch -> error("Rotation Match is not available in daily training")
     }
 }
+
+internal fun GameId.isDailyTrainingGameSupported(): Boolean =
+    when (this) {
+        GameId.NumberSprint,
+        GameId.WideEye,
+        GameId.DontTap,
+        -> true
+        GameId.MemoryGrid,
+        GameId.WordFlow,
+        GameId.DualFocus,
+        GameId.RotationMatch,
+        -> false
+    }
 
 private fun GameModeId.toKenKozGameMode(): KenKozGameMode =
     when (this) {

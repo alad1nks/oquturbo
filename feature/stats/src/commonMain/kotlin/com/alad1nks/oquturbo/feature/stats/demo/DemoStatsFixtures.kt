@@ -282,6 +282,7 @@ internal object DemoStatsFixtures {
             SkillInsight(StatsSkill.PeripheralVision, 5 * scale, null, StatsTrend.NotEnoughData),
             SkillInsight(StatsSkill.RecognitionSpeed, 6 * scale, -2, StatsTrend.Declining),
             SkillInsight(StatsSkill.Reading, 0, null, StatsTrend.NotEnoughData),
+            SkillInsight(StatsSkill.VisualPerception, 0, null, StatsTrend.NotEnoughData),
         )
 
     private fun gameRows(
@@ -305,6 +306,7 @@ internal object DemoStatsFixtures {
                             StatsGame.MemoryGrid -> 12 * scale
                             StatsGame.WordFlow -> 8 * scale
                             StatsGame.DualFocus -> 9 * scale
+                            StatsGame.RotationMatch -> 7 * scale
                         }
                     },
                 modesWithRecords = trend.modes.count { it.scores.isNotEmpty() },
