@@ -123,39 +123,6 @@ internal class HomeViewModel(
                 },
         )
 
-    private fun GameId.toHomeGame(): HomeUiState.Game =
-        when (this) {
-            GameId.NumberSprint -> HomeUiState.Game.NumberSprint
-            GameId.WideEye -> HomeUiState.Game.WideEye
-            GameId.DontTap -> HomeUiState.Game.DontTap
-            GameId.MemoryGrid -> HomeUiState.Game.MemoryGrid
-            GameId.WordFlow -> HomeUiState.Game.WordFlow
-            GameId.DualFocus -> HomeUiState.Game.DualFocus
-        }
-
-    private fun GameModeId.toHomeMode(): HomeUiState.Mode =
-        when (this) {
-            GameModeId.NumberSprintClassic -> HomeUiState.Mode.Classic
-            GameModeId.NumberSprintBinary -> HomeUiState.Mode.Binary
-            GameModeId.NumberSprintCustom -> HomeUiState.Mode.Custom
-            GameModeId.WideEyeCharacters -> HomeUiState.Mode.Characters
-            GameModeId.WideEyeWords -> HomeUiState.Mode.Words
-            GameModeId.WideEyeFindDifference -> HomeUiState.Mode.FindDifference
-            GameModeId.WideEyeWideLine -> HomeUiState.Mode.WideLine
-            GameModeId.DontTapCategories -> HomeUiState.Mode.Categories
-            GameModeId.DontTapLetter -> HomeUiState.Mode.Letter
-            GameModeId.DontTapWordLength -> HomeUiState.Mode.WordLength
-            GameModeId.DontTapTextColor -> HomeUiState.Mode.TextColor
-            GameModeId.DontTapTrueFalse -> HomeUiState.Mode.TrueFalse
-            GameModeId.DontTapMath -> HomeUiState.Mode.Math
-            GameModeId.DontTapSpeedReading -> HomeUiState.Mode.SpeedReading
-            GameModeId.MemoryGridRoute -> HomeUiState.Mode.Route
-            GameModeId.MemoryGridReverse -> HomeUiState.Mode.Reverse
-            GameModeId.MemoryGridFlash -> HomeUiState.Mode.Flash
-            GameModeId.WordFlowContext -> HomeUiState.Mode.Context
-            GameModeId.DualFocusMatch -> HomeUiState.Mode.Match
-        }
-
     private companion object {
         const val DAY_CHANGE_POLL_INTERVAL_MILLIS = 60_000L
         const val HOME_STORAGE_RETRY_DELAY_MILLIS = 5_000L
@@ -175,3 +142,38 @@ internal class HomeViewModel(
         return MILLIS_PER_DAY - now % MILLIS_PER_DAY + 1_000L
     }
 }
+
+internal fun GameId.toHomeGame(): HomeUiState.Game =
+    when (this) {
+        GameId.NumberSprint -> HomeUiState.Game.NumberSprint
+        GameId.WideEye -> HomeUiState.Game.WideEye
+        GameId.DontTap -> HomeUiState.Game.DontTap
+        GameId.MemoryGrid -> HomeUiState.Game.MemoryGrid
+        GameId.WordFlow -> HomeUiState.Game.WordFlow
+        GameId.DualFocus -> HomeUiState.Game.DualFocus
+        GameId.RotationMatch -> HomeUiState.Game.RotationMatch
+    }
+
+internal fun GameModeId.toHomeMode(): HomeUiState.Mode =
+    when (this) {
+        GameModeId.NumberSprintClassic -> HomeUiState.Mode.Classic
+        GameModeId.NumberSprintBinary -> HomeUiState.Mode.Binary
+        GameModeId.NumberSprintCustom -> HomeUiState.Mode.Custom
+        GameModeId.WideEyeCharacters -> HomeUiState.Mode.Characters
+        GameModeId.WideEyeWords -> HomeUiState.Mode.Words
+        GameModeId.WideEyeFindDifference -> HomeUiState.Mode.FindDifference
+        GameModeId.WideEyeWideLine -> HomeUiState.Mode.WideLine
+        GameModeId.DontTapCategories -> HomeUiState.Mode.Categories
+        GameModeId.DontTapLetter -> HomeUiState.Mode.Letter
+        GameModeId.DontTapWordLength -> HomeUiState.Mode.WordLength
+        GameModeId.DontTapTextColor -> HomeUiState.Mode.TextColor
+        GameModeId.DontTapTrueFalse -> HomeUiState.Mode.TrueFalse
+        GameModeId.DontTapMath -> HomeUiState.Mode.Math
+        GameModeId.DontTapSpeedReading -> HomeUiState.Mode.SpeedReading
+        GameModeId.MemoryGridRoute -> HomeUiState.Mode.Route
+        GameModeId.MemoryGridReverse -> HomeUiState.Mode.Reverse
+        GameModeId.MemoryGridFlash -> HomeUiState.Mode.Flash
+        GameModeId.WordFlowContext -> HomeUiState.Mode.Context
+        GameModeId.DualFocusMatch -> HomeUiState.Mode.Match
+        GameModeId.RotationMatchRotation -> HomeUiState.Mode.Rotation
+    }

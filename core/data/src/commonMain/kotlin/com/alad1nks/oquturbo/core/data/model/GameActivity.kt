@@ -10,6 +10,7 @@ enum class GameId {
     MemoryGrid,
     WordFlow,
     DualFocus,
+    RotationMatch,
 }
 
 @Serializable
@@ -33,6 +34,7 @@ enum class GameModeId {
     MemoryGridFlash,
     WordFlowContext,
     DualFocusMatch,
+    RotationMatchRotation,
 }
 
 @Serializable

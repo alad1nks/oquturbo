@@ -10,6 +10,7 @@ enum class StatsGame {
     MemoryGrid,
     WordFlow,
     DualFocus,
+    RotationMatch,
 }
 
 @Serializable
@@ -33,6 +34,7 @@ enum class StatsMode {
     Flash,
     Context,
     Match,
+    Rotation,
 }
 
 @Serializable
@@ -66,6 +68,7 @@ internal enum class StatsSkill {
     PeripheralVision,
     RecognitionSpeed,
     Reading,
+    VisualPerception,
 }
 
 internal enum class StatsTrend {

@@ -7,4 +7,5 @@ enum class TrainingGame {
     MemoryGrid,
     WordFlow,
     DualFocus,
+    RotationMatch,
 }
