@@ -41,6 +41,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.semantics.LiveRegionMode
+import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.disabled
 import androidx.compose.ui.semantics.liveRegion
@@ -52,6 +53,7 @@ import androidx.compose.ui.unit.dp
 import com.alad1nks.oquturbo.core.designsystem.theme.OquTurboTheme
 import com.alad1nks.oquturbo.core.ui.component.AppBackButton
 import com.alad1nks.oquturbo.core.ui.component.GameHeader
+import com.alad1nks.oquturbo.core.ui.component.GameScoreBadge
 import com.alad1nks.oquturbo.core.ui.component.appBackground
 import com.alad1nks.oquturbo.core.ui.preview.ScreenshotPreview
 import com.alad1nks.oquturbo.feature.memorygrid.model.MemoryGridGameMode
@@ -101,6 +103,22 @@ internal fun MemoryGridScreen(
                 style = MaterialTheme.typography.titleMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
+            if (state.phase == MemoryGridPhase.AwaitingInput) {
+                val acceptedTapsDescription =
+                    stringResource(
+                        AppResource.String.memory_grid_accepted_taps_count,
+                        state.input.size,
+                    )
+                GameScoreBadge(
+                    label = stringResource(AppResource.String.memory_grid_accepted_taps),
+                    value = state.input.size.toString(),
+                    modifier =
+                        Modifier.clearAndSetSemantics {
+                            contentDescription = acceptedTapsDescription
+                            liveRegion = LiveRegionMode.Polite
+                        },
+                )
+            }
             MemoryGridBoard(state, mode, onCellClick)
             if (state.phase == MemoryGridPhase.GameOver) {
                 MistakeLegend(mode)
@@ -387,6 +405,29 @@ private val MemoryGridGameMode.ruleResource
 @Composable
 private fun MemoryGridPreview() {
     OquTurboTheme { MemoryGridScreen(MemoryGridState(), MemoryGridGameMode.Route, {}, {}, {}) }
+}
+
+@Preview(name = "Memory Grid — accepted taps", widthDp = 390, heightDp = 844)
+@ScreenshotPreview
+@Composable
+private fun MemoryGridAcceptedTapsPreview() {
+    OquTurboTheme {
+        MemoryGridScreen(
+            state =
+                MemoryGridState(
+                    phase = MemoryGridPhase.AwaitingInput,
+                    gridSize = 4,
+                    sequence = listOf(0, 1, 0, 2, 3, 4, 5),
+                    input = listOf(0, 1, 0),
+                    score = 6,
+                    record = 8,
+                ),
+            mode = MemoryGridGameMode.Route,
+            onStartClick = {},
+            onCellClick = {},
+            onBackClick = {},
+        )
+    }
 }
 
 @Preview(name = "Memory Grid — layered mistake", widthDp = 390, heightDp = 844)

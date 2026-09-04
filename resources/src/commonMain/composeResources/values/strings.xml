@@ -572,6 +572,8 @@
     <string name="memory_grid_flash_subtitle">Remember all highlighted cells; order does not matter.</string>
     <string name="memory_grid_flash_rule">Remember all cells shown at once, then tap them in any order.</string>
     <string name="memory_grid_score">Score</string>
+    <string name="memory_grid_accepted_taps">Accepted taps</string>
+    <string name="memory_grid_accepted_taps_count">Accepted taps: %1$d</string>
     <string name="memory_grid_length">Length</string>
     <string name="memory_grid_rounds">Rounds</string>
     <string name="memory_grid_back">Back</string>

@@ -1,3 +1,4 @@
+import org.jetbrains.compose.ExperimentalComposeLibrary
 import org.jetbrains.kotlin.gradle.ExperimentalWasmDsl
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
@@ -9,6 +10,7 @@ plugins {
     alias(libs.plugins.kotlinxSerialization)
 }
 
+@OptIn(ExperimentalComposeLibrary::class)
 kotlin {
     android {
         namespace = "com.alad1nks.oquturbo.feature.memorygrid"
@@ -61,6 +63,10 @@ kotlin {
             implementation(libs.kotlin.test)
             implementation(libs.kotlinx.coroutines.test)
             implementation(projects.core.storage.common)
+        }
+        jvmTest.dependencies {
+            implementation(compose.uiTest)
+            runtimeOnly(compose.desktop.currentOs)
         }
     }
 }

@@ -595,6 +595,8 @@
     <string name="memory_grid_flash_subtitle">Запомните все подсвеченные клетки; порядок не важен.</string>
     <string name="memory_grid_flash_rule">Запомните все показанные одновременно клетки и нажмите их в любом порядке.</string>
     <string name="memory_grid_score">Счёт</string>
+    <string name="memory_grid_accepted_taps">Принятые нажатия</string>
+    <string name="memory_grid_accepted_taps_count">Принятые нажатия: %1$d</string>
     <string name="memory_grid_length">Длина</string>
     <string name="memory_grid_rounds">Раунды</string>
     <string name="memory_grid_back">Назад</string>

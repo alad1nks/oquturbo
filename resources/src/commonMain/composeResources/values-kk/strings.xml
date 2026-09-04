@@ -574,6 +574,8 @@
     <string name="memory_grid_flash_subtitle">Барлық белгіленген ұяшықтарды есте сақтаңыз; реті маңызды емес.</string>
     <string name="memory_grid_flash_rule">Бір уақытта көрсетілген барлық ұяшықтарды есте сақтап, кез келген ретпен басыңыз.</string>
     <string name="memory_grid_score">Ұпай</string>
+    <string name="memory_grid_accepted_taps">Қабылданған басулар</string>
+    <string name="memory_grid_accepted_taps_count">Қабылданған басулар: %1$d</string>
     <string name="memory_grid_length">Ұзындық</string>
     <string name="memory_grid_rounds">Раундтар</string>
     <string name="memory_grid_back">Артқа</string>
