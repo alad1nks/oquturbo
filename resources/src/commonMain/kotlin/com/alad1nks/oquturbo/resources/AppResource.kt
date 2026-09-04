@@ -169,6 +169,8 @@ import oquturbo.resources.generated.resources.kenkoz_title
 import oquturbo.resources.generated.resources.language_english
 import oquturbo.resources.generated.resources.language_kazakh
 import oquturbo.resources.generated.resources.language_russian
+import oquturbo.resources.generated.resources.memory_grid_accepted_taps
+import oquturbo.resources.generated.resources.memory_grid_accepted_taps_count
 import oquturbo.resources.generated.resources.memory_grid_back
 import oquturbo.resources.generated.resources.memory_grid_cell_accepted
 import oquturbo.resources.generated.resources.memory_grid_cell_description
@@ -645,6 +647,8 @@ object AppResource {
         val memory_grid_flash_rule = Res.string.memory_grid_flash_rule
         val memory_grid_flash_result = Res.string.memory_grid_flash_result
         val memory_grid_score = Res.string.memory_grid_score
+        val memory_grid_accepted_taps = Res.string.memory_grid_accepted_taps
+        val memory_grid_accepted_taps_count = Res.string.memory_grid_accepted_taps_count
         val memory_grid_length = Res.string.memory_grid_length
         val memory_grid_back = Res.string.memory_grid_back
         val memory_grid_ready_title = Res.string.memory_grid_ready_title
