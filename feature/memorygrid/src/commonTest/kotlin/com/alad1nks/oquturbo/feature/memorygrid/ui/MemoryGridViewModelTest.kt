@@ -44,7 +44,8 @@ class MemoryGridViewModelTest {
                 assertEquals(GameId.MemoryGrid, session.game)
                 assertEquals(GameModeId.MemoryGridRoute, session.mode)
                 assertEquals(3, session.score)
-                assertEquals(3, session.correctAnswers)
+                assertEquals(5, session.correctAnswers)
+                assertEquals(session.correctAnswers, viewModel.uiState.value.correctCellCount)
                 assertTrue(session.isNewRecord)
                 assertTrue(viewModel.uiState.value.isNewRecord)
                 assertEquals(1, storage.gameSessionWriteCount)
@@ -93,10 +94,14 @@ class MemoryGridViewModelTest {
                 assertEquals(MemoryGridPhase.GameOver, viewModel.uiState.value.phase)
                 assertFalse(viewModel.uiState.value.isNewRecord)
                 assertEquals(0, storage.gameSessionWriteCount)
+                assertEquals(5, viewModel.uiState.value.correctCellCount)
+                assertEquals(1, storage.gameSessionWriteAttempts)
 
                 gate.complete(Unit)
                 runCurrent()
                 assertTrue(viewModel.uiState.value.isNewRecord)
+                assertEquals(5, viewModel.uiState.value.correctCellCount)
+                assertEquals(1, storage.gameSessionWriteCount)
             }
         }
 
@@ -116,6 +121,8 @@ class MemoryGridViewModelTest {
 
                 assertTrue(storage.sessionWriteStarted.isCompleted)
                 assertEquals(0, storage.gameSessionWriteCount)
+                assertEquals(5, viewModel.uiState.value.correctCellCount)
+                assertEquals(1, storage.gameSessionWriteAttempts)
                 assertEquals(MemoryGridPhase.GameOver, viewModel.uiState.value.phase)
                 assertFalse(viewModel.uiState.value.isNewRecord)
 
@@ -124,6 +131,7 @@ class MemoryGridViewModelTest {
                 val replayState = viewModel.uiState.value
                 assertEquals(MemoryGridPhase.ShowingSequence, replayState.phase)
                 assertEquals(0, replayState.score)
+                assertEquals(0, replayState.correctCellCount)
                 assertTrue(replayState.input.isEmpty())
                 assertFalse(replayState.isNewRecord)
                 advanceTimeBy(2_100)
@@ -131,6 +139,8 @@ class MemoryGridViewModelTest {
                 viewModel.selectCell(8)
                 runCurrent()
                 assertEquals(MemoryGridPhase.GameOver, viewModel.uiState.value.phase)
+                assertEquals(0, viewModel.uiState.value.correctCellCount)
+                assertEquals(2, storage.gameSessionWriteAttempts)
                 assertFalse(viewModel.uiState.value.isNewRecord)
             }
         }
@@ -228,7 +238,8 @@ class MemoryGridViewModelTest {
                     val session = repository.observeSessions().first().single()
                     assertEquals(expectedMode, session.mode)
                     assertEquals(expectedScore, session.score)
-                    assertEquals(3, session.correctAnswers)
+                    assertEquals(5, session.correctAnswers)
+                    assertEquals(session.correctAnswers, viewModel.uiState.value.correctCellCount)
                 }
             }
         }
@@ -271,6 +282,8 @@ class MemoryGridViewModelTest {
         advanceTimeBy(if (mode == MemoryGridGameMode.Flash) 665 else 2_660)
         runCurrent()
         assertEquals(MemoryGridPhase.AwaitingInput, viewModel.uiState.value.phase)
+        val finalRoundInput = if (mode == MemoryGridGameMode.Reverse) listOf(3, 2) else listOf(0, 1)
+        finalRoundInput.forEach(viewModel::selectCell)
         viewModel.selectCell(8)
         assertEquals(MemoryGridPhase.GameOver, viewModel.uiState.value.phase)
     }
@@ -307,6 +320,8 @@ class MemoryGridViewModelTest {
         private val kenKozRecords = mutableMapOf<String, MutableStateFlow<Int?>>()
         private val rememberNumberRecords = mutableMapOf<Pair<Int, String>, MutableStateFlow<Int?>>()
         var gameSessionWriteCount = 0
+            private set
+        var gameSessionWriteAttempts = 0
             private set
         val sessionWriteStarted = CompletableDeferred<Unit>()
 
@@ -358,6 +373,7 @@ class MemoryGridViewModelTest {
         }
 
         override suspend fun setGameSessionsJson(value: String) {
+            gameSessionWriteAttempts++
             sessionWriteStarted.complete(Unit)
             sessionWriteFailure?.let { throw it }
             sessionWriteGate?.await()

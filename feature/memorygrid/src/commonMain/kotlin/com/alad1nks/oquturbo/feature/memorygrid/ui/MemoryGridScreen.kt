@@ -345,6 +345,15 @@ private fun ResultPanel(state: MemoryGridState, mode: MemoryGridGameMode, onStar
                 style = MaterialTheme.typography.titleLarge,
                 fontWeight = FontWeight.Bold,
             )
+            if (state.phase == MemoryGridPhase.GameOver) {
+                Text(
+                    text = stringResource(AppResource.String.memory_grid_session_correct_taps, state.correctCellCount),
+                    modifier = Modifier.fillMaxWidth(),
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    textAlign = TextAlign.Center,
+                )
+            }
             Text(
                 stringResource(
                     if (state.phase == MemoryGridPhase.Ready) {
@@ -393,6 +402,70 @@ private fun phaseHint(phase: MemoryGridPhase): String =
         },
     )
 
+@Preview(name = "Memory Grid — session total Russian Reverse", widthDp = 390, heightDp = 1000, locale = "ru")
+@ScreenshotPreview
+@Composable
+private fun MemoryGridSessionTotalReversePreview() {
+    OquTurboTheme {
+        MemoryGridScreen(
+            state =
+                MemoryGridState(
+                    phase = MemoryGridPhase.GameOver,
+                    sequence = listOf(0, 1, 2, 3),
+                    input = listOf(3, 2),
+                    score = 3,
+                    correctCellCount = 5,
+                    failedSelectedCell = 8,
+                    expectedCellsAfterMistake = setOf(1),
+                ),
+            mode = MemoryGridGameMode.Reverse,
+            onStartClick = {},
+            onCellClick = {},
+            onBackClick = {},
+        )
+    }
+}
+
+@Preview(name = "Memory Grid — session total compact Kazakh Flash", widthDp = 320, heightDp = 1100, locale = "kk")
+@ScreenshotPreview
+@Composable
+private fun MemoryGridSessionTotalFlashPreview() {
+    OquTurboTheme {
+        MemoryGridScreen(
+            state =
+                MemoryGridState(
+                    phase = MemoryGridPhase.GameOver,
+                    gridSize = 4,
+                    sequence = listOf(0, 1, 2, 3),
+                    input = listOf(0, 1),
+                    score = 1,
+                    correctCellCount = 5,
+                    failedSelectedCell = 1,
+                    expectedCellsAfterMistake = setOf(2, 3),
+                ),
+            mode = MemoryGridGameMode.Flash,
+            onStartClick = {},
+            onCellClick = {},
+            onBackClick = {},
+        )
+    }
+}
+
+@Preview(name = "Memory Grid — large session total compact", widthDp = 320, heightDp = 1000)
+@ScreenshotPreview
+@Composable
+private fun MemoryGridLargeSessionTotalPreview() {
+    OquTurboTheme {
+        MemoryGridScreen(
+            state = MemoryGridState(phase = MemoryGridPhase.GameOver, correctCellCount = Int.MAX_VALUE),
+            mode = MemoryGridGameMode.Route,
+            onStartClick = {},
+            onCellClick = {},
+            onBackClick = {},
+        )
+    }
+}
+
 private val MemoryGridGameMode.ruleResource
     get() =
         when (this) {
@@ -440,12 +513,12 @@ private fun MemoryGridLayeredMistakePreview() {
                 MemoryGridState(
                     phase = MemoryGridPhase.GameOver,
                     gridSize = 3,
-                    sequence = listOf(0, 1, 0, 4),
+                    sequence = listOf(0, 1, 2, 4),
                     input = listOf(0, 1),
                     score = 3,
-                    correctCellCount = 6,
+                    correctCellCount = 5,
                     failedSelectedCell = 1,
-                    expectedCellsAfterMistake = setOf(0),
+                    expectedCellsAfterMistake = setOf(2),
                     record = 5,
                 ),
             mode = MemoryGridGameMode.Route,
@@ -466,12 +539,12 @@ private fun MemoryGridNewRecordPreview() {
                 MemoryGridState(
                     phase = MemoryGridPhase.GameOver,
                     gridSize = 3,
-                    sequence = listOf(0, 1, 0, 4),
+                    sequence = listOf(0, 1, 2, 4),
                     input = listOf(0, 1),
                     score = 3,
-                    correctCellCount = 6,
+                    correctCellCount = 5,
                     failedSelectedCell = 1,
-                    expectedCellsAfterMistake = setOf(0),
+                    expectedCellsAfterMistake = setOf(2),
                     record = 3,
                     isNewRecord = true,
                 ),

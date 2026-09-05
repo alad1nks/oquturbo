@@ -208,6 +208,7 @@ import oquturbo.resources.generated.resources.memory_grid_route_subtitle
 import oquturbo.resources.generated.resources.memory_grid_route_title
 import oquturbo.resources.generated.resources.memory_grid_rule
 import oquturbo.resources.generated.resources.memory_grid_score
+import oquturbo.resources.generated.resources.memory_grid_session_correct_taps
 import oquturbo.resources.generated.resources.memory_grid_start
 import oquturbo.resources.generated.resources.memory_grid_title
 import oquturbo.resources.generated.resources.oquturbo_navigation_games
@@ -649,6 +650,7 @@ object AppResource {
         val memory_grid_score = Res.string.memory_grid_score
         val memory_grid_accepted_taps = Res.string.memory_grid_accepted_taps
         val memory_grid_accepted_taps_count = Res.string.memory_grid_accepted_taps_count
+        val memory_grid_session_correct_taps = Res.string.memory_grid_session_correct_taps
         val memory_grid_length = Res.string.memory_grid_length
         val memory_grid_back = Res.string.memory_grid_back
         val memory_grid_ready_title = Res.string.memory_grid_ready_title
