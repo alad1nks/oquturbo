@@ -466,6 +466,12 @@ private fun RotationMatchAnswer.resource(): StringResource =
         RotationMatchAnswer.Different -> AppResource.String.rotation_match_different
     }
 
+internal fun RotationMatchAnswer.resultExplanationResource(): StringResource =
+    when (this) {
+        RotationMatchAnswer.Match -> AppResource.String.rotation_match_result_match_explanation
+        RotationMatchAnswer.Different -> AppResource.String.rotation_match_result_different_explanation
+    }
+
 @Composable
 private fun ResultContent(
     state: RotationMatchUiState,
@@ -497,13 +503,7 @@ private fun ResultContent(
         textAlign = TextAlign.Center,
     )
     Text(
-        stringResource(
-            if (timeout) {
-                AppResource.String.rotation_match_timeout_message
-            } else {
-                AppResource.String.rotation_match_wrong_message
-            },
-        ),
+        stringResource(round.correctAnswer.resultExplanationResource()),
         color = MaterialTheme.colorScheme.onSurfaceVariant,
         textAlign = TextAlign.Center,
     )
@@ -762,6 +762,26 @@ private fun RotationMatchCorrectFeedbackPreview() {
 @ScreenshotPreview
 @Composable
 private fun RotationMatchWrongPreview() {
+    OquTurboTheme {
+        RotationMatchScreen(
+            previewState(
+                RotationMatchPhase.Result,
+                failure = RotationMatchFailure.Wrong,
+                answer = RotationMatchAnswer.Match,
+                score = 3,
+                durationMillis = 12_300,
+            ),
+            {},
+            { _, _ -> },
+            {},
+        )
+    }
+}
+
+@Preview(name = "Rotation Match — result viewport", widthDp = 390, heightDp = 844)
+@ScreenshotPreview
+@Composable
+private fun RotationMatchResultViewportPreview() {
     OquTurboTheme {
         RotationMatchScreen(
             previewState(
