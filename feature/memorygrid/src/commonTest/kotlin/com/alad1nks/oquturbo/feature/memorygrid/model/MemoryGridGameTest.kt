@@ -7,6 +7,58 @@ import kotlin.test.assertNull
 
 class MemoryGridGameTest {
     @Test
+    fun sessionTotalIncludesCompletedAndPartialFinalRoundsInEveryMode() {
+        MemoryGridGameMode.entries.forEach { mode ->
+            val game = MemoryGridGame(RecordingGenerator(), mode).apply { start() }
+            finishPresentation(game)
+            val first = if (mode == MemoryGridGameMode.Reverse) game.state.sequence.reversed() else game.state.sequence
+            first.forEach(game::selectCell)
+            game.continueAfterSuccess()
+            finishPresentation(game)
+            val second = if (mode == MemoryGridGameMode.Reverse) game.state.sequence.reversed() else game.state.sequence
+            second.take(2).forEach(game::selectCell)
+            game.selectCell(8)
+
+            assertEquals(MemoryGridPhase.GameOver, game.state.phase)
+            assertEquals(5, game.state.correctCellCount)
+            assertEquals(2, game.state.input.size)
+            assertEquals(if (mode == MemoryGridGameMode.Flash) 1 else 3, game.state.score)
+
+            game.start()
+            assertEquals(0, game.state.correctCellCount)
+            finishPresentation(game)
+            game.selectCell(8)
+            assertEquals(MemoryGridPhase.GameOver, game.state.phase)
+            assertEquals(0, game.state.correctCellCount)
+        }
+    }
+
+    @Test
+    fun routeAndReverseCountEachAcceptedRepeatedCoordinate() {
+        listOf(MemoryGridGameMode.Route, MemoryGridGameMode.Reverse).forEach { mode ->
+            val generator =
+                MemoryGridSequenceGenerator { _, length, repeated ->
+                    if (repeated) List(length) { it % 2 } else List(length) { it }
+                }
+            val game = MemoryGridGame(generator, mode).apply { start() }
+            repeat(4) {
+                finishPresentation(game)
+                val input =
+                    if (mode == MemoryGridGameMode.Reverse) game.state.sequence.reversed() else game.state.sequence
+                input.forEach(game::selectCell)
+                game.continueAfterSuccess()
+            }
+            finishPresentation(game)
+            listOf(0, 1, 0).forEach(game::selectCell)
+            assertEquals(listOf(0, 1, 0), game.state.input)
+            assertEquals(21, game.state.correctCellCount)
+            game.selectCell(8)
+            assertEquals(MemoryGridPhase.GameOver, game.state.phase)
+            assertEquals(21, game.state.correctCellCount)
+        }
+    }
+
+    @Test
     fun startCreatesFirstRoundAndRequestsUniqueCells() {
         val generator = RecordingGenerator()
         val game = MemoryGridGame(generator)
@@ -144,6 +196,7 @@ class MemoryGridGameTest {
 
         assertEquals(MemoryGridPhase.GameOver, game.state.phase)
         assertEquals(listOf(1), game.state.input)
+        assertEquals(1, game.state.correctCellCount)
         assertEquals(1, game.state.failedSelectedCell)
         assertEquals(setOf(0, 2), game.state.expectedCellsAfterMistake)
     }
