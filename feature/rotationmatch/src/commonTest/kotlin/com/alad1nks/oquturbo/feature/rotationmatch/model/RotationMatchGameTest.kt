@@ -166,6 +166,21 @@ class RotationMatchGameTest {
     }
 
     @Test
+    fun replayClearsTerminalAnswerAndFailureState() {
+        val game = RotationMatchGame(SeededRandom())
+        game.start()
+        val round = game.state.round!!
+        game.answer(round.correctAnswer.opposite())
+        assertEquals(RotationMatchPhase.Result, game.state.phase)
+
+        game.start()
+
+        assertEquals(RotationMatchPhase.Active, game.state.phase)
+        assertNull(game.state.selectedAnswer)
+        assertNull(game.state.failure)
+    }
+
+    @Test
     fun invalidRandomAndShuffleFailFast() {
         assertFailsWith<IllegalArgumentException> {
             RotationMatchGame(

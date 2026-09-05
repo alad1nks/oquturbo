@@ -716,9 +716,9 @@
     <string name="rotation_match_difficulty_medium">Орташа</string>
     <string name="rotation_match_difficulty_hard">Қиын</string>
     <string name="rotation_match_wrong_title">Дұрыс емес</string>
-    <string name="rotation_match_wrong_message">Жауабыңызды қарап, үлгілерді салыстырыңыз.</string>
     <string name="rotation_match_timeout_title">Уақыт бітті</string>
-    <string name="rotation_match_timeout_message">Қайта ойнамас бұрын дұрыс жауапты қарап шығыңыз.</string>
+    <string name="rotation_match_result_match_explanation">Үміткер — бұрылғаннан кейінгі дәл сол үлгі.</string>
+    <string name="rotation_match_result_different_explanation">Үміткер — шағылған үлгі, сондықтан ол басқа.</string>
     <string name="rotation_match_your_answer">Сіздің жауабыңыз</string>
     <string name="rotation_match_correct_answer">Дұрыс жауап</string>
     <string name="rotation_match_play_again">Қайта ойнау</string>

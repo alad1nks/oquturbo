@@ -714,9 +714,9 @@
     <string name="rotation_match_difficulty_medium">Medium</string>
     <string name="rotation_match_difficulty_hard">Hard</string>
     <string name="rotation_match_wrong_title">Not quite</string>
-    <string name="rotation_match_wrong_message">Review your answer and compare the patterns.</string>
     <string name="rotation_match_timeout_title">Time’s up</string>
-    <string name="rotation_match_timeout_message">Review the correct answer before trying again.</string>
+    <string name="rotation_match_result_match_explanation">The candidate is the same pattern after rotation.</string>
+    <string name="rotation_match_result_different_explanation">The candidate is a reflected pattern, so it is different.</string>
     <string name="rotation_match_your_answer">Your answer</string>
     <string name="rotation_match_correct_answer">Correct answer</string>
     <string name="rotation_match_play_again">Play again</string>

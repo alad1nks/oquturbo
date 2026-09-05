@@ -745,9 +745,9 @@
     <string name="rotation_match_difficulty_medium">Средне</string>
     <string name="rotation_match_difficulty_hard">Сложно</string>
     <string name="rotation_match_wrong_title">Не совсем</string>
-    <string name="rotation_match_wrong_message">Проверьте свой ответ и сравните узоры.</string>
     <string name="rotation_match_timeout_title">Время вышло</string>
-    <string name="rotation_match_timeout_message">Посмотрите правильный ответ перед новой попыткой.</string>
+    <string name="rotation_match_result_match_explanation">Кандидат — тот же узор после вращения.</string>
+    <string name="rotation_match_result_different_explanation">Кандидат — отражённый узор, поэтому он отличается.</string>
     <string name="rotation_match_your_answer">Ваш ответ</string>
     <string name="rotation_match_correct_answer">Правильный ответ</string>
     <string name="rotation_match_play_again">Играть снова</string>

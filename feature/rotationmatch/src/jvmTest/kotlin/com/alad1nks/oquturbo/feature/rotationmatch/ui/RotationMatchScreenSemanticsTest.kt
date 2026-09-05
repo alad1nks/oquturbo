@@ -53,6 +53,8 @@ class RotationMatchScreenSemanticsTest {
             onNodeWithContentDescription("Candidate, row 1, column 1, empty").assertExists()
             onNodeWithText("Match").assertIsEnabled()
             onNodeWithText("Different").assertIsEnabled()
+            onNodeWithText("The candidate is the same pattern after rotation.").assertDoesNotExist()
+            onNodeWithText("The candidate is a reflected pattern, so it is different.").assertDoesNotExist()
         }
 
     @Test
@@ -80,7 +82,7 @@ class RotationMatchScreenSemanticsTest {
         }
 
     @Test
-    fun wrongResultLabelsUserAndCorrectAnswers() =
+    fun wrongResultExplainsMatchFromCorrectAnswerAndLabelsAnswers() =
         runComposeUiTest {
             setContent {
                 rotationMatchScreen(
@@ -93,10 +95,31 @@ class RotationMatchScreenSemanticsTest {
 
             onNodeWithContentDescription("Different. Your answer").assertIsNotEnabled()
             onNodeWithContentDescription("Match. Correct answer").assertIsNotEnabled()
+            onNodeWithText("The candidate is the same pattern after rotation.").assertExists()
+            onNodeWithText("The candidate is a reflected pattern, so it is different.").assertDoesNotExist()
         }
 
     @Test
-    fun timeoutResultDoesNotFabricateAUserAnswer() =
+    fun wrongResultExplainsDifferentFromCorrectAnswer() =
+        runComposeUiTest {
+            setContent {
+                rotationMatchScreen(
+                    resultState(
+                        failure = RotationMatchFailure.Wrong,
+                        selectedAnswer = RotationMatchAnswer.Match,
+                        correctAnswer = RotationMatchAnswer.Different,
+                    ),
+                )
+            }
+
+            onNodeWithContentDescription("Match. Your answer").assertIsNotEnabled()
+            onNodeWithContentDescription("Different. Correct answer").assertIsNotEnabled()
+            onNodeWithText("The candidate is a reflected pattern, so it is different.").assertExists()
+            onNodeWithText("The candidate is the same pattern after rotation.").assertDoesNotExist()
+        }
+
+    @Test
+    fun timeoutResultExplainsMatchWithoutFabricatingAUserAnswer() =
         runComposeUiTest {
             setContent {
                 rotationMatchScreen(
@@ -109,6 +132,25 @@ class RotationMatchScreenSemanticsTest {
 
             onNodeWithText("Your answer").assertDoesNotExist()
             onNodeWithContentDescription("Match. Correct answer").assertIsNotEnabled()
+            onNodeWithText("The candidate is the same pattern after rotation.").assertExists()
+        }
+
+    @Test
+    fun timeoutResultExplanationDependsOnlyOnDifferentCorrectAnswer() =
+        runComposeUiTest {
+            setContent {
+                rotationMatchScreen(
+                    resultState(
+                        failure = RotationMatchFailure.Timeout,
+                        selectedAnswer = null,
+                        correctAnswer = RotationMatchAnswer.Different,
+                    ),
+                )
+            }
+
+            onNodeWithText("Your answer").assertDoesNotExist()
+            onNodeWithContentDescription("Different. Correct answer").assertIsNotEnabled()
+            onNodeWithText("The candidate is a reflected pattern, so it is different.").assertExists()
         }
 
     private fun activeState() =
@@ -121,11 +163,16 @@ class RotationMatchScreenSemanticsTest {
     private fun resultState(
         failure: RotationMatchFailure,
         selectedAnswer: RotationMatchAnswer?,
+        correctAnswer: RotationMatchAnswer = RotationMatchAnswer.Match,
     ) = RotationMatchUiState(
         game =
             RotationMatchState(
                 phase = RotationMatchPhase.Result,
-                round = testRound(remainingTimeMillis = if (failure == RotationMatchFailure.Timeout) 0 else 4_000),
+                round =
+                    testRound(
+                        remainingTimeMillis = if (failure == RotationMatchFailure.Timeout) 0 else 4_000,
+                        correctAnswer = correctAnswer,
+                    ),
                 selectedAnswer = selectedAnswer,
                 failure = failure,
             ),
@@ -134,11 +181,14 @@ class RotationMatchScreenSemanticsTest {
         completedDurationMillis = 1_000,
     )
 
-    private fun testRound(remainingTimeMillis: Long = 10_000) =
+    private fun testRound(
+        remainingTimeMillis: Long = 10_000,
+        correctAnswer: RotationMatchAnswer = RotationMatchAnswer.Match,
+    ) =
         RotationMatchRound(
             reference = RotationMatchBoard(3, setOf(0, 3, 6, 7)),
             candidate = RotationMatchBoard(3, setOf(2, 5, 7, 8)),
-            correctAnswer = RotationMatchAnswer.Match,
+            correctAnswer = correctAnswer,
             difficulty = RotationMatchDifficulty.Easy,
             totalTimeMillis = 10_000,
             remainingTimeMillis = remainingTimeMillis,
