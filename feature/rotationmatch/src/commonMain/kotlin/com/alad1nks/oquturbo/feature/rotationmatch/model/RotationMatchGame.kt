@@ -2,7 +2,7 @@ package com.alad1nks.oquturbo.feature.rotationmatch.model
 
 import kotlin.random.Random
 
-enum class RotationMatchPhase { Ready, Active, CorrectFeedback, Result }
+enum class RotationMatchPhase { Ready, Active, Paused, CorrectFeedback, Result }
 
 enum class RotationMatchFailure { Wrong, Timeout }
 
@@ -126,6 +126,16 @@ class RotationMatchGame(
     fun start() {
         answerDeck.clear()
         state = RotationMatchState(phase = RotationMatchPhase.Active, round = createRound(score = 0))
+    }
+
+    fun pause(elapsedMillis: Long = 0) {
+        if (state.phase != RotationMatchPhase.Active) return
+        elapse(elapsedMillis)
+        if (state.phase == RotationMatchPhase.Active) state = state.copy(phase = RotationMatchPhase.Paused)
+    }
+
+    fun resume() {
+        if (state.phase == RotationMatchPhase.Paused) state = state.copy(phase = RotationMatchPhase.Active)
     }
 
     fun answer(

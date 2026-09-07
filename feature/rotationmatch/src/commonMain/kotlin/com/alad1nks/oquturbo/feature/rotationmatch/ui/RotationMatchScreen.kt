@@ -3,6 +3,7 @@ package com.alad1nks.oquturbo.feature.rotationmatch.ui
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -16,11 +17,13 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Pause
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Replay
 import androidx.compose.material.icons.filled.Timer
@@ -52,6 +55,7 @@ import androidx.compose.ui.unit.dp
 import com.alad1nks.oquturbo.core.designsystem.theme.OquTurboTheme
 import com.alad1nks.oquturbo.core.ui.component.AppBackButton
 import com.alad1nks.oquturbo.core.ui.component.GameHeader
+import com.alad1nks.oquturbo.core.ui.component.GameHeaderActionButton
 import com.alad1nks.oquturbo.core.ui.component.GameResultCard
 import com.alad1nks.oquturbo.core.ui.component.appBackground
 import com.alad1nks.oquturbo.core.ui.preview.ScreenshotPreview
@@ -96,6 +100,8 @@ internal fun RotationMatchRoute(
         state = state,
         onStartClick = viewModel::start,
         onAnswerClick = viewModel::selectAnswer,
+        onPauseClick = viewModel::pause,
+        onResumeClick = viewModel::resume,
         onBackClick = rotationMatchBackAction(onBackClick, viewModel::abandon),
     )
 }
@@ -107,6 +113,8 @@ internal fun RotationMatchScreen(
     onAnswerClick: (Long, RotationMatchAnswer) -> Unit,
     onBackClick: (() -> Unit)?,
     modifier: Modifier = Modifier,
+    onPauseClick: () -> Unit = {},
+    onResumeClick: () -> Unit = {},
 ) {
     val game = state.game
     BoxWithConstraints(modifier.fillMaxSize().appBackground()) {
@@ -127,7 +135,8 @@ internal fun RotationMatchScreen(
             when (game.phase) {
                 RotationMatchPhase.Ready -> ReadyContent(state, onStartClick)
                 RotationMatchPhase.Active, RotationMatchPhase.CorrectFeedback ->
-                    PlayingContent(state, onAnswerClick)
+                    PlayingContent(state, onAnswerClick, onPauseClick)
+                RotationMatchPhase.Paused -> PausedContent(onResumeClick)
                 RotationMatchPhase.Result -> ResultContent(state, onStartClick, onAnswerClick, onBackClick)
             }
         }
@@ -217,24 +226,100 @@ private fun ReadyContent(
 private fun PlayingContent(
     state: RotationMatchUiState,
     onAnswerClick: (Long, RotationMatchAnswer) -> Unit,
+    onPauseClick: () -> Unit,
 ) {
     val round = state.game.round ?: return
-    TimerContent(round)
+    if (state.game.phase == RotationMatchPhase.Active) {
+        Row(
+            Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            TimerContent(round, Modifier.weight(1f))
+            GameHeaderActionButton(
+                icon = Icons.Filled.Pause,
+                onClick = onPauseClick,
+                contentDescription = stringResource(AppResource.String.rotation_match_pause),
+            )
+        }
+    } else {
+        TimerContent(round)
+    }
     PatternPair(round)
     AnswerControls(state, onAnswerClick)
 }
 
 @Composable
-private fun TimerContent(round: RotationMatchRound) {
+private fun PausedContent(onResumeClick: () -> Unit) {
+    Surface(
+        modifier =
+            Modifier
+                .widthIn(max = 420.dp)
+                .fillMaxWidth()
+                .semantics { liveRegion = LiveRegionMode.Polite },
+        shape = RoundedCornerShape(28.dp),
+        color = MaterialTheme.colorScheme.surfaceContainerHighest,
+    ) {
+        Column(
+            Modifier.padding(horizontal = 24.dp, vertical = 28.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(16.dp),
+        ) {
+            Surface(
+                modifier = Modifier.size(72.dp),
+                shape = CircleShape,
+                color = MaterialTheme.colorScheme.primaryContainer,
+            ) {
+                Box(contentAlignment = Alignment.Center) {
+                    Icon(
+                        Icons.Filled.Pause,
+                        contentDescription = null,
+                        modifier = Modifier.size(36.dp),
+                        tint = MaterialTheme.colorScheme.primary,
+                    )
+                }
+            }
+            Text(
+                stringResource(AppResource.String.rotation_match_paused_title),
+                modifier = Modifier.semantics { heading() },
+                style = MaterialTheme.typography.headlineMedium,
+                fontWeight = FontWeight.Bold,
+                textAlign = TextAlign.Center,
+            )
+            Text(
+                stringResource(AppResource.String.rotation_match_paused_message),
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                textAlign = TextAlign.Center,
+            )
+            Button(
+                onClick = onResumeClick,
+                modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp),
+            ) {
+                Icon(Icons.Filled.PlayArrow, contentDescription = null)
+                Text(stringResource(AppResource.String.rotation_match_resume))
+            }
+        }
+    }
+}
+
+@Composable
+private fun TimerContent(
+    round: RotationMatchRound,
+    modifier: Modifier = Modifier,
+) {
     val seconds = ceil(round.remainingTimeMillis / 1000.0).toInt()
     val timerDescription = stringResource(AppResource.String.rotation_match_timer_accessibility, seconds)
-    Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+    Column(modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(8.dp)) {
         Row(
             Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
+            Row(
+                Modifier.weight(1f),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
                 Icon(Icons.Default.Timer, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
                 Text(stringResource(AppResource.String.rotation_match_time), fontWeight = FontWeight.Bold)
             }
@@ -889,6 +974,90 @@ private fun RotationMatchResultRussianPreview() {
             {},
             { _, _ -> },
             {},
+        )
+    }
+}
+
+@Preview(name = "Rotation Match — ActiveCompactEnglishHub", widthDp = 320, heightDp = 844, locale = "en")
+@ScreenshotPreview
+@Composable
+private fun RotationMatchActiveCompactEnglishHubPreview() {
+    OquTurboTheme {
+        RotationMatchScreen(
+            previewState(RotationMatchPhase.Active, RotationMatchDifficulty.Hard, score = 11),
+            {},
+            { _, _ -> },
+            {},
+        )
+    }
+}
+
+@Preview(name = "Rotation Match — ActiveCompactRussianHub", widthDp = 320, heightDp = 844, locale = "ru")
+@ScreenshotPreview
+@Composable
+private fun RotationMatchActiveCompactRussianHubPreview() {
+    OquTurboTheme {
+        RotationMatchScreen(
+            previewState(RotationMatchPhase.Active, RotationMatchDifficulty.Hard, score = 11),
+            {},
+            { _, _ -> },
+            {},
+        )
+    }
+}
+
+@Preview(name = "Rotation Match — PausedEnglishHub", widthDp = 390, heightDp = 844, locale = "en")
+@ScreenshotPreview
+@Composable
+private fun RotationMatchPausedEnglishHubPreview() {
+    OquTurboTheme {
+        RotationMatchScreen(
+            previewState(RotationMatchPhase.Paused, RotationMatchDifficulty.Hard, score = 11),
+            {},
+            { _, _ -> },
+            {},
+        )
+    }
+}
+
+@Preview(name = "Rotation Match — PausedCompactEnglishStandalone", widthDp = 320, heightDp = 844, locale = "en")
+@ScreenshotPreview
+@Composable
+private fun RotationMatchPausedCompactEnglishStandalonePreview() {
+    OquTurboTheme {
+        RotationMatchScreen(
+            previewState(RotationMatchPhase.Paused, RotationMatchDifficulty.Hard, score = 11),
+            {},
+            { _, _ -> },
+            null,
+        )
+    }
+}
+
+@Preview(name = "Rotation Match — PausedCompactRussianHub", widthDp = 320, heightDp = 844, locale = "ru")
+@ScreenshotPreview
+@Composable
+private fun RotationMatchPausedCompactRussianHubPreview() {
+    OquTurboTheme {
+        RotationMatchScreen(
+            previewState(RotationMatchPhase.Paused, RotationMatchDifficulty.Hard, score = 11),
+            {},
+            { _, _ -> },
+            {},
+        )
+    }
+}
+
+@Preview(name = "Rotation Match — PausedCompactKazakhStandalone", widthDp = 320, heightDp = 844, locale = "kk")
+@ScreenshotPreview
+@Composable
+private fun RotationMatchPausedCompactKazakhStandalonePreview() {
+    OquTurboTheme {
+        RotationMatchScreen(
+            previewState(RotationMatchPhase.Paused, RotationMatchDifficulty.Hard, score = 11),
+            {},
+            { _, _ -> },
+            null,
         )
     }
 }

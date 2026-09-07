@@ -1,11 +1,19 @@
 package com.alad1nks.oquturbo.feature.rotationmatch.ui
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.ui.semantics.LiveRegionMode
+import androidx.compose.ui.semantics.SemanticsProperties
 import androidx.compose.ui.test.ExperimentalTestApi
+import androidx.compose.ui.test.SemanticsMatcher
+import androidx.compose.ui.test.assert
+import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.assertIsEnabled
 import androidx.compose.ui.test.assertIsNotEnabled
+import androidx.compose.ui.test.hasContentDescription
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
+import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.runComposeUiTest
 import com.alad1nks.oquturbo.core.designsystem.theme.OquTurboTheme
 import com.alad1nks.oquturbo.feature.rotationmatch.model.RotationMatchAnswer
@@ -16,14 +24,89 @@ import com.alad1nks.oquturbo.feature.rotationmatch.model.RotationMatchPhase
 import com.alad1nks.oquturbo.feature.rotationmatch.model.RotationMatchRound
 import com.alad1nks.oquturbo.feature.rotationmatch.model.RotationMatchState
 import kotlin.test.Test
+import kotlin.test.assertEquals
 
 @OptIn(ExperimentalTestApi::class)
 class RotationMatchScreenSemanticsTest {
+    @Test
+    fun pauseAndResumeCallbacksReplacePuzzleSemanticsAndKeepHubBack() =
+        runComposeUiTest {
+            val state = mutableStateOf(activeState())
+            var pauses = 0
+            var resumes = 0
+            var backs = 0
+            setContent {
+                OquTurboTheme {
+                    RotationMatchScreen(
+                        state = state.value,
+                        onStartClick = {},
+                        onAnswerClick = { _, _ -> },
+                        onBackClick = { backs++ },
+                        onPauseClick = {
+                            pauses++
+                            state.value =
+                                state.value.copy(
+                                    game = state.value.game.copy(phase = RotationMatchPhase.Paused),
+                                )
+                        },
+                        onResumeClick = {
+                            resumes++
+                            state.value =
+                                state.value.copy(
+                                    game = state.value.game.copy(phase = RotationMatchPhase.Active),
+                                )
+                        },
+                    )
+                }
+            }
+            onNodeWithContentDescription("Pause").assertIsEnabled().performClick()
+            assertEquals(1, pauses)
+            onNodeWithText("Paused").assert(SemanticsMatcher.keyIsDefined(SemanticsProperties.Heading))
+            onNodeWithText("The timer is stopped. Resume when you’re ready.").assertExists()
+            onAllNodes(SemanticsMatcher.expectValue(SemanticsProperties.LiveRegion, LiveRegionMode.Polite))
+                .assertCountEquals(1)
+            onAllNodes(
+                hasContentDescription("Reference", substring = true),
+                useUnmergedTree = true,
+            ).assertCountEquals(0)
+            onAllNodes(
+                hasContentDescription("Candidate", substring = true),
+                useUnmergedTree = true,
+            ).assertCountEquals(0)
+            onNodeWithText("Reference").assertDoesNotExist()
+            onNodeWithText("Candidate").assertDoesNotExist()
+            onNodeWithText("Match").assertDoesNotExist()
+            onNodeWithText("Different").assertDoesNotExist()
+            onNodeWithText("Time").assertDoesNotExist()
+            onAllNodes(SemanticsMatcher.keyIsDefined(SemanticsProperties.ProgressBarRangeInfo)).assertCountEquals(0)
+            onNodeWithContentDescription("Pause").assertDoesNotExist()
+            onNodeWithContentDescription("Back").performClick()
+            assertEquals(1, backs)
+            onNodeWithText("Resume").assertIsEnabled().performClick()
+            assertEquals(1, resumes)
+            onNodeWithContentDescription("Reference, row 1, column 1, filled").assertExists()
+            onNodeWithText("Match").assertIsEnabled()
+            onNodeWithContentDescription("Pause").assertIsEnabled()
+            onNodeWithText("Resume").assertDoesNotExist()
+        }
+
+    @Test
+    fun pausedStandaloneHasResumeWithoutBack() =
+        runComposeUiTest {
+            setContent {
+                val active = activeState()
+                rotationMatchScreen(active.copy(game = active.game.copy(phase = RotationMatchPhase.Paused)))
+            }
+            onNodeWithText("Resume").assertIsEnabled()
+            onNodeWithContentDescription("Back").assertDoesNotExist()
+        }
+
     @Test
     fun loadingStandaloneDisablesStartAndOmitsBack() =
         runComposeUiTest {
             setContent { rotationMatchScreen(RotationMatchUiState(), onBackClick = null) }
 
+            onNodeWithContentDescription("Pause").assertDoesNotExist()
             onNodeWithText("Start").assertIsNotEnabled()
             onNodeWithContentDescription("Back").assertDoesNotExist()
         }
@@ -38,6 +121,7 @@ class RotationMatchScreenSemanticsTest {
                 )
             }
 
+            onNodeWithContentDescription("Pause").assertDoesNotExist()
             onNodeWithText("Start").assertIsEnabled()
             onNodeWithContentDescription("Back").assertExists()
         }
@@ -78,6 +162,7 @@ class RotationMatchScreenSemanticsTest {
                 )
             }
 
+            onNodeWithContentDescription("Pause").assertDoesNotExist()
             onNodeWithContentDescription("Match. Correct").assertIsNotEnabled()
         }
 
@@ -130,6 +215,7 @@ class RotationMatchScreenSemanticsTest {
                 )
             }
 
+            onNodeWithContentDescription("Pause").assertDoesNotExist()
             onNodeWithText("Your answer").assertDoesNotExist()
             onNodeWithContentDescription("Match. Correct answer").assertIsNotEnabled()
             onNodeWithText("The candidate is the same pattern after rotation.").assertExists()
@@ -148,6 +234,7 @@ class RotationMatchScreenSemanticsTest {
                 )
             }
 
+            onNodeWithContentDescription("Pause").assertDoesNotExist()
             onNodeWithText("Your answer").assertDoesNotExist()
             onNodeWithContentDescription("Different. Correct answer").assertIsNotEnabled()
             onNodeWithText("The candidate is a reflected pattern, so it is different.").assertExists()
