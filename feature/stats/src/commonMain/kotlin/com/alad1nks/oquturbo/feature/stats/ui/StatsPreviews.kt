@@ -6,6 +6,11 @@ import com.alad1nks.oquturbo.core.designsystem.theme.OquTurboTheme
 import com.alad1nks.oquturbo.core.ui.preview.ScreenshotPreview
 import com.alad1nks.oquturbo.feature.stats.demo.DemoStatsFixtures
 import com.alad1nks.oquturbo.feature.stats.model.ActivityStatus
+import com.alad1nks.oquturbo.feature.stats.model.ModeTrend
+import com.alad1nks.oquturbo.feature.stats.model.StatsDetailUiState
+import com.alad1nks.oquturbo.feature.stats.model.StatsGame
+import com.alad1nks.oquturbo.feature.stats.model.StatsMode
+import com.alad1nks.oquturbo.feature.stats.model.StatsPeriod
 import com.alad1nks.oquturbo.feature.stats.model.StatsUiState
 
 @Preview(
@@ -114,3 +119,76 @@ private fun StatsScreenPreviewContent(uiState: StatsUiState) {
         onActivityClick = { _, _ -> },
     )
 }
+
+@Preview(name = "Stats detail — game populated", widthDp = 320, heightDp = 1600, locale = "en")
+@ScreenshotPreview
+@Composable
+private fun StatsDetailGamePopulatedPreview() {
+    OquTurboTheme {
+        StatsGameDetailScreen(
+            uiState = detailPreviewState(StatsPeriod.SevenDays),
+            onPeriodSelected = {},
+            onBackClick = {},
+            onModeClick = { _, _, _ -> },
+        )
+    }
+}
+
+@Preview(name = "Stats detail — mode populated", widthDp = 320, heightDp = 1600, locale = "ru")
+@ScreenshotPreview
+@Composable
+private fun StatsDetailModePopulatedPreview() {
+    OquTurboTheme {
+        StatsModeDetailScreen(
+            uiState = detailPreviewState(StatsPeriod.ThirtyDays),
+            onPeriodSelected = {},
+            onBackClick = {},
+        )
+    }
+}
+
+@Preview(name = "Stats detail — mode empty", widthDp = 320, heightDp = 1200, locale = "kk")
+@ScreenshotPreview
+@Composable
+private fun StatsDetailModeEmptyPreview() {
+    OquTurboTheme {
+        StatsModeDetailScreen(
+            uiState = detailPreviewState(StatsPeriod.AllTime).copy(modes = emptyList()),
+            onPeriodSelected = {},
+            onBackClick = {},
+        )
+    }
+}
+
+@Preview(name = "Stats detail — game empty", widthDp = 320, heightDp = 1200, locale = "en")
+@ScreenshotPreview
+@Composable
+private fun StatsDetailGameEmptyPreview() {
+    OquTurboTheme {
+        StatsGameDetailScreen(
+            uiState = detailPreviewState(StatsPeriod.ThirtyDays).copy(modes = emptyList()),
+            onPeriodSelected = {},
+            onBackClick = {},
+            onModeClick = { _, _, _ -> },
+        )
+    }
+}
+
+private fun detailPreviewState(period: StatsPeriod) =
+    StatsDetailUiState(
+        game = StatsGame.NumberSprint,
+        period = period,
+        selectedMode = StatsMode.Custom,
+        modes =
+            listOf("length:3;digits:012", "length:4;digits:345").mapIndexed { index, variant ->
+                ModeTrend(
+                    mode = StatsMode.Custom,
+                    variantId = variant,
+                    scores = listOf(3, 4, 2, 6, 5 + index),
+                    record = 6,
+                    lastResult = 5 + index,
+                    averageResult = 4,
+                    gamesPlayed = 5,
+                )
+            },
+    )

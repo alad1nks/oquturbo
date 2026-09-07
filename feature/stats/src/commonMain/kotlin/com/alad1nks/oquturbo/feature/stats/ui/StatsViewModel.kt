@@ -94,20 +94,28 @@ internal class StatsViewModel(
     }
 }
 
+@OptIn(ExperimentalCoroutinesApi::class)
 internal class StatsGameDetailViewModel(
     game: StatsGame,
     period: StatsPeriod,
     dataSource: StatsDataSource,
 ) : ViewModel() {
+    private val selectedPeriod = MutableStateFlow(period)
+
+    fun selectPeriod(period: StatsPeriod) {
+        selectedPeriod.value = period
+    }
+
     val uiState =
-        dataSource
-            .observeSnapshot(period)
-            .map { snapshot ->
-                StatsDetailUiState(
-                    game = game,
-                    period = period,
-                    modes = snapshot.gameTrend(game)?.modes.orEmpty(),
-                )
+        selectedPeriod
+            .flatMapLatest { period ->
+                dataSource.observeSnapshot(period).map { snapshot ->
+                    StatsDetailUiState(
+                        game = game,
+                        period = period,
+                        modes = snapshot.gameTrend(game)?.modes.orEmpty(),
+                    )
+                }
             }.stateIn(
                 scope = viewModelScope,
                 started = SharingStarted.WhileSubscribed(5_000),
@@ -115,22 +123,30 @@ internal class StatsGameDetailViewModel(
             )
 }
 
+@OptIn(ExperimentalCoroutinesApi::class)
 internal class StatsModeDetailViewModel(
     game: StatsGame,
     mode: StatsMode,
     period: StatsPeriod,
     dataSource: StatsDataSource,
 ) : ViewModel() {
+    private val selectedPeriod = MutableStateFlow(period)
+
+    fun selectPeriod(period: StatsPeriod) {
+        selectedPeriod.value = period
+    }
+
     val uiState =
-        dataSource
-            .observeSnapshot(period)
-            .map { snapshot ->
-                StatsDetailUiState(
-                    game = game,
-                    period = period,
-                    modes = snapshot.gameTrend(game)?.modes?.filter { it.mode == mode }.orEmpty(),
-                    selectedMode = mode,
-                )
+        selectedPeriod
+            .flatMapLatest { period ->
+                dataSource.observeSnapshot(period).map { snapshot ->
+                    StatsDetailUiState(
+                        game = game,
+                        period = period,
+                        modes = snapshot.gameTrend(game)?.modes?.filter { it.mode == mode }.orEmpty(),
+                        selectedMode = mode,
+                    )
+                }
             }.stateIn(
                 scope = viewModelScope,
                 started = SharingStarted.WhileSubscribed(5_000),

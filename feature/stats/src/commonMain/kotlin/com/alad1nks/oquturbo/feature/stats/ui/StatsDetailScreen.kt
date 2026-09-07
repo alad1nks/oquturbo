@@ -24,7 +24,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.alad1nks.oquturbo.core.ui.component.AppTopBar
 import com.alad1nks.oquturbo.core.ui.component.PageHeader
@@ -48,6 +47,7 @@ internal fun StatsGameDetailRouteContent(
     val uiState by viewModel.uiState.collectAsState()
     StatsGameDetailScreen(
         uiState = uiState,
+        onPeriodSelected = viewModel::selectPeriod,
         onBackClick = onBackClick,
         onModeClick = onModeClick,
         modifier = modifier,
@@ -63,14 +63,16 @@ internal fun StatsModeDetailRouteContent(
     val uiState by viewModel.uiState.collectAsState()
     StatsModeDetailScreen(
         uiState = uiState,
+        onPeriodSelected = viewModel::selectPeriod,
         onBackClick = onBackClick,
         modifier = modifier,
     )
 }
 
 @Composable
-private fun StatsGameDetailScreen(
+internal fun StatsGameDetailScreen(
     uiState: StatsDetailUiState,
+    onPeriodSelected: (StatsPeriod) -> Unit,
     onBackClick: () -> Unit,
     onModeClick: (StatsGame, StatsMode, StatsPeriod) -> Unit,
     modifier: Modifier = Modifier,
@@ -86,6 +88,7 @@ private fun StatsGameDetailScreen(
                 subtitle = stringResource(AppResource.String.stats_game_detail_subtitle),
             )
         }
+        item { PeriodSelector(selectedPeriod = uiState.period, onPeriodSelected = onPeriodSelected) }
         if (uiState.modes.isEmpty()) {
             item { NotEnoughDynamics() }
         } else {
@@ -102,14 +105,14 @@ private fun StatsGameDetailScreen(
 }
 
 @Composable
-private fun StatsModeDetailScreen(
+internal fun StatsModeDetailScreen(
     uiState: StatsDetailUiState,
+    onPeriodSelected: (StatsPeriod) -> Unit,
     onBackClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val mode = uiState.modes.firstOrNull()
     StatsDetailLayout(
-        title = mode?.let { stringResource(it.mode.titleResource()) }.orEmpty(),
+        title = uiState.selectedMode?.let { stringResource(it.titleResource()) }.orEmpty(),
         onBackClick = onBackClick,
         modifier = modifier,
     ) {
@@ -119,6 +122,7 @@ private fun StatsModeDetailScreen(
                 subtitle = stringResource(AppResource.String.stats_mode_detail_subtitle),
             )
         }
+        item { PeriodSelector(selectedPeriod = uiState.period, onPeriodSelected = onPeriodSelected) }
         if (uiState.modes.isEmpty()) {
             item { NotEnoughDynamics() }
         } else {
@@ -159,8 +163,6 @@ private fun ModeDetailCard(
                     Text(
                         text = trend.title(),
                         style = MaterialTheme.typography.titleLarge,
-                        maxLines = 2,
-                        overflow = TextOverflow.Ellipsis,
                     )
                     Text(
                         text =
