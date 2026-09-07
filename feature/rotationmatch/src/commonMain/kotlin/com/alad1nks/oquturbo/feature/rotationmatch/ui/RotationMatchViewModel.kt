@@ -43,6 +43,9 @@ internal class RotationMatchViewModel(
     private var attemptToken = 0L
     private var attemptStartedAt: TimeMark? = null
     private var roundTimerMark: TimeMark? = null
+    private var pausedAt: TimeMark? = null
+    private var pausedDurationMillis = 0L
+    private var timerGeneration = 0L
     private var timerJob: Job? = null
     private var feedbackJob: Job? = null
     private val recordedAttempts = mutableSetOf<Long>()
@@ -65,6 +68,8 @@ internal class RotationMatchViewModel(
         if (_uiState.value.isRecordLoading) return
         attemptToken++
         cancelJobs()
+        pausedAt = null
+        pausedDurationMillis = 0L
         previousRecord = record
         game.start()
         attemptStartedAt = timeSource.markNow()
@@ -77,6 +82,7 @@ internal class RotationMatchViewModel(
         roundId: Long,
         answer: RotationMatchAnswer,
     ) {
+        if (attemptStartedAt == null) return
         val displayedRound = game.state.round
         if (game.state.phase != RotationMatchPhase.Active || displayedRound?.id != roundId) return
         val token = attemptToken
@@ -87,8 +93,7 @@ internal class RotationMatchViewModel(
             publish()
             return
         }
-        timerJob?.cancel()
-        timerJob = null
+        cancelTimer()
         roundTimerMark = null
         when (game.state.phase) {
             RotationMatchPhase.CorrectFeedback -> {
@@ -114,16 +119,43 @@ internal class RotationMatchViewModel(
         }
     }
 
+    fun pause() {
+        if (attemptStartedAt == null || game.state.phase != RotationMatchPhase.Active) return
+        val elapsed = roundTimerMark?.elapsedNow()?.inWholeMilliseconds?.coerceAtLeast(0) ?: return
+        game.pause(elapsed)
+        cancelTimer()
+        roundTimerMark = null
+        if (game.state.phase == RotationMatchPhase.Result) {
+            completeAttempt(attemptToken)
+        } else {
+            pausedAt = timeSource.markNow()
+            publish()
+        }
+    }
+
+    fun resume() {
+        if (attemptStartedAt == null || game.state.phase != RotationMatchPhase.Paused) return
+        val mark = pausedAt ?: return
+        pausedDurationMillis += mark.elapsedNow().inWholeMilliseconds.coerceAtLeast(0)
+        pausedAt = null
+        game.resume()
+        roundTimerMark = timeSource.markNow()
+        publish()
+        scheduleTimer(attemptToken, requireNotNull(game.state.round).id)
+    }
+
     fun abandon() {
         attemptToken++
         cancelJobs()
         attemptStartedAt = null
         roundTimerMark = null
+        pausedAt = null
+        pausedDurationMillis = 0L
     }
 
     internal fun advanceTimerBy(millis: Long) {
         val token = attemptToken
-        if (game.state.phase != RotationMatchPhase.Active) return
+        if (attemptStartedAt == null || game.state.phase != RotationMatchPhase.Active) return
         game.elapse(millis)
         if (game.state.phase == RotationMatchPhase.Result) {
             roundTimerMark = null
@@ -137,7 +169,8 @@ internal class RotationMatchViewModel(
         token: Long,
         roundId: Long,
     ) {
-        timerJob?.cancel()
+        cancelTimer()
+        val tick = timerTickCallback()
         timerJob =
             viewModelScope.launch {
                 while (
@@ -146,21 +179,29 @@ internal class RotationMatchViewModel(
                     game.state.round?.id == roundId
                 ) {
                     delay(TIMER_TICK_MILLIS)
-                    if (
-                        token != attemptToken ||
-                        game.state.phase != RotationMatchPhase.Active ||
-                        game.state.round?.id != roundId
-                    ) {
-                        return@launch
-                    }
-                    val mark = roundTimerMark ?: return@launch
-                    val elapsed = mark.elapsedNow().inWholeMilliseconds.coerceAtLeast(0)
-                    if (elapsed > 0) {
-                        roundTimerMark = timeSource.markNow()
-                        advanceTimerBy(elapsed)
-                    }
+                    tick()
                 }
             }
+    }
+
+    internal fun timerTickCallback(): () -> Unit {
+        val token = attemptToken
+        val generation = timerGeneration
+        val roundId = game.state.round?.id
+        return tick@{
+            if (
+                token != attemptToken || generation != timerGeneration || attemptStartedAt == null ||
+                game.state.phase != RotationMatchPhase.Active || game.state.round?.id != roundId
+            ) {
+                return@tick
+            }
+            val mark = roundTimerMark ?: return@tick
+            val elapsed = mark.elapsedNow().inWholeMilliseconds.coerceAtLeast(0)
+            if (elapsed > 0) {
+                roundTimerMark = timeSource.markNow()
+                advanceTimerBy(elapsed)
+            }
+        }
     }
 
     private fun completeAttempt(token: Long) {
@@ -170,7 +211,8 @@ internal class RotationMatchViewModel(
         val finished = game.state
         cancelJobs()
         roundTimerMark = null
-        val duration = attemptStartedAt?.elapsedNow()?.inWholeMilliseconds?.coerceAtLeast(0) ?: 0
+        val duration =
+            ((attemptStartedAt?.elapsedNow()?.inWholeMilliseconds ?: 0) - pausedDurationMillis).coerceAtLeast(0)
         attemptStartedAt = null
         val claimedNewRecord = finished.score > 0 && finished.score > record
         if (claimedNewRecord) record = finished.score
@@ -210,10 +252,15 @@ internal class RotationMatchViewModel(
             )
     }
 
-    private fun cancelJobs() {
+    private fun cancelTimer() {
+        timerGeneration++
         timerJob?.cancel()
-        feedbackJob?.cancel()
         timerJob = null
+    }
+
+    private fun cancelJobs() {
+        cancelTimer()
+        feedbackJob?.cancel()
         feedbackJob = null
     }
 

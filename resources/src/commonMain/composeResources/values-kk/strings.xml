@@ -699,6 +699,10 @@
     <string name="rotation_match_mode">Бұрылу</string>
     <string name="rotation_match_ready_title">Үлгілерді салыстыруға дайынсыз ба?</string>
     <string name="rotation_match_instructions">Үміткер үлгі бұрылғаннан кейін эталонмен бірдей ме, анықтаңыз. Шағылыстар басқа болып саналады.</string>
+    <string name="rotation_match_pause">Кідірту</string>
+    <string name="rotation_match_paused_title">Кідіртілді</string>
+    <string name="rotation_match_paused_message">Таймер тоқтатылды. Дайын болған кезде жалғастырыңыз.</string>
+    <string name="rotation_match_resume">Жалғастыру</string>
     <string name="rotation_match_start">Бастау</string>
     <string name="rotation_match_loading_record">Рекорд жүктелуде…</string>
     <string name="rotation_match_placeholder">—</string>

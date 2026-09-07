@@ -11,6 +11,43 @@ import kotlin.test.assertTrue
 
 class RotationMatchGameTest {
     @Test
+    fun pauseFreezesGameAndOnlyResumeRestoresSameRound() {
+        val game = RotationMatchGame(SeededRandom())
+        game.pause()
+        game.resume()
+        assertEquals(RotationMatchPhase.Ready, game.state.phase)
+        game.start()
+        val original = game.state
+        game.pause(123)
+        val paused =
+            original.copy(
+                phase = RotationMatchPhase.Paused,
+                round = original.round!!.copy(remainingTimeMillis = 9_877),
+            )
+        assertEquals(paused, game.state)
+        game.pause(10_000)
+        game.answer(original.round.correctAnswer, 10_000)
+        game.elapse(10_000)
+        game.continueAfterCorrect()
+        assertEquals(paused, game.state)
+        game.resume()
+        game.resume()
+        assertEquals(paused.copy(phase = RotationMatchPhase.Active), game.state)
+        game.answer(original.round.correctAnswer)
+        val feedback = game.state
+        game.pause()
+        game.resume()
+        assertEquals(feedback, game.state)
+        game.continueAfterCorrect()
+        game.pause(10_000)
+        assertEquals(RotationMatchFailure.Timeout, game.state.failure)
+        val result = game.state
+        game.resume()
+        game.pause()
+        assertEquals(result, game.state)
+    }
+
+    @Test
     fun rotationAndMirrorTransformsPreserveCellsAndHaveExpectedCoordinates() {
         val board = RotationMatchBoard(3, setOf(0, 3, 4, 7))
 

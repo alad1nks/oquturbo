@@ -367,6 +367,9 @@ import oquturbo.resources.generated.resources.rotation_match_loading_record
 import oquturbo.resources.generated.resources.rotation_match_match
 import oquturbo.resources.generated.resources.rotation_match_mode
 import oquturbo.resources.generated.resources.rotation_match_new_record
+import oquturbo.resources.generated.resources.rotation_match_pause
+import oquturbo.resources.generated.resources.rotation_match_paused_message
+import oquturbo.resources.generated.resources.rotation_match_paused_title
 import oquturbo.resources.generated.resources.rotation_match_placeholder
 import oquturbo.resources.generated.resources.rotation_match_play_again
 import oquturbo.resources.generated.resources.rotation_match_ready_title
@@ -376,6 +379,7 @@ import oquturbo.resources.generated.resources.rotation_match_reference
 import oquturbo.resources.generated.resources.rotation_match_result_details
 import oquturbo.resources.generated.resources.rotation_match_result_different_explanation
 import oquturbo.resources.generated.resources.rotation_match_result_match_explanation
+import oquturbo.resources.generated.resources.rotation_match_resume
 import oquturbo.resources.generated.resources.rotation_match_score
 import oquturbo.resources.generated.resources.rotation_match_score_value
 import oquturbo.resources.generated.resources.rotation_match_seconds
@@ -601,6 +605,10 @@ object AppResource {
         val rotation_match_score = Res.string.rotation_match_score
         val rotation_match_score_value = Res.string.rotation_match_score_value
         val rotation_match_seconds = Res.string.rotation_match_seconds
+        val rotation_match_pause = Res.string.rotation_match_pause
+        val rotation_match_paused_title = Res.string.rotation_match_paused_title
+        val rotation_match_paused_message = Res.string.rotation_match_paused_message
+        val rotation_match_resume = Res.string.rotation_match_resume
         val rotation_match_start = Res.string.rotation_match_start
         val rotation_match_time = Res.string.rotation_match_time
         val rotation_match_timeout_title = Res.string.rotation_match_timeout_title

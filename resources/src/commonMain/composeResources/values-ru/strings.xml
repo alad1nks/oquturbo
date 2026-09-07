@@ -728,6 +728,10 @@
     <string name="rotation_match_mode">Вращение</string>
     <string name="rotation_match_ready_title">Готовы сравнивать узоры?</string>
     <string name="rotation_match_instructions">Определите, совпадает ли узор кандидата с образцом после вращения. Отражения считаются другими.</string>
+    <string name="rotation_match_pause">Пауза</string>
+    <string name="rotation_match_paused_title">Пауза</string>
+    <string name="rotation_match_paused_message">Таймер остановлен. Продолжите, когда будете готовы.</string>
+    <string name="rotation_match_resume">Продолжить</string>
     <string name="rotation_match_start">Начать</string>
     <string name="rotation_match_loading_record">Загрузка рекорда…</string>
     <string name="rotation_match_placeholder">—</string>

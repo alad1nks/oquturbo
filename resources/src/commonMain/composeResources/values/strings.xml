@@ -697,6 +697,10 @@
     <string name="rotation_match_mode">Rotation</string>
     <string name="rotation_match_ready_title">Ready to compare patterns?</string>
     <string name="rotation_match_instructions">Decide whether the candidate is the same pattern as the reference after rotation. Reflections are different.</string>
+    <string name="rotation_match_pause">Pause</string>
+    <string name="rotation_match_paused_title">Paused</string>
+    <string name="rotation_match_paused_message">The timer is stopped. Resume when you’re ready.</string>
+    <string name="rotation_match_resume">Resume</string>
     <string name="rotation_match_start">Start</string>
     <string name="rotation_match_loading_record">Loading record…</string>
     <string name="rotation_match_placeholder">—</string>

@@ -281,6 +281,211 @@ class RotationMatchViewModelTest {
         )
     }
 
+    @Test
+    fun pauseSettlesTimeAndResumeKeepsRoundWhileRejectingOldTimerCallbacks() =
+        runViewModelTest { viewModel, storage, timeSource ->
+            runCurrent()
+            viewModel.start()
+            runCurrent()
+            val original = requireNotNull(viewModel.uiState.value.game.round)
+            val oldTick = viewModel.timerTickCallback()
+            timeSource += 1_237.milliseconds
+            viewModel.pause()
+            val paused = viewModel.uiState.value.game
+            assertEquals(RotationMatchPhase.Paused, paused.phase)
+            assertEquals(original.copy(remainingTimeMillis = 8_763), paused.round)
+            repeat(3) {
+                timeSource += 60_000.milliseconds
+                viewModel.pause()
+                viewModel.selectAnswer(original.id, original.correctAnswer)
+                viewModel.advanceTimerBy(60_000)
+                oldTick()
+                advanceTimeBy(1_000)
+                runCurrent()
+                assertEquals(paused, viewModel.uiState.value.game)
+            }
+            assertEquals(0, storage.gameSessionWriteCount)
+            viewModel.resume()
+            viewModel.resume()
+            assertEquals(paused.copy(phase = RotationMatchPhase.Active), viewModel.uiState.value.game)
+            timeSource += 100.milliseconds
+            oldTick()
+            assertEquals(8_763L, viewModel.uiState.value.game.round!!.remainingTimeMillis)
+            runCurrent()
+            advanceTimeBy(100)
+            runCurrent()
+            assertEquals(8_663L, viewModel.uiState.value.game.round!!.remainingTimeMillis)
+            val resumedTick = viewModel.timerTickCallback()
+            viewModel.pause()
+            timeSource += 50_000.milliseconds
+            viewModel.resume()
+            timeSource += 27.milliseconds
+            resumedTick()
+            assertEquals(8_663L, viewModel.uiState.value.game.round!!.remainingTimeMillis)
+            viewModel.pause()
+            assertEquals(8_636L, viewModel.uiState.value.game.round!!.remainingTimeMillis)
+        }
+
+    @Test
+    fun pauseAtOrAfterDeadlineCompletesTimeoutExactlyOnce() =
+        runViewModelTest { viewModel, storage, timeSource ->
+            runCurrent()
+            listOf(10_000L, 10_001L).forEachIndexed { index, elapsed ->
+                viewModel.start()
+                val tick = viewModel.timerTickCallback()
+                timeSource += elapsed.milliseconds
+                viewModel.pause()
+                viewModel.pause()
+                viewModel.resume()
+                tick()
+                runCurrent()
+                assertEquals(RotationMatchPhase.Result, viewModel.uiState.value.game.phase)
+                assertEquals(RotationMatchFailure.Timeout, viewModel.uiState.value.game.failure)
+                assertEquals(0L, viewModel.uiState.value.game.round!!.remainingTimeMillis)
+                assertEquals(index + 1, storage.gameSessionWriteCount)
+            }
+        }
+
+    @Test
+    fun pauseOneMillisecondBeforeDeadlineDoesNotGrantFreshAllowance() =
+        runViewModelTest { viewModel, storage, timeSource ->
+            runCurrent()
+            viewModel.start()
+            timeSource += 9_999.milliseconds
+            viewModel.pause()
+            assertEquals(1L, viewModel.uiState.value.game.round!!.remainingTimeMillis)
+            timeSource += 99_000.milliseconds
+            viewModel.resume()
+            timeSource += 1.milliseconds
+            viewModel.pause()
+            runCurrent()
+            assertEquals(RotationMatchFailure.Timeout, viewModel.uiState.value.game.failure)
+            assertEquals(10_000L, viewModel.uiState.value.completedDurationMillis)
+            assertEquals(10_000L, GameActivityRepository(storage).observeSessions().first().single().durationMillis)
+            assertEquals(1, storage.gameSessionWriteCount)
+        }
+
+    @Test
+    fun multiplePausesExcludeOnlyPausedIntervalsAndKeepFeedbackAndFrozenResultDuration() =
+        runViewModelTest { viewModel, storage, timeSource ->
+            runCurrent()
+            viewModel.pause()
+            viewModel.resume()
+            assertEquals(RotationMatchPhase.Ready, viewModel.uiState.value.game.phase)
+            viewModel.start()
+            repeat(2) {
+                timeSource += 100.milliseconds
+                viewModel.pause()
+                timeSource += 60_000.milliseconds
+                viewModel.resume()
+            }
+            viewModel.selectCurrentAnswer(viewModel.uiState.value.game.round!!.correctAnswer)
+            val feedback = viewModel.uiState.value.game
+            viewModel.pause()
+            viewModel.resume()
+            assertEquals(feedback, viewModel.uiState.value.game)
+            timeSource += 350.milliseconds
+            advanceTimeBy(350)
+            runCurrent()
+            timeSource += 200.milliseconds
+            viewModel.pause()
+            timeSource += 120_000.milliseconds
+            viewModel.resume()
+            timeSource += 50.milliseconds
+            viewModel.selectCurrentAnswer(viewModel.uiState.value.game.round!!.correctAnswer.opposite())
+            runCurrent()
+            val result = viewModel.uiState.value
+            val repository = GameActivityRepository(storage)
+            val session = repository.observeSessions().first().single()
+            assertEquals(800L, result.completedDurationMillis)
+            assertEquals(800L, session.durationMillis)
+            assertEquals(GameId.RotationMatch, session.game)
+            assertEquals(GameModeId.RotationMatchRotation, session.mode)
+            assertNull(session.variantId)
+            assertEquals(1, session.score)
+            assertEquals(1, session.correctAnswers)
+            assertTrue(session.isNewRecord)
+            assertEquals(1, repository.observeProgress().first().totalXp)
+            timeSource += 30_000.milliseconds
+            viewModel.pause()
+            viewModel.resume()
+            viewModel.advanceTimerBy(100_000)
+            assertEquals(result, viewModel.uiState.value)
+            assertEquals(1, storage.gameSessionWriteCount)
+            viewModel.start()
+            timeSource += 25.milliseconds
+            viewModel.selectCurrentAnswer(viewModel.uiState.value.game.round!!.correctAnswer.opposite())
+            runCurrent()
+            assertEquals(25L, viewModel.uiState.value.completedDurationMillis)
+            assertEquals(2, storage.gameSessionWriteCount)
+        }
+
+    @Test
+    fun backFromPausedInvalidatesResumeAnswerAndTimerBeforeFreshAttempt() =
+        runViewModelTest { viewModel, storage, timeSource ->
+            runCurrent()
+            viewModel.start()
+            val oldRound = requireNotNull(viewModel.uiState.value.game.round)
+            val oldTick = viewModel.timerTickCallback()
+            timeSource += 100.milliseconds
+            viewModel.pause()
+            val paused = viewModel.uiState.value
+            var navigated = false
+            rotationMatchBackAction({ navigated = true }, viewModel::abandon)!!()
+            assertTrue(navigated)
+            timeSource += 60_000.milliseconds
+            viewModel.resume()
+            viewModel.pause()
+            viewModel.selectAnswer(oldRound.id, oldRound.correctAnswer)
+            viewModel.advanceTimerBy(60_000)
+            oldTick()
+            advanceTimeBy(60_000)
+            runCurrent()
+            assertEquals(paused, viewModel.uiState.value)
+            assertEquals(0, storage.gameSessionWriteCount)
+            viewModel.start()
+            val fresh = viewModel.uiState.value
+            assertNotEquals(oldRound.id, fresh.game.round!!.id)
+            assertEquals(10_000L, fresh.game.round.remainingTimeMillis)
+            timeSource += 50.milliseconds
+            oldTick()
+            viewModel.selectAnswer(oldRound.id, oldRound.correctAnswer)
+            assertEquals(fresh, viewModel.uiState.value)
+            viewModel.selectCurrentAnswer(fresh.game.round.correctAnswer.opposite())
+            runCurrent()
+            assertEquals(50L, viewModel.uiState.value.completedDurationMillis)
+            assertEquals(1, storage.gameSessionWriteCount)
+        }
+
+    @Test
+    fun recordObservationWhilePausedDoesNotResetGameOrResumeTimer() =
+        runViewModelTest { viewModel, storage, timeSource ->
+            runCurrent()
+            viewModel.start()
+            timeSource += 250.milliseconds
+            viewModel.pause()
+            val paused = viewModel.uiState.value.game
+            GameActivityRepository(storage).recordCompletedSession(
+                GameId.RotationMatch,
+                GameModeId.RotationMatchRotation,
+                score = 9,
+                durationMillis = 10,
+                isNewRecord = true,
+            )
+            timeSource += 60_000.milliseconds
+            runCurrent()
+            assertEquals(9, viewModel.uiState.value.record)
+            assertEquals(paused, viewModel.uiState.value.game)
+            viewModel.resume()
+            runCurrent()
+            timeSource += 9_750.milliseconds
+            advanceTimeBy(100)
+            runCurrent()
+            assertEquals(RotationMatchFailure.Timeout, viewModel.uiState.value.game.failure)
+            assertEquals(10_000L, viewModel.uiState.value.completedDurationMillis)
+            assertEquals(2, storage.gameSessionWriteCount)
+        }
+
     private fun runViewModelTest(
         block: suspend kotlinx.coroutines.test.TestScope.(
             RotationMatchViewModel,
