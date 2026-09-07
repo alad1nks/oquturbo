@@ -60,6 +60,7 @@ import com.alad1nks.oquturbo.feature.memorygrid.model.MemoryGridGameMode
 import com.alad1nks.oquturbo.feature.memorygrid.model.MemoryGridPhase
 import com.alad1nks.oquturbo.feature.memorygrid.model.MemoryGridState
 import com.alad1nks.oquturbo.resources.AppResource
+import org.jetbrains.compose.resources.pluralStringResource
 import org.jetbrains.compose.resources.stringResource
 
 @Composable
@@ -353,6 +354,19 @@ private fun ResultPanel(state: MemoryGridState, mode: MemoryGridGameMode, onStar
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     textAlign = TextAlign.Center,
                 )
+                state.completedDurationMillis?.let { duration ->
+                    Text(
+                        text =
+                            stringResource(
+                                AppResource.String.memory_grid_result_duration,
+                                memoryGridDurationText(duration),
+                            ),
+                        modifier = Modifier.fillMaxWidth(),
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        textAlign = TextAlign.Center,
+                    )
+                }
             }
             Text(
                 stringResource(
@@ -547,6 +561,172 @@ private fun MemoryGridNewRecordPreview() {
                     expectedCellsAfterMistake = setOf(2),
                     record = 3,
                     isNewRecord = true,
+                ),
+            mode = MemoryGridGameMode.Route,
+            onStartClick = {},
+            onCellClick = {},
+            onBackClick = {},
+        )
+    }
+}
+
+@Composable
+internal fun memoryGridDurationText(durationMillis: Long): String =
+    when (val parts = memoryGridDurationDisplayParts(durationMillis)) {
+        MemoryGridDurationDisplayParts.LessThanOneSecond ->
+            stringResource(AppResource.String.memory_grid_duration_less_than_one_second)
+        is MemoryGridDurationDisplayParts.Seconds ->
+            pluralStringResource(
+                AppResource.Plural.memory_grid_duration_seconds,
+                parts.seconds.memoryGridPluralQuantity(),
+                parts.seconds,
+            )
+        is MemoryGridDurationDisplayParts.MinutesSeconds -> {
+            val minutes =
+                pluralStringResource(
+                    AppResource.Plural.memory_grid_duration_minutes,
+                    parts.minutes.memoryGridPluralQuantity(),
+                    parts.minutes,
+                )
+            val seconds = parts.seconds ?: return minutes
+            stringResource(
+                AppResource.String.memory_grid_duration_minutes_seconds,
+                minutes,
+                pluralStringResource(
+                    AppResource.Plural.memory_grid_duration_seconds,
+                    seconds.memoryGridPluralQuantity(),
+                    seconds,
+                ),
+            )
+        }
+    }
+
+@Preview(name = "Memory Grid — duration Route", widthDp = 320, heightDp = 1100, locale = "en")
+@ScreenshotPreview
+@Composable
+private fun MemoryGridDurationRoutePreview() {
+    OquTurboTheme {
+        MemoryGridScreen(
+            state =
+                MemoryGridState(
+                    phase = MemoryGridPhase.GameOver,
+                    gridSize = 3,
+                    sequence = listOf(0, 1, 2, 3),
+                    input = listOf(0, 1),
+                    score = 3,
+                    correctCellCount = 5,
+                    failedSelectedCell = 8,
+                    expectedCellsAfterMistake = setOf(2),
+                    isNewRecord = false,
+                    completedDurationMillis = 725_300,
+                ),
+            mode = MemoryGridGameMode.Route,
+            onStartClick = {},
+            onCellClick = {},
+            onBackClick = {},
+        )
+    }
+}
+
+@Preview(name = "Memory Grid — duration Reverse", widthDp = 320, heightDp = 1100, locale = "ru")
+@ScreenshotPreview
+@Composable
+private fun MemoryGridDurationReversePreview() {
+    OquTurboTheme {
+        MemoryGridScreen(
+            state =
+                MemoryGridState(
+                    phase = MemoryGridPhase.GameOver,
+                    gridSize = 3,
+                    sequence = listOf(0, 1, 2, 3),
+                    input = listOf(3, 2),
+                    score = 3,
+                    correctCellCount = 5,
+                    failedSelectedCell = 8,
+                    expectedCellsAfterMistake = setOf(1),
+                    isNewRecord = true,
+                    completedDurationMillis = 61_000,
+                ),
+            mode = MemoryGridGameMode.Reverse,
+            onStartClick = {},
+            onCellClick = {},
+            onBackClick = {},
+        )
+    }
+}
+
+@Preview(name = "Memory Grid — duration Flash", widthDp = 320, heightDp = 1200, locale = "kk")
+@ScreenshotPreview
+@Composable
+private fun MemoryGridDurationFlashPreview() {
+    OquTurboTheme {
+        MemoryGridScreen(
+            state =
+                MemoryGridState(
+                    phase = MemoryGridPhase.GameOver,
+                    gridSize = 4,
+                    sequence = listOf(0, 1, 2, 3),
+                    input = listOf(0, 1),
+                    score = 1,
+                    correctCellCount = 5,
+                    failedSelectedCell = 1,
+                    expectedCellsAfterMistake = setOf(2, 3),
+                    isNewRecord = false,
+                    completedDurationMillis = 740_725_000,
+                ),
+            mode = MemoryGridGameMode.Flash,
+            onStartClick = {},
+            onCellClick = {},
+            onBackClick = {},
+        )
+    }
+}
+
+@Preview(name = "Memory Grid — duration Large", widthDp = 320, heightDp = 1200, locale = "en")
+@ScreenshotPreview
+@Composable
+private fun MemoryGridDurationLargePreview() {
+    OquTurboTheme {
+        MemoryGridScreen(
+            state =
+                MemoryGridState(
+                    phase = MemoryGridPhase.GameOver,
+                    gridSize = 3,
+                    sequence = listOf(0, 1, 2, 3),
+                    input = listOf(0, 1),
+                    score = 3,
+                    correctCellCount = Int.MAX_VALUE,
+                    failedSelectedCell = 8,
+                    expectedCellsAfterMistake = setOf(2),
+                    isNewRecord = false,
+                    completedDurationMillis = Long.MAX_VALUE,
+                ),
+            mode = MemoryGridGameMode.Route,
+            onStartClick = {},
+            onCellClick = {},
+            onBackClick = {},
+        )
+    }
+}
+
+@Preview(name = "Memory Grid — duration Early", widthDp = 390, heightDp = 1000, locale = "en")
+@ScreenshotPreview
+@Composable
+private fun MemoryGridDurationEarlyPreview() {
+    OquTurboTheme {
+        MemoryGridScreen(
+            state =
+                MemoryGridState(
+                    phase = MemoryGridPhase.GameOver,
+                    gridSize = 3,
+                    sequence = listOf(0, 1, 2, 3),
+                    input = listOf(),
+                    score = 0,
+                    correctCellCount = 0,
+                    failedSelectedCell = 8,
+                    expectedCellsAfterMistake = setOf(0),
+                    isNewRecord = false,
+                    completedDurationMillis = 999,
                 ),
             mode = MemoryGridGameMode.Route,
             onStartClick = {},

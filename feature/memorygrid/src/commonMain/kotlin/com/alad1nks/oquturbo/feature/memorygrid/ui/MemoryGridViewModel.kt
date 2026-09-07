@@ -24,11 +24,13 @@ internal class MemoryGridViewModel(
     val mode: MemoryGridGameMode,
     private val activityRepository: GameActivityRepository,
     private val game: MemoryGridGame = MemoryGridGame(mode = mode),
+    private val timeSource: TimeSource = TimeSource.Monotonic,
 ) : ViewModel() {
     private val _uiState = MutableStateFlow(game.state)
     val uiState = _uiState.asStateFlow()
     private var presentationJob: Job? = null
-    private var startedAt = TimeSource.Monotonic.markNow()
+    private var startedAt = timeSource.markNow()
+    private var completedDurationMillis: Long? = null
     private var record = 0
     private var sessionRecorded = false
     private var completedWithNewRecord = false
@@ -47,7 +49,8 @@ internal class MemoryGridViewModel(
     fun start() {
         presentationJob?.cancel()
         currentAttemptId++
-        startedAt = TimeSource.Monotonic.markNow()
+        startedAt = timeSource.markNow()
+        completedDurationMillis = null
         sessionRecorded = false
         completedWithNewRecord = false
         game.start()
@@ -58,6 +61,9 @@ internal class MemoryGridViewModel(
     fun selectCell(cellIndex: Int) {
         if (game.state.phase != MemoryGridPhase.AwaitingInput) return
         game.selectCell(cellIndex)
+        if (game.state.phase == MemoryGridPhase.GameOver) {
+            completedDurationMillis = startedAt.elapsedNow().inWholeMilliseconds.coerceAtLeast(0)
+        }
         publish()
         if (game.state.phase == MemoryGridPhase.GameOver) recordSession()
         if (game.state.phase == MemoryGridPhase.RoundSuccess) {
@@ -89,6 +95,7 @@ internal class MemoryGridViewModel(
             game.state.copy(
                 record = maxOf(record, game.state.score),
                 isNewRecord = completedWithNewRecord,
+                completedDurationMillis = completedDurationMillis,
             )
     }
 
@@ -96,6 +103,7 @@ internal class MemoryGridViewModel(
         if (sessionRecorded) return
         sessionRecorded = true
         val finishedState = game.state
+        val durationMillis = checkNotNull(completedDurationMillis)
         val isNewRecord = finishedState.score > record
         val completedAttemptId = currentAttemptId
         viewModelScope.launch(start = CoroutineStart.UNDISPATCHED) {
@@ -107,7 +115,7 @@ internal class MemoryGridViewModel(
                             mode = mode.activityMode,
                             score = finishedState.score,
                             correctAnswers = finishedState.correctCellCount,
-                            durationMillis = startedAt.elapsedNow().inWholeMilliseconds,
+                            durationMillis = durationMillis,
                             isNewRecord = isNewRecord,
                         )
                     if (completedAttemptId == currentAttemptId && game.state.phase == MemoryGridPhase.GameOver) {

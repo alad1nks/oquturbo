@@ -744,4 +744,15 @@
     <string name="rotation_match_filled">толтырылған</string>
     <string name="rotation_match_empty">бос</string>
     <string name="stats_skill_visual_perception">Көру арқылы қабылдау</string>
+    <string name="memory_grid_duration_less_than_one_second">1 секундтан аз</string>
+    <plurals name="memory_grid_duration_seconds">
+        <item quantity="one">%1$d секунд</item>
+        <item quantity="other">%1$d секунд</item>
+    </plurals>
+    <plurals name="memory_grid_duration_minutes">
+        <item quantity="one">%1$d минут</item>
+        <item quantity="other">%1$d минут</item>
+    </plurals>
+    <string name="memory_grid_duration_minutes_seconds">%1$s %2$s</string>
+    <string name="memory_grid_result_duration">Уақыт: %1$s</string>
 </resources>
