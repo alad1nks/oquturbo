@@ -185,6 +185,7 @@ data class MemoryGridState(
     val expectedCellsAfterMistake: Set<Int> = emptySet(),
     val record: Int = 0,
     val isNewRecord: Boolean = false,
+    val completedDurationMillis: Long? = null,
 ) {
     val cellCount: Int
         get() = gridSize * gridSize

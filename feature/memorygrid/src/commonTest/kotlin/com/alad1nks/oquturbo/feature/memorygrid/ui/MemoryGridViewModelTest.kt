@@ -1,5 +1,6 @@
 package com.alad1nks.oquturbo.feature.memorygrid.ui
 
+import androidx.lifecycle.ViewModelStore
 import com.alad1nks.oquturbo.core.data.model.GameId
 import com.alad1nks.oquturbo.core.data.model.GameModeId
 import com.alad1nks.oquturbo.core.data.repository.GameActivityRepository
@@ -13,7 +14,9 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.advanceTimeBy
@@ -24,6 +27,7 @@ import kotlinx.coroutines.test.setMain
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
+import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -46,6 +50,7 @@ class MemoryGridViewModelTest {
                 assertEquals(3, session.score)
                 assertEquals(5, session.correctAnswers)
                 assertEquals(session.correctAnswers, viewModel.uiState.value.correctCellCount)
+                assertEquals(session.durationMillis, viewModel.uiState.value.completedDurationMillis)
                 assertTrue(session.isNewRecord)
                 assertTrue(viewModel.uiState.value.isNewRecord)
                 assertEquals(1, storage.gameSessionWriteCount)
@@ -94,8 +99,13 @@ class MemoryGridViewModelTest {
                 assertEquals(MemoryGridPhase.GameOver, viewModel.uiState.value.phase)
                 assertFalse(viewModel.uiState.value.isNewRecord)
                 assertEquals(0, storage.gameSessionWriteCount)
+                assertEquals(5_260L, viewModel.uiState.value.completedDurationMillis)
                 assertEquals(5, viewModel.uiState.value.correctCellCount)
                 assertEquals(1, storage.gameSessionWriteAttempts)
+                assertEquals(5_260L, viewModel.uiState.value.completedDurationMillis)
+                advanceTimeBy(60_000)
+                viewModel.selectCell(7)
+                assertEquals(5_260L, viewModel.uiState.value.completedDurationMillis)
 
                 gate.complete(Unit)
                 runCurrent()
@@ -121,6 +131,7 @@ class MemoryGridViewModelTest {
 
                 assertTrue(storage.sessionWriteStarted.isCompleted)
                 assertEquals(0, storage.gameSessionWriteCount)
+                assertEquals(5_260L, viewModel.uiState.value.completedDurationMillis)
                 assertEquals(5, viewModel.uiState.value.correctCellCount)
                 assertEquals(1, storage.gameSessionWriteAttempts)
                 assertEquals(MemoryGridPhase.GameOver, viewModel.uiState.value.phase)
@@ -130,6 +141,7 @@ class MemoryGridViewModelTest {
 
                 val replayState = viewModel.uiState.value
                 assertEquals(MemoryGridPhase.ShowingSequence, replayState.phase)
+                assertNull(replayState.completedDurationMillis)
                 assertEquals(0, replayState.score)
                 assertEquals(0, replayState.correctCellCount)
                 assertTrue(replayState.input.isEmpty())
@@ -182,8 +194,10 @@ class MemoryGridViewModelTest {
 
                 viewModel.start()
                 assertFalse(viewModel.uiState.value.isNewRecord)
+                advanceTimeBy(123)
                 completeCurrentAttemptOneRoundThenFail(viewModel)
                 runCurrent()
+                assertEquals(5_383L, viewModel.uiState.value.completedDurationMillis)
                 assertFalse(viewModel.uiState.value.isNewRecord)
 
                 gate.complete(Unit)
@@ -191,6 +205,8 @@ class MemoryGridViewModelTest {
 
                 val sessions = repository.observeSessions().first()
                 assertEquals(2, sessions.size)
+                assertEquals(listOf(5_260L, 5_383L), sessions.map { it.durationMillis })
+                assertEquals(5_383L, viewModel.uiState.value.completedDurationMillis)
                 assertTrue(sessions.first().isNewRecord)
                 assertFalse(sessions.last().isNewRecord)
                 assertEquals(MemoryGridPhase.GameOver, viewModel.uiState.value.phase)
@@ -240,7 +256,79 @@ class MemoryGridViewModelTest {
                     assertEquals(expectedScore, session.score)
                     assertEquals(5, session.correctAnswers)
                     assertEquals(session.correctAnswers, viewModel.uiState.value.correctCellCount)
+                    assertEquals(if (mode == MemoryGridGameMode.Flash) 3_265L else 5_260L, session.durationMillis)
+                    assertEquals(session.durationMillis, viewModel.uiState.value.completedDurationMillis)
                 }
+            }
+        }
+
+    @Test
+    fun unfinishedAttemptsNeverWriteAndLateSaveCannotRestoreDurationDuringRetry() =
+        runTest {
+            withTestMain {
+                val gate = CompletableDeferred<Unit>()
+                val storage = RecordingStorage(gate)
+                val repository = GameActivityRepository(storage)
+                val viewModel = createViewModel(repository = repository)
+                assertNull(viewModel.uiState.value.completedDurationMillis)
+                viewModel.start()
+                advanceTimeBy(2_100)
+                runCurrent()
+                assertNull(viewModel.uiState.value.completedDurationMillis)
+                assertEquals(0, storage.gameSessionWriteAttempts)
+                viewModel.start()
+                assertEquals(0, storage.gameSessionWriteAttempts)
+                advanceTimeBy(2_100)
+                runCurrent()
+                viewModel.selectCell(8)
+                assertEquals(2_100L, viewModel.uiState.value.completedDurationMillis)
+                viewModel.start()
+                gate.complete(Unit)
+                runCurrent()
+                assertNull(viewModel.uiState.value.completedDurationMillis)
+                advanceTimeBy(2_100)
+                runCurrent()
+                viewModel.selectCell(8)
+                runCurrent()
+                assertEquals(2, storage.gameSessionWriteCount)
+            }
+        }
+
+    @Test
+    fun lateRecordLoadingPreservesCapturedDuration() =
+        runTest {
+            withTestMain {
+                val gate = CompletableDeferred<Unit>()
+                val storage = RecordingStorage(sessionReadGate = gate)
+                val repository = GameActivityRepository(storage)
+                val viewModel = createViewModel(repository = repository)
+                completeOneRoundThenFail(viewModel)
+                assertEquals(5_260L, viewModel.uiState.value.completedDurationMillis)
+                advanceTimeBy(30_000)
+                gate.complete(Unit)
+                runCurrent()
+                assertEquals(5_260L, viewModel.uiState.value.completedDurationMillis)
+                assertEquals(5_260L, repository.observeSessions().first().single().durationMillis)
+            }
+        }
+
+    @Test
+    fun leavingBeforeTerminalSelectionDoesNotRecordActivity() =
+        runTest {
+            withTestMain {
+                val storage = RecordingStorage()
+                val viewModel = createViewModel(repository = GameActivityRepository(storage))
+                val store = ViewModelStore()
+                store.put("memory-grid", viewModel)
+                viewModel.start()
+                advanceTimeBy(2_100)
+                runCurrent()
+                viewModel.selectCell(0)
+                store.clear()
+                advanceTimeBy(30_000)
+                runCurrent()
+                assertEquals(0, storage.gameSessionWriteAttempts)
+                assertNull(viewModel.uiState.value.completedDurationMillis)
             }
         }
 
@@ -288,7 +376,7 @@ class MemoryGridViewModelTest {
         assertEquals(MemoryGridPhase.GameOver, viewModel.uiState.value.phase)
     }
 
-    private fun createViewModel(
+    private fun TestScope.createViewModel(
         mode: MemoryGridGameMode = MemoryGridGameMode.Route,
         repository: GameActivityRepository,
     ): MemoryGridViewModel {
@@ -299,6 +387,7 @@ class MemoryGridViewModelTest {
         return MemoryGridViewModel(
             mode = mode,
             activityRepository = repository,
+            timeSource = testScheduler.timeSource,
             game = MemoryGridGame(sequenceGenerator = generator, mode = mode),
         )
     }
@@ -306,6 +395,7 @@ class MemoryGridViewModelTest {
     private class RecordingStorage(
         private val sessionWriteGate: CompletableDeferred<Unit>? = null,
         private val sessionWriteFailure: Exception? = null,
+        private val sessionReadGate: CompletableDeferred<Unit>? = null,
     ) : Storage {
         private val darkTheme = MutableStateFlow<Boolean?>(null)
         private val languageCode = MutableStateFlow<String?>(null)
@@ -335,7 +425,11 @@ class MemoryGridViewModelTest {
 
         override fun getRemindersEnabled(): Flow<Boolean?> = remindersEnabled
 
-        override fun getGameSessionsJson(): Flow<String?> = gameSessionsJson
+        override fun getGameSessionsJson(): Flow<String?> =
+            flow {
+                sessionReadGate?.await()
+                emitAll(gameSessionsJson)
+            }
 
         override fun getDailyTrainingJson(): Flow<String?> = dailyTrainingJson
 
