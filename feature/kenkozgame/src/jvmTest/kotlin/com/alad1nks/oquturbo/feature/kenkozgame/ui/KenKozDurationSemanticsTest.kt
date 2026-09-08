@@ -21,6 +21,7 @@ import java.util.Locale
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
+import kotlin.test.assertTrue
 
 @OptIn(ExperimentalTestApi::class)
 class KenKozDurationSemanticsTest {
@@ -164,6 +165,56 @@ class KenKozDurationSemanticsTest {
                     },
                 ).performClick()
                 assertEquals(1, backs)
+            }
+        }
+    }
+
+    @Test
+    fun qualifyingKazakhResultKeepsRecordAndLargeDurationSeparateAtPreviewSize() {
+        withLocales(listOf("kk")) {
+            runDesktopComposeUiTest(width = 320, height = 844) {
+                setContent {
+                    CompositionLocalProvider(LocalDensity provides Density(1f)) {
+                        OquTurboTheme {
+                            KenKozGameScreen(
+                                result(KenKozGameMode.WideLine).copy(
+                                    score = 5,
+                                    record = 8,
+                                    trainingRequiredScore = 5,
+                                    isTrainingCompletionReady = true,
+                                    completedDurationMillis = Long.MAX_VALUE,
+                                ),
+                                {},
+                                {},
+                                {},
+                                {},
+                            )
+                        }
+                    }
+                }
+                val score = onNodeWithText("Ұпай: 5", useUnmergedTree = true)
+                val record = onNodeWithText("Рекорд: 8", useUnmergedTree = true)
+                val duration = onNodeWithText("Уақыт: 153722867280912 минут 55 секунд", useUnmergedTree = true)
+                listOf(score, record, duration).forEach { node ->
+                    node.assertIsDisplayed()
+                    val layouts = mutableListOf<TextLayoutResult>()
+                    node.performSemanticsAction(SemanticsActions.GetTextLayoutResult) { it(layouts) }
+                    val layout = layouts.single()
+                    assertFalse(layout.didOverflowHeight)
+                    // Centered card text retains its wider paragraph coordinates after the node shrink-wraps.
+                    repeat(layout.lineCount) { line ->
+                        assertTrue(layout.getLineRight(line) - layout.getLineLeft(line) <= layout.size.width)
+                    }
+
+                    assertTrue(layout.size.height > 0)
+                    assertTrue(layout.getLineBottom(layout.lineCount - 1) <= layout.size.height)
+                }
+                assertTrue(
+                    score.fetchSemanticsNode().boundsInRoot.bottom <= record.fetchSemanticsNode().boundsInRoot.top,
+                )
+                assertTrue(
+                    record.fetchSemanticsNode().boundsInRoot.bottom < duration.fetchSemanticsNode().boundsInRoot.top,
+                )
             }
         }
     }
