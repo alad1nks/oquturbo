@@ -34,6 +34,8 @@ import com.alad1nks.oquturbo.feature.memorygrid.navigation.navigateToMemoryGrid
 import com.alad1nks.oquturbo.feature.memorygridmenu.navigation.MemoryGridMenuRoute
 import com.alad1nks.oquturbo.feature.memorygridmenu.navigation.memoryGridMenuScreen
 import com.alad1nks.oquturbo.feature.memorygridmenu.navigation.navigateToMemoryGridMenu
+import com.alad1nks.oquturbo.feature.numbertrail.navigation.navigateToNumberTrail
+import com.alad1nks.oquturbo.feature.numbertrail.navigation.numberTrailScreen
 import com.alad1nks.oquturbo.feature.profile.navigation.navigateToEditProfile
 import com.alad1nks.oquturbo.feature.profile.navigation.navigateToProfileAchievements
 import com.alad1nks.oquturbo.feature.profile.navigation.navigateToProfilePersonalization
@@ -103,6 +105,7 @@ fun App() {
                     TrainingGame.WordFlow -> appState.navController.navigateToWordFlow()
                     TrainingGame.DualFocus -> appState.navController.navigateToDualFocus()
                     TrainingGame.RotationMatch -> appState.navController.navigateToRotationMatch()
+                    TrainingGame.NumberTrail -> appState.navController.navigateToNumberTrail()
                 }
             },
         )
@@ -217,6 +220,11 @@ fun App() {
                 appState.navController.popBackStack(route = GamesRoute, inclusive = false)
             },
         )
+        numberTrailScreen(
+            onBackClick = {
+                appState.navController.popBackStack(route = GamesRoute, inclusive = false)
+            },
+        )
     }
 }
 
@@ -269,6 +277,7 @@ private fun NavController.navigateToDailyTrainingEntry(entry: DailyTrainingEntry
         GameId.WordFlow -> error("Word Flow is not available in daily training")
         GameId.DualFocus -> error("Dual Focus is not available in daily training")
         GameId.RotationMatch -> error("Rotation Match is not available in daily training")
+        GameId.NumberTrail -> error("Number Trail is not available in daily training")
     }
 }
 
@@ -282,6 +291,7 @@ internal fun GameId.isDailyTrainingGameSupported(): Boolean =
         GameId.WordFlow,
         GameId.DualFocus,
         GameId.RotationMatch,
+        GameId.NumberTrail,
         -> false
     }
 

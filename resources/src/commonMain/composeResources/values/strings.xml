@@ -786,4 +786,37 @@
     </plurals>
     <string name="kenkoz_duration_minutes_seconds">%1$s %2$s</string>
     <string name="kenkoz_result_duration">Duration: %1$s</string>
+    <string name="number_trail_title">Number Trail</string>
+    <string name="number_trail_description">Find numbers in order before time runs out.</string>
+    <string name="number_trail_mode">Ascending order</string>
+    <string name="number_trail_instructions">Tap the numbers in order, starting with 1. Finish each grid before time runs out. A wrong tap ends the game.</string>
+    <string name="number_trail_target">Find %1$d</string>
+    <string name="number_trail_grid_size">Grid %1$d × %1$d</string>
+    <string name="number_trail_time_remaining">Time left: %1$d s</string>
+    <string name="number_trail_score">Score</string>
+    <string name="number_trail_record">Record</string>
+    <string name="number_trail_record_value">Record: %1$d</string>
+    <string name="number_trail_start">Start</string>
+    <string name="number_trail_retry">Try again</string>
+    <string name="number_trail_back">Back</string>
+    <string name="number_trail_pause">Pause</string>
+    <string name="number_trail_paused_title">Paused</string>
+    <string name="number_trail_paused_message">The timer is stopped. Resume when you’re ready.</string>
+    <string name="number_trail_resume">Resume</string>
+    <string name="number_trail_board_complete">Board complete</string>
+    <string name="number_trail_next_board">Next board…</string>
+    <string name="number_trail_wrong_title">Wrong number</string>
+    <string name="number_trail_wrong_detail">You tapped %1$d. The next number was %2$d.</string>
+    <string name="number_trail_timeout_title">Time’s up</string>
+    <string name="number_trail_timeout_detail">The next number was %1$d.</string>
+    <string name="number_trail_new_record">New record!</string>
+    <string name="number_trail_loading_record">Loading record…</string>
+    <string name="number_trail_placeholder">—</string>
+    <string name="number_trail_record_unavailable">Record unavailable</string>
+    <string name="number_trail_retry_load">Retry</string>
+    <string name="number_trail_saving_result">Saving result…</string>
+    <string name="number_trail_save_failed">Couldn’t save this result.</string>
+    <string name="number_trail_tile_description">Number %1$d</string>
+    <string name="number_trail_tile_completed">Completed</string>
+    <string name="number_trail_ready_title">Number Trail</string>
 </resources>

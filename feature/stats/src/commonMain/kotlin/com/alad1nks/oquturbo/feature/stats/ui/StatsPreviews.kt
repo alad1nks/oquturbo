@@ -1,8 +1,14 @@
 package com.alad1nks.oquturbo.feature.stats.ui
 
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
 import com.alad1nks.oquturbo.core.designsystem.theme.OquTurboTheme
+import com.alad1nks.oquturbo.core.ui.component.appBackground
 import com.alad1nks.oquturbo.core.ui.preview.ScreenshotPreview
 import com.alad1nks.oquturbo.feature.stats.demo.DemoStatsFixtures
 import com.alad1nks.oquturbo.feature.stats.model.ActivityStatus
@@ -192,3 +198,83 @@ private fun detailPreviewState(period: StatsPeriod) =
                 )
             },
     )
+
+@Preview(name = "Stats Number Trail mode", widthDp = 320, heightDp = 1400, locale = "kk")
+@ScreenshotPreview
+@Composable
+private fun NumberTrailStatsModePreview() {
+    OquTurboTheme {
+        StatsModeDetailScreen(
+            uiState =
+                StatsDetailUiState(
+                    game = StatsGame.NumberTrail,
+                    period = StatsPeriod.AllTime,
+                    selectedMode = StatsMode.Ascending,
+                    modes =
+                        listOf(
+                            ModeTrend(
+                                mode = StatsMode.Ascending,
+                                scores = listOf(4, 12, 8, 48),
+                                record = 48,
+                                lastResult = 48,
+                                averageResult = 18,
+                                gamesPlayed = 4,
+                            ),
+                        ),
+                ),
+            onPeriodSelected = {},
+            onBackClick = {},
+        )
+    }
+}
+
+@Preview(name = "Stats Number Trail history", widthDp = 320, heightDp = 1800, locale = "ru")
+@ScreenshotPreview
+@Composable
+private fun NumberTrailStatsHistoryPreview() {
+    val base = DemoStatsFixtures.oneMode()
+    StatsPreview(
+        base.copy(
+            snapshot =
+                base.snapshot.copy(
+                    recentActivity =
+                        base.snapshot.recentActivity.map {
+                            it.copy(
+                                game = StatsGame.NumberTrail,
+                                mode = StatsMode.Ascending,
+                            )
+                        },
+                    trends =
+                        base.snapshot.trends.map {
+                            it.copy(
+                                game = StatsGame.NumberTrail,
+                                modes = it.modes.take(1).map { mode -> mode.copy(mode = StatsMode.Ascending) },
+                            )
+                        },
+                    games = base.snapshot.games.map { it.copy(game = StatsGame.NumberTrail) },
+                ),
+        ),
+    )
+}
+
+@Preview(name = "Stats Number Trail visible history", widthDp = 320, heightDp = 844, locale = "ru")
+@ScreenshotPreview
+@Composable
+private fun NumberTrailVisibleHistoryPreview() {
+    OquTurboTheme {
+        Box(Modifier.fillMaxSize().appBackground().padding(16.dp)) {
+            RecentHistorySection(
+                activities =
+                    listOf(
+                        com.alad1nks.oquturbo.feature.stats.model.RecentActivity(
+                            type = com.alad1nks.oquturbo.feature.stats.model.RecentActivityType.GameResult,
+                            game = StatsGame.NumberTrail,
+                            mode = StatsMode.Ascending,
+                            score = 48,
+                        ),
+                    ),
+                onActivityClick = { _, _ -> },
+            )
+        }
+    }
+}

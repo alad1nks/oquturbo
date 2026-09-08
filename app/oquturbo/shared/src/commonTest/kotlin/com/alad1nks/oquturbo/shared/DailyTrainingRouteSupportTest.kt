@@ -7,8 +7,9 @@ import kotlin.test.assertTrue
 
 class DailyTrainingRouteSupportTest {
     @Test
-    fun rotationMatchRouteIsRejected() {
+    fun numberTrailRouteIsRejected() {
         assertFalse(GameId.RotationMatch.isDailyTrainingGameSupported())
+        assertFalse(GameId.NumberTrail.isDailyTrainingGameSupported())
     }
 
     @Test

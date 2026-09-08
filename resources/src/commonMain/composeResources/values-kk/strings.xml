@@ -788,4 +788,37 @@
     </plurals>
     <string name="kenkoz_duration_minutes_seconds">%1$s %2$s</string>
     <string name="kenkoz_result_duration">Уақыт: %1$s</string>
+    <string name="number_trail_title">Сандар жолы</string>
+    <string name="number_trail_description">Уақыт біткенше сандарды ретімен табыңыз.</string>
+    <string name="number_trail_mode">Өсу ретімен</string>
+    <string name="number_trail_instructions">1-ден бастап сандарды ретімен басыңыз. Әр торды уақыт біткенше аяқтаңыз. Қате бассаңыз, ойын аяқталады.</string>
+    <string name="number_trail_target">%1$d санын табыңыз</string>
+    <string name="number_trail_grid_size">Тор %1$d × %1$d</string>
+    <string name="number_trail_time_remaining">Қалған уақыт: %1$d с</string>
+    <string name="number_trail_score">Ұпай</string>
+    <string name="number_trail_record">Рекорд</string>
+    <string name="number_trail_record_value">Рекорд: %1$d</string>
+    <string name="number_trail_start">Бастау</string>
+    <string name="number_trail_retry">Қайта ойнау</string>
+    <string name="number_trail_back">Артқа</string>
+    <string name="number_trail_pause">Кідірту</string>
+    <string name="number_trail_paused_title">Кідіртілді</string>
+    <string name="number_trail_paused_message">Таймер тоқтатылды. Дайын болғанда жалғастырыңыз.</string>
+    <string name="number_trail_resume">Жалғастыру</string>
+    <string name="number_trail_board_complete">Тор аяқталды</string>
+    <string name="number_trail_next_board">Келесі тор…</string>
+    <string name="number_trail_wrong_title">Қате сан</string>
+    <string name="number_trail_wrong_detail">Сіз %1$d санын бастыңыз. Келесі сан: %2$d.</string>
+    <string name="number_trail_timeout_title">Уақыт бітті</string>
+    <string name="number_trail_timeout_detail">Келесі сан: %1$d.</string>
+    <string name="number_trail_new_record">Жаңа рекорд!</string>
+    <string name="number_trail_loading_record">Рекорд жүктелуде…</string>
+    <string name="number_trail_placeholder">—</string>
+    <string name="number_trail_record_unavailable">Рекорд қолжетімсіз</string>
+    <string name="number_trail_retry_load">Қайталау</string>
+    <string name="number_trail_saving_result">Нәтиже сақталуда…</string>
+    <string name="number_trail_save_failed">Нәтижені сақтау мүмкін болмады.</string>
+    <string name="number_trail_tile_description">%1$d саны</string>
+    <string name="number_trail_tile_completed">Аяқталды</string>
+    <string name="number_trail_ready_title">Сандар жолы</string>
 </resources>

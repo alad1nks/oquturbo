@@ -307,6 +307,7 @@ internal object DemoStatsFixtures {
                             StatsGame.WordFlow -> 8 * scale
                             StatsGame.DualFocus -> 9 * scale
                             StatsGame.RotationMatch -> 7 * scale
+                            StatsGame.NumberTrail -> 7 * scale
                         }
                     },
                 modesWithRecords = trend.modes.count { it.scores.isNotEmpty() },

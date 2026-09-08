@@ -1,6 +1,7 @@
 package com.alad1nks.oquturbo.feature.games.ui
 
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
@@ -26,6 +27,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AutoStories
 import androidx.compose.material.icons.filled.Block
 import androidx.compose.material.icons.filled.Bolt
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material.icons.filled.EmojiEvents
 import androidx.compose.material.icons.filled.Lock
@@ -44,6 +46,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
@@ -226,6 +229,10 @@ private fun ActiveGameCard(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    if (summary.game == TrainingGame.NumberTrail) {
+        NumberTrailCard(summary, onClick, modifier)
+        return
+    }
     Card(
         onClick = onClick,
         modifier = modifier.fillMaxWidth(),
@@ -334,6 +341,97 @@ private fun GameArtwork(game: TrainingGame) {
                     tint = MaterialTheme.colorScheme.primary,
                 )
             TrainingGame.RotationMatch -> RotationMatchArtwork()
+            TrainingGame.NumberTrail -> NumberTrailArtwork()
+        }
+    }
+}
+
+@Composable
+private fun NumberTrailCard(summary: GamesUiState.GameSummary, onClick: () -> Unit, modifier: Modifier) {
+    Card(
+        onClick = onClick,
+        modifier = modifier.fillMaxWidth(),
+        shape = MaterialTheme.shapes.large,
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.55f)),
+        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
+    ) {
+        Column(Modifier.fillMaxWidth().padding(12.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            Row(horizontalArrangement = Arrangement.spacedBy(12.dp), verticalAlignment = Alignment.CenterVertically) {
+                GameArtwork(summary.game)
+                Text(
+                    stringResource(summary.game.titleResource()),
+                    Modifier.weight(1f),
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.Bold,
+                )
+            }
+            Text(
+                stringResource(summary.game.descriptionResource()),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+            SkillTags(summary.skills)
+            Row(
+                Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Text(
+                    stringResource(AppResource.String.games_modes_count, summary.modesCount),
+                    style = MaterialTheme.typography.labelMedium,
+                )
+                Icon(Icons.Filled.ChevronRight, null, tint = MaterialTheme.colorScheme.primary)
+            }
+        }
+    }
+}
+
+@Composable
+private fun NumberTrailArtwork() {
+    val pathColor = MaterialTheme.colorScheme.primary
+    Box(Modifier.size(62.dp)) {
+        Canvas(Modifier.fillMaxSize()) {
+            val low = size.width * 13 / 62
+            val high = size.width * 49 / 62
+            drawLine(pathColor, Offset(low, low), Offset(high, low), strokeWidth = 3.dp.toPx())
+            drawLine(pathColor, Offset(high, low), Offset(low, high), strokeWidth = 3.dp.toPx())
+            drawLine(pathColor, Offset(low, high), Offset(high, high), strokeWidth = 3.dp.toPx())
+        }
+        Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+            repeat(2) { row ->
+                Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                    repeat(2) { column ->
+                        val last = row == 1 && column == 1
+                        Box(
+                            Modifier.size(26.dp).clip(RoundedCornerShape(6.dp))
+                                .background(
+                                    if (last) {
+                                        MaterialTheme.colorScheme.secondary
+                                    } else {
+                                        MaterialTheme.colorScheme.primary
+                                    },
+                                ),
+                            contentAlignment = Alignment.Center,
+                        ) {
+                            if (last) {
+                                Icon(
+                                    Icons.Filled.Check,
+                                    null,
+                                    Modifier.size(20.dp),
+                                    tint = MaterialTheme.colorScheme.onSecondary,
+                                )
+                            } else {
+                                Text(
+                                    (row * 2 + column + 1).toString(),
+                                    color = MaterialTheme.colorScheme.onPrimary,
+                                    fontWeight = FontWeight.Bold,
+                                )
+                            }
+                        }
+                    }
+                }
+            }
         }
     }
 }
@@ -593,6 +691,7 @@ private fun TrainingGame.titleResource(): StringResource =
         TrainingGame.WordFlow -> AppResource.String.word_flow_title
         TrainingGame.DualFocus -> AppResource.String.dual_focus_title
         TrainingGame.RotationMatch -> AppResource.String.rotation_match_title
+        TrainingGame.NumberTrail -> AppResource.String.number_trail_title
     }
 
 private fun TrainingGame.descriptionResource(): StringResource =
@@ -604,6 +703,7 @@ private fun TrainingGame.descriptionResource(): StringResource =
         TrainingGame.WordFlow -> AppResource.String.games_word_flow_description
         TrainingGame.DualFocus -> AppResource.String.games_dual_focus_description
         TrainingGame.RotationMatch -> AppResource.String.games_rotation_match_description
+        TrainingGame.NumberTrail -> AppResource.String.number_trail_description
     }
 
 @Composable
@@ -616,6 +716,7 @@ private fun TrainingGame.artworkBackground(): Color =
         TrainingGame.WordFlow -> MaterialTheme.colorScheme.secondaryContainer
         TrainingGame.DualFocus -> MaterialTheme.colorScheme.primaryContainer
         TrainingGame.RotationMatch -> MaterialTheme.colorScheme.primaryContainer
+        TrainingGame.NumberTrail -> MaterialTheme.colorScheme.primaryContainer
     }
 
 private fun GamesUiState.Skill.titleResource(): StringResource =
@@ -712,4 +813,11 @@ private fun GamesScreenPreviewContent() {
             onGameClick = {},
         )
     }
+}
+
+@Preview(name = "Games Number Trail compact Kazakh", widthDp = 320, heightDp = 2200, locale = "kk")
+@ScreenshotPreview
+@Composable
+private fun NumberTrailCatalogCompactPreview() {
+    GamesScreenPreviewContent()
 }

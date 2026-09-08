@@ -833,4 +833,37 @@
     </plurals>
     <string name="kenkoz_duration_minutes_seconds">%1$s %2$s</string>
     <string name="kenkoz_result_duration">Время: %1$s</string>
+    <string name="number_trail_title">Числовой маршрут</string>
+    <string name="number_trail_description">Находите числа по порядку до истечения времени.</string>
+    <string name="number_trail_mode">По возрастанию</string>
+    <string name="number_trail_instructions">Нажимайте числа по порядку, начиная с 1. Завершите каждую сетку до истечения времени. Ошибка завершает игру.</string>
+    <string name="number_trail_target">Найдите %1$d</string>
+    <string name="number_trail_grid_size">Сетка %1$d × %1$d</string>
+    <string name="number_trail_time_remaining">Осталось: %1$d с</string>
+    <string name="number_trail_score">Счёт</string>
+    <string name="number_trail_record">Рекорд</string>
+    <string name="number_trail_record_value">Рекорд: %1$d</string>
+    <string name="number_trail_start">Начать</string>
+    <string name="number_trail_retry">Ещё раз</string>
+    <string name="number_trail_back">Назад</string>
+    <string name="number_trail_pause">Пауза</string>
+    <string name="number_trail_paused_title">Пауза</string>
+    <string name="number_trail_paused_message">Таймер остановлен. Продолжите, когда будете готовы.</string>
+    <string name="number_trail_resume">Продолжить</string>
+    <string name="number_trail_board_complete">Сетка завершена</string>
+    <string name="number_trail_next_board">Следующая сетка…</string>
+    <string name="number_trail_wrong_title">Неверное число</string>
+    <string name="number_trail_wrong_detail">Вы нажали %1$d. Следующее число: %2$d.</string>
+    <string name="number_trail_timeout_title">Время вышло</string>
+    <string name="number_trail_timeout_detail">Следующее число: %1$d.</string>
+    <string name="number_trail_new_record">Новый рекорд!</string>
+    <string name="number_trail_loading_record">Загрузка рекорда…</string>
+    <string name="number_trail_placeholder">—</string>
+    <string name="number_trail_record_unavailable">Рекорд недоступен</string>
+    <string name="number_trail_retry_load">Повторить</string>
+    <string name="number_trail_saving_result">Сохранение результата…</string>
+    <string name="number_trail_save_failed">Не удалось сохранить результат.</string>
+    <string name="number_trail_tile_description">Число %1$d</string>
+    <string name="number_trail_tile_completed">Пройдено</string>
+    <string name="number_trail_ready_title">Числовой маршрут</string>
 </resources>
