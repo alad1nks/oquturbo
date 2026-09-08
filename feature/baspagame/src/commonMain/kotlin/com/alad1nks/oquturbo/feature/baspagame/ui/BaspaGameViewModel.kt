@@ -223,7 +223,7 @@ internal class BaspaGameViewModel(
         timerJob?.cancel()
         val sessionDurationMillis = finishSessionTelemetry()
         val sessionScore = mistakeState.score
-        val sessionCorrectAnswers = correctAnswers
+        val sessionCorrectAnswers = requireNotNull(mistakeState.completedCorrectAnswers)
         val isNewRecord = sessionScore > recordAtSessionStart
         val completedAttemptId = currentAttemptId
         viewModelScope.launch(start = CoroutineStart.UNDISPATCHED) {
@@ -273,7 +273,7 @@ internal class BaspaGameViewModel(
     private fun transitionToMistake(reason: BaspaMistakeReason): BaspaGameUiState? {
         while (true) {
             val currentState = _uiState.value
-            val mistakeState = currentState.withMistake(reason, sessionInProgress)
+            val mistakeState = currentState.withMistake(reason, sessionInProgress, correctAnswers)
             if (mistakeState === currentState) return null
             if (_uiState.compareAndSet(currentState, mistakeState)) return mistakeState
         }

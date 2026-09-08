@@ -6,6 +6,8 @@ import oquturbo.resources.generated.resources.baspa_categories
 import oquturbo.resources.generated.resources.baspa_colors
 import oquturbo.resources.generated.resources.baspa_equations
 import oquturbo.resources.generated.resources.baspa_game_continue
+import oquturbo.resources.generated.resources.baspa_game_correct_decisions
+import oquturbo.resources.generated.resources.baspa_game_correct_decisions_description
 import oquturbo.resources.generated.resources.baspa_game_menu_categories_subtitle
 import oquturbo.resources.generated.resources.baspa_game_menu_categories_title
 import oquturbo.resources.generated.resources.baspa_game_menu_letter_subtitle
@@ -941,6 +943,8 @@ object AppResource {
         val baspa_game_speed = Res.string.baspa_game_speed
         val baspa_game_tap_hint = Res.string.baspa_game_tap_hint
         val baspa_game_start = Res.string.baspa_game_start
+        val baspa_game_correct_decisions = Res.string.baspa_game_correct_decisions
+        val baspa_game_correct_decisions_description = Res.string.baspa_game_correct_decisions_description
         val baspa_game_continue = Res.string.baspa_game_continue
         val baspa_game_mistake_incorrect_tap = Res.string.baspa_game_mistake_incorrect_tap
         val baspa_game_mistake_missed_match = Res.string.baspa_game_mistake_missed_match

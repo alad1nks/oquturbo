@@ -13,7 +13,12 @@ class BaspaGameUiStateTest {
         val playingState = playingState(shouldTap = false)
 
         val reason = playingState.mistakeReasonOnTap()
-        val mistakeState = playingState.withMistake(requireNotNull(reason), sessionInProgress = true)
+        val mistakeState =
+            playingState.withMistake(
+                requireNotNull(reason),
+                sessionInProgress = true,
+                correctAnswers = 5,
+            )
 
         assertEquals(BaspaMistakeReason.IncorrectTap, mistakeState.mistakeReason)
         assertEquals(BaspaGameUiState.Phase.Mistake, mistakeState.phase)
@@ -24,7 +29,12 @@ class BaspaGameUiStateTest {
         val playingState = playingState(shouldTap = true)
 
         val reason = playingState.mistakeReasonOnTimeout()
-        val mistakeState = playingState.withMistake(requireNotNull(reason), sessionInProgress = true)
+        val mistakeState =
+            playingState.withMistake(
+                requireNotNull(reason),
+                sessionInProgress = true,
+                correctAnswers = 5,
+            )
 
         assertEquals(BaspaMistakeReason.MissedMatch, mistakeState.mistakeReason)
         assertEquals(BaspaGameUiState.Phase.Mistake, mistakeState.phase)
@@ -50,6 +60,7 @@ class BaspaGameUiStateTest {
             activeState.withMistake(
                 reason = BaspaMistakeReason.IncorrectTap,
                 sessionInProgress = false,
+                correctAnswers = 5,
             )
         assertSame(activeState, inactiveSessionState)
 
@@ -57,11 +68,13 @@ class BaspaGameUiStateTest {
             playingState(shouldTap = false).withMistake(
                 reason = BaspaMistakeReason.IncorrectTap,
                 sessionInProgress = true,
+                correctAnswers = 5,
             )
         val laterMistake =
             firstMistake.withMistake(
                 reason = BaspaMistakeReason.MissedMatch,
                 sessionInProgress = true,
+                correctAnswers = 5,
             )
         assertSame(firstMistake, laterMistake)
         assertEquals(BaspaMistakeReason.IncorrectTap, laterMistake.mistakeReason)
@@ -72,11 +85,12 @@ class BaspaGameUiStateTest {
         val mistakeState =
             playingState(shouldTap = false)
                 .copy(score = 24, intervalMillis = 1_500L)
-                .withMistake(BaspaMistakeReason.IncorrectTap, sessionInProgress = true)
+                .withMistake(BaspaMistakeReason.IncorrectTap, sessionInProgress = true, correctAnswers = 5)
 
         val restartedState = mistakeState.restartingSession()
 
         assertNull(restartedState.mistakeReason)
+        assertNull(restartedState.completedCorrectAnswers)
         assertEquals(0, restartedState.score)
         assertEquals(2_000L, restartedState.intervalMillis)
         assertEquals(BaspaGameUiState.Phase.Playing, restartedState.phase)

@@ -62,6 +62,7 @@ class BaspaGameViewModelTest {
                 assertEquals(GameModeId.DontTapMath, session.mode)
                 assertEquals(0, session.score)
                 assertEquals(0, session.correctAnswers)
+                assertEquals(session.correctAnswers, viewModel.uiState.value.completedCorrectAnswers)
                 assertFalse(session.isNewRecord)
                 assertFalse(viewModel.uiState.value.isNewRecord)
                 assertEquals(0, storage.dailyTrainingWriteCount)
@@ -110,6 +111,7 @@ class BaspaGameViewModelTest {
                 val session = activityRepository.observeSessions().first().single()
                 assertEquals(1, session.score)
                 assertEquals(1, session.correctAnswers)
+                assertEquals(session.correctAnswers, state.completedCorrectAnswers)
                 assertTrue(session.isNewRecord)
                 assertTrue(state.isNewRecord)
             } finally {
@@ -135,6 +137,7 @@ class BaspaGameViewModelTest {
                 assertTrue(viewModel.uiState.value.isNewRecord)
 
                 viewModel.restart()
+                assertNull(viewModel.uiState.value.completedCorrectAnswers)
 
                 assertFalse(viewModel.uiState.value.isNewRecord)
                 assertEquals(BaspaGameUiState.Phase.Playing, viewModel.uiState.value.phase)
@@ -197,10 +200,12 @@ class BaspaGameViewModelTest {
                 viewModel.onStimulusTimeout(viewModel.uiState.value.stimulusRoundId)
                 runCurrent()
                 assertTrue(storage.sessionWriteStarted.isCompleted)
+                assertEquals(1, viewModel.uiState.value.completedCorrectAnswers)
                 assertEquals(0, storage.gameSessionWriteCount)
                 assertFalse(viewModel.uiState.value.isNewRecord)
 
                 viewModel.restart()
+                assertNull(viewModel.uiState.value.completedCorrectAnswers)
                 assertFalse(viewModel.uiState.value.isNewRecord)
                 advanceTimeBy(STIMULUS_GAP_MILLIS)
                 runCurrent()
@@ -212,6 +217,9 @@ class BaspaGameViewModelTest {
 
                 val sessions = activityRepository.observeSessions().first()
                 assertEquals(2, sessions.size)
+                assertEquals(0, viewModel.uiState.value.completedCorrectAnswers)
+                assertEquals(1, sessions.first().correctAnswers)
+                assertEquals(0, sessions.last().correctAnswers)
                 assertTrue(sessions.first().isNewRecord)
                 assertFalse(sessions.last().isNewRecord)
                 assertEquals(BaspaGameUiState.Phase.Mistake, viewModel.uiState.value.phase)
@@ -283,6 +291,117 @@ class BaspaGameViewModelTest {
             }
         }
 
+    @Test
+    fun mixedDecisionsFreezeBeforeStorageAndSurvivePauseAndTrainingReadiness() =
+        runTest {
+            Dispatchers.setMain(StandardTestDispatcher(testScheduler))
+            try {
+                val gate = CompletableDeferred<Unit>()
+                val storage = RecordingStorage(gate)
+                val entry = storage.installTrainingPlan()
+                val equations = mutableListOf("match" to true)
+                val viewModel =
+                    createViewModel(
+                        storage = storage,
+                        stimulusShouldMatch = true,
+                        trainingEntry = entry,
+                        content = testContent(true).copy(equations = equations),
+                    )
+                runCurrent()
+                assertNull(viewModel.uiState.value.completedCorrectAnswers)
+                startAndShowStimulus(viewModel)
+                repeat(2) {
+                    viewModel.tap()
+                    advanceTimeBy(STIMULUS_GAP_MILLIS)
+                    runCurrent()
+                }
+                equations[0] = "skip" to false
+                // The current matching item remains; pause/resume cannot count it.
+                viewModel.togglePause()
+                viewModel.onStimulusTimeout(viewModel.uiState.value.stimulusRoundId)
+                assertNull(viewModel.uiState.value.completedCorrectAnswers)
+                assertEquals(0, storage.gameSessionWriteCount)
+                viewModel.togglePause()
+                // Finish this attempt separately to keep the mixed sequence deterministic.
+                viewModel.onStimulusTimeout(viewModel.uiState.value.stimulusRoundId)
+                assertEquals(2, viewModel.uiState.value.completedCorrectAnswers)
+                assertFalse(viewModel.uiState.value.isTrainingCompletionReady)
+                gate.complete(Unit)
+                runCurrent()
+                assertEquals(2, viewModel.uiState.value.completedCorrectAnswers)
+                assertTrue(viewModel.uiState.value.isTrainingCompletionReady)
+                assertTrue(viewModel.uiState.value.isTrainingGoalReached)
+
+                viewModel.restart()
+                advanceTimeBy(STIMULUS_GAP_MILLIS)
+                runCurrent()
+                repeat(3) {
+                    val round = viewModel.uiState.value.stimulusRoundId
+                    viewModel.onStimulusTimeout(round)
+                    viewModel.onStimulusTimeout(round)
+                    if (it == 2) equations[0] = "match" to true
+                    advanceTimeBy(STIMULUS_GAP_MILLIS)
+                    runCurrent()
+                }
+                repeat(2) {
+                    viewModel.tap()
+                    advanceTimeBy(STIMULUS_GAP_MILLIS)
+                    runCurrent()
+                }
+                viewModel.onStimulusTimeout(viewModel.uiState.value.stimulusRoundId)
+                viewModel.tap()
+                runCurrent()
+                val state = viewModel.uiState.value
+                assertEquals(2, state.score)
+                assertEquals(5, state.completedCorrectAnswers)
+                val sessions = GameActivityRepository(storage).observeSessions().first()
+                assertEquals(2, sessions.size)
+                assertEquals(5, sessions.last().correctAnswers)
+                assertEquals(state.score, sessions.last().score)
+            } finally {
+                Dispatchers.resetMain()
+            }
+        }
+
+    @Test
+    fun skipOnlyDecisionsDoNotQualifyTrainingAndPauseAddsNothing() =
+        runTest {
+            Dispatchers.setMain(StandardTestDispatcher(testScheduler))
+            try {
+                val storage = RecordingStorage()
+                val entry = storage.installTrainingPlan()
+                val viewModel = createViewModel(storage, stimulusShouldMatch = false, trainingEntry = entry)
+                runCurrent()
+                startAndShowStimulus(viewModel)
+                repeat(3) {
+                    viewModel.onStimulusTimeout(viewModel.uiState.value.stimulusRoundId)
+                    advanceTimeBy(STIMULUS_GAP_MILLIS)
+                    runCurrent()
+                }
+                viewModel.togglePause()
+                viewModel.onStimulusTimeout(viewModel.uiState.value.stimulusRoundId)
+                advanceTimeBy(10_000)
+                runCurrent()
+                assertEquals(0, storage.gameSessionWriteCount)
+                assertNull(viewModel.uiState.value.completedCorrectAnswers)
+                viewModel.togglePause()
+                viewModel.tap()
+                assertEquals(3, viewModel.uiState.value.completedCorrectAnswers)
+                runCurrent()
+                val state = viewModel.uiState.value
+                assertEquals(0, state.score)
+                assertEquals(3, state.completedCorrectAnswers)
+                assertFalse(state.isTrainingGoalReached)
+                assertTrue(state.isTrainingCompletionReady)
+                assertEquals(entry.id, state.trainingNextEntry?.id)
+                val session = GameActivityRepository(storage).observeSessions().first().single()
+                assertEquals(3, session.correctAnswers)
+                assertEquals(0, session.score)
+            } finally {
+                Dispatchers.resetMain()
+            }
+        }
+
     private suspend fun TestScope.startAndShowStimulus(viewModel: BaspaGameViewModel) {
         viewModel.togglePause()
         advanceTimeBy(STIMULUS_GAP_MILLIS)
@@ -296,10 +415,11 @@ class BaspaGameViewModelTest {
         stimulusShouldMatch: Boolean,
         trainingEntry: DailyTrainingEntry? = null,
         mode: BaspaGameMode = BaspaGameMode.Math,
+        content: BaspaGameContent = testContent(stimulusShouldMatch),
     ) =
         BaspaGameViewModel(
             mode = mode,
-            content = testContent(stimulusShouldMatch),
+            content = content,
             trainingEntryId = trainingEntry?.id,
             trainingRequiredScore = trainingEntry?.requiredScore,
             repository = BaspaGameRepository(storage),
