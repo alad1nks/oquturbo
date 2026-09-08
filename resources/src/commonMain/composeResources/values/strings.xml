@@ -773,4 +773,6 @@
     <string name="word_flow_paused_title">Paused</string>
     <string name="word_flow_paused_message">The timer is stopped. Resume when you’re ready.</string>
     <string name="word_flow_resume">Resume</string>
+    <string name="baspa_game_correct_decisions">Correct decisions: %1$d</string>
+    <string name="baspa_game_correct_decisions_description">Includes correct taps and correctly skipped stimuli.</string>
 </resources>

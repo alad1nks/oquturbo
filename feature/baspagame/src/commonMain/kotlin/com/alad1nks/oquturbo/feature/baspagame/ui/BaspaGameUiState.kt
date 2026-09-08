@@ -16,6 +16,7 @@ internal data class BaspaGameUiState(
     val stimulusRoundId: Long = 0L,
     val shouldTap: Boolean = false,
     val score: Int = 0,
+    val completedCorrectAnswers: Int? = null,
     val record: Int = 0,
     val isNewRecord: Boolean = false,
     val isRecordLoaded: Boolean = false,
@@ -54,11 +55,13 @@ internal fun BaspaGameUiState.isCurrentStimulusRound(roundId: Long): Boolean =
 internal fun BaspaGameUiState.withMistake(
     reason: BaspaMistakeReason,
     sessionInProgress: Boolean,
+    correctAnswers: Int,
 ): BaspaGameUiState =
     if (phase == BaspaGameUiState.Phase.Playing && sessionInProgress) {
         copy(
             phase = BaspaGameUiState.Phase.Mistake,
             mistakeReason = reason,
+            completedCorrectAnswers = correctAnswers,
         )
     } else {
         this
@@ -67,6 +70,7 @@ internal fun BaspaGameUiState.withMistake(
 internal fun BaspaGameUiState.restartingSession(): BaspaGameUiState =
     copy(
         score = 0,
+        completedCorrectAnswers = null,
         intervalMillis = 2_000L,
         phase = BaspaGameUiState.Phase.Playing,
         mistakeReason = null,

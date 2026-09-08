@@ -100,7 +100,7 @@ internal fun BaspaGameRoute(
 }
 
 @Composable
-private fun BaspaGameScreen(
+internal fun BaspaGameScreen(
     uiState: BaspaGameUiState,
     onBackClick: () -> Unit,
     onPauseClick: () -> Unit,
@@ -261,6 +261,28 @@ private fun MistakeOverlay(
                 primaryText = "${stringResource(AppResource.String.baspa_game_score_label)}: ${uiState.score}",
                 secondaryText = "${stringResource(AppResource.String.baspa_game_record_label)}: ${uiState.record}",
             )
+            uiState.completedCorrectAnswers?.let { completedCorrectAnswers ->
+                Column(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalArrangement = Arrangement.spacedBy(8.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                ) {
+                    Text(
+                        text = stringResource(AppResource.String.baspa_game_correct_decisions, completedCorrectAnswers),
+                        modifier = Modifier.fillMaxWidth(),
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        textAlign = TextAlign.Center,
+                    )
+                    Text(
+                        text = stringResource(AppResource.String.baspa_game_correct_decisions_description),
+                        modifier = Modifier.fillMaxWidth(),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        textAlign = TextAlign.Center,
+                    )
+                }
+            }
         },
     )
 }
@@ -584,6 +606,7 @@ private fun BaspaGameScreenMistakePreview() {
                 record = 57,
                 isRecordLoaded = true,
                 phase = BaspaGameUiState.Phase.Mistake,
+                completedCorrectAnswers = 63,
                 mistakeReason = BaspaMistakeReason.IncorrectTap,
             ),
     )
@@ -609,6 +632,7 @@ private fun BaspaGameScreenNewRecordPreview() {
                 isNewRecord = true,
                 isRecordLoaded = true,
                 phase = BaspaGameUiState.Phase.Mistake,
+                completedCorrectAnswers = 63,
                 mistakeReason = BaspaMistakeReason.IncorrectTap,
             ),
     )
@@ -636,6 +660,7 @@ private fun BaspaGameScreenMissedMatchTrainingPreview() {
                 record = 57,
                 isRecordLoaded = true,
                 phase = BaspaGameUiState.Phase.Mistake,
+                completedCorrectAnswers = 63,
                 mistakeReason = BaspaMistakeReason.MissedMatch,
                 trainingRequiredScore = 20,
                 isTrainingCompletionReady = true,
@@ -655,4 +680,95 @@ private fun BaspaGamePreview(uiState: BaspaGameUiState) {
             onTrainingContinue = {},
         )
     }
+}
+
+@Preview(name = "Don't Tap — decisions Mixed", widthDp = 320, heightDp = 640, locale = "en")
+@ScreenshotPreview
+@Composable
+private fun BaspaCorrectDecisionsMixedPreview() {
+    BaspaGamePreview(
+        uiState =
+            BaspaGameUiState(
+                mode = BaspaGameMode.Categories,
+                stimulus = "CAR",
+                categoryName = "animals",
+                shouldTap = false,
+                score = 2,
+                record = 8,
+                completedCorrectAnswers = 5,
+                isRecordLoaded = true,
+                phase = BaspaGameUiState.Phase.Mistake,
+                mistakeReason = BaspaMistakeReason.IncorrectTap,
+            ),
+    )
+}
+
+@Preview(name = "Don't Tap — decisions SkipTraining", widthDp = 320, heightDp = 640, locale = "ru")
+@ScreenshotPreview
+@Composable
+private fun BaspaCorrectDecisionsSkipTrainingPreview() {
+    BaspaGamePreview(
+        uiState =
+            BaspaGameUiState(
+                mode = BaspaGameMode.Categories,
+                stimulus = "МАШИНА",
+                categoryName = "животные",
+                shouldTap = false,
+                score = 0,
+                record = 8,
+                completedCorrectAnswers = 3,
+                isRecordLoaded = true,
+                phase = BaspaGameUiState.Phase.Mistake,
+                mistakeReason = BaspaMistakeReason.IncorrectTap,
+                trainingRequiredScore = 2,
+                isTrainingCompletionReady = true,
+            ),
+    )
+}
+
+@Preview(name = "Don't Tap — decisions Qualifying", widthDp = 320, heightDp = 640, locale = "kk")
+@ScreenshotPreview
+@Composable
+private fun BaspaCorrectDecisionsQualifyingPreview() {
+    BaspaGamePreview(
+        uiState =
+            BaspaGameUiState(
+                mode = BaspaGameMode.TextColor,
+                stimulus = "ҚЫЗЫЛ",
+                targetColorName = "қызыл",
+                stimulusColorId = "red",
+                stimulusColorName = "қызыл",
+                shouldTap = true,
+                score = 24,
+                record = 24,
+                completedCorrectAnswers = 123,
+                isRecordLoaded = true,
+                phase = BaspaGameUiState.Phase.Mistake,
+                mistakeReason = BaspaMistakeReason.MissedMatch,
+                trainingRequiredScore = 20,
+                isTrainingCompletionReady = true,
+                isNewRecord = true,
+            ),
+    )
+}
+
+@Preview(name = "Don't Tap — decisions Zero", widthDp = 320, heightDp = 640, locale = "en")
+@ScreenshotPreview
+@Composable
+private fun BaspaCorrectDecisionsZeroPreview() {
+    BaspaGamePreview(
+        uiState =
+            BaspaGameUiState(
+                mode = BaspaGameMode.Categories,
+                stimulus = "CAR",
+                categoryName = "animals",
+                shouldTap = false,
+                score = 0,
+                record = 0,
+                completedCorrectAnswers = 0,
+                isRecordLoaded = true,
+                phase = BaspaGameUiState.Phase.Mistake,
+                mistakeReason = BaspaMistakeReason.IncorrectTap,
+            ),
+    )
 }

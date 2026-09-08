@@ -775,4 +775,6 @@
     <string name="word_flow_paused_title">Кідіртілді</string>
     <string name="word_flow_paused_message">Таймер тоқтатылды. Дайын болған кезде жалғастырыңыз.</string>
     <string name="word_flow_resume">Жалғастыру</string>
+    <string name="baspa_game_correct_decisions">Дұрыс шешімдер: %1$d</string>
+    <string name="baspa_game_correct_decisions_description">Дұрыс басулар мен дұрыс өткізіп жіберілген элементтер есептеледі.</string>
 </resources>

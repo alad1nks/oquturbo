@@ -816,4 +816,6 @@
     <string name="word_flow_paused_title">Пауза</string>
     <string name="word_flow_paused_message">Таймер остановлен. Продолжите, когда будете готовы.</string>
     <string name="word_flow_resume">Продолжить</string>
+    <string name="baspa_game_correct_decisions">Правильные решения: %1$d</string>
+    <string name="baspa_game_correct_decisions_description">Включает правильные нажатия и элементы, которые вы правильно пропустили.</string>
 </resources>

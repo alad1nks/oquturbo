@@ -1,3 +1,4 @@
+import org.jetbrains.compose.ExperimentalComposeLibrary
 import org.jetbrains.kotlin.gradle.ExperimentalWasmDsl
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
@@ -52,6 +53,11 @@ kotlin {
             implementation(libs.kotlin.test)
             implementation(libs.kotlinx.coroutines.test)
             implementation(projects.core.storage.common)
+        }
+        @OptIn(ExperimentalComposeLibrary::class)
+        jvmTest.dependencies {
+            implementation(compose.uiTest)
+            runtimeOnly(compose.desktop.currentOs)
         }
     }
 }
