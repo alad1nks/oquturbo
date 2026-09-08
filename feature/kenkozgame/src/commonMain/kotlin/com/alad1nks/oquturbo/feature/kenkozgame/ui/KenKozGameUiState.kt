@@ -8,6 +8,7 @@ internal data class KenKozGameUiState(
     val trainingRequiredScore: Int? = null,
     val trainingNextEntry: DailyTrainingEntry? = null,
     val isTrainingCompletionReady: Boolean = false,
+    val completedDurationMillis: Long? = null,
     val score: Int = 0,
     val record: Int = 0,
     val isNewRecord: Boolean = false,
@@ -22,6 +23,7 @@ internal data class KenKozGameUiState(
     fun startingSession(): KenKozGameUiState =
         copy(
             score = 0,
+            completedDurationMillis = null,
             isNewRecord = false,
             trainingNextEntry = null,
             isTrainingCompletionReady = false,

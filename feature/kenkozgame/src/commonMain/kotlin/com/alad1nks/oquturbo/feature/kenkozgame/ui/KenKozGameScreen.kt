@@ -55,6 +55,7 @@ import com.alad1nks.oquturbo.core.ui.component.appBackground
 import com.alad1nks.oquturbo.core.ui.preview.ScreenshotPreview
 import com.alad1nks.oquturbo.feature.kenkozgame.model.KenKozGameMode
 import com.alad1nks.oquturbo.resources.AppResource
+import org.jetbrains.compose.resources.pluralStringResource
 import org.jetbrains.compose.resources.stringResource
 
 @Composable
@@ -243,6 +244,19 @@ internal fun KenKozGameScreen(
                                 ),
                             modifier = Modifier.fillMaxWidth(),
                         )
+                        displayedState.completedDurationMillis?.let { durationMillis ->
+                            Text(
+                                text =
+                                    stringResource(
+                                        AppResource.String.kenkoz_result_duration,
+                                        kenKozDurationText(durationMillis),
+                                    ),
+                                modifier = Modifier.fillMaxWidth(),
+                                style = MaterialTheme.typography.bodyLarge,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                textAlign = TextAlign.Center,
+                            )
+                        }
                     }
                 },
             )
@@ -582,3 +596,34 @@ private fun KenKozGameScreenNewRecordPreview() {
         )
     }
 }
+
+@Composable
+internal fun kenKozDurationText(durationMillis: Long): String =
+    when (val parts = kenKozDurationDisplayParts(durationMillis)) {
+        KenKozDurationDisplayParts.LessThanOneSecond ->
+            stringResource(AppResource.String.kenkoz_duration_less_than_one_second)
+        is KenKozDurationDisplayParts.Seconds ->
+            pluralStringResource(
+                AppResource.Plural.kenkoz_duration_seconds,
+                parts.seconds.kenKozPluralQuantity(),
+                parts.seconds,
+            )
+        is KenKozDurationDisplayParts.MinutesSeconds -> {
+            val minutes =
+                pluralStringResource(
+                    AppResource.Plural.kenkoz_duration_minutes,
+                    parts.minutes.kenKozPluralQuantity(),
+                    parts.minutes,
+                )
+            val seconds = parts.seconds
+            stringResource(
+                AppResource.String.kenkoz_duration_minutes_seconds,
+                minutes,
+                pluralStringResource(
+                    AppResource.Plural.kenkoz_duration_seconds,
+                    seconds.kenKozPluralQuantity(),
+                    seconds,
+                ),
+            )
+        }
+    }

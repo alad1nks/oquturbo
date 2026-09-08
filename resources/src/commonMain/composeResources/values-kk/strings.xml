@@ -777,4 +777,15 @@
     <string name="word_flow_resume">Жалғастыру</string>
     <string name="baspa_game_correct_decisions">Дұрыс шешімдер: %1$d</string>
     <string name="baspa_game_correct_decisions_description">Дұрыс басулар мен дұрыс өткізіп жіберілген элементтер есептеледі.</string>
+    <string name="kenkoz_duration_less_than_one_second">1 секундтан аз</string>
+    <plurals name="kenkoz_duration_seconds">
+        <item quantity="one">%1$d секунд</item>
+        <item quantity="other">%1$d секунд</item>
+    </plurals>
+    <plurals name="kenkoz_duration_minutes">
+        <item quantity="one">%1$d минут</item>
+        <item quantity="other">%1$d минут</item>
+    </plurals>
+    <string name="kenkoz_duration_minutes_seconds">%1$s %2$s</string>
+    <string name="kenkoz_result_duration">Уақыт: %1$s</string>
 </resources>

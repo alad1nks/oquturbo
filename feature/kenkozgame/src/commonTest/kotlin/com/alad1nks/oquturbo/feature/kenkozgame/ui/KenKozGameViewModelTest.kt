@@ -18,6 +18,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.advanceTimeBy
+import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
@@ -59,6 +60,9 @@ class KenKozGameViewModelTest {
                     assertTrue(storage.activityWriteStarted.isCompleted)
                     assertEquals(0, storage.gameSessionWriteCount)
                     assertEquals(0, storage.kenKozRecordWriteCount)
+                    assertEquals(4_000L, pendingState.completedDurationMillis)
+                    advanceTimeBy(60_000)
+                    assertEquals(4_000L, viewModel.uiState.value.completedDurationMillis)
 
                     activityWriteGate.complete(Unit)
                     runCurrent()
@@ -69,7 +73,8 @@ class KenKozGameViewModelTest {
                     assertNull(session.variantId)
                     assertEquals(1, session.score)
                     assertEquals(1, session.correctAnswers)
-                    assertTrue(session.durationMillis >= 0)
+                    assertEquals(4_000L, session.durationMillis)
+                    assertEquals(session.durationMillis, viewModel.uiState.value.completedDurationMillis)
                     assertTrue(session.isNewRecord)
                     assertEquals(1, storage.gameSessionWriteCount)
                     assertEquals(1, storage.kenKozRecordWriteCount)
@@ -137,10 +142,12 @@ class KenKozGameViewModelTest {
                 finishAttempt(viewModel, score = 1)
                 runCurrent()
                 assertTrue(viewModel.uiState.value.isNewRecord)
+                assertEquals(4_000L, viewModel.uiState.value.completedDurationMillis)
 
                 viewModel.start()
 
                 val replayState = viewModel.uiState.value
+                assertNull(replayState.completedDurationMillis)
                 assertFalse(replayState.isNewRecord)
                 assertEquals(0, replayState.score)
                 assertEquals(KenKozGameUiState.Phase.Showing, replayState.phase)
@@ -168,6 +175,7 @@ class KenKozGameViewModelTest {
                 val laterSelectedAnswer = finishAttempt(viewModel, score = 1)
                 runCurrent()
                 val laterPendingState = viewModel.uiState.value
+                assertEquals(4_000L, laterPendingState.completedDurationMillis)
                 assertEquals(1, laterPendingState.score)
                 assertEquals(0, laterPendingState.record)
                 assertEquals(laterSelectedAnswer, laterPendingState.selectedAnswer)
@@ -178,6 +186,8 @@ class KenKozGameViewModelTest {
 
                 val sessions = activityRepository.observeSessions().first()
                 assertEquals(2, sessions.size)
+                assertEquals(listOf(6_000L, 4_000L), sessions.map { it.durationMillis })
+                assertEquals(4_000L, viewModel.uiState.value.completedDurationMillis)
                 assertTrue(sessions.first().isNewRecord)
                 assertFalse(sessions.last().isNewRecord)
                 val finalState = viewModel.uiState.value
@@ -214,6 +224,7 @@ class KenKozGameViewModelTest {
                 assertTrue(storage.dailyWriteStarted.isCompleted)
                 viewModel.start()
                 val replayState = viewModel.uiState.value
+                assertNull(replayState.completedDurationMillis)
                 assertEquals(KenKozGameUiState.Phase.Showing, replayState.phase)
                 assertFalse(replayState.isTrainingCompletionReady)
                 assertNull(replayState.trainingNextEntry)
@@ -223,6 +234,7 @@ class KenKozGameViewModelTest {
 
                 val finalState = viewModel.uiState.value
                 assertEquals(KenKozGameUiState.Phase.Showing, finalState.phase)
+                assertNull(finalState.completedDurationMillis)
                 assertFalse(finalState.isTrainingCompletionReady)
                 assertNull(finalState.trainingNextEntry)
                 finishCurrentRoundWithMistake(viewModel)
@@ -244,6 +256,9 @@ class KenKozGameViewModelTest {
                 runCurrent()
 
                 val resultState = viewModel.uiState.value
+                assertEquals(4_000L, resultState.completedDurationMillis)
+                advanceTimeBy(60_000)
+                assertEquals(4_000L, viewModel.uiState.value.completedDurationMillis)
                 assertEquals(KenKozGameUiState.Phase.Mistake, resultState.phase)
                 assertEquals(selectedAnswer, resultState.selectedAnswer)
                 assertEquals(1, resultState.score)
@@ -281,6 +296,9 @@ class KenKozGameViewModelTest {
                 runCurrent()
 
                 val resultState = viewModel.uiState.value
+                assertEquals(4_000L, resultState.completedDurationMillis)
+                advanceTimeBy(60_000)
+                assertEquals(4_000L, viewModel.uiState.value.completedDurationMillis)
                 assertEquals(KenKozGameUiState.Phase.Mistake, resultState.phase)
                 assertFalse(resultState.isNewRecord)
                 assertEquals(0, resultState.record)
@@ -300,6 +318,110 @@ class KenKozGameViewModelTest {
                 viewModel.continueTraining { continuationCount++ }
                 assertEquals(1, continuationCount)
                 assertEquals(GameId.NumberSprint, assertNotNull(continuedEntry).game)
+            } finally {
+                Dispatchers.resetMain()
+            }
+        }
+
+    @Test
+    fun initialAndUnfinishedSessionsHaveNoDurationOrCompletion() =
+        runTest {
+            Dispatchers.setMain(StandardTestDispatcher(testScheduler))
+            try {
+                val storage = RecordingStorage()
+                val viewModel = createViewModel(KenKozGameMode.Characters, storage)
+                runCurrent()
+                assertNull(viewModel.uiState.value.completedDurationMillis)
+                viewModel.start()
+                assertNull(viewModel.uiState.value.completedDurationMillis)
+                advanceToAnswering(viewModel)
+                assertNull(viewModel.uiState.value.completedDurationMillis)
+                assertEquals(0, storage.gameSessionWriteAttemptCount)
+                // No completion is produced by leaving an active attempt alone.
+                advanceTimeBy(100_000)
+                assertEquals(0, storage.gameSessionWriteAttemptCount)
+            } finally {
+                Dispatchers.resetMain()
+            }
+        }
+
+    @Test
+    fun firstMistakeCapturesExactlyOnceInEveryMode() =
+        runTest {
+            Dispatchers.setMain(StandardTestDispatcher(testScheduler))
+            try {
+                modeMappings.forEach { (mode, _) ->
+                    val storage = RecordingStorage()
+                    val viewModel = createViewModel(mode, storage)
+                    finishAttempt(viewModel, 0)
+                    val duration = viewModel.uiState.value.completedDurationMillis
+                    assertEquals(2_000L, duration)
+                    viewModel.selectAnswer("wrong again")
+                    advanceTimeBy(50_000)
+                    runCurrent()
+                    assertEquals(duration, viewModel.uiState.value.completedDurationMillis)
+                    assertEquals(
+                        duration,
+                        GameActivityRepository(storage).observeSessions().first().single().durationMillis,
+                    )
+                    assertEquals(1, storage.gameSessionWriteCount)
+                }
+            } finally {
+                Dispatchers.resetMain()
+            }
+        }
+
+    @Test
+    fun delayedTrainingSuccessFailureAndFinalContinuationKeepCapturedDuration() =
+        runTest {
+            Dispatchers.setMain(StandardTestDispatcher(testScheduler))
+            try {
+                listOf(false, true).forEach { fail ->
+                    val gate = CompletableDeferred<Unit>()
+                    val storage = RecordingStorage(dailyWriteGate = gate, failDailyWrites = fail)
+                    val entry = storage.installTrainingPlan(KenKozGameMode.Words, finalEntry = true)
+                    val vm = createViewModel(KenKozGameMode.Words, storage, entry)
+                    finishAttempt(vm, 1)
+                    assertEquals(4_000L, vm.uiState.value.completedDurationMillis)
+                    assertFalse(vm.uiState.value.isTrainingCompletionReady)
+                    var callbacks = 0
+                    vm.continueTraining { callbacks++ }
+                    assertEquals(0, callbacks)
+                    advanceTimeBy(60_000)
+                    gate.complete(Unit)
+                    advanceUntilIdle()
+                    assertEquals(4_000L, vm.uiState.value.completedDurationMillis)
+                    assertEquals(!fail, vm.uiState.value.isTrainingCompletionReady)
+                    assertNull(vm.uiState.value.trainingNextEntry)
+                    vm.continueTraining { next ->
+                        assertNull(next)
+                        callbacks++
+                    }
+                    vm.continueTraining { callbacks++ }
+                    assertEquals(if (fail) 0 else 1, callbacks)
+                }
+            } finally {
+                Dispatchers.resetMain()
+            }
+        }
+
+    @Test
+    fun lateTrainingCompletionCannotOverwriteLaterResultDuration() =
+        runTest {
+            Dispatchers.setMain(StandardTestDispatcher(testScheduler))
+            try {
+                val gate = CompletableDeferred<Unit>()
+                val storage = RecordingStorage(dailyWriteGate = gate)
+                val entry = storage.installTrainingPlan(KenKozGameMode.Words)
+                val vm = createViewModel(KenKozGameMode.Words, storage, entry)
+                finishAttempt(vm, 1)
+                finishAttempt(vm, 0)
+                assertEquals(2_000L, vm.uiState.value.completedDurationMillis)
+                gate.complete(Unit)
+                runCurrent()
+                assertEquals(2_000L, vm.uiState.value.completedDurationMillis)
+                assertEquals(0, vm.uiState.value.score)
+                assertTrue(vm.uiState.value.isTrainingCompletionReady)
             } finally {
                 Dispatchers.resetMain()
             }
@@ -334,7 +456,7 @@ class KenKozGameViewModelTest {
         assertEquals(KenKozGameUiState.Phase.Answering, viewModel.uiState.value.phase)
     }
 
-    private fun createViewModel(
+    private fun TestScope.createViewModel(
         mode: KenKozGameMode,
         storage: RecordingStorage,
         trainingEntry: DailyTrainingEntry? = null,
@@ -348,6 +470,10 @@ class KenKozGameViewModelTest {
         kenKozGameRepository = KenKozGameRepository(storage),
         gameActivityRepository = GameActivityRepository(storage),
         dailyTrainingRepository = DailyTrainingRepository(storage),
+        timeSource =
+            object : kotlin.time.AbstractLongTimeSource(kotlin.time.DurationUnit.MILLISECONDS) {
+                override fun read(): Long = testScheduler.currentTime
+            },
     )
 
     private data class RecordCase(
@@ -360,6 +486,7 @@ class KenKozGameViewModelTest {
         private val activityWriteGate: CompletableDeferred<Unit>? = null,
         private val dailyWriteGate: CompletableDeferred<Unit>? = null,
         private val failActivityWrites: Boolean = false,
+        private val failDailyWrites: Boolean = false,
     ) : Storage {
         private val darkTheme = MutableStateFlow<Boolean?>(null)
         private val languageCode = MutableStateFlow<String?>(null)
@@ -391,7 +518,7 @@ class KenKozGameViewModelTest {
             kenKozRecords.getOrPut(mode.name) { MutableStateFlow(null) }.value = record
         }
 
-        fun installTrainingPlan(mode: KenKozGameMode): DailyTrainingEntry {
+        fun installTrainingPlan(mode: KenKozGameMode, finalEntry: Boolean = false): DailyTrainingEntry {
             val epochDay = Clock.System.now().toEpochMilliseconds() / MILLIS_PER_DAY
             val wideEyeEntry =
                 trainingEntry(
@@ -412,14 +539,14 @@ class KenKozGameViewModelTest {
                                     GameId.NumberSprint,
                                     GameModeId.NumberSprintClassic,
                                     requiredScore = 5,
-                                ),
+                                ).copy(isCompleted = finalEntry),
                                 trainingEntry(
                                     epochDay,
                                     GameId.DontTap,
                                     GameModeId.DontTapMath,
                                     requiredScore = 8,
-                                ),
-                            ),
+                                ).copy(isCompleted = finalEntry),
+                            ).sortedBy { !it.isCompleted },
                     ),
                 )
             return wideEyeEntry
@@ -494,6 +621,7 @@ class KenKozGameViewModelTest {
         override suspend fun setDailyTrainingJson(value: String) {
             dailyWriteStarted.complete(Unit)
             dailyWriteGate?.await()
+            if (failDailyWrites) error("Training write failed")
             dailyTrainingWriteCount++
             dailyTrainingJson.value = value
         }
