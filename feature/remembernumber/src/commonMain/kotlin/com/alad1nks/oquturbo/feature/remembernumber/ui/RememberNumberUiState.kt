@@ -26,5 +26,6 @@ internal sealed interface RememberNumberUiState {
         val record: Int,
         val isNewRecord: Boolean = false,
         val isTrainingResultReady: Boolean = true,
+        val completedDurationMillis: Long? = null,
     ) : RememberNumberUiState
 }

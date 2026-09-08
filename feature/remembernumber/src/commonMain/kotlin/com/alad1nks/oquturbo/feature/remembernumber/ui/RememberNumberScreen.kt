@@ -40,6 +40,7 @@ import com.alad1nks.oquturbo.core.ui.component.GameStateOverlay
 import com.alad1nks.oquturbo.core.ui.component.appBackground
 import com.alad1nks.oquturbo.core.ui.preview.ScreenshotPreview
 import com.alad1nks.oquturbo.resources.AppResource
+import org.jetbrains.compose.resources.pluralStringResource
 import org.jetbrains.compose.resources.stringResource
 
 @Composable
@@ -281,6 +282,19 @@ internal fun RememberNumberScreen(
                                 ),
                             modifier = Modifier.fillMaxWidth(),
                         )
+                        displayedMistake.completedDurationMillis?.let { duration ->
+                            Text(
+                                text =
+                                    stringResource(
+                                        AppResource.String.remember_number_result_duration,
+                                        rememberNumberDurationText(duration),
+                                    ),
+                                modifier = Modifier.fillMaxWidth(),
+                                style = MaterialTheme.typography.bodyLarge,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                textAlign = TextAlign.Center,
+                            )
+                        }
                     }
                 },
             )
@@ -433,6 +447,199 @@ private fun RememberNumberScreenTenDigitMistakePreview() {
                 ),
             focusEvent = null,
             maxLength = 10,
+            writeText = {},
+            onStartClick = {},
+            onBackClick = {},
+        )
+    }
+}
+
+@Composable
+internal fun rememberNumberDurationText(durationMillis: Long): String =
+    when (val parts = rememberNumberDurationDisplayParts(durationMillis)) {
+        RememberNumberDurationDisplayParts.LessThanOneSecond ->
+            stringResource(AppResource.String.remember_number_duration_less_than_one_second)
+        is RememberNumberDurationDisplayParts.Seconds ->
+            pluralStringResource(
+                AppResource.Plural.remember_number_duration_seconds,
+                parts.seconds.rememberNumberPluralQuantity(),
+                parts.seconds,
+            )
+        is RememberNumberDurationDisplayParts.MinutesSeconds -> {
+            val minutes =
+                pluralStringResource(
+                    AppResource.Plural.remember_number_duration_minutes,
+                    parts.minutes.rememberNumberPluralQuantity(),
+                    parts.minutes,
+                )
+            val seconds = parts.seconds
+            stringResource(
+                AppResource.String.remember_number_duration_minutes_seconds,
+                minutes,
+                pluralStringResource(
+                    AppResource.Plural.remember_number_duration_seconds,
+                    seconds.rememberNumberPluralQuantity(),
+                    seconds,
+                ),
+            )
+        }
+    }
+
+@Preview(name = "Number Sprint — duration Ordinary", widthDp = 390, heightDp = 844, locale = "en")
+@ScreenshotPreview
+@Composable
+private fun RememberNumberDurationOrdinaryPreview() {
+    OquTurboTheme {
+        RememberNumberScreen(
+            uiState =
+                RememberNumberUiState.Mistake(
+                    text = "1234",
+                    correctText = "1334",
+                    score = 4,
+                    record = 7,
+                    isNewRecord = false,
+                    isTrainingResultReady = true,
+                    completedDurationMillis = 65_999,
+                ),
+            focusEvent = null,
+            maxLength = 4,
+            record = 7,
+            trainingRequiredScore = null,
+            writeText = {},
+            onStartClick = {},
+            onBackClick = {},
+        )
+    }
+}
+
+@Preview(name = "Number Sprint — duration Subsecond", widthDp = 390, heightDp = 844, locale = "en")
+@ScreenshotPreview
+@Composable
+private fun RememberNumberDurationSubsecondPreview() {
+    OquTurboTheme {
+        RememberNumberScreen(
+            uiState =
+                RememberNumberUiState.Mistake(
+                    text = "1010",
+                    correctText = "1110",
+                    score = 0,
+                    record = 0,
+                    isNewRecord = false,
+                    isTrainingResultReady = true,
+                    completedDurationMillis = 999,
+                ),
+            focusEvent = null,
+            maxLength = 4,
+            record = 0,
+            trainingRequiredScore = null,
+            writeText = {},
+            onStartClick = {},
+            onBackClick = {},
+        )
+    }
+}
+
+@Preview(name = "Number Sprint — duration ExactMinute", widthDp = 390, heightDp = 844, locale = "en")
+@ScreenshotPreview
+@Composable
+private fun RememberNumberDurationExactMinutePreview() {
+    OquTurboTheme {
+        RememberNumberScreen(
+            uiState =
+                RememberNumberUiState.Mistake(
+                    text = "1234",
+                    correctText = "1334",
+                    score = 8,
+                    record = 8,
+                    isNewRecord = true,
+                    isTrainingResultReady = true,
+                    completedDurationMillis = 60_000,
+                ),
+            focusEvent = null,
+            maxLength = 4,
+            record = 8,
+            trainingRequiredScore = null,
+            writeText = {},
+            onStartClick = {},
+            onBackClick = {},
+        )
+    }
+}
+
+@Preview(name = "Number Sprint — duration CompactRussian", widthDp = 320, heightDp = 1100, locale = "ru")
+@ScreenshotPreview
+@Composable
+private fun RememberNumberDurationCompactRussianPreview() {
+    OquTurboTheme {
+        RememberNumberScreen(
+            uiState =
+                RememberNumberUiState.Mistake(
+                    text = "0123456789",
+                    correctText = "9123456780",
+                    score = 8,
+                    record = 12,
+                    isNewRecord = false,
+                    isTrainingResultReady = true,
+                    completedDurationMillis = 740_725_000,
+                ),
+            focusEvent = null,
+            maxLength = 10,
+            record = 12,
+            trainingRequiredScore = null,
+            writeText = {},
+            onStartClick = {},
+            onBackClick = {},
+        )
+    }
+}
+
+@Preview(name = "Number Sprint — duration CompactKazakhReached", widthDp = 320, heightDp = 1100, locale = "kk")
+@ScreenshotPreview
+@Composable
+private fun RememberNumberDurationCompactKazakhReachedPreview() {
+    OquTurboTheme {
+        RememberNumberScreen(
+            uiState =
+                RememberNumberUiState.Mistake(
+                    text = "0123456789",
+                    correctText = "9123456780",
+                    score = 8,
+                    record = 12,
+                    isNewRecord = false,
+                    isTrainingResultReady = true,
+                    completedDurationMillis = Long.MAX_VALUE,
+                ),
+            focusEvent = null,
+            maxLength = 10,
+            record = 12,
+            trainingRequiredScore = 5,
+            writeText = {},
+            onStartClick = {},
+            onBackClick = {},
+        )
+    }
+}
+
+@Preview(name = "Number Sprint — duration TrainingPending", widthDp = 320, heightDp = 1000, locale = "ru")
+@ScreenshotPreview
+@Composable
+private fun RememberNumberDurationTrainingPendingPreview() {
+    OquTurboTheme {
+        RememberNumberScreen(
+            uiState =
+                RememberNumberUiState.Mistake(
+                    text = "1010",
+                    correctText = "1110",
+                    score = 0,
+                    record = 3,
+                    isNewRecord = false,
+                    isTrainingResultReady = false,
+                    completedDurationMillis = 1_999,
+                ),
+            focusEvent = null,
+            maxLength = 4,
+            record = 3,
+            trainingRequiredScore = 5,
             writeText = {},
             onStartClick = {},
             onBackClick = {},

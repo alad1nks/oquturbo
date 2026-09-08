@@ -320,6 +320,10 @@ import oquturbo.resources.generated.resources.profile_unlock_training_format
 import oquturbo.resources.generated.resources.profile_unlocked
 import oquturbo.resources.generated.resources.profile_xp_format
 import oquturbo.resources.generated.resources.profile_xp_to_next_format
+import oquturbo.resources.generated.resources.remember_number_duration_less_than_one_second
+import oquturbo.resources.generated.resources.remember_number_duration_minutes
+import oquturbo.resources.generated.resources.remember_number_duration_minutes_seconds
+import oquturbo.resources.generated.resources.remember_number_duration_seconds
 import oquturbo.resources.generated.resources.remember_number_game_correct_answer
 import oquturbo.resources.generated.resources.remember_number_game_correct_answer_description
 import oquturbo.resources.generated.resources.remember_number_game_new_record
@@ -343,6 +347,7 @@ import oquturbo.resources.generated.resources.remember_number_menu_item_custom_s
 import oquturbo.resources.generated.resources.remember_number_menu_item_custom_title
 import oquturbo.resources.generated.resources.remember_number_menu_subtitle
 import oquturbo.resources.generated.resources.remember_number_menu_title
+import oquturbo.resources.generated.resources.remember_number_result_duration
 import oquturbo.resources.generated.resources.remember_number_title
 import oquturbo.resources.generated.resources.rotation_match_answer_accessibility
 import oquturbo.resources.generated.resources.rotation_match_back
@@ -516,7 +521,9 @@ object AppResource {
         val dual_focus_duration_minutes = Res.plurals.dual_focus_duration_minutes
         val dual_focus_duration_seconds = Res.plurals.dual_focus_duration_seconds
         val memory_grid_duration_minutes = Res.plurals.memory_grid_duration_minutes
+        val remember_number_duration_minutes = Res.plurals.remember_number_duration_minutes
         val memory_grid_duration_seconds = Res.plurals.memory_grid_duration_seconds
+        val remember_number_duration_seconds = Res.plurals.remember_number_duration_seconds
         val word_flow_duration_minutes = Res.plurals.word_flow_duration_minutes
         val word_flow_duration_seconds = Res.plurals.word_flow_duration_seconds
         val rotation_match_duration_minutes = Res.plurals.rotation_match_duration_minutes
@@ -678,8 +685,11 @@ object AppResource {
         val memory_grid_legend_expected = Res.string.memory_grid_legend_expected
         val memory_grid_legend_remaining = Res.string.memory_grid_legend_remaining
         val memory_grid_result_duration = Res.string.memory_grid_result_duration
+        val remember_number_result_duration = Res.string.remember_number_result_duration
         val memory_grid_duration_less_than_one_second = Res.string.memory_grid_duration_less_than_one_second
+        val remember_number_duration_less_than_one_second = Res.string.remember_number_duration_less_than_one_second
         val memory_grid_duration_minutes_seconds = Res.string.memory_grid_duration_minutes_seconds
+        val remember_number_duration_minutes_seconds = Res.string.remember_number_duration_minutes_seconds
         val memory_grid_result = Res.string.memory_grid_result
         val memory_grid_rounds = Res.string.memory_grid_rounds
         val memory_grid_start = Res.string.memory_grid_start
