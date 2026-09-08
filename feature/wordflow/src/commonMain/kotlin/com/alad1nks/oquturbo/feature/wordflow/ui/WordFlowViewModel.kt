@@ -46,6 +46,9 @@ internal class WordFlowViewModel(
     private var attemptStartedAt: TimeMark? = null
     private var activeAttemptToken: Long? = null
     private var lastTimerMark: TimeMark? = null
+    private var pausedAt: TimeMark? = null
+    private var pausedDurationMillis = 0L
+    private var timerGeneration = 0L
     private var timerJob: Job? = null
     private var feedbackJob: Job? = null
     private val recordedAttempts = mutableSetOf<Long>()
@@ -68,20 +71,31 @@ internal class WordFlowViewModel(
         if (_uiState.value.isRecordLoading) return
         attemptToken++
         cancelJobs()
+        pausedAt = null
+        pausedDurationMillis = 0L
         game.start()
         attemptStartedAt = timeSource.markNow()
         activeAttemptToken = attemptToken
-        publish(isNewRecord = false, completedDurationMillis = null)
         scheduleTimer(attemptToken)
+        publish(isNewRecord = false, completedDurationMillis = null)
+    }
+
+    internal fun answerCallback(): (String) -> Unit {
+        val token = attemptToken
+        val generation = timerGeneration
+        return { answer ->
+            if (token == attemptToken && generation == timerGeneration) selectAnswer(answer)
+        }
     }
 
     fun selectAnswer(answer: String) {
         if (game.state.phase != WordFlowPhase.Active) return
         val token = attemptToken
         if (activeAttemptToken != token) return
+        accountForElapsedTime()
         game.selectAnswer(answer)
         if (game.state.phase == WordFlowPhase.Active) return
-        timerJob?.cancel()
+        cancelTimer()
         when (game.state.phase) {
             WordFlowPhase.CorrectFeedback -> {
                 publish()
@@ -90,8 +104,8 @@ internal class WordFlowViewModel(
                         delay(CORRECT_FEEDBACK_MILLIS)
                         if (token != attemptToken || game.state.phase != WordFlowPhase.CorrectFeedback) return@launch
                         game.continueAfterCorrect()
-                        publish()
                         scheduleTimer(token)
+                        publish()
                     }
             }
             WordFlowPhase.Result -> completeAttempt(token)
@@ -99,10 +113,35 @@ internal class WordFlowViewModel(
         }
     }
 
+    fun pause() {
+        if (activeAttemptToken != attemptToken || game.state.phase != WordFlowPhase.Active) return
+        val elapsed = lastTimerMark?.elapsedNow()?.inWholeMilliseconds?.coerceAtLeast(0) ?: return
+        game.pause(elapsed)
+        cancelTimer()
+        if (game.state.phase == WordFlowPhase.Result) {
+            completeAttempt(attemptToken)
+        } else {
+            pausedAt = timeSource.markNow()
+            publish()
+        }
+    }
+
+    fun resume() {
+        if (activeAttemptToken != attemptToken || game.state.phase != WordFlowPhase.Paused) return
+        val mark = pausedAt ?: return
+        pausedDurationMillis += mark.elapsedNow().inWholeMilliseconds.coerceAtLeast(0)
+        pausedAt = null
+        game.resume()
+        scheduleTimer(attemptToken)
+        publish()
+    }
+
     fun abandon() {
         attemptToken++
         activeAttemptToken = null
         attemptStartedAt = null
+        pausedAt = null
+        pausedDurationMillis = 0L
         cancelJobs()
         publish(isNewRecord = false, completedDurationMillis = null)
     }
@@ -118,23 +157,39 @@ internal class WordFlowViewModel(
         }
     }
 
-    private fun scheduleTimer(token: Long) {
-        timerJob?.cancel()
+    private fun accountForElapsedTime() {
+        val mark = lastTimerMark ?: return
+        val elapsed = mark.elapsedNow().inWholeMilliseconds.coerceAtLeast(0)
         lastTimerMark = timeSource.markNow()
+        game.elapse(elapsed)
+    }
+
+    private fun scheduleTimer(token: Long) {
+        cancelTimer()
+        lastTimerMark = timeSource.markNow()
+        val tick = timerTickCallback()
         timerJob =
             viewModelScope.launch {
                 while (token == attemptToken && game.state.phase == WordFlowPhase.Active) {
                     delay(TIMER_TICK_MILLIS)
-                    if (token != attemptToken || game.state.phase != WordFlowPhase.Active) return@launch
-                    val mark = lastTimerMark ?: return@launch
-                    val elapsed = mark.elapsedNow().inWholeMilliseconds.coerceAtLeast(1)
-                    lastTimerMark = timeSource.markNow()
-                    advanceTimerBy(elapsed)
-                    if (game.state.phase == WordFlowPhase.Result) {
-                        return@launch
-                    }
+                    tick()
                 }
             }
+    }
+
+    internal fun timerTickCallback(): () -> Unit {
+        val token = attemptToken
+        val generation = timerGeneration
+        return tick@{
+            if (
+                token != attemptToken || generation != timerGeneration || activeAttemptToken != token ||
+                game.state.phase != WordFlowPhase.Active
+            ) {
+                return@tick
+            }
+            accountForElapsedTime()
+            if (game.state.phase == WordFlowPhase.Result) completeAttempt(token) else publish()
+        }
     }
 
     private fun completeAttempt(token: Long) {
@@ -142,9 +197,9 @@ internal class WordFlowViewModel(
         val finished = game.state
         if (finished.phase != WordFlowPhase.Result) return
         activeAttemptToken = null
-        timerJob?.cancel()
-        feedbackJob?.cancel()
-        val duration = attemptStartedAt?.elapsedNow()?.inWholeMilliseconds?.coerceAtLeast(0) ?: 0
+        cancelJobs()
+        val duration =
+            ((attemptStartedAt?.elapsedNow()?.inWholeMilliseconds ?: 0) - pausedDurationMillis).coerceAtLeast(0)
         val isNewRecord = finished.score > 0 && finished.score > record
         if (isNewRecord) record = finished.score
         publish(isNewRecord = false, completedDurationMillis = duration)
@@ -183,8 +238,15 @@ internal class WordFlowViewModel(
             )
     }
 
-    private fun cancelJobs() {
+    private fun cancelTimer() {
+        timerGeneration++
         timerJob?.cancel()
+        timerJob = null
+        lastTimerMark = null
+    }
+
+    private fun cancelJobs() {
+        cancelTimer()
         feedbackJob?.cancel()
         timerJob = null
         feedbackJob = null

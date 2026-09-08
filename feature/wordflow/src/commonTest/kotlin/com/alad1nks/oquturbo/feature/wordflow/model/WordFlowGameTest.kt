@@ -9,6 +9,31 @@ import kotlin.test.assertTrue
 
 class WordFlowGameTest {
     @Test
+    fun pausedRoundIsFrozenAndIllegalTransitionsAreHarmless() {
+        val game = game()
+        game.pause(100)
+        game.resume()
+        assertEquals(WordFlowPhase.Ready, game.state.phase)
+        game.start()
+        game.pause(37)
+        val paused = game.state
+        game.elapse(Long.MAX_VALUE)
+        game.selectAnswer(paused.round!!.prompt.correctAnswer)
+        game.continueAfterCorrect()
+        game.pause(100)
+        assertEquals(paused, game.state)
+        game.resume()
+        game.resume()
+        assertEquals(paused.copy(phase = WordFlowPhase.Active), game.state)
+        game.pause(9_963)
+        assertEquals(WordFlowFailure.Timeout, game.state.failure)
+        val result = game.state
+        game.pause(100)
+        game.resume()
+        assertEquals(result, game.state)
+    }
+
+    @Test
     fun thresholdsUseApprovedTierAndTime() {
         assertEquals(WordFlowTier.Easy, WordFlowGame.tierFor(0))
         assertEquals(WordFlowTier.Easy, WordFlowGame.tierFor(4))

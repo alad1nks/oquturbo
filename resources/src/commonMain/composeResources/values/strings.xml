@@ -769,4 +769,8 @@
     </plurals>
     <string name="remember_number_duration_minutes_seconds">%1$s %2$s</string>
     <string name="remember_number_result_duration">Duration: %1$s</string>
+    <string name="word_flow_pause">Pause</string>
+    <string name="word_flow_paused_title">Paused</string>
+    <string name="word_flow_paused_message">The timer is stopped. Resume when you’re ready.</string>
+    <string name="word_flow_resume">Resume</string>
 </resources>

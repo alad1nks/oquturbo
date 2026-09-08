@@ -13,14 +13,17 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Pause
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Replay
 import androidx.compose.material.icons.filled.Timer
@@ -36,10 +39,12 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.disabled
 import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
@@ -92,7 +97,9 @@ internal fun WordFlowRoute(
     WordFlowScreen(
         state = state,
         onStartClick = viewModel::start,
-        onChoiceClick = viewModel::selectAnswer,
+        onChoiceClick = viewModel.answerCallback(),
+        onPauseClick = viewModel::pause,
+        onResumeClick = viewModel::resume,
         onBackClick = wordFlowBackAction(onBackClick, viewModel::abandon),
     )
 }
@@ -104,6 +111,8 @@ internal fun WordFlowScreen(
     onChoiceClick: (String) -> Unit,
     onBackClick: (() -> Unit)?,
     modifier: Modifier = Modifier,
+    onPauseClick: () -> Unit = {},
+    onResumeClick: () -> Unit = {},
 ) {
     val game = state.game
     Box(modifier.fillMaxSize().appBackground()) {
@@ -117,7 +126,15 @@ internal fun WordFlowScreen(
         ) {
             when (game.phase) {
                 WordFlowPhase.Ready -> ReadyContent(state, onStartClick)
-                WordFlowPhase.Active, WordFlowPhase.CorrectFeedback -> PlayingContent(state, onChoiceClick)
+                WordFlowPhase.Active -> {
+                    OutlinedButton(onClick = onPauseClick, modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp)) {
+                        Icon(Icons.Default.Pause, contentDescription = null)
+                        Text(stringResource(AppResource.String.word_flow_pause))
+                    }
+                    PlayingContent(state, onChoiceClick)
+                }
+                WordFlowPhase.Paused -> PausedContent(onResumeClick)
+                WordFlowPhase.CorrectFeedback -> PlayingContent(state, onChoiceClick)
                 WordFlowPhase.Result -> ResultContent(state, onStartClick, onChoiceClick, onBackClick)
             }
         }
@@ -195,6 +212,43 @@ private fun ReadyContent(state: WordFlowUiState, onStartClick: () -> Unit) {
             ) {
                 Icon(Icons.Default.PlayArrow, contentDescription = null)
                 Text(stringResource(AppResource.String.word_flow_start))
+            }
+        }
+    }
+}
+
+@Composable
+private fun PausedContent(onResumeClick: () -> Unit) {
+    Surface(
+        modifier = Modifier.fillMaxWidth().semantics { liveRegion = LiveRegionMode.Polite },
+        shape = RoundedCornerShape(28.dp),
+        color = MaterialTheme.colorScheme.surfaceContainerHighest,
+    ) {
+        Column(
+            Modifier.fillMaxWidth().padding(horizontal = 24.dp, vertical = 28.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(16.dp),
+        ) {
+            Surface(shape = CircleShape, color = MaterialTheme.colorScheme.primaryContainer) {
+                Box(Modifier.size(72.dp), contentAlignment = Alignment.Center) {
+                    Icon(Icons.Default.Pause, null, Modifier.size(36.dp), tint = MaterialTheme.colorScheme.primary)
+                }
+            }
+            Text(
+                stringResource(AppResource.String.word_flow_paused_title),
+                modifier = Modifier.semantics { heading() },
+                style = MaterialTheme.typography.headlineMedium,
+                fontWeight = FontWeight.Bold,
+                textAlign = TextAlign.Center,
+            )
+            Text(
+                stringResource(AppResource.String.word_flow_paused_message),
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                textAlign = TextAlign.Center,
+            )
+            Button(onClick = onResumeClick, modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp)) {
+                Icon(Icons.Default.PlayArrow, contentDescription = null)
+                Text(stringResource(AppResource.String.word_flow_resume))
             }
         }
     }
@@ -640,4 +694,83 @@ private fun WordFlowNewRecordPreview() {
 @Composable
 private fun WordFlowCompactKazakhPreview() {
     OquTurboTheme { WordFlowScreen(compactKazakhState(), {}, {}, {}) }
+}
+
+private fun pausePreviewState(locale: String, phase: WordFlowPhase): WordFlowUiState {
+    val prompt =
+        when (locale) {
+            "kk" -> compactKazakhPrompt
+            "ru" ->
+                previewPrompt.copy(
+                    id = "preview-ru",
+                    sentenceTemplate = "Читатель положил закладку и закрыл %1\$s.",
+                    correctAnswer = "книгу",
+                    wrongAnswers = listOf("тарелку", "лампу"),
+                )
+            else -> previewPrompt
+        }
+    val hard = locale == "kk"
+    return previewState(phase, score = if (hard) 20 else 3).copy(
+        game =
+            previewState(phase, score = if (hard) 20 else 3).game.copy(
+                round =
+                    WordFlowRound(
+                        prompt,
+                        listOf(prompt.wrongAnswers[0], prompt.correctAnswer, prompt.wrongAnswers[1]),
+                        if (hard) 6_000 else 10_000,
+                        if (hard) 4_000 else 7_000,
+                    ),
+            ),
+        locale = locale,
+        record = if (hard) 25 else 5,
+    )
+}
+
+@Preview(name = "Word Flow — active compact English", widthDp = 320, heightDp = 844, locale = "en")
+@ScreenshotPreview
+@Composable
+private fun WordFlowActiveCompactEnglishPreview() {
+    OquTurboTheme { WordFlowScreen(pausePreviewState("en", WordFlowPhase.Active), {}, {}, {}) }
+}
+
+@Preview(name = "Word Flow — active compact Russian", widthDp = 320, heightDp = 844, locale = "ru")
+@ScreenshotPreview
+@Composable
+private fun WordFlowActiveCompactRussianPreview() {
+    OquTurboTheme { WordFlowScreen(pausePreviewState("ru", WordFlowPhase.Active), {}, {}, {}) }
+}
+
+@Preview(name = "Word Flow — active compact Kazakh", widthDp = 320, heightDp = 844, locale = "kk")
+@ScreenshotPreview
+@Composable
+private fun WordFlowActiveCompactKazakhPreview() {
+    OquTurboTheme { WordFlowScreen(pausePreviewState("kk", WordFlowPhase.Active), {}, {}, {}) }
+}
+
+@Preview(name = "Word Flow — paused compact English", widthDp = 320, heightDp = 844, locale = "en")
+@ScreenshotPreview
+@Composable
+private fun WordFlowPausedCompactEnglishPreview() {
+    OquTurboTheme { WordFlowScreen(pausePreviewState("en", WordFlowPhase.Paused), {}, {}, {}) }
+}
+
+@Preview(name = "Word Flow — paused compact Russian", widthDp = 320, heightDp = 844, locale = "ru")
+@ScreenshotPreview
+@Composable
+private fun WordFlowPausedCompactRussianPreview() {
+    OquTurboTheme { WordFlowScreen(pausePreviewState("ru", WordFlowPhase.Paused), {}, {}, {}) }
+}
+
+@Preview(name = "Word Flow — paused compact Kazakh", widthDp = 320, heightDp = 844, locale = "kk")
+@ScreenshotPreview
+@Composable
+private fun WordFlowPausedCompactKazakhPreview() {
+    OquTurboTheme { WordFlowScreen(pausePreviewState("kk", WordFlowPhase.Paused), {}, {}, {}) }
+}
+
+@Preview(name = "Word Flow — paused standalone", widthDp = 390, heightDp = 844)
+@ScreenshotPreview
+@Composable
+private fun WordFlowPausedStandalonePreview() {
+    OquTurboTheme { WordFlowScreen(pausePreviewState("en", WordFlowPhase.Paused), {}, {}, null) }
 }

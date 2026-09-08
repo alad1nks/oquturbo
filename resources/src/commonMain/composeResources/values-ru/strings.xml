@@ -812,4 +812,8 @@
     </plurals>
     <string name="remember_number_duration_minutes_seconds">%1$s %2$s</string>
     <string name="remember_number_result_duration">Время: %1$s</string>
+    <string name="word_flow_pause">Пауза</string>
+    <string name="word_flow_paused_title">Пауза</string>
+    <string name="word_flow_paused_message">Таймер остановлен. Продолжите, когда будете готовы.</string>
+    <string name="word_flow_resume">Продолжить</string>
 </resources>
