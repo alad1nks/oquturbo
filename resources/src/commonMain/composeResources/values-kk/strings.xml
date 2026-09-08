@@ -771,4 +771,8 @@
     </plurals>
     <string name="remember_number_duration_minutes_seconds">%1$s %2$s</string>
     <string name="remember_number_result_duration">Уақыт: %1$s</string>
+    <string name="word_flow_pause">Кідірту</string>
+    <string name="word_flow_paused_title">Кідіртілді</string>
+    <string name="word_flow_paused_message">Таймер тоқтатылды. Дайын болған кезде жалғастырыңыз.</string>
+    <string name="word_flow_resume">Жалғастыру</string>
 </resources>

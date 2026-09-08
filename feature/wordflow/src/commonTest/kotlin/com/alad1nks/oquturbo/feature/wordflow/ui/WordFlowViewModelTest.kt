@@ -500,6 +500,233 @@ class WordFlowViewModelTest {
             }
         }
 
+    @Test
+    fun pauseAccountsSubtickAndRepeatedCyclesKeepExactRoundWithoutWrites() =
+        runTest {
+            Dispatchers.setMain(StandardTestDispatcher(testScheduler))
+            val clock = TestTimeSource()
+            val storage = RecordingStorage()
+            val repository = GameActivityRepository(storage)
+            val vm = WordFlowViewModel("en", content(), repository, timeSource = clock)
+            try {
+                runCurrent()
+                vm.pause()
+                vm.resume()
+                assertEquals(WordFlowPhase.Ready, vm.uiState.value.game.phase)
+                vm.start()
+                runCurrent()
+                val original = vm.uiState.value.game
+                val stale = vm.timerTickCallback()
+                clock += 3_037.milliseconds
+                vm.pause()
+                val paused = vm.uiState.value.game
+                assertEquals(WordFlowPhase.Paused, paused.phase)
+                assertEquals(6_963L, paused.round!!.remainingTimeMillis)
+                clock += 30_000.milliseconds
+                advanceTimeBy(30_000)
+                runCurrent()
+                vm.pause()
+                vm.selectAnswer(paused.round.prompt.correctAnswer)
+                vm.advanceTimerBy(100_000)
+                stale()
+                assertEquals(paused, vm.uiState.value.game)
+                vm.resume()
+                vm.resume()
+                stale()
+                assertEquals(paused.copy(phase = WordFlowPhase.Active), vm.uiState.value.game)
+                runCurrent()
+                clock += 100.milliseconds
+                advanceTimeBy(100)
+                runCurrent()
+                assertEquals(6_863L, vm.uiState.value.game.round!!.remainingTimeMillis)
+                clock += 37.milliseconds
+                vm.pause()
+                clock += 5_000.milliseconds
+                vm.resume()
+                assertEquals(6_826L, vm.uiState.value.game.round!!.remainingTimeMillis)
+                assertEquals(original.round!!.prompt, vm.uiState.value.game.round!!.prompt)
+                assertEquals(original.round.choices, vm.uiState.value.game.round!!.choices)
+                assertEquals(original.tier, vm.uiState.value.game.tier)
+                assertEquals(0, vm.uiState.value.game.score)
+                assertEquals(0, storage.gameSessionWriteCount)
+                assertEquals(0, repository.observeProgress().first().totalCorrectAnswers)
+                assertEquals(0, vm.uiState.value.record)
+            } finally {
+                vm.abandon()
+                Dispatchers.resetMain()
+            }
+        }
+
+    @Test
+    fun exactAndLateDeadlinesWinAgainstPauseAndAnswerWithoutNextTick() =
+        runTest {
+            Dispatchers.setMain(StandardTestDispatcher(testScheduler))
+            try {
+                for (elapsed in listOf(10_000L, 10_037L)) {
+                    for (pause in listOf(true, false)) {
+                        val clock = TestTimeSource()
+                        val storage = RecordingStorage()
+                        val repository = GameActivityRepository(storage)
+                        val vm = WordFlowViewModel("kk", content(), repository, timeSource = clock)
+                        runCurrent()
+                        vm.start()
+                        val stale = vm.timerTickCallback()
+                        clock += elapsed.milliseconds
+                        if (pause) vm.pause() else vm.selectAnswer(vm.uiState.value.game.round!!.prompt.correctAnswer)
+                        vm.pause()
+                        vm.resume()
+                        stale()
+                        runCurrent()
+                        assertEquals(WordFlowPhase.Result, vm.uiState.value.game.phase)
+                        assertEquals(WordFlowFailure.Timeout, vm.uiState.value.game.failure)
+                        assertEquals(0, vm.uiState.value.game.score)
+                        assertEquals(1, storage.gameSessionWriteCount)
+                        assertEquals(elapsed, repository.observeSessions().first().single().durationMillis)
+                    }
+                }
+            } finally {
+                Dispatchers.resetMain()
+            }
+        }
+
+    @Test
+    fun pausesExcludeLongIntervalsButKeepFeedbackAndPersistIdenticalDuration() =
+        runTest {
+            Dispatchers.setMain(StandardTestDispatcher(testScheduler))
+            val clock = TestTimeSource()
+            val storage = RecordingStorage()
+            val repository = GameActivityRepository(storage)
+            val vm = WordFlowViewModel("ru", content(), repository, timeSource = clock)
+            try {
+                runCurrent()
+                vm.start()
+                clock += 1_037.milliseconds
+                vm.pause()
+                clock += 3_000_000_000L.milliseconds
+                vm.resume()
+                clock += 63.milliseconds
+                vm.selectAnswer(vm.uiState.value.game.round!!.prompt.correctAnswer)
+                val feedback = vm.uiState.value.game
+                vm.pause()
+                vm.resume()
+                assertEquals(feedback, vm.uiState.value.game)
+                runCurrent()
+                clock += 500.milliseconds
+                advanceTimeBy(500)
+                runCurrent()
+                clock += 137.milliseconds
+                vm.pause()
+                clock += 30_000.milliseconds
+                vm.resume()
+                clock += 263.milliseconds
+                vm.selectAnswer(vm.uiState.value.game.round!!.wrongAnswer())
+                runCurrent()
+                val session = repository.observeSessions().first().single()
+                assertEquals(2_000L, session.durationMillis)
+                assertEquals(session.durationMillis, vm.uiState.value.completedDurationMillis)
+                assertEquals(1, session.score)
+                assertEquals(1, session.correctAnswers)
+                assertEquals("ru", session.variantId)
+                assertTrue(session.isNewRecord)
+                assertEquals(1, repository.observeProgress().first().totalCorrectAnswers)
+                assertEquals(1, storage.gameSessionWriteCount)
+                vm.start()
+                clock += 250.milliseconds
+                vm.selectAnswer(vm.uiState.value.game.round!!.wrongAnswer())
+                runCurrent()
+                assertEquals(250L, vm.uiState.value.completedDurationMillis)
+                assertEquals(250L, repository.observeSessions().first().last().durationMillis)
+            } finally {
+                vm.abandon()
+                Dispatchers.resetMain()
+            }
+        }
+
+    @Test
+    fun pausedAbandonAndRetryInvalidateRetainedTimerCallbacks() =
+        runTest {
+            Dispatchers.setMain(StandardTestDispatcher(testScheduler))
+            val clock = TestTimeSource()
+            val storage = RecordingStorage()
+            val vm = WordFlowViewModel("en", content(), GameActivityRepository(storage), timeSource = clock)
+            try {
+                runCurrent()
+                vm.start()
+                val old = vm.timerTickCallback()
+                val oldAnswer = vm.answerCallback()
+                clock += 37.milliseconds
+                vm.pause()
+                vm.abandon()
+                val abandoned = vm.uiState.value
+                clock += 30_000.milliseconds
+                vm.resume()
+                old()
+                assertEquals(abandoned, vm.uiState.value)
+                assertEquals(0, storage.gameSessionWriteCount)
+                vm.start()
+                val replacement = vm.uiState.value
+                old()
+                assertEquals(replacement, vm.uiState.value)
+                val completedTick = vm.timerTickCallback()
+                vm.selectAnswer(vm.uiState.value.game.round!!.wrongAnswer())
+                runCurrent()
+                vm.start()
+                clock += 37.milliseconds
+                val retry = vm.uiState.value
+                completedTick()
+                old()
+                assertEquals(retry, vm.uiState.value)
+                vm.pause()
+                assertEquals(9_963L, vm.uiState.value.game.round!!.remainingTimeMillis)
+            } finally {
+                vm.abandon()
+                Dispatchers.resetMain()
+            }
+        }
+
+    @Test
+    fun lastMillisecondSurvivesPauseAndRecordObservationWithoutUntimedAnswer() =
+        runTest {
+            Dispatchers.setMain(StandardTestDispatcher(testScheduler))
+            val clock = TestTimeSource()
+            val storage = RecordingStorage()
+            val repository = GameActivityRepository(storage)
+            val vm = WordFlowViewModel("en", content(), repository, timeSource = clock)
+            try {
+                runCurrent()
+                vm.start()
+                val oldAnswer = vm.answerCallback()
+                clock += 9_999.milliseconds
+                vm.pause()
+                val saved = vm.uiState.value.game
+                assertEquals(1L, saved.round!!.remainingTimeMillis)
+                repository.recordCompletedSession(
+                    GameId.WordFlow,
+                    GameModeId.WordFlowContext,
+                    variantId = "en",
+                    score = 5,
+                    durationMillis = 100,
+                    isNewRecord = true,
+                )
+                runCurrent()
+                assertEquals(5, vm.uiState.value.record)
+                assertEquals(saved, vm.uiState.value.game)
+                clock += 30_000.milliseconds
+                vm.resume()
+                oldAnswer(saved.round.prompt.correctAnswer)
+                assertEquals(saved.copy(phase = WordFlowPhase.Active), vm.uiState.value.game)
+                clock += 1.milliseconds
+                vm.answerCallback()(saved.round.prompt.correctAnswer)
+                runCurrent()
+                assertEquals(WordFlowFailure.Timeout, vm.uiState.value.game.failure)
+                assertEquals(10_000L, vm.uiState.value.completedDurationMillis)
+                assertEquals(2, storage.gameSessionWriteCount)
+            } finally {
+                vm.abandon()
+                Dispatchers.resetMain()
+            }
+        }
+
     private fun com.alad1nks.oquturbo.feature.wordflow.model.WordFlowRound.wrongAnswer(): String =
         choices.first { it != prompt.correctAnswer }
 

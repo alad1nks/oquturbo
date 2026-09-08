@@ -8,7 +8,7 @@ object RandomWordFlowShuffler : WordFlowShuffler {
     override fun <T> shuffle(values: List<T>): List<T> = values.shuffled()
 }
 
-enum class WordFlowPhase { Ready, Active, CorrectFeedback, Result }
+enum class WordFlowPhase { Ready, Active, Paused, CorrectFeedback, Result }
 
 enum class WordFlowFailure { Wrong, Timeout }
 
@@ -60,6 +60,16 @@ class WordFlowGame(
             } else {
                 current.copy(phase = WordFlowPhase.Result, selectedAnswer = answer, failure = WordFlowFailure.Wrong)
             }
+    }
+
+    fun pause(elapsedMillis: Long) {
+        if (state.phase != WordFlowPhase.Active) return
+        elapse(elapsedMillis)
+        if (state.phase == WordFlowPhase.Active) state = state.copy(phase = WordFlowPhase.Paused)
+    }
+
+    fun resume() {
+        if (state.phase == WordFlowPhase.Paused) state = state.copy(phase = WordFlowPhase.Active)
     }
 
     fun continueAfterCorrect() {

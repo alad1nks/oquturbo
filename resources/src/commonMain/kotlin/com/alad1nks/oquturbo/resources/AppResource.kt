@@ -484,11 +484,15 @@ import oquturbo.resources.generated.resources.word_flow_duration_seconds
 import oquturbo.resources.generated.resources.word_flow_instructions
 import oquturbo.resources.generated.resources.word_flow_loading_record
 import oquturbo.resources.generated.resources.word_flow_new_record
+import oquturbo.resources.generated.resources.word_flow_pause
+import oquturbo.resources.generated.resources.word_flow_paused_message
+import oquturbo.resources.generated.resources.word_flow_paused_title
 import oquturbo.resources.generated.resources.word_flow_ready_title
 import oquturbo.resources.generated.resources.word_flow_record
 import oquturbo.resources.generated.resources.word_flow_record_value
 import oquturbo.resources.generated.resources.word_flow_replay
 import oquturbo.resources.generated.resources.word_flow_result_details
+import oquturbo.resources.generated.resources.word_flow_resume
 import oquturbo.resources.generated.resources.word_flow_score
 import oquturbo.resources.generated.resources.word_flow_score_value
 import oquturbo.resources.generated.resources.word_flow_seconds
@@ -714,6 +718,10 @@ object AppResource {
         val word_flow_title = Res.string.word_flow_title
         val word_flow_ready_title = Res.string.word_flow_ready_title
         val word_flow_instructions = Res.string.word_flow_instructions
+        val word_flow_pause = Res.string.word_flow_pause
+        val word_flow_paused_title = Res.string.word_flow_paused_title
+        val word_flow_paused_message = Res.string.word_flow_paused_message
+        val word_flow_resume = Res.string.word_flow_resume
         val word_flow_start = Res.string.word_flow_start
         val word_flow_loading_record = Res.string.word_flow_loading_record
         val word_flow_score = Res.string.word_flow_score
