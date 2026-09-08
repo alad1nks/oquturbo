@@ -29,6 +29,7 @@ internal class RememberNumberViewModel(
     private val rememberNumberRepository: RememberNumberRepository,
     private val gameActivityRepository: GameActivityRepository,
     private val dailyTrainingRepository: DailyTrainingRepository,
+    private val timeSource: TimeSource = TimeSource.Monotonic,
 ) : ViewModel() {
     private var score: Int = 0
     private var waitingNumber: String = ""
@@ -84,25 +85,27 @@ internal class RememberNumberViewModel(
                                 val correctText = waitingNumber
                                 val sessionDurationMillis = finishSessionTelemetry()
                                 delay = 1000
-                                val storageRecord =
-                                    rememberNumberRepository.getRememberNumberRecord(
-                                        maxLength = maxLength,
-                                        availableDigits = availableDigits,
-                                    ).first() ?: 0
-                                val currentRecord = maxOf(storageRecord, completedScore)
-                                _record.value = maxOf(_record.value, currentRecord)
-                                if (completedAttemptId == currentAttemptId) {
-                                    _uiState.value =
-                                        RememberNumberUiState.Mistake(
-                                            text = text,
-                                            score = completedScore,
-                                            correctText = correctText,
-                                            record = currentRecord,
-                                            isTrainingResultReady = trainingEntryId == null,
-                                        )
-                                }
+                                _uiState.value =
+                                    RememberNumberUiState.Mistake(
+                                        text = text,
+                                        score = completedScore,
+                                        correctText = correctText,
+                                        record = maxOf(_record.value, completedScore),
+                                        isTrainingResultReady = trainingEntryId == null,
+                                        completedDurationMillis = sessionDurationMillis,
+                                    )
                                 viewModelScope.launch {
                                     withContext(NonCancellable) {
+                                        val storageRecord =
+                                            rememberNumberRepository.getRememberNumberRecord(
+                                                maxLength = maxLength,
+                                                availableDigits = availableDigits,
+                                            ).first() ?: 0
+                                        val currentRecord = maxOf(storageRecord, completedScore)
+                                        _record.value = maxOf(_record.value, currentRecord)
+                                        updateCompletedAttempt(completedAttemptId) {
+                                            it.copy(record = currentRecord)
+                                        }
                                         sessionDurationMillis?.let { durationMillis ->
                                             val recordedSession =
                                                 recordCompletedSession(
@@ -168,7 +171,7 @@ internal class RememberNumberViewModel(
         isFirstNumber = true
         nextTrainingEntry = null
         hasContinuedTraining = false
-        sessionStartMark = TimeSource.Monotonic.markNow()
+        sessionStartMark = timeSource.markNow()
         waitingNumber = generateNumber()
         _focusEvent.value = null
         _uiState.value =

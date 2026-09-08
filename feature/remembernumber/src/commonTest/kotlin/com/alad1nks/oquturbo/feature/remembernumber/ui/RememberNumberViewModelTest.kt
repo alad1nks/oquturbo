@@ -13,7 +13,9 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.advanceTimeBy
@@ -26,6 +28,8 @@ import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertIs
 import kotlin.test.assertTrue
+import kotlin.time.Duration.Companion.milliseconds
+import kotlin.time.TimeSource
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class RememberNumberViewModelTest {
@@ -110,6 +114,127 @@ class RememberNumberViewModelTest {
             }
         }
 
+    @Test
+    fun durationIsImmediateFrozenAndPersistedAcrossModesAndTraining() =
+        runTest {
+            Dispatchers.setMain(StandardTestDispatcher(testScheduler))
+            try {
+                listOf(
+                    Triple(4, "0123456789", GameModeId.NumberSprintClassic),
+                    Triple(4, "01", GameModeId.NumberSprintBinary),
+                    Triple(10, "0123456789", GameModeId.NumberSprintCustom),
+                ).forEach { (length, digits, mode) ->
+                    listOf<Int?>(null, 1).forEach { required ->
+                        listOf(0, 1).forEach { score ->
+                            val storage = TestStorage().apply { blockWrites = true }
+                            val clock = kotlin.time.TestTimeSource()
+                            val vm = createViewModel(storage, clock, length, digits, required)
+                            runCurrent()
+                            assertIs<RememberNumberUiState.Initial>(vm.uiState.value)
+                            vm.start()
+                            repeat(score) {
+                                val answer = assertIs<RememberNumberUiState.Reading>(vm.uiState.value).text
+                                advanceTimeBy(1_700)
+                                runCurrent()
+                                vm.writeText(answer)
+                                runCurrent()
+                            }
+                            advanceTimeBy(1_700)
+                            runCurrent()
+                            assertIs<RememberNumberUiState.Writing>(vm.uiState.value)
+                            clock += 65_999.milliseconds
+                            vm.writeText("x".repeat(length))
+                            runCurrent()
+                            val pending = assertIs<RememberNumberUiState.Mistake>(vm.uiState.value)
+                            assertEquals(65_999L, pending.completedDurationMillis)
+                            assertEquals(required == null, pending.isTrainingResultReady)
+                            var continues = 0
+                            vm.continueTraining { continues++ }
+                            assertEquals(0, continues)
+                            clock += 100_000.milliseconds
+                            storage.writeGate.complete(Unit)
+                            runCurrent()
+                            val result = assertIs<RememberNumberUiState.Mistake>(vm.uiState.value)
+                            assertEquals(pending.completedDurationMillis, result.completedDurationMillis)
+                            assertTrue(result.isTrainingResultReady)
+                            val session = GameActivityRepository(storage).observeSessions().first().single()
+                            assertEquals(result.completedDurationMillis, session.durationMillis)
+                            assertEquals(score, session.score)
+                            assertEquals(score, session.correctAnswers)
+                            assertEquals(mode, session.mode)
+                            assertEquals(if (length == 10) "length:10;digits:0123456789" else null, session.variantId)
+                            vm.continueTraining { continues++ }
+                            vm.continueTraining { continues++ }
+                            assertEquals(if (required != null && score >= required) 1 else 0, continues)
+                            vm.start()
+                            assertIs<RememberNumberUiState.Reading>(vm.uiState.value)
+                            advanceTimeBy(1_700)
+                            runCurrent()
+                            clock += 999.milliseconds
+                            vm.writeText("x".repeat(length))
+                            runCurrent()
+                            assertEquals(
+                                999L,
+                                assertIs<RememberNumberUiState.Mistake>(vm.uiState.value).completedDurationMillis,
+                            )
+                            assertEquals(2, GameActivityRepository(storage).observeSessions().first().size)
+                            vm.viewModelScope.cancel()
+                        }
+                    }
+                }
+            } finally {
+                Dispatchers.resetMain()
+            }
+        }
+
+    @Test
+    fun slowRecordReadDoesNotDelayResultOrOverwriteLaterDuration() =
+        runTest {
+            Dispatchers.setMain(StandardTestDispatcher(testScheduler))
+            try {
+                val storage = TestStorage()
+                val clock = kotlin.time.TestTimeSource()
+                val vm = createViewModel(storage, clock)
+                runCurrent()
+                storage.blockRecordReads = true
+                finishAttempt(vm, 0, beforeFailure = { clock += 999.milliseconds })
+                assertEquals(999L, assertIs<RememberNumberUiState.Mistake>(vm.uiState.value).completedDurationMillis)
+                assertFalse(storage.writeStarted.isCompleted)
+                finishAttempt(vm, 1, beforeFailure = { clock += 65_999.milliseconds })
+                assertEquals(65_999L, assertIs<RememberNumberUiState.Mistake>(vm.uiState.value).completedDurationMillis)
+                storage.recordReadGate.complete(Unit)
+                runCurrent()
+                val result = assertIs<RememberNumberUiState.Mistake>(vm.uiState.value)
+                assertEquals(65_999L, result.completedDurationMillis)
+                assertEquals(1, result.score)
+                assertEquals(
+                    listOf(999L, 65_999L),
+                    GameActivityRepository(storage).observeSessions().first().map { it.durationMillis },
+                )
+                vm.viewModelScope.cancel()
+            } finally {
+                Dispatchers.resetMain()
+            }
+        }
+
+    @Test
+    fun incompleteAttemptDoesNotRecordSession() =
+        runTest {
+            Dispatchers.setMain(StandardTestDispatcher(testScheduler))
+            try {
+                val storage = TestStorage()
+                val vm = createViewModel(storage)
+                runCurrent()
+                vm.start()
+                advanceTimeBy(1_700)
+                runCurrent()
+                vm.viewModelScope.cancel()
+                assertTrue(GameActivityRepository(storage).observeSessions().first().isEmpty())
+            } finally {
+                Dispatchers.resetMain()
+            }
+        }
+
     private suspend fun TestScope.verifyStaleCompletion(
         firstScore: Int,
         laterScore: Int,
@@ -118,18 +243,22 @@ class RememberNumberViewModelTest {
         val storage = TestStorage()
         storage.blockWrites = true
         val repository = GameActivityRepository(storage)
-        val viewModel = createViewModel(storage)
+        val clock = kotlin.time.TestTimeSource()
+        val viewModel = createViewModel(storage, clock)
         runCurrent()
 
         finishAttempt(viewModel, score = firstScore)
+        val firstDuration = assertIs<RememberNumberUiState.Mistake>(viewModel.uiState.value).completedDurationMillis
         runCurrent()
         assertTrue(storage.writeStarted.isCompleted)
         assertFalse(assertIs<RememberNumberUiState.Mistake>(viewModel.uiState.value).isNewRecord)
 
-        finishAttempt(viewModel, score = laterScore)
+        finishAttempt(viewModel, score = laterScore, beforeFailure = { clock += 5_000.milliseconds })
         runCurrent()
         val laterPending = assertIs<RememberNumberUiState.Mistake>(viewModel.uiState.value)
         assertEquals(laterScore, laterPending.score)
+        assertEquals(0L, firstDuration)
+        assertEquals(5_000L, laterPending.completedDurationMillis)
         assertFalse(laterPending.isNewRecord)
 
         storage.writeGate.complete(Unit)
@@ -141,24 +270,34 @@ class RememberNumberViewModelTest {
         assertEquals(expectedLaterNewRecord, sessions.last().isNewRecord)
         val finalState = assertIs<RememberNumberUiState.Mistake>(viewModel.uiState.value)
         assertEquals(laterScore, finalState.score)
+        assertEquals(laterPending.completedDurationMillis, finalState.completedDurationMillis)
+        assertEquals(listOf(0L, 5_000L), sessions.map { it.durationMillis })
         assertEquals(expectedLaterNewRecord, finalState.isNewRecord)
         viewModel.viewModelScope.cancel()
     }
 
-    private fun createViewModel(storage: Storage) =
+    private fun createViewModel(
+        storage: Storage,
+        timeSource: TimeSource = TimeSource.Monotonic,
+        maxLength: Int = 1,
+        availableDigits: String = "0",
+        trainingRequiredScore: Int? = null,
+    ) =
         RememberNumberViewModel(
-            maxLength = 1,
-            availableDigits = "0",
-            trainingEntryId = null,
-            trainingRequiredScore = null,
+            maxLength = maxLength,
+            availableDigits = availableDigits,
+            trainingEntryId = trainingRequiredScore?.let { "duration-test" },
+            trainingRequiredScore = trainingRequiredScore,
             rememberNumberRepository = RememberNumberRepository(storage),
             gameActivityRepository = GameActivityRepository(storage),
             dailyTrainingRepository = DailyTrainingRepository(storage),
+            timeSource = timeSource,
         )
 
     private fun TestScope.finishAttempt(
         viewModel: RememberNumberViewModel,
         score: Int,
+        beforeFailure: () -> Unit = {},
     ) {
         viewModel.start()
         advanceTimeBy(1_700)
@@ -169,6 +308,7 @@ class RememberNumberViewModelTest {
             advanceTimeBy(1_000)
             runCurrent()
         }
+        beforeFailure()
         viewModel.writeText("1")
         runCurrent()
     }
@@ -179,6 +319,8 @@ class RememberNumberViewModelTest {
         private val gameSessions = MutableStateFlow<String?>(null)
         private val rememberRecord = MutableStateFlow<Int?>(null)
         var blockWrites = false
+        var blockRecordReads = false
+        val recordReadGate = CompletableDeferred<Unit>()
         val writeStarted = CompletableDeferred<Unit>()
         val writeGate = CompletableDeferred<Unit>()
 
@@ -204,7 +346,11 @@ class RememberNumberViewModelTest {
 
         override fun getKenKozGameRecord(mode: String): Flow<Int?> = MutableStateFlow(null)
 
-        override fun getRememberNumberRecord(maxLength: Int, availableDigits: String): Flow<Int?> = rememberRecord
+        override fun getRememberNumberRecord(maxLength: Int, availableDigits: String): Flow<Int?> =
+            flow {
+                if (blockRecordReads) recordReadGate.await()
+                emitAll(rememberRecord)
+            }
 
         override suspend fun setDarkTheme(value: Boolean) = Unit
 
