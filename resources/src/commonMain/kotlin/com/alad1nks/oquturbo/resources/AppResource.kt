@@ -133,6 +133,10 @@ import oquturbo.resources.generated.resources.home_training_goal_reached_message
 import oquturbo.resources.generated.resources.home_training_item_completed
 import oquturbo.resources.generated.resources.home_training_return_home
 import oquturbo.resources.generated.resources.home_training_score_goal
+import oquturbo.resources.generated.resources.kenkoz_duration_less_than_one_second
+import oquturbo.resources.generated.resources.kenkoz_duration_minutes
+import oquturbo.resources.generated.resources.kenkoz_duration_minutes_seconds
+import oquturbo.resources.generated.resources.kenkoz_duration_seconds
 import oquturbo.resources.generated.resources.kenkoz_game_back
 import oquturbo.resources.generated.resources.kenkoz_game_characters
 import oquturbo.resources.generated.resources.kenkoz_game_correct_answer
@@ -167,6 +171,7 @@ import oquturbo.resources.generated.resources.kenkoz_game_start
 import oquturbo.resources.generated.resources.kenkoz_game_try_again
 import oquturbo.resources.generated.resources.kenkoz_game_words
 import oquturbo.resources.generated.resources.kenkoz_game_your_answer
+import oquturbo.resources.generated.resources.kenkoz_result_duration
 import oquturbo.resources.generated.resources.kenkoz_title
 import oquturbo.resources.generated.resources.language_english
 import oquturbo.resources.generated.resources.language_kazakh
@@ -527,8 +532,10 @@ object AppResource {
         val dual_focus_duration_minutes = Res.plurals.dual_focus_duration_minutes
         val dual_focus_duration_seconds = Res.plurals.dual_focus_duration_seconds
         val memory_grid_duration_minutes = Res.plurals.memory_grid_duration_minutes
+        val kenkoz_duration_minutes = Res.plurals.kenkoz_duration_minutes
         val remember_number_duration_minutes = Res.plurals.remember_number_duration_minutes
         val memory_grid_duration_seconds = Res.plurals.memory_grid_duration_seconds
+        val kenkoz_duration_seconds = Res.plurals.kenkoz_duration_seconds
         val remember_number_duration_seconds = Res.plurals.remember_number_duration_seconds
         val word_flow_duration_minutes = Res.plurals.word_flow_duration_minutes
         val word_flow_duration_seconds = Res.plurals.word_flow_duration_seconds
@@ -691,10 +698,13 @@ object AppResource {
         val memory_grid_legend_expected = Res.string.memory_grid_legend_expected
         val memory_grid_legend_remaining = Res.string.memory_grid_legend_remaining
         val memory_grid_result_duration = Res.string.memory_grid_result_duration
+        val kenkoz_result_duration = Res.string.kenkoz_result_duration
         val remember_number_result_duration = Res.string.remember_number_result_duration
         val memory_grid_duration_less_than_one_second = Res.string.memory_grid_duration_less_than_one_second
+        val kenkoz_duration_less_than_one_second = Res.string.kenkoz_duration_less_than_one_second
         val remember_number_duration_less_than_one_second = Res.string.remember_number_duration_less_than_one_second
         val memory_grid_duration_minutes_seconds = Res.string.memory_grid_duration_minutes_seconds
+        val kenkoz_duration_minutes_seconds = Res.string.kenkoz_duration_minutes_seconds
         val remember_number_duration_minutes_seconds = Res.string.remember_number_duration_minutes_seconds
         val memory_grid_result = Res.string.memory_grid_result
         val memory_grid_rounds = Res.string.memory_grid_rounds

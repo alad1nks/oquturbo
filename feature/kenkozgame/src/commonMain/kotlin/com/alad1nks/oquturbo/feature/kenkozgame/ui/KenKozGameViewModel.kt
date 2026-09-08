@@ -34,6 +34,7 @@ internal class KenKozGameViewModel(
     private val kenKozGameRepository: KenKozGameRepository,
     private val gameActivityRepository: GameActivityRepository,
     private val dailyTrainingRepository: DailyTrainingRepository,
+    private val timeSource: TimeSource = TimeSource.Monotonic,
 ) : ViewModel() {
     private val _uiState =
         MutableStateFlow(
@@ -69,7 +70,7 @@ internal class KenKozGameViewModel(
     fun start() {
         currentAttemptId++
         showingDurationMillis = INITIAL_SHOWING_DURATION_MILLIS
-        sessionStartMark = TimeSource.Monotonic.markNow()
+        sessionStartMark = timeSource.markNow()
         hasContinuedTraining = false
         _uiState.update(KenKozGameUiState::startingSession)
         startRound()
@@ -94,15 +95,14 @@ internal class KenKozGameViewModel(
             startRound()
         } else {
             roundJob?.cancel()
-            _uiState.update { it.withMistake(answer) }
-            updateRecord(state.score)
+            val durationMillis = sessionStartMark?.elapsedNow()?.inWholeMilliseconds
+            sessionStartMark = null
+            _uiState.update { it.withMistake(answer).copy(completedDurationMillis = durationMillis) }
+            if (durationMillis != null) updateRecord(state.score, durationMillis)
         }
     }
 
-    private fun updateRecord(score: Int) {
-        val startMark = sessionStartMark ?: return
-        sessionStartMark = null
-        val sessionDurationMillis = startMark.elapsedNow().inWholeMilliseconds
+    private fun updateRecord(score: Int, sessionDurationMillis: Long) {
         val completedAttemptId = currentAttemptId
         viewModelScope.launch(start = CoroutineStart.UNDISPATCHED) {
             try {
