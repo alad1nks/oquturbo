@@ -91,6 +91,7 @@ kotlin {
             implementation(projects.feature.wordflow)
             implementation(projects.feature.dualfocus)
             implementation(projects.feature.rotationmatch)
+            implementation(projects.feature.numbertrail)
             implementation(projects.resources)
         }
         commonTest.dependencies {

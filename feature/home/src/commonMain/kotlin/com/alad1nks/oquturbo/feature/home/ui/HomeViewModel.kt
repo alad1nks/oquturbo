@@ -152,6 +152,7 @@ internal fun GameId.toHomeGame(): HomeUiState.Game =
         GameId.WordFlow -> HomeUiState.Game.WordFlow
         GameId.DualFocus -> HomeUiState.Game.DualFocus
         GameId.RotationMatch -> HomeUiState.Game.RotationMatch
+        GameId.NumberTrail -> HomeUiState.Game.NumberTrail
     }
 
 internal fun GameModeId.toHomeMode(): HomeUiState.Mode =
@@ -176,4 +177,5 @@ internal fun GameModeId.toHomeMode(): HomeUiState.Mode =
         GameModeId.WordFlowContext -> HomeUiState.Mode.Context
         GameModeId.DualFocusMatch -> HomeUiState.Mode.Match
         GameModeId.RotationMatchRotation -> HomeUiState.Mode.Rotation
+        GameModeId.NumberTrailAscending -> HomeUiState.Mode.Ascending
     }

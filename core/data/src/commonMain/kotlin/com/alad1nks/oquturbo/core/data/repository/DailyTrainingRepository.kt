@@ -241,6 +241,7 @@ class DailyTrainingRepository(
             GameId.WordFlow -> emptyList()
             GameId.DualFocus -> emptyList()
             GameId.RotationMatch -> emptyList()
+            GameId.NumberTrail -> emptyList()
         }
 
     private fun GameId.requiredTrainingScore(): Int =
@@ -252,6 +253,7 @@ class DailyTrainingRepository(
             GameId.WordFlow -> error("Word Flow is not balanced for daily training")
             GameId.DualFocus -> error("Dual Focus is not balanced for daily training")
             GameId.RotationMatch -> error("Rotation Match is not available in daily training")
+            GameId.NumberTrail -> error("Number Trail is not available in daily training")
         }
 
     @OptIn(ExperimentalTime::class)

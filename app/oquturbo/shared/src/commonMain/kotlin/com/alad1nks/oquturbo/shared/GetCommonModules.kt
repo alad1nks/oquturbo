@@ -8,6 +8,7 @@ import com.alad1nks.oquturbo.feature.home.di.HomeModule
 import com.alad1nks.oquturbo.feature.kenkozgame.di.KenKozGameModule
 import com.alad1nks.oquturbo.feature.main.di.MainModule
 import com.alad1nks.oquturbo.feature.memorygrid.di.MemoryGridModule
+import com.alad1nks.oquturbo.feature.numbertrail.di.NumberTrailModule
 import com.alad1nks.oquturbo.feature.profile.di.ProfileModule
 import com.alad1nks.oquturbo.feature.remembernumber.di.RememberNumberModule
 import com.alad1nks.oquturbo.feature.remembernumbermenu.di.rememberNumberMenuModule
@@ -31,6 +32,7 @@ fun getCommonModules(): List<Module> {
         WordFlowModule,
         DualFocusModule,
         RotationMatchModule,
+        NumberTrailModule,
         StorageCommonModule,
     )
 }

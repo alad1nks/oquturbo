@@ -8,4 +8,5 @@ enum class TrainingGame {
     WordFlow,
     DualFocus,
     RotationMatch,
+    NumberTrail,
 }

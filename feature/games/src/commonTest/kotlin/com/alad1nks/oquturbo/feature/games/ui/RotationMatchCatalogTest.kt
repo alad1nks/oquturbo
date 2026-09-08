@@ -9,7 +9,7 @@ class RotationMatchCatalogTest {
     @Test
     fun rotationMatchIsTheSeventhDirectGameWithOneVisionMode() {
         val games = GamesUiState().games
-        assertEquals(7, games.size)
+        assertEquals(8, games.size)
         val rotationMatch = games[6]
         assertEquals(TrainingGame.RotationMatch, rotationMatch.game)
         assertEquals(1, rotationMatch.modesCount)

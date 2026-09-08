@@ -223,6 +223,39 @@ import oquturbo.resources.generated.resources.memory_grid_score
 import oquturbo.resources.generated.resources.memory_grid_session_correct_taps
 import oquturbo.resources.generated.resources.memory_grid_start
 import oquturbo.resources.generated.resources.memory_grid_title
+import oquturbo.resources.generated.resources.number_trail_back
+import oquturbo.resources.generated.resources.number_trail_board_complete
+import oquturbo.resources.generated.resources.number_trail_description
+import oquturbo.resources.generated.resources.number_trail_grid_size
+import oquturbo.resources.generated.resources.number_trail_instructions
+import oquturbo.resources.generated.resources.number_trail_loading_record
+import oquturbo.resources.generated.resources.number_trail_mode
+import oquturbo.resources.generated.resources.number_trail_new_record
+import oquturbo.resources.generated.resources.number_trail_next_board
+import oquturbo.resources.generated.resources.number_trail_pause
+import oquturbo.resources.generated.resources.number_trail_paused_message
+import oquturbo.resources.generated.resources.number_trail_paused_title
+import oquturbo.resources.generated.resources.number_trail_placeholder
+import oquturbo.resources.generated.resources.number_trail_ready_title
+import oquturbo.resources.generated.resources.number_trail_record
+import oquturbo.resources.generated.resources.number_trail_record_unavailable
+import oquturbo.resources.generated.resources.number_trail_record_value
+import oquturbo.resources.generated.resources.number_trail_resume
+import oquturbo.resources.generated.resources.number_trail_retry
+import oquturbo.resources.generated.resources.number_trail_retry_load
+import oquturbo.resources.generated.resources.number_trail_save_failed
+import oquturbo.resources.generated.resources.number_trail_saving_result
+import oquturbo.resources.generated.resources.number_trail_score
+import oquturbo.resources.generated.resources.number_trail_start
+import oquturbo.resources.generated.resources.number_trail_target
+import oquturbo.resources.generated.resources.number_trail_tile_completed
+import oquturbo.resources.generated.resources.number_trail_tile_description
+import oquturbo.resources.generated.resources.number_trail_time_remaining
+import oquturbo.resources.generated.resources.number_trail_timeout_detail
+import oquturbo.resources.generated.resources.number_trail_timeout_title
+import oquturbo.resources.generated.resources.number_trail_title
+import oquturbo.resources.generated.resources.number_trail_wrong_detail
+import oquturbo.resources.generated.resources.number_trail_wrong_title
 import oquturbo.resources.generated.resources.oquturbo_navigation_games
 import oquturbo.resources.generated.resources.oquturbo_navigation_home
 import oquturbo.resources.generated.resources.oquturbo_navigation_profile
@@ -555,6 +588,40 @@ object AppResource {
     }
 
     object String {
+        val number_trail_title = Res.string.number_trail_title
+        val number_trail_description = Res.string.number_trail_description
+        val number_trail_mode = Res.string.number_trail_mode
+        val number_trail_instructions = Res.string.number_trail_instructions
+        val number_trail_target = Res.string.number_trail_target
+        val number_trail_grid_size = Res.string.number_trail_grid_size
+        val number_trail_time_remaining = Res.string.number_trail_time_remaining
+        val number_trail_score = Res.string.number_trail_score
+        val number_trail_record = Res.string.number_trail_record
+        val number_trail_record_value = Res.string.number_trail_record_value
+        val number_trail_start = Res.string.number_trail_start
+        val number_trail_retry = Res.string.number_trail_retry
+        val number_trail_back = Res.string.number_trail_back
+        val number_trail_pause = Res.string.number_trail_pause
+        val number_trail_paused_title = Res.string.number_trail_paused_title
+        val number_trail_paused_message = Res.string.number_trail_paused_message
+        val number_trail_resume = Res.string.number_trail_resume
+        val number_trail_board_complete = Res.string.number_trail_board_complete
+        val number_trail_next_board = Res.string.number_trail_next_board
+        val number_trail_wrong_title = Res.string.number_trail_wrong_title
+        val number_trail_wrong_detail = Res.string.number_trail_wrong_detail
+        val number_trail_timeout_title = Res.string.number_trail_timeout_title
+        val number_trail_timeout_detail = Res.string.number_trail_timeout_detail
+        val number_trail_new_record = Res.string.number_trail_new_record
+        val number_trail_loading_record = Res.string.number_trail_loading_record
+        val number_trail_placeholder = Res.string.number_trail_placeholder
+        val number_trail_record_unavailable = Res.string.number_trail_record_unavailable
+        val number_trail_retry_load = Res.string.number_trail_retry_load
+        val number_trail_saving_result = Res.string.number_trail_saving_result
+        val number_trail_save_failed = Res.string.number_trail_save_failed
+        val number_trail_tile_description = Res.string.number_trail_tile_description
+        val number_trail_tile_completed = Res.string.number_trail_tile_completed
+        val number_trail_ready_title = Res.string.number_trail_ready_title
+
         val dual_focus_correct = Res.string.dual_focus_correct
         val dual_focus_duration_less_than_one_second = Res.string.dual_focus_duration_less_than_one_second
         val dual_focus_duration_minutes_seconds = Res.string.dual_focus_duration_minutes_seconds

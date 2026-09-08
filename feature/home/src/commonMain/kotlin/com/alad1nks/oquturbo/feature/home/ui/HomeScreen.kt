@@ -22,6 +22,7 @@ import androidx.compose.material.icons.filled.Block
 import androidx.compose.material.icons.filled.Bolt
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.EmojiEvents
+import androidx.compose.material.icons.filled.FormatListNumbered
 import androidx.compose.material.icons.filled.GridView
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.RotateRight
@@ -431,6 +432,7 @@ internal fun HomeUiState.Game.titleResource(): StringResource =
         HomeUiState.Game.WordFlow -> AppResource.String.word_flow_title
         HomeUiState.Game.DualFocus -> AppResource.String.dual_focus_title
         HomeUiState.Game.RotationMatch -> AppResource.String.rotation_match_title
+        HomeUiState.Game.NumberTrail -> AppResource.String.number_trail_title
     }
 
 internal fun HomeUiState.Mode.titleResource(): StringResource =
@@ -455,6 +457,7 @@ internal fun HomeUiState.Mode.titleResource(): StringResource =
         HomeUiState.Mode.Context -> AppResource.String.word_flow_context_mode
         HomeUiState.Mode.Match -> AppResource.String.dual_focus_match_mode
         HomeUiState.Mode.Rotation -> AppResource.String.rotation_match_mode
+        HomeUiState.Mode.Ascending -> AppResource.String.number_trail_mode
     }
 
 @Composable
@@ -510,6 +513,7 @@ internal fun HomeUiState.Game.icon(): ImageVector =
         HomeUiState.Game.WordFlow -> Icons.Filled.AutoStories
         HomeUiState.Game.DualFocus -> Icons.Filled.ViewColumn
         HomeUiState.Game.RotationMatch -> Icons.Filled.RotateRight
+        HomeUiState.Game.NumberTrail -> Icons.Filled.FormatListNumbered
     }
 
 @Preview(
@@ -648,3 +652,25 @@ private fun previewTrainingItem(
         requiredScore = requiredScore,
         isCompleted = isCompleted,
     )
+
+@Preview(name = "Home Number Trail record", widthDp = 320, heightDp = 1100, locale = "ru")
+@ScreenshotPreview
+@Composable
+private fun NumberTrailHomeRecordPreview() {
+    OquTurboTheme {
+        HomeScreen(
+            uiState =
+                HomeUiState(
+                    recentRecords =
+                        listOf(
+                            HomeUiState.RecentRecord(
+                                HomeUiState.Game.NumberTrail,
+                                HomeUiState.Mode.Ascending,
+                                score = 48,
+                            ),
+                        ),
+                ),
+            onStartTrainingClick = {},
+        )
+    }
+}

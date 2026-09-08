@@ -6,7 +6,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onStart
 
-internal class AppPreferencesImpl : AppPreferences {
+internal class AppPreferencesImpl(private val namespace: String = "") : AppPreferences {
     private val stringPreferences = MutableStateFlow(emptyMap<String, String?>())
     private val booleanPreferences = MutableStateFlow(emptyMap<String, Boolean?>())
     private val intPreferences = MutableStateFlow(emptyMap<String, Int?>())
@@ -30,38 +30,42 @@ internal class AppPreferencesImpl : AppPreferences {
     }
 
     override suspend fun setBoolean(key: String, value: Boolean) {
+        localStorage.setItem(storageKey(key), value.toString())
         val booleanPreferencesCopy = booleanPreferences.value.toMutableMap()
         booleanPreferencesCopy[key] = value
         booleanPreferences.value = booleanPreferencesCopy.toMap()
-
-        localStorage.setItem(key, value.toString())
     }
 
     override suspend fun setString(key: String, value: String) {
+        localStorage.setItem(storageKey(key), value)
         val stringPreferencesCopy = stringPreferences.value.toMutableMap()
         stringPreferencesCopy[key] = value
         stringPreferences.value = stringPreferencesCopy.toMap()
-
-        localStorage.setItem(key, value)
     }
 
     override suspend fun setInt(key: String, value: Int) {
+        localStorage.setItem(storageKey(key), value.toString())
         val intPreferencesCopy = intPreferences.value.toMutableMap()
         intPreferencesCopy[key] = value
         intPreferences.value = intPreferencesCopy.toMap()
-
-        localStorage.setItem(key, value.toString())
     }
 
+    private fun storageKey(key: String): String = if (namespace.isEmpty()) key else "$namespace:$key"
+
     private fun refreshString(key: String) {
-        stringPreferences.value = stringPreferences.value + (key to localStorage.getItem(key))
+        stringPreferences.value = stringPreferences.value + (key to localStorage.getItem(storageKey(key)))
     }
 
     private fun refreshBoolean(key: String) {
-        booleanPreferences.value = booleanPreferences.value + (key to localStorage.getItem(key)?.toBoolean())
+        booleanPreferences.value = booleanPreferences.value + (
+            key to
+                localStorage.getItem(
+                    storageKey(key),
+                )?.toBoolean()
+        )
     }
 
     private fun refreshInt(key: String) {
-        intPreferences.value = intPreferences.value + (key to localStorage.getItem(key)?.toInt())
+        intPreferences.value = intPreferences.value + (key to localStorage.getItem(storageKey(key))?.toInt())
     }
 }

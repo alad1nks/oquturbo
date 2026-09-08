@@ -4,7 +4,9 @@ import com.alad1nks.oquturbo.core.storage.common.AppPreferences
 import com.alad1nks.oquturbo.core.storage.web.AppPreferencesImpl
 import org.koin.dsl.module
 
-val StorageWebModule =
+val StorageWebModule = storageWebModule()
+
+fun storageWebModule(namespace: String = "") =
     module {
-        single<AppPreferences> { AppPreferencesImpl() }
+        single<AppPreferences> { AppPreferencesImpl(namespace) }
     }

@@ -33,6 +33,7 @@ dependencies {
     implementation(projects.feature.wordflow)
     implementation(projects.feature.dualfocus)
     implementation(projects.feature.rotationmatch)
+    implementation(projects.feature.numbertrail)
 
     testImplementation(libs.compose.components.resources)
     testImplementation(libs.compose.material3)

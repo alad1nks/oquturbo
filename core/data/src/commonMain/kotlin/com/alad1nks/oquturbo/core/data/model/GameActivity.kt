@@ -11,6 +11,7 @@ enum class GameId {
     WordFlow,
     DualFocus,
     RotationMatch,
+    NumberTrail,
 }
 
 @Serializable
@@ -35,6 +36,7 @@ enum class GameModeId {
     WordFlowContext,
     DualFocusMatch,
     RotationMatchRotation,
+    NumberTrailAscending,
 }
 
 @Serializable
