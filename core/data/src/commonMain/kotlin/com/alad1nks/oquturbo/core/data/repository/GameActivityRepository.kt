@@ -64,9 +64,9 @@ class GameActivityRepository(
         correctAnswers: Int = score,
         durationMillis: Long,
         isNewRecord: Boolean,
+        completedAtEpochMillis: Long = Clock.System.now().toEpochMilliseconds(),
     ): GameSession =
         withContext(NonCancellable) {
-            val completedAtEpochMillis = Clock.System.now().toEpochMilliseconds()
             val session =
                 GameSession(
                     game = game,

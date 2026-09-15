@@ -14,6 +14,7 @@ import com.alad1nks.oquturbo.feature.remembernumber.di.RememberNumberModule
 import com.alad1nks.oquturbo.feature.remembernumbermenu.di.rememberNumberMenuModule
 import com.alad1nks.oquturbo.feature.rotationmatch.di.RotationMatchModule
 import com.alad1nks.oquturbo.feature.stats.di.StatsModule
+import com.alad1nks.oquturbo.feature.symbolcount.di.SymbolCountModule
 import com.alad1nks.oquturbo.feature.wordflow.di.WordFlowModule
 import org.koin.core.module.Module
 
@@ -33,6 +34,7 @@ fun getCommonModules(): List<Module> {
         DualFocusModule,
         RotationMatchModule,
         NumberTrailModule,
+        SymbolCountModule,
         StorageCommonModule,
     )
 }

@@ -62,6 +62,8 @@ import com.alad1nks.oquturbo.feature.stats.navigation.navigateToStatsMode
 import com.alad1nks.oquturbo.feature.stats.navigation.statsGameDetailScreen
 import com.alad1nks.oquturbo.feature.stats.navigation.statsModeDetailScreen
 import com.alad1nks.oquturbo.feature.stats.navigation.statsScreen
+import com.alad1nks.oquturbo.feature.symbolcount.navigation.navigateToSymbolCount
+import com.alad1nks.oquturbo.feature.symbolcount.navigation.symbolCountScreen
 import com.alad1nks.oquturbo.feature.wordflow.navigation.navigateToWordFlow
 import com.alad1nks.oquturbo.feature.wordflow.navigation.wordFlowScreen
 import com.alad1nks.oquturbo.shared.navigation.OquTurboTopLevelDestination
@@ -106,6 +108,7 @@ fun App() {
                     TrainingGame.DualFocus -> appState.navController.navigateToDualFocus()
                     TrainingGame.RotationMatch -> appState.navController.navigateToRotationMatch()
                     TrainingGame.NumberTrail -> appState.navController.navigateToNumberTrail()
+                    TrainingGame.SymbolCount -> appState.navController.navigateToSymbolCount()
                 }
             },
         )
@@ -225,6 +228,11 @@ fun App() {
                 appState.navController.popBackStack(route = GamesRoute, inclusive = false)
             },
         )
+        symbolCountScreen(
+            onBackClick = {
+                appState.navController.popBackStack(route = GamesRoute, inclusive = false)
+            },
+        )
     }
 }
 
@@ -278,6 +286,7 @@ private fun NavController.navigateToDailyTrainingEntry(entry: DailyTrainingEntry
         GameId.DualFocus -> error("Dual Focus is not available in daily training")
         GameId.RotationMatch -> error("Rotation Match is not available in daily training")
         GameId.NumberTrail -> error("Number Trail is not available in daily training")
+        GameId.SymbolCount -> error("Symbol Count is not available in daily training")
     }
 }
 
@@ -292,6 +301,7 @@ internal fun GameId.isDailyTrainingGameSupported(): Boolean =
         GameId.DualFocus,
         GameId.RotationMatch,
         GameId.NumberTrail,
+        GameId.SymbolCount,
         -> false
     }
 

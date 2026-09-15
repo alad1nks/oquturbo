@@ -433,6 +433,7 @@ internal fun HomeUiState.Game.titleResource(): StringResource =
         HomeUiState.Game.DualFocus -> AppResource.String.dual_focus_title
         HomeUiState.Game.RotationMatch -> AppResource.String.rotation_match_title
         HomeUiState.Game.NumberTrail -> AppResource.String.number_trail_title
+        HomeUiState.Game.SymbolCount -> AppResource.String.symbol_count_title
     }
 
 internal fun HomeUiState.Mode.titleResource(): StringResource =
@@ -458,6 +459,7 @@ internal fun HomeUiState.Mode.titleResource(): StringResource =
         HomeUiState.Mode.Match -> AppResource.String.dual_focus_match_mode
         HomeUiState.Mode.Rotation -> AppResource.String.rotation_match_mode
         HomeUiState.Mode.Ascending -> AppResource.String.number_trail_mode
+        HomeUiState.Mode.Count -> AppResource.String.symbol_count_mode
     }
 
 @Composable
@@ -514,6 +516,7 @@ internal fun HomeUiState.Game.icon(): ImageVector =
         HomeUiState.Game.DualFocus -> Icons.Filled.ViewColumn
         HomeUiState.Game.RotationMatch -> Icons.Filled.RotateRight
         HomeUiState.Game.NumberTrail -> Icons.Filled.FormatListNumbered
+        HomeUiState.Game.SymbolCount -> Icons.Filled.FormatListNumbered
     }
 
 @Preview(
@@ -666,6 +669,28 @@ private fun NumberTrailHomeRecordPreview() {
                             HomeUiState.RecentRecord(
                                 HomeUiState.Game.NumberTrail,
                                 HomeUiState.Mode.Ascending,
+                                score = 48,
+                            ),
+                        ),
+                ),
+            onStartTrainingClick = {},
+        )
+    }
+}
+
+@Preview(name = "Home Symbol Count record", widthDp = 320, heightDp = 1100, locale = "ru")
+@ScreenshotPreview
+@Composable
+private fun SymbolCountHomeRecordPreview() {
+    OquTurboTheme {
+        HomeScreen(
+            uiState =
+                HomeUiState(
+                    recentRecords =
+                        listOf(
+                            HomeUiState.RecentRecord(
+                                HomeUiState.Game.SymbolCount,
+                                HomeUiState.Mode.Count,
                                 score = 48,
                             ),
                         ),

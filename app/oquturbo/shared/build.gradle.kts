@@ -92,6 +92,7 @@ kotlin {
             implementation(projects.feature.dualfocus)
             implementation(projects.feature.rotationmatch)
             implementation(projects.feature.numbertrail)
+            implementation(projects.feature.symbolcount)
             implementation(projects.resources)
         }
         commonTest.dependencies {

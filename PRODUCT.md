@@ -16,16 +16,16 @@ progress visible without turning preview fixtures into product state.
 6. Home, Stats, and Profile derive progress from persisted activity. Stats presents recent and aggregate activity;
    Profile presents identity, progression, ranks, achievements, unlocks, and preferences.
 7. Daily Training sequences a persisted daily plan across supported game modes, marks qualifying entries complete,
-   and records completed-training progress. Memory Grid is currently excluded from that plan.
+   and records completed-training progress. Memory Grid, Word Flow, Dual Focus, Rotation Match, Number Trail and Symbol Count are excluded from that plan.
 
 ## Current product structure
 
 - **Home:** progress overview, today's training sequence, and recent records.
-- **Games:** static catalog of Number Sprint, Wide Eye, Don't Tap, and Memory Grid; each opens a mode/menu flow.
+- **Games:** Number Sprint, Wide Eye, Don't Tap, Memory Grid, Word Flow, Dual Focus, Rotation Match, Number Trail, and Symbol Count; games open their mode menu or direct ready state.
 - **Stats:** period summaries, activity, trends, totals, recent history, and game/mode drill-downs.
 - **Profile:** identity, XP/level/rank, achievements, titles, personalization, and persisted settings.
 - **Game menus and sessions:** select a supported mode/configuration, play, receive answer feedback, see score/record,
-  and retry or return. The first three games are also standalone products.
+  and retry or return. Number Sprint, Wide Eye, Don't Tap, Word Flow, Rotation Match, Number Trail, and Symbol Count also have standalone products.
 
 ## Evidence-based game principles
 

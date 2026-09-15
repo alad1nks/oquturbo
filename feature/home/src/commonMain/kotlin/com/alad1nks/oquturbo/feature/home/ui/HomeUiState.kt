@@ -18,6 +18,7 @@ internal data class HomeUiState(
         DualFocus,
         RotationMatch,
         NumberTrail,
+        SymbolCount,
     }
 
     enum class Mode {
@@ -42,6 +43,7 @@ internal data class HomeUiState(
         Match,
         Rotation,
         Ascending,
+        Count,
     }
 
     data class RecentRecord(

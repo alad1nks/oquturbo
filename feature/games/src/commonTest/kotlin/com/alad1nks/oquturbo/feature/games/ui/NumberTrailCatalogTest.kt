@@ -9,7 +9,7 @@ class NumberTrailCatalogTest {
     @Test
     fun numberTrailIsTheEighthDirectGameWithAttentionAndVision() {
         val games = GamesUiState().games
-        assertEquals(8, games.size)
+        assertEquals(9, games.size)
         val numberTrail = games[7]
         assertEquals(TrainingGame.NumberTrail, numberTrail.game)
         assertEquals(1, numberTrail.modesCount)

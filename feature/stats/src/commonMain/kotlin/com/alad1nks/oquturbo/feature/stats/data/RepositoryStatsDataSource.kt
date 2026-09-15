@@ -479,6 +479,7 @@ private fun GameId.modeCatalog(): List<GameModeId> =
         GameId.DualFocus -> listOf(GameModeId.DualFocusMatch)
         GameId.RotationMatch -> listOf(GameModeId.RotationMatchRotation)
         GameId.NumberTrail -> listOf(GameModeId.NumberTrailAscending)
+        GameId.SymbolCount -> listOf(GameModeId.SymbolCountCount)
     }
 
 private fun GameId.toStatsGame(): StatsGame =
@@ -491,6 +492,7 @@ private fun GameId.toStatsGame(): StatsGame =
         GameId.DualFocus -> StatsGame.DualFocus
         GameId.RotationMatch -> StatsGame.RotationMatch
         GameId.NumberTrail -> StatsGame.NumberTrail
+        GameId.SymbolCount -> StatsGame.SymbolCount
     }
 
 private fun GameModeId.toStatsMode(): StatsMode =
@@ -516,18 +518,26 @@ private fun GameModeId.toStatsMode(): StatsMode =
         GameModeId.DualFocusMatch -> StatsMode.Match
         GameModeId.RotationMatchRotation -> StatsMode.Rotation
         GameModeId.NumberTrailAscending -> StatsMode.Ascending
+        GameModeId.SymbolCountCount -> StatsMode.Count
     }
 
 private fun StatsSkill.gameIds(): Set<GameId> =
     when (this) {
         StatsSkill.Memory -> setOf(GameId.NumberSprint, GameId.MemoryGrid)
-        StatsSkill.Attention -> setOf(GameId.WideEye, GameId.DontTap, GameId.DualFocus, GameId.NumberTrail)
+        StatsSkill.Attention ->
+            setOf(
+                GameId.WideEye,
+                GameId.DontTap,
+                GameId.DualFocus,
+                GameId.NumberTrail,
+                GameId.SymbolCount,
+            )
         StatsSkill.Reaction -> setOf(GameId.NumberSprint, GameId.DontTap)
         StatsSkill.PeripheralVision,
         StatsSkill.RecognitionSpeed,
         -> setOf(GameId.WideEye)
         StatsSkill.Reading -> setOf(GameId.WordFlow)
-        StatsSkill.VisualPerception -> setOf(GameId.RotationMatch, GameId.NumberTrail)
+        StatsSkill.VisualPerception -> setOf(GameId.RotationMatch, GameId.NumberTrail, GameId.SymbolCount)
     }
 
 private fun Long.toMinutesCount(): Int =

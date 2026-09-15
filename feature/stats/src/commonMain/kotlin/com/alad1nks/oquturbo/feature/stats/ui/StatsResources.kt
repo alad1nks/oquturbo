@@ -33,6 +33,7 @@ internal fun StatsGame.titleResource(): StringResource =
         StatsGame.DualFocus -> AppResource.String.dual_focus_title
         StatsGame.RotationMatch -> AppResource.String.rotation_match_title
         StatsGame.NumberTrail -> AppResource.String.number_trail_title
+        StatsGame.SymbolCount -> AppResource.String.symbol_count_title
     }
 
 internal fun StatsGame.icon(): ImageVector =
@@ -45,6 +46,7 @@ internal fun StatsGame.icon(): ImageVector =
         StatsGame.DualFocus -> Icons.Filled.ViewColumn
         StatsGame.RotationMatch -> Icons.Filled.RotateRight
         StatsGame.NumberTrail -> Icons.Filled.FormatListNumbered
+        StatsGame.SymbolCount -> Icons.Filled.FormatListNumbered
     }
 
 internal fun StatsMode.titleResource(): StringResource =
@@ -70,6 +72,7 @@ internal fun StatsMode.titleResource(): StringResource =
         StatsMode.Match -> AppResource.String.dual_focus_match_mode
         StatsMode.Rotation -> AppResource.String.rotation_match_mode
         StatsMode.Ascending -> AppResource.String.number_trail_mode
+        StatsMode.Count -> AppResource.String.symbol_count_mode
     }
 
 @Composable

@@ -23,6 +23,7 @@ class DailyTrainingWordFlowExclusionTest {
             assertFalse(plan.entries.any { it.game == GameId.DualFocus })
             assertFalse(plan.entries.any { it.game == GameId.RotationMatch })
             assertFalse(plan.entries.any { it.game == GameId.NumberTrail })
+            assertFalse(plan.entries.any { it.game == GameId.SymbolCount })
         }
 
     private class TestStorage : Storage {

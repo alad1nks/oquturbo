@@ -12,6 +12,7 @@ enum class GameId {
     DualFocus,
     RotationMatch,
     NumberTrail,
+    SymbolCount,
 }
 
 @Serializable
@@ -37,6 +38,7 @@ enum class GameModeId {
     DualFocusMatch,
     RotationMatchRotation,
     NumberTrailAscending,
+    SymbolCountCount,
 }
 
 @Serializable
