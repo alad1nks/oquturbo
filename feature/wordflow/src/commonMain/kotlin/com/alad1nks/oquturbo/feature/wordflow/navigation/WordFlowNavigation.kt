@@ -1,6 +1,10 @@
 package com.alad1nks.oquturbo.feature.wordflow.navigation
 
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.text.intl.Locale
 import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
@@ -26,7 +30,8 @@ import oquturbo.feature.wordflow.generated.resources.word_flow_medium_correct
 import oquturbo.feature.wordflow.generated.resources.word_flow_medium_templates
 import oquturbo.feature.wordflow.generated.resources.word_flow_medium_wrong_a
 import oquturbo.feature.wordflow.generated.resources.word_flow_medium_wrong_b
-import org.jetbrains.compose.resources.stringArrayResource
+import org.jetbrains.compose.resources.StringArrayResource
+import org.jetbrains.compose.resources.getStringArray
 import org.koin.compose.viewmodel.koinViewModel
 import org.koin.core.parameter.parametersOf
 
@@ -39,22 +44,29 @@ fun NavController.navigateToWordFlow(navOptions: NavOptionsBuilder.() -> Unit = 
 fun NavGraphBuilder.wordFlowScreen(onBackClick: (() -> Unit)? = null) {
     composable<WordFlowRoute> {
         val locale = normalizeWordFlowLocale(Locale.current.language)
-        val easy = localizedTier(WordFlowTier.Easy)
-        val medium = localizedTier(WordFlowTier.Medium)
-        val hard = localizedTier(WordFlowTier.Hard)
-        val content = remember(locale, easy, medium, hard) { WordFlowContent(easy + medium + hard) }
+        var content by remember(locale) { mutableStateOf<WordFlowContent?>(null) }
+        LaunchedEffect(locale) {
+            content = loadLocalizedWordFlowContent { getStringArray(it) }
+        }
+        val loadedContent = content ?: return@composable
         val viewModel =
             koinViewModel<WordFlowViewModel>(
-                parameters = { parametersOf(locale, content) },
+                parameters = { parametersOf(locale, loadedContent) },
             )
         WordFlowRoute(viewModel, onBackClick)
     }
 }
 
-@androidx.compose.runtime.Composable
-private fun localizedTier(tier: WordFlowTier): List<WordFlowPrompt> {
+internal suspend fun loadLocalizedWordFlowContent(
+    loadArray: suspend (StringArrayResource) -> List<String>,
+): WordFlowContent = WordFlowContent(WordFlowTier.entries.flatMap { localizedTier(it, loadArray) })
+
+private suspend fun localizedTier(
+    tier: WordFlowTier,
+    loadArray: suspend (StringArrayResource) -> List<String>,
+): List<WordFlowPrompt> {
     val templates =
-        stringArrayResource(
+        loadArray(
             when (tier) {
                 WordFlowTier.Easy -> Res.array.word_flow_easy_templates
                 WordFlowTier.Medium -> Res.array.word_flow_medium_templates
@@ -62,7 +74,7 @@ private fun localizedTier(tier: WordFlowTier): List<WordFlowPrompt> {
             },
         )
     val correct =
-        stringArrayResource(
+        loadArray(
             when (tier) {
                 WordFlowTier.Easy -> Res.array.word_flow_easy_correct
                 WordFlowTier.Medium -> Res.array.word_flow_medium_correct
@@ -70,7 +82,7 @@ private fun localizedTier(tier: WordFlowTier): List<WordFlowPrompt> {
             },
         )
     val wrongA =
-        stringArrayResource(
+        loadArray(
             when (tier) {
                 WordFlowTier.Easy -> Res.array.word_flow_easy_wrong_a
                 WordFlowTier.Medium -> Res.array.word_flow_medium_wrong_a
@@ -78,7 +90,7 @@ private fun localizedTier(tier: WordFlowTier): List<WordFlowPrompt> {
             },
         )
     val wrongB =
-        stringArrayResource(
+        loadArray(
             when (tier) {
                 WordFlowTier.Easy -> Res.array.word_flow_easy_wrong_b
                 WordFlowTier.Medium -> Res.array.word_flow_medium_wrong_b
