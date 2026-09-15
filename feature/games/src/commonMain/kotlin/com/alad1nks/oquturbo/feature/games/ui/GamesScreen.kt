@@ -229,8 +229,8 @@ private fun ActiveGameCard(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    if (summary.game == TrainingGame.NumberTrail) {
-        NumberTrailCard(summary, onClick, modifier)
+    if (summary.game == TrainingGame.NumberTrail || summary.game == TrainingGame.SymbolCount) {
+        WrappingGameCard(summary, onClick, modifier)
         return
     }
     Card(
@@ -348,7 +348,7 @@ private fun GameArtwork(game: TrainingGame) {
 }
 
 @Composable
-private fun NumberTrailCard(summary: GamesUiState.GameSummary, onClick: () -> Unit, modifier: Modifier) {
+private fun WrappingGameCard(summary: GamesUiState.GameSummary, onClick: () -> Unit, modifier: Modifier) {
     Card(
         onClick = onClick,
         modifier = modifier.fillMaxWidth(),

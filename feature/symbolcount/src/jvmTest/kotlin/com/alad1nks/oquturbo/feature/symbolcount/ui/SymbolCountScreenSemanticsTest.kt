@@ -24,6 +24,7 @@ import androidx.compose.ui.unit.dp
 import com.alad1nks.oquturbo.core.designsystem.theme.OquTurboTheme
 import com.alad1nks.oquturbo.feature.symbolcount.model.SymbolCountFailure
 import com.alad1nks.oquturbo.feature.symbolcount.model.SymbolCountPhase
+import java.util.Locale
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
@@ -178,4 +179,40 @@ class SymbolCountScreenSemanticsTest {
             onNodeWithTag("answer-1").performScrollTo().assertIsDisplayed().assertIsEnabled()
             onNodeWithContentDescription("Pause").performScrollTo().assertIsDisplayed()
         }
+
+    @Test
+    fun enlargedKazakhResultKeepsReplayAndBackReachable() {
+        val originalLocale = Locale.getDefault()
+        try {
+            Locale.setDefault(Locale.forLanguageTag("kk"))
+            runComposeUiTest {
+                var replayCount = 0
+                var backCount = 0
+                setContent {
+                    CompositionLocalProvider(LocalDensity provides Density(1f, 2f)) {
+                        OquTurboTheme {
+                            SymbolCountScreen(
+                                symbolCountPreviewState(
+                                    SymbolCountPhase.Result,
+                                    5,
+                                    SymbolCountFailure.Wrong,
+                                    SymbolCountSaveStatus.Saved,
+                                ).copy(record = 10),
+                                { replayCount++ },
+                                { _, _ -> },
+                                { backCount++ },
+                                modifier = Modifier.requiredSize(320.dp, 600.dp),
+                            )
+                        }
+                    }
+                }
+                onNodeWithText("Қайта ойнау").performScrollTo().assertIsDisplayed().assertIsEnabled().performClick()
+                assertEquals(1, replayCount)
+                onNodeWithText("Ойындарға оралу").performScrollTo().assertIsDisplayed().assertIsEnabled().performClick()
+                assertEquals(1, backCount)
+            }
+        } finally {
+            Locale.setDefault(originalLocale)
+        }
+    }
 }
