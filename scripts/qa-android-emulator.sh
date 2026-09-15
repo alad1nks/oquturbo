@@ -153,7 +153,7 @@ status() {
 product_config() {
     local product="${1:-oquturbo}"
     case "$product" in
-        oquturbo|sansprint|kenkoz|baspa|wordflow|rotationmatch|numbertrail) ;;
+        oquturbo|sansprint|kenkoz|baspa|wordflow|rotationmatch|numbertrail|symbolcount) ;;
         *)
             echo "Unsupported product: $product" >&2
             exit 1

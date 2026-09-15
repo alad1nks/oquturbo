@@ -1,0 +1,54 @@
+name: PR checks symbolcount
+
+on:
+  pull_request:
+    branches: [ main ]
+    paths:
+      - 'app/symbolcount/**'
+      - 'feature/symbolcount/**'
+      - 'feature/main/**'
+      - 'core/**'
+      - 'resources/**'
+      - '.github/workflows/**'
+      - 'build.gradle.kts'
+      - 'settings.gradle.kts'
+      - 'gradle.properties'
+      - 'gradle/**'
+      - 'gradlew'
+      - 'gradlew.bat'
+
+jobs:
+  build-android:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+      - name: Test and assemble debug application
+        run: ./gradlew :feature:symbolcount:testAndroidHostTest :app:symbolcount:androidApp:assembleDebug
+
+  build-ios:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+      - name: Link iOS frameworks
+        run: ./gradlew :app:symbolcount:shared:linkReleaseFrameworkIosArm64 :app:symbolcount:shared:linkDebugFrameworkIosSimulatorArm64
+      - name: Verify framework identity
+        run: test -d app/symbolcount/shared/build/bin/iosArm64/releaseFramework/AppSymbolCount.framework
+
+  build-web-desktop:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+      - name: Verify portable targets and desktop persistence
+        run: ./gradlew :app:symbolcount:webApp:jsJar :app:symbolcount:webApp:wasmJsJar :app:symbolcount:desktopApp:jar :app:symbolcount:shared:jvmTest

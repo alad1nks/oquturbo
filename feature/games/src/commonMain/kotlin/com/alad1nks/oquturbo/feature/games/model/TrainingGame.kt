@@ -9,4 +9,5 @@ enum class TrainingGame {
     DualFocus,
     RotationMatch,
     NumberTrail,
+    SymbolCount,
 }

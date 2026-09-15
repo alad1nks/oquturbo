@@ -12,6 +12,7 @@ enum class StatsGame {
     DualFocus,
     RotationMatch,
     NumberTrail,
+    SymbolCount,
 }
 
 @Serializable
@@ -37,6 +38,7 @@ enum class StatsMode {
     Match,
     Rotation,
     Ascending,
+    Count,
 }
 
 @Serializable

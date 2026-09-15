@@ -34,6 +34,7 @@ dependencies {
     implementation(projects.feature.dualfocus)
     implementation(projects.feature.rotationmatch)
     implementation(projects.feature.numbertrail)
+    implementation(projects.feature.symbolcount)
 
     testImplementation(libs.compose.components.resources)
     testImplementation(libs.compose.material3)

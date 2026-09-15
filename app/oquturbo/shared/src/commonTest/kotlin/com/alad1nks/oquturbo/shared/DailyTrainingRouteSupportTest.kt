@@ -10,6 +10,7 @@ class DailyTrainingRouteSupportTest {
     fun numberTrailRouteIsRejected() {
         assertFalse(GameId.RotationMatch.isDailyTrainingGameSupported())
         assertFalse(GameId.NumberTrail.isDailyTrainingGameSupported())
+        assertFalse(GameId.SymbolCount.isDailyTrainingGameSupported())
     }
 
     @Test

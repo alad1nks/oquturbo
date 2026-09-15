@@ -278,3 +278,83 @@ private fun NumberTrailVisibleHistoryPreview() {
         }
     }
 }
+
+@Preview(name = "Stats Symbol Count mode", widthDp = 320, heightDp = 1400, locale = "kk")
+@ScreenshotPreview
+@Composable
+private fun SymbolCountStatsModePreview() {
+    OquTurboTheme {
+        StatsModeDetailScreen(
+            uiState =
+                StatsDetailUiState(
+                    game = StatsGame.SymbolCount,
+                    period = StatsPeriod.AllTime,
+                    selectedMode = StatsMode.Count,
+                    modes =
+                        listOf(
+                            ModeTrend(
+                                mode = StatsMode.Count,
+                                scores = listOf(4, 12, 8, 48),
+                                record = 48,
+                                lastResult = 48,
+                                averageResult = 18,
+                                gamesPlayed = 4,
+                            ),
+                        ),
+                ),
+            onPeriodSelected = {},
+            onBackClick = {},
+        )
+    }
+}
+
+@Preview(name = "Stats Symbol Count history", widthDp = 320, heightDp = 1800, locale = "ru")
+@ScreenshotPreview
+@Composable
+private fun SymbolCountStatsHistoryPreview() {
+    val base = DemoStatsFixtures.oneMode()
+    StatsPreview(
+        base.copy(
+            snapshot =
+                base.snapshot.copy(
+                    recentActivity =
+                        base.snapshot.recentActivity.map {
+                            it.copy(
+                                game = StatsGame.SymbolCount,
+                                mode = StatsMode.Count,
+                            )
+                        },
+                    trends =
+                        base.snapshot.trends.map {
+                            it.copy(
+                                game = StatsGame.SymbolCount,
+                                modes = it.modes.take(1).map { mode -> mode.copy(mode = StatsMode.Count) },
+                            )
+                        },
+                    games = base.snapshot.games.map { it.copy(game = StatsGame.SymbolCount) },
+                ),
+        ),
+    )
+}
+
+@Preview(name = "Stats Symbol Count visible history", widthDp = 320, heightDp = 844, locale = "ru")
+@ScreenshotPreview
+@Composable
+private fun SymbolCountVisibleHistoryPreview() {
+    OquTurboTheme {
+        Box(Modifier.fillMaxSize().appBackground().padding(16.dp)) {
+            RecentHistorySection(
+                activities =
+                    listOf(
+                        com.alad1nks.oquturbo.feature.stats.model.RecentActivity(
+                            type = com.alad1nks.oquturbo.feature.stats.model.RecentActivityType.GameResult,
+                            game = StatsGame.SymbolCount,
+                            mode = StatsMode.Count,
+                            score = 48,
+                        ),
+                    ),
+                onActivityClick = { _, _ -> },
+            )
+        }
+    }
+}

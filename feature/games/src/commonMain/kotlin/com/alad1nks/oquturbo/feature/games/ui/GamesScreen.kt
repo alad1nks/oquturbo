@@ -342,6 +342,7 @@ private fun GameArtwork(game: TrainingGame) {
                 )
             TrainingGame.RotationMatch -> RotationMatchArtwork()
             TrainingGame.NumberTrail -> NumberTrailArtwork()
+            TrainingGame.SymbolCount -> SymbolCountArtwork()
         }
     }
 }
@@ -692,6 +693,7 @@ private fun TrainingGame.titleResource(): StringResource =
         TrainingGame.DualFocus -> AppResource.String.dual_focus_title
         TrainingGame.RotationMatch -> AppResource.String.rotation_match_title
         TrainingGame.NumberTrail -> AppResource.String.number_trail_title
+        TrainingGame.SymbolCount -> AppResource.String.symbol_count_title
     }
 
 private fun TrainingGame.descriptionResource(): StringResource =
@@ -704,6 +706,7 @@ private fun TrainingGame.descriptionResource(): StringResource =
         TrainingGame.DualFocus -> AppResource.String.games_dual_focus_description
         TrainingGame.RotationMatch -> AppResource.String.games_rotation_match_description
         TrainingGame.NumberTrail -> AppResource.String.number_trail_description
+        TrainingGame.SymbolCount -> AppResource.String.symbol_count_description
     }
 
 @Composable
@@ -717,6 +720,7 @@ private fun TrainingGame.artworkBackground(): Color =
         TrainingGame.DualFocus -> MaterialTheme.colorScheme.primaryContainer
         TrainingGame.RotationMatch -> MaterialTheme.colorScheme.primaryContainer
         TrainingGame.NumberTrail -> MaterialTheme.colorScheme.primaryContainer
+        TrainingGame.SymbolCount -> MaterialTheme.colorScheme.primaryContainer
     }
 
 private fun GamesUiState.Skill.titleResource(): StringResource =
@@ -820,4 +824,41 @@ private fun GamesScreenPreviewContent() {
 @Composable
 private fun NumberTrailCatalogCompactPreview() {
     GamesScreenPreviewContent()
+}
+
+@Composable
+private fun SymbolCountArtwork() {
+    val color = MaterialTheme.colorScheme.primary
+    Canvas(Modifier.size(88.dp)) {
+        val w = size.width
+        drawCircle(color, w * 0.12f, Offset(w * 0.3f, w * 0.28f))
+        drawRect(color, Offset(w * 0.58f, w * 0.16f), androidx.compose.ui.geometry.Size(w * 0.24f, w * 0.24f))
+        drawPath(
+            androidx.compose.ui.graphics.Path().apply {
+                moveTo(w * 0.3f, w * 0.48f)
+                lineTo(w * 0.44f, w * 0.74f)
+                lineTo(w * 0.16f, w * 0.74f)
+                close()
+            },
+            color,
+        )
+        drawPath(
+            androidx.compose.ui.graphics.Path().apply {
+                moveTo(w * 0.7f, w * 0.47f)
+                lineTo(w * 0.84f, w * 0.61f)
+                lineTo(w * 0.7f, w * 0.75f)
+                lineTo(w * 0.56f, w * 0.61f)
+                close()
+            },
+            color,
+        )
+        repeat(3) { drawCircle(color, w * 0.022f, Offset(w * (0.4f + it * 0.1f), w * 0.87f)) }
+    }
+}
+
+@Preview(name = "Games Symbol Count compact Kazakh", widthDp = 320, heightDp = 2400, locale = "kk")
+@ScreenshotPreview
+@Composable
+private fun SymbolCountCatalogCompactPreview() {
+    OquTurboTheme { GamesScreen(GamesUiState(), {}) }
 }

@@ -507,6 +507,43 @@ import oquturbo.resources.generated.resources.stats_weekday_thu
 import oquturbo.resources.generated.resources.stats_weekday_tue
 import oquturbo.resources.generated.resources.stats_weekday_wed
 import oquturbo.resources.generated.resources.stats_yesterday
+import oquturbo.resources.generated.resources.symbol_count_answer_description
+import oquturbo.resources.generated.resources.symbol_count_back
+import oquturbo.resources.generated.resources.symbol_count_cell_description
+import oquturbo.resources.generated.resources.symbol_count_circle
+import oquturbo.resources.generated.resources.symbol_count_correct
+import oquturbo.resources.generated.resources.symbol_count_description
+import oquturbo.resources.generated.resources.symbol_count_diamond
+import oquturbo.resources.generated.resources.symbol_count_field_description
+import oquturbo.resources.generated.resources.symbol_count_instructions
+import oquturbo.resources.generated.resources.symbol_count_loading_record
+import oquturbo.resources.generated.resources.symbol_count_mode
+import oquturbo.resources.generated.resources.symbol_count_new_record
+import oquturbo.resources.generated.resources.symbol_count_pause
+import oquturbo.resources.generated.resources.symbol_count_paused_message
+import oquturbo.resources.generated.resources.symbol_count_paused_title
+import oquturbo.resources.generated.resources.symbol_count_placeholder
+import oquturbo.resources.generated.resources.symbol_count_ready_title
+import oquturbo.resources.generated.resources.symbol_count_record
+import oquturbo.resources.generated.resources.symbol_count_record_unavailable
+import oquturbo.resources.generated.resources.symbol_count_record_value
+import oquturbo.resources.generated.resources.symbol_count_resume
+import oquturbo.resources.generated.resources.symbol_count_retry
+import oquturbo.resources.generated.resources.symbol_count_retry_load
+import oquturbo.resources.generated.resources.symbol_count_retry_save
+import oquturbo.resources.generated.resources.symbol_count_save_failed
+import oquturbo.resources.generated.resources.symbol_count_saving_result
+import oquturbo.resources.generated.resources.symbol_count_score
+import oquturbo.resources.generated.resources.symbol_count_square
+import oquturbo.resources.generated.resources.symbol_count_start
+import oquturbo.resources.generated.resources.symbol_count_target
+import oquturbo.resources.generated.resources.symbol_count_time_remaining
+import oquturbo.resources.generated.resources.symbol_count_timeout_detail
+import oquturbo.resources.generated.resources.symbol_count_timeout_title
+import oquturbo.resources.generated.resources.symbol_count_title
+import oquturbo.resources.generated.resources.symbol_count_triangle
+import oquturbo.resources.generated.resources.symbol_count_wrong_detail
+import oquturbo.resources.generated.resources.symbol_count_wrong_title
 import oquturbo.resources.generated.resources.word_flow_back
 import oquturbo.resources.generated.resources.word_flow_blank
 import oquturbo.resources.generated.resources.word_flow_choice_accessibility
@@ -588,6 +625,43 @@ object AppResource {
     }
 
     object String {
+        val symbol_count_title = Res.string.symbol_count_title
+        val symbol_count_description = Res.string.symbol_count_description
+        val symbol_count_mode = Res.string.symbol_count_mode
+        val symbol_count_ready_title = Res.string.symbol_count_ready_title
+        val symbol_count_instructions = Res.string.symbol_count_instructions
+        val symbol_count_score = Res.string.symbol_count_score
+        val symbol_count_record = Res.string.symbol_count_record
+        val symbol_count_record_value = Res.string.symbol_count_record_value
+        val symbol_count_start = Res.string.symbol_count_start
+        val symbol_count_retry = Res.string.symbol_count_retry
+        val symbol_count_back = Res.string.symbol_count_back
+        val symbol_count_pause = Res.string.symbol_count_pause
+        val symbol_count_resume = Res.string.symbol_count_resume
+        val symbol_count_time_remaining = Res.string.symbol_count_time_remaining
+        val symbol_count_target = Res.string.symbol_count_target
+        val symbol_count_circle = Res.string.symbol_count_circle
+        val symbol_count_square = Res.string.symbol_count_square
+        val symbol_count_triangle = Res.string.symbol_count_triangle
+        val symbol_count_diamond = Res.string.symbol_count_diamond
+        val symbol_count_field_description = Res.string.symbol_count_field_description
+        val symbol_count_cell_description = Res.string.symbol_count_cell_description
+        val symbol_count_answer_description = Res.string.symbol_count_answer_description
+        val symbol_count_correct = Res.string.symbol_count_correct
+        val symbol_count_paused_title = Res.string.symbol_count_paused_title
+        val symbol_count_paused_message = Res.string.symbol_count_paused_message
+        val symbol_count_wrong_title = Res.string.symbol_count_wrong_title
+        val symbol_count_timeout_title = Res.string.symbol_count_timeout_title
+        val symbol_count_wrong_detail = Res.string.symbol_count_wrong_detail
+        val symbol_count_timeout_detail = Res.string.symbol_count_timeout_detail
+        val symbol_count_loading_record = Res.string.symbol_count_loading_record
+        val symbol_count_record_unavailable = Res.string.symbol_count_record_unavailable
+        val symbol_count_retry_load = Res.string.symbol_count_retry_load
+        val symbol_count_saving_result = Res.string.symbol_count_saving_result
+        val symbol_count_save_failed = Res.string.symbol_count_save_failed
+        val symbol_count_retry_save = Res.string.symbol_count_retry_save
+        val symbol_count_new_record = Res.string.symbol_count_new_record
+        val symbol_count_placeholder = Res.string.symbol_count_placeholder
         val number_trail_title = Res.string.number_trail_title
         val number_trail_description = Res.string.number_trail_description
         val number_trail_mode = Res.string.number_trail_mode
