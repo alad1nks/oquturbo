@@ -864,7 +864,7 @@ private fun SymbolCountLargeResultPreview() {
                 5,
                 SymbolCountFailure.Wrong,
                 SymbolCountSaveStatus.Saved,
-            ),
+            ).copy(record = 10),
             {},
             { _, _ -> },
             {},
