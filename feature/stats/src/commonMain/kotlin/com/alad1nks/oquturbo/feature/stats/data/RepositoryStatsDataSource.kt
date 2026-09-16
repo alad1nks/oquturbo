@@ -480,6 +480,7 @@ private fun GameId.modeCatalog(): List<GameModeId> =
         GameId.RotationMatch -> listOf(GameModeId.RotationMatchRotation)
         GameId.NumberTrail -> listOf(GameModeId.NumberTrailAscending)
         GameId.SymbolCount -> listOf(GameModeId.SymbolCountCount)
+        GameId.RuleSwitch -> listOf(GameModeId.RuleSwitchSwitch)
     }
 
 private fun GameId.toStatsGame(): StatsGame =
@@ -493,6 +494,7 @@ private fun GameId.toStatsGame(): StatsGame =
         GameId.RotationMatch -> StatsGame.RotationMatch
         GameId.NumberTrail -> StatsGame.NumberTrail
         GameId.SymbolCount -> StatsGame.SymbolCount
+        GameId.RuleSwitch -> StatsGame.RuleSwitch
     }
 
 private fun GameModeId.toStatsMode(): StatsMode =
@@ -519,6 +521,7 @@ private fun GameModeId.toStatsMode(): StatsMode =
         GameModeId.RotationMatchRotation -> StatsMode.Rotation
         GameModeId.NumberTrailAscending -> StatsMode.Ascending
         GameModeId.SymbolCountCount -> StatsMode.Count
+        GameModeId.RuleSwitchSwitch -> StatsMode.Switch
     }
 
 private fun StatsSkill.gameIds(): Set<GameId> =
@@ -531,6 +534,7 @@ private fun StatsSkill.gameIds(): Set<GameId> =
                 GameId.DualFocus,
                 GameId.NumberTrail,
                 GameId.SymbolCount,
+                GameId.RuleSwitch,
             )
         StatsSkill.Reaction -> setOf(GameId.NumberSprint, GameId.DontTap)
         StatsSkill.PeripheralVision,

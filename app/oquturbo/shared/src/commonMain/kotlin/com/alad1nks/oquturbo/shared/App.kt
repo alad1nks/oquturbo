@@ -57,6 +57,8 @@ import com.alad1nks.oquturbo.feature.remembernumbermenu.navigation.navigateToRem
 import com.alad1nks.oquturbo.feature.remembernumbermenu.navigation.rememberNumberMenuScreen
 import com.alad1nks.oquturbo.feature.rotationmatch.navigation.navigateToRotationMatch
 import com.alad1nks.oquturbo.feature.rotationmatch.navigation.rotationMatchScreen
+import com.alad1nks.oquturbo.feature.ruleswitch.navigation.navigateToRuleSwitch
+import com.alad1nks.oquturbo.feature.ruleswitch.navigation.ruleSwitchScreen
 import com.alad1nks.oquturbo.feature.stats.navigation.navigateToStatsGame
 import com.alad1nks.oquturbo.feature.stats.navigation.navigateToStatsMode
 import com.alad1nks.oquturbo.feature.stats.navigation.statsGameDetailScreen
@@ -109,6 +111,7 @@ fun App() {
                     TrainingGame.RotationMatch -> appState.navController.navigateToRotationMatch()
                     TrainingGame.NumberTrail -> appState.navController.navigateToNumberTrail()
                     TrainingGame.SymbolCount -> appState.navController.navigateToSymbolCount()
+                    TrainingGame.RuleSwitch -> appState.navController.navigateToRuleSwitch()
                 }
             },
         )
@@ -233,6 +236,11 @@ fun App() {
                 appState.navController.popBackStack(route = GamesRoute, inclusive = false)
             },
         )
+        ruleSwitchScreen(
+            onBackClick = {
+                appState.navController.popBackStack(route = GamesRoute, inclusive = false)
+            },
+        )
     }
 }
 
@@ -287,6 +295,7 @@ private fun NavController.navigateToDailyTrainingEntry(entry: DailyTrainingEntry
         GameId.RotationMatch -> error("Rotation Match is not available in daily training")
         GameId.NumberTrail -> error("Number Trail is not available in daily training")
         GameId.SymbolCount -> error("Symbol Count is not available in daily training")
+        GameId.RuleSwitch -> error("Rule Switch is not available in daily training")
     }
 }
 
@@ -302,6 +311,7 @@ internal fun GameId.isDailyTrainingGameSupported(): Boolean =
         GameId.RotationMatch,
         GameId.NumberTrail,
         GameId.SymbolCount,
+        GameId.RuleSwitch,
         -> false
     }
 

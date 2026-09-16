@@ -35,6 +35,7 @@ dependencies {
     implementation(projects.feature.rotationmatch)
     implementation(projects.feature.numbertrail)
     implementation(projects.feature.symbolcount)
+    implementation(projects.feature.ruleswitch)
 
     testImplementation(libs.compose.components.resources)
     testImplementation(libs.compose.material3)

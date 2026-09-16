@@ -154,6 +154,7 @@ internal fun GameId.toHomeGame(): HomeUiState.Game =
         GameId.RotationMatch -> HomeUiState.Game.RotationMatch
         GameId.NumberTrail -> HomeUiState.Game.NumberTrail
         GameId.SymbolCount -> HomeUiState.Game.SymbolCount
+        GameId.RuleSwitch -> HomeUiState.Game.RuleSwitch
     }
 
 internal fun GameModeId.toHomeMode(): HomeUiState.Mode =
@@ -180,4 +181,5 @@ internal fun GameModeId.toHomeMode(): HomeUiState.Mode =
         GameModeId.RotationMatchRotation -> HomeUiState.Mode.Rotation
         GameModeId.NumberTrailAscending -> HomeUiState.Mode.Ascending
         GameModeId.SymbolCountCount -> HomeUiState.Mode.Count
+        GameModeId.RuleSwitchSwitch -> HomeUiState.Mode.Switch
     }

@@ -13,6 +13,7 @@ enum class StatsGame {
     RotationMatch,
     NumberTrail,
     SymbolCount,
+    RuleSwitch,
 }
 
 @Serializable
@@ -39,6 +40,7 @@ enum class StatsMode {
     Rotation,
     Ascending,
     Count,
+    Switch,
 }
 
 @Serializable

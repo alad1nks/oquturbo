@@ -26,6 +26,7 @@ import androidx.compose.material.icons.filled.FormatListNumbered
 import androidx.compose.material.icons.filled.GridView
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.RotateRight
+import androidx.compose.material.icons.filled.SwapHoriz
 import androidx.compose.material.icons.filled.ViewColumn
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material3.Button
@@ -434,6 +435,7 @@ internal fun HomeUiState.Game.titleResource(): StringResource =
         HomeUiState.Game.RotationMatch -> AppResource.String.rotation_match_title
         HomeUiState.Game.NumberTrail -> AppResource.String.number_trail_title
         HomeUiState.Game.SymbolCount -> AppResource.String.symbol_count_title
+        HomeUiState.Game.RuleSwitch -> AppResource.String.rule_switch_title
     }
 
 internal fun HomeUiState.Mode.titleResource(): StringResource =
@@ -460,6 +462,7 @@ internal fun HomeUiState.Mode.titleResource(): StringResource =
         HomeUiState.Mode.Rotation -> AppResource.String.rotation_match_mode
         HomeUiState.Mode.Ascending -> AppResource.String.number_trail_mode
         HomeUiState.Mode.Count -> AppResource.String.symbol_count_mode
+        HomeUiState.Mode.Switch -> AppResource.String.rule_switch_mode
     }
 
 @Composable
@@ -517,6 +520,7 @@ internal fun HomeUiState.Game.icon(): ImageVector =
         HomeUiState.Game.RotationMatch -> Icons.Filled.RotateRight
         HomeUiState.Game.NumberTrail -> Icons.Filled.FormatListNumbered
         HomeUiState.Game.SymbolCount -> Icons.Filled.FormatListNumbered
+        HomeUiState.Game.RuleSwitch -> Icons.Filled.SwapHoriz
     }
 
 @Preview(

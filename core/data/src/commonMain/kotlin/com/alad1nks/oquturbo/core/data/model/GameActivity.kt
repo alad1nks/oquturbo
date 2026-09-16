@@ -13,6 +13,7 @@ enum class GameId {
     RotationMatch,
     NumberTrail,
     SymbolCount,
+    RuleSwitch,
 }
 
 @Serializable
@@ -39,6 +40,7 @@ enum class GameModeId {
     RotationMatchRotation,
     NumberTrailAscending,
     SymbolCountCount,
+    RuleSwitchSwitch,
 }
 
 @Serializable

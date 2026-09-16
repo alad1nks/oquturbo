@@ -243,6 +243,7 @@ class DailyTrainingRepository(
             GameId.RotationMatch -> emptyList()
             GameId.NumberTrail -> emptyList()
             GameId.SymbolCount -> emptyList()
+            GameId.RuleSwitch -> emptyList()
         }
 
     private fun GameId.requiredTrainingScore(): Int =
@@ -256,6 +257,7 @@ class DailyTrainingRepository(
             GameId.RotationMatch -> error("Rotation Match is not available in daily training")
             GameId.NumberTrail -> error("Number Trail is not available in daily training")
             GameId.SymbolCount -> error("Symbol Count is not available in daily training")
+            GameId.RuleSwitch -> error("Rule Switch is not available in daily training")
         }
 
     @OptIn(ExperimentalTime::class)
