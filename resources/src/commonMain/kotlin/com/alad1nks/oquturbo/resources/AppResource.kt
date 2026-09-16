@@ -435,6 +435,44 @@ import oquturbo.resources.generated.resources.rotation_match_timer_accessibility
 import oquturbo.resources.generated.resources.rotation_match_title
 import oquturbo.resources.generated.resources.rotation_match_wrong_title
 import oquturbo.resources.generated.resources.rotation_match_your_answer
+import oquturbo.resources.generated.resources.rule_switch_above
+import oquturbo.resources.generated.resources.rule_switch_back
+import oquturbo.resources.generated.resources.rule_switch_below
+import oquturbo.resources.generated.resources.rule_switch_chosen
+import oquturbo.resources.generated.resources.rule_switch_correct
+import oquturbo.resources.generated.resources.rule_switch_correct_answer
+import oquturbo.resources.generated.resources.rule_switch_description
+import oquturbo.resources.generated.resources.rule_switch_digit
+import oquturbo.resources.generated.resources.rule_switch_even
+import oquturbo.resources.generated.resources.rule_switch_exit
+import oquturbo.resources.generated.resources.rule_switch_instructions
+import oquturbo.resources.generated.resources.rule_switch_loading_record
+import oquturbo.resources.generated.resources.rule_switch_magnitude
+import oquturbo.resources.generated.resources.rule_switch_mode
+import oquturbo.resources.generated.resources.rule_switch_new_record
+import oquturbo.resources.generated.resources.rule_switch_odd
+import oquturbo.resources.generated.resources.rule_switch_parity
+import oquturbo.resources.generated.resources.rule_switch_pause
+import oquturbo.resources.generated.resources.rule_switch_paused_message
+import oquturbo.resources.generated.resources.rule_switch_paused_title
+import oquturbo.resources.generated.resources.rule_switch_placeholder
+import oquturbo.resources.generated.resources.rule_switch_ready_title
+import oquturbo.resources.generated.resources.rule_switch_record
+import oquturbo.resources.generated.resources.rule_switch_record_unavailable
+import oquturbo.resources.generated.resources.rule_switch_record_value
+import oquturbo.resources.generated.resources.rule_switch_resume
+import oquturbo.resources.generated.resources.rule_switch_retry
+import oquturbo.resources.generated.resources.rule_switch_retry_load
+import oquturbo.resources.generated.resources.rule_switch_retry_save
+import oquturbo.resources.generated.resources.rule_switch_save_failed
+import oquturbo.resources.generated.resources.rule_switch_saving_result
+import oquturbo.resources.generated.resources.rule_switch_score
+import oquturbo.resources.generated.resources.rule_switch_score_value
+import oquturbo.resources.generated.resources.rule_switch_start
+import oquturbo.resources.generated.resources.rule_switch_time_remaining
+import oquturbo.resources.generated.resources.rule_switch_timeout_title
+import oquturbo.resources.generated.resources.rule_switch_title
+import oquturbo.resources.generated.resources.rule_switch_wrong_title
 import oquturbo.resources.generated.resources.stats_activity_completed
 import oquturbo.resources.generated.resources.stats_activity_games_only
 import oquturbo.resources.generated.resources.stats_activity_none
@@ -625,6 +663,44 @@ object AppResource {
     }
 
     object String {
+        val rule_switch_title = Res.string.rule_switch_title
+        val rule_switch_description = Res.string.rule_switch_description
+        val rule_switch_mode = Res.string.rule_switch_mode
+        val rule_switch_ready_title = Res.string.rule_switch_ready_title
+        val rule_switch_instructions = Res.string.rule_switch_instructions
+        val rule_switch_score = Res.string.rule_switch_score
+        val rule_switch_record = Res.string.rule_switch_record
+        val rule_switch_record_value = Res.string.rule_switch_record_value
+        val rule_switch_start = Res.string.rule_switch_start
+        val rule_switch_retry = Res.string.rule_switch_retry
+        val rule_switch_back = Res.string.rule_switch_back
+        val rule_switch_pause = Res.string.rule_switch_pause
+        val rule_switch_resume = Res.string.rule_switch_resume
+        val rule_switch_time_remaining = Res.string.rule_switch_time_remaining
+        val rule_switch_correct = Res.string.rule_switch_correct
+        val rule_switch_paused_title = Res.string.rule_switch_paused_title
+        val rule_switch_paused_message = Res.string.rule_switch_paused_message
+        val rule_switch_wrong_title = Res.string.rule_switch_wrong_title
+        val rule_switch_timeout_title = Res.string.rule_switch_timeout_title
+        val rule_switch_loading_record = Res.string.rule_switch_loading_record
+        val rule_switch_record_unavailable = Res.string.rule_switch_record_unavailable
+        val rule_switch_retry_load = Res.string.rule_switch_retry_load
+        val rule_switch_saving_result = Res.string.rule_switch_saving_result
+        val rule_switch_save_failed = Res.string.rule_switch_save_failed
+        val rule_switch_retry_save = Res.string.rule_switch_retry_save
+        val rule_switch_new_record = Res.string.rule_switch_new_record
+        val rule_switch_placeholder = Res.string.rule_switch_placeholder
+        val rule_switch_parity = Res.string.rule_switch_parity
+        val rule_switch_magnitude = Res.string.rule_switch_magnitude
+        val rule_switch_even = Res.string.rule_switch_even
+        val rule_switch_odd = Res.string.rule_switch_odd
+        val rule_switch_below = Res.string.rule_switch_below
+        val rule_switch_above = Res.string.rule_switch_above
+        val rule_switch_digit = Res.string.rule_switch_digit
+        val rule_switch_chosen = Res.string.rule_switch_chosen
+        val rule_switch_correct_answer = Res.string.rule_switch_correct_answer
+        val rule_switch_exit = Res.string.rule_switch_exit
+        val rule_switch_score_value = Res.string.rule_switch_score_value
         val symbol_count_title = Res.string.symbol_count_title
         val symbol_count_description = Res.string.symbol_count_description
         val symbol_count_mode = Res.string.symbol_count_mode

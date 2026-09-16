@@ -9,7 +9,7 @@ class SymbolCountCatalogTest {
     @Test
     fun symbolCountIsTheNinthDirectGameWithAttentionAndVision() {
         val games = GamesUiState().games
-        assertEquals(9, games.size)
+        assertEquals(10, games.size)
         val symbolCount = games[8]
         assertEquals(TrainingGame.SymbolCount, symbolCount.game)
         assertEquals(1, symbolCount.modesCount)

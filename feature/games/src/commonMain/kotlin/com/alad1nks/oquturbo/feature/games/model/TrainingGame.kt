@@ -10,4 +10,5 @@ enum class TrainingGame {
     RotationMatch,
     NumberTrail,
     SymbolCount,
+    RuleSwitch,
 }

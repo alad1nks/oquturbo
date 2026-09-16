@@ -42,6 +42,7 @@ internal data class GamesUiState(
             ),
             GameSummary(TrainingGame.NumberTrail, listOf(Skill.Attention, Skill.Vision), 1),
             GameSummary(TrainingGame.SymbolCount, listOf(Skill.Attention, Skill.Vision), 1),
+            GameSummary(TrainingGame.RuleSwitch, listOf(Skill.Attention), 1),
         ),
     val upcomingGames: List<UpcomingGame> = emptyList(),
 ) {

@@ -13,6 +13,7 @@ import com.alad1nks.oquturbo.feature.profile.di.ProfileModule
 import com.alad1nks.oquturbo.feature.remembernumber.di.RememberNumberModule
 import com.alad1nks.oquturbo.feature.remembernumbermenu.di.rememberNumberMenuModule
 import com.alad1nks.oquturbo.feature.rotationmatch.di.RotationMatchModule
+import com.alad1nks.oquturbo.feature.ruleswitch.di.RuleSwitchModule
 import com.alad1nks.oquturbo.feature.stats.di.StatsModule
 import com.alad1nks.oquturbo.feature.symbolcount.di.SymbolCountModule
 import com.alad1nks.oquturbo.feature.wordflow.di.WordFlowModule
@@ -35,6 +36,7 @@ fun getCommonModules(): List<Module> {
         RotationMatchModule,
         NumberTrailModule,
         SymbolCountModule,
+        RuleSwitchModule,
         StorageCommonModule,
     )
 }

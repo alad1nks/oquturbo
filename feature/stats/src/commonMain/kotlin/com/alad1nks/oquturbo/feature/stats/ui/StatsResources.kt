@@ -7,6 +7,7 @@ import androidx.compose.material.icons.filled.Bolt
 import androidx.compose.material.icons.filled.FormatListNumbered
 import androidx.compose.material.icons.filled.GridView
 import androidx.compose.material.icons.filled.RotateRight
+import androidx.compose.material.icons.filled.SwapHoriz
 import androidx.compose.material.icons.filled.ViewColumn
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.runtime.Composable
@@ -34,6 +35,7 @@ internal fun StatsGame.titleResource(): StringResource =
         StatsGame.RotationMatch -> AppResource.String.rotation_match_title
         StatsGame.NumberTrail -> AppResource.String.number_trail_title
         StatsGame.SymbolCount -> AppResource.String.symbol_count_title
+        StatsGame.RuleSwitch -> AppResource.String.rule_switch_title
     }
 
 internal fun StatsGame.icon(): ImageVector =
@@ -47,6 +49,7 @@ internal fun StatsGame.icon(): ImageVector =
         StatsGame.RotationMatch -> Icons.Filled.RotateRight
         StatsGame.NumberTrail -> Icons.Filled.FormatListNumbered
         StatsGame.SymbolCount -> Icons.Filled.FormatListNumbered
+        StatsGame.RuleSwitch -> Icons.Filled.SwapHoriz
     }
 
 internal fun StatsMode.titleResource(): StringResource =
@@ -73,6 +76,7 @@ internal fun StatsMode.titleResource(): StringResource =
         StatsMode.Rotation -> AppResource.String.rotation_match_mode
         StatsMode.Ascending -> AppResource.String.number_trail_mode
         StatsMode.Count -> AppResource.String.symbol_count_mode
+        StatsMode.Switch -> AppResource.String.rule_switch_mode
     }
 
 @Composable

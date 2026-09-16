@@ -229,7 +229,7 @@ private fun ActiveGameCard(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    if (summary.game == TrainingGame.NumberTrail || summary.game == TrainingGame.SymbolCount) {
+    if (summary.game in listOf(TrainingGame.NumberTrail, TrainingGame.SymbolCount, TrainingGame.RuleSwitch)) {
         WrappingGameCard(summary, onClick, modifier)
         return
     }
@@ -343,6 +343,7 @@ private fun GameArtwork(game: TrainingGame) {
             TrainingGame.RotationMatch -> RotationMatchArtwork()
             TrainingGame.NumberTrail -> NumberTrailArtwork()
             TrainingGame.SymbolCount -> SymbolCountArtwork()
+            TrainingGame.RuleSwitch -> RuleSwitchArtwork()
         }
     }
 }
@@ -694,6 +695,7 @@ private fun TrainingGame.titleResource(): StringResource =
         TrainingGame.RotationMatch -> AppResource.String.rotation_match_title
         TrainingGame.NumberTrail -> AppResource.String.number_trail_title
         TrainingGame.SymbolCount -> AppResource.String.symbol_count_title
+        TrainingGame.RuleSwitch -> AppResource.String.rule_switch_title
     }
 
 private fun TrainingGame.descriptionResource(): StringResource =
@@ -707,6 +709,7 @@ private fun TrainingGame.descriptionResource(): StringResource =
         TrainingGame.RotationMatch -> AppResource.String.games_rotation_match_description
         TrainingGame.NumberTrail -> AppResource.String.number_trail_description
         TrainingGame.SymbolCount -> AppResource.String.symbol_count_description
+        TrainingGame.RuleSwitch -> AppResource.String.rule_switch_description
     }
 
 @Composable
@@ -721,6 +724,7 @@ private fun TrainingGame.artworkBackground(): Color =
         TrainingGame.RotationMatch -> MaterialTheme.colorScheme.primaryContainer
         TrainingGame.NumberTrail -> MaterialTheme.colorScheme.primaryContainer
         TrainingGame.SymbolCount -> MaterialTheme.colorScheme.primaryContainer
+        TrainingGame.RuleSwitch -> MaterialTheme.colorScheme.primaryContainer
     }
 
 private fun GamesUiState.Skill.titleResource(): StringResource =
@@ -860,5 +864,34 @@ private fun SymbolCountArtwork() {
 @ScreenshotPreview
 @Composable
 private fun SymbolCountCatalogCompactPreview() {
+    OquTurboTheme { GamesScreen(GamesUiState(), {}) }
+}
+
+@Composable
+private fun RuleSwitchArtwork() {
+    val color = MaterialTheme.colorScheme.primary
+    Canvas(Modifier.size(72.dp)) {
+        val u = size.minDimension / 100f
+        val stroke = 6 * u
+        drawRect(
+            color,
+            Offset(13 * u, 24 * u),
+            androidx.compose.ui.geometry.Size(18 * u, 18 * u),
+            style = androidx.compose.ui.graphics.drawscope.Stroke(stroke),
+        )
+        drawLine(color, Offset(35 * u, 33 * u), Offset(80 * u, 33 * u), stroke)
+        drawLine(color, Offset(69 * u, 22 * u), Offset(80 * u, 33 * u), stroke)
+        drawLine(color, Offset(69 * u, 44 * u), Offset(80 * u, 33 * u), stroke)
+        drawCircle(color, 9 * u, Offset(78 * u, 67 * u), style = androidx.compose.ui.graphics.drawscope.Stroke(stroke))
+        drawLine(color, Offset(20 * u, 67 * u), Offset(63 * u, 67 * u), stroke)
+        drawLine(color, Offset(31 * u, 56 * u), Offset(20 * u, 67 * u), stroke)
+        drawLine(color, Offset(31 * u, 78 * u), Offset(20 * u, 67 * u), stroke)
+    }
+}
+
+@Preview(name = "Games Rule Switch compact Kazakh", widthDp = 320, heightDp = 2600, locale = "kk")
+@ScreenshotPreview
+@Composable
+private fun RuleSwitchCatalogCompactPreview() {
     OquTurboTheme { GamesScreen(GamesUiState(), {}) }
 }

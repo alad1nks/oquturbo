@@ -19,6 +19,7 @@ internal data class HomeUiState(
         RotationMatch,
         NumberTrail,
         SymbolCount,
+        RuleSwitch,
     }
 
     enum class Mode {
@@ -44,6 +45,7 @@ internal data class HomeUiState(
         Rotation,
         Ascending,
         Count,
+        Switch,
     }
 
     data class RecentRecord(

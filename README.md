@@ -1,7 +1,7 @@
 # OquTurbo
 
 OquTurbo is a Kotlin Multiplatform and Compose Multiplatform monorepo for short memory, attention, reaction,
-visual-perception, and reading exercises. It contains the OquTurbo training hub and three standalone games that
+visual-perception, and reading exercises. It contains the OquTurbo training hub and standalone games that
 reuse the same feature modules.
 
 Shared UI and game logic run on Android, iOS, Desktop/JVM, and the browser through Kotlin/JS and Kotlin/Wasm.
@@ -11,13 +11,15 @@ User-facing content is available in English, Russian, and Kazakh.
 
 | Product ID | Display name | Description |
 | --- | --- | --- |
-| `oquturbo` | OquTurbo | Hub with Home, Games, Stats, and Profile tabs plus all three games. |
+| `oquturbo` | OquTurbo | Hub with Home, Games, Stats, and Profile tabs plus the shared game catalog. |
 | `sansprint` | Number Sprint | Number-memory game with Classic, Binary String, and Custom modes. |
 | `kenkoz` | Wide Eye | Attention and peripheral-vision game with four modes. |
 | `baspa` | Don't Tap | Attention, reaction, and reading game with seven modes. |
+| `ruleswitch` | [Rule Switch](app/ruleswitch/README.md) | Alternating parity and magnitude classifications with one Switch mode. |
 
 The standalone products open their own game menus directly. OquTurbo adds a shared catalog and top-level
-navigation around the same Number Sprint, Wide Eye, and Don't Tap implementations.
+navigation around portable feature implementations. Rule Switch opens directly to Ready in its standalone app,
+uses independent storage, and is excluded from Daily Training.
 
 ## Current implementation status
 

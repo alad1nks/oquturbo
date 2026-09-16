@@ -93,6 +93,7 @@ kotlin {
             implementation(projects.feature.rotationmatch)
             implementation(projects.feature.numbertrail)
             implementation(projects.feature.symbolcount)
+            implementation(projects.feature.ruleswitch)
             implementation(projects.resources)
         }
         commonTest.dependencies {

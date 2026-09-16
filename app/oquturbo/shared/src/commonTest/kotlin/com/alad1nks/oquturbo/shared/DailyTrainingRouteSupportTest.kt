@@ -11,6 +11,7 @@ class DailyTrainingRouteSupportTest {
         assertFalse(GameId.RotationMatch.isDailyTrainingGameSupported())
         assertFalse(GameId.NumberTrail.isDailyTrainingGameSupported())
         assertFalse(GameId.SymbolCount.isDailyTrainingGameSupported())
+        assertFalse(GameId.RuleSwitch.isDailyTrainingGameSupported())
     }
 
     @Test
