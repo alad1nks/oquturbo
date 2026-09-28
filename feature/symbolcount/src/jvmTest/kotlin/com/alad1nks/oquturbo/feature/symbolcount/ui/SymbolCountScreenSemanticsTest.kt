@@ -6,6 +6,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.semantics.LiveRegionMode
+import androidx.compose.ui.semantics.SemanticsActions
 import androidx.compose.ui.semantics.SemanticsProperties
 import androidx.compose.ui.test.ExperimentalTestApi
 import androidx.compose.ui.test.SemanticsMatcher
@@ -22,15 +23,193 @@ import androidx.compose.ui.test.runComposeUiTest
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.dp
 import com.alad1nks.oquturbo.core.designsystem.theme.OquTurboTheme
+import com.alad1nks.oquturbo.feature.symbolcount.model.CountShape
 import com.alad1nks.oquturbo.feature.symbolcount.model.SymbolCountFailure
+import com.alad1nks.oquturbo.feature.symbolcount.model.SymbolCountGame
 import com.alad1nks.oquturbo.feature.symbolcount.model.SymbolCountPhase
 import java.util.Locale
+import kotlin.random.Random
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
 @OptIn(ExperimentalTestApi::class)
 class SymbolCountScreenSemanticsTest {
+    @Test
+    fun reviewPreservesEveryPositionAndMarksOnlyTargetsAcrossShapesAndSizes() =
+        runComposeUiTest {
+            val state = mutableStateOf(symbolCountReviewPreviewState(3, SymbolCountFailure.Wrong))
+            setContent {
+                OquTurboTheme { SymbolCountScreen(state.value, {}, { _, _ -> error("Read-only review") }, null) }
+            }
+            for (size in 3..5) {
+                for (target in CountShape.entries) {
+                    val fixture = symbolCountReviewPreviewState(size, SymbolCountFailure.Wrong)
+                    val board = requireNotNull(fixture.game.board)
+                    val shapes = board.shapes.map { CountShape.entries[(it.ordinal + target.ordinal) % 4] }
+                    state.value =
+                        fixture.copy(
+                            game = fixture.game.copy(board = board.copy(shapes = shapes, target = target)),
+                        )
+                    onNodeWithTag("review-explanation").assertExists()
+                    var marked = 0
+                    shapes.forEachIndexed { index, shape ->
+                        val row = index / size
+                        val column = index % size
+                        val match = shape == target
+                        val suffix = if (match) "Matches the target." else "Does not match the target."
+                        val cell = onNodeWithTag("review-cell-$row-$column")
+                        cell.assert(
+                            SemanticsMatcher.expectValue(
+                                SemanticsProperties.ContentDescription,
+                                listOf("Row ${row + 1}, column ${column + 1}: ${shape.name}. $suffix"),
+                            ),
+                        )
+                        cell.assert(SemanticsMatcher.keyNotDefined(SemanticsActions.OnClick))
+                        cell.assert(SemanticsMatcher.keyNotDefined(SemanticsProperties.Role))
+                        val marker = onNodeWithTag("review-match-$row-$column")
+                        if (match) {
+                            marker.assertExists()
+                            marked++
+                        } else {
+                            marker.assertDoesNotExist()
+                        }
+                    }
+                    assertEquals(state.value.game.board!!.actualCount, marked)
+                    assertEquals(
+                        if (size == 3) {
+                            1
+                        } else if (size == 4) {
+                            5
+                        } else {
+                            8
+                        },
+                        marked,
+                    )
+                }
+            }
+        }
+
+    @Test
+    fun realFailureAndReplayShowReviewOnlyInResult() =
+        runComposeUiTest {
+            val game = SymbolCountGame(Random(32))
+            val state = mutableStateOf(SymbolCountUiState(isRecordLoading = false))
+
+            fun publish() {
+                state.value = state.value.copy(game = game.state, saveStatus = SymbolCountSaveStatus.Saved)
+            }
+            setContent {
+                OquTurboTheme {
+                    SymbolCountScreen(state.value, {
+                        game.start()
+                        publish()
+                    }, { id, answer ->
+                        game.answer(id, answer)
+                        publish()
+                    }, null)
+                }
+            }
+            onNodeWithTag("review-explanation").assertDoesNotExist()
+            onNodeWithText("Start").performClick()
+            onNodeWithTag("review-explanation").assertDoesNotExist()
+            val first = requireNotNull(game.state.board)
+            onNodeWithTag("answer-${first.options.first { it != first.actualCount }}").performClick()
+            onNodeWithTag("review-cell-0-0").assertExists()
+            onNodeWithText("Play again").performScrollTo().performClick()
+            assertTrue(game.state.board!!.id != first.id)
+            onNodeWithTag("review-cell-0-0").assertDoesNotExist()
+            onNodeWithTag("review-explanation").assertDoesNotExist()
+            val next = requireNotNull(game.state.board)
+            onNodeWithTag("answer-${next.actualCount}").performScrollTo().performClick()
+            onNodeWithTag("review-explanation").assertDoesNotExist()
+            game.pause()
+            publish()
+            onNodeWithTag("field").assertDoesNotExist()
+            onNodeWithTag("review-explanation").assertDoesNotExist()
+        }
+
+    @Test
+    fun reviewRemainsStableDuringSaveAndLoadRecoveryAndBackStaysAvailable() =
+        runComposeUiTest {
+            val initial = symbolCountReviewPreviewState(5, SymbolCountFailure.Timeout)
+            val state = mutableStateOf(initial.copy(saveStatus = SymbolCountSaveStatus.Pending))
+            var saves = 0
+            var loads = 0
+            var backs = 0
+            setContent {
+                OquTurboTheme {
+                    SymbolCountScreen(
+                        state.value,
+                        {},
+                        { _, _ -> },
+                        { backs++ },
+                        onRetrySaveClick = { saves++ },
+                        onReloadClick = { loads++ },
+                    )
+                }
+            }
+            val cell =
+                onNodeWithTag(
+                    "review-cell-4-4",
+                ).fetchSemanticsNode().config[SemanticsProperties.ContentDescription]
+            onNodeWithText("Play again").performScrollTo().assertIsNotEnabled()
+            onNodeWithText("Back to Games").performScrollTo().performClick()
+            assertEquals(1, backs)
+            state.value = state.value.copy(saveStatus = SymbolCountSaveStatus.Failed, recordLoadFailed = true)
+            onNodeWithText("Retry saving").performScrollTo().performClick()
+            assertEquals(1, saves)
+            assertEquals(0, loads)
+            state.value = state.value.copy(saveStatus = SymbolCountSaveStatus.Saved)
+            onNodeWithText("Retry loading").performScrollTo().performClick()
+            assertEquals(1, loads)
+            state.value = state.value.copy(isRecordLoading = true)
+            onNodeWithText("Retry loading").assertIsNotEnabled()
+            assertEquals(
+                cell,
+                onNodeWithTag("review-cell-4-4").fetchSemanticsNode().config[SemanticsProperties.ContentDescription],
+            )
+            assertEquals(initial.game, state.value.game)
+        }
+
+    @Test
+    fun compactEnlargedReviewAndActionsAreReachableInEveryLocale() {
+        val original = Locale.getDefault()
+        try {
+            for ((locale, replay, back) in listOf(
+                Triple("en", "Play again", "Back to Games"),
+                Triple("ru", "Играть снова", "К играм"),
+                Triple("kk", "Қайта ойнау", "Ойындарға оралу"),
+            )) {
+                Locale.setDefault(Locale.forLanguageTag(locale))
+                runComposeUiTest {
+                    setContent {
+                        CompositionLocalProvider(LocalDensity provides Density(1f, 1.5f)) {
+                            OquTurboTheme {
+                                SymbolCountScreen(
+                                    symbolCountReviewPreviewState(5, SymbolCountFailure.Timeout),
+                                    {},
+                                    { _, _ -> },
+                                    {},
+                                    Modifier.requiredSize(320.dp, 640.dp),
+                                )
+                            }
+                        }
+                    }
+                    onNodeWithTag("review-explanation").performScrollTo().assertIsDisplayed()
+                    val field = onNodeWithTag("field").performScrollTo().assertIsDisplayed().fetchSemanticsNode()
+                    assertEquals(280f, field.boundsInRoot.width)
+                    assertEquals(280f, field.boundsInRoot.height)
+                    onNodeWithTag("review-cell-4-4").assertIsDisplayed()
+                    onNodeWithText(replay).performScrollTo().assertIsDisplayed().assertIsEnabled()
+                    onNodeWithText(back).performScrollTo().assertIsDisplayed().assertIsEnabled()
+                }
+            }
+        } finally {
+            Locale.setDefault(original)
+        }
+    }
+
     @Test
     fun compactStageFiveKeepsWholeFieldAndAllAnswersVisibleWithStandardTargets() =
         runComposeUiTest {
@@ -122,7 +301,7 @@ class SymbolCountScreenSemanticsTest {
                 )
             onNodeWithText("Play again").assertIsNotEnabled()
             state.value = state.value.copy(saveStatus = SymbolCountSaveStatus.Failed)
-            onNodeWithText("Retry saving").performClick()
+            onNodeWithText("Retry saving").performScrollTo().performClick()
             assertEquals(1, retries)
             onNodeWithText("New record!").assertDoesNotExist()
         }
@@ -146,6 +325,13 @@ class SymbolCountScreenSemanticsTest {
                     )
                 val announcement = onNodeWithTag("result-announcement")
                 announcement.assert(SemanticsMatcher.expectValue(SemanticsProperties.LiveRegion, LiveRegionMode.Polite))
+                val feedback = announcement.fetchSemanticsNode().config[SemanticsProperties.Text].map { it.text }
+                if (failure == SymbolCountFailure.Timeout) {
+                    assertTrue(feedback.any { it.contains("3") })
+                    assertTrue(feedback.none { it.startsWith("Your answer:") })
+                } else {
+                    assertTrue(feedback.any { it.contains("Your answer: 2") && it.contains("3") })
+                }
                 val title = if (failure == SymbolCountFailure.Timeout) "Time’s up" else "Wrong answer"
                 assertTrue(announcement.fetchSemanticsNode().config[SemanticsProperties.Text].any { it.text == title })
                 assertTrue(

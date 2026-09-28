@@ -896,4 +896,7 @@
     <string name="rule_switch_correct_answer">Дұрыс жауап: %1$s</string>
     <string name="rule_switch_exit">Бастау экранына</string>
     <string name="rule_switch_score_value">Ұпай: %1$d</string>
+    <string name="symbol_count_review_explanation">Ізделетін пішіні бар ұяшықтар жиектелген.</string>
+    <string name="symbol_count_review_cell_match">%1$d-қатар, %2$d-баған: %3$s. Ізделетін пішінге сәйкес келеді.</string>
+    <string name="symbol_count_review_cell_other">%1$d-қатар, %2$d-баған: %3$s. Ізделетін пішінге сәйкес келмейді.</string>
 </resources>

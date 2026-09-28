@@ -569,6 +569,9 @@ import oquturbo.resources.generated.resources.symbol_count_resume
 import oquturbo.resources.generated.resources.symbol_count_retry
 import oquturbo.resources.generated.resources.symbol_count_retry_load
 import oquturbo.resources.generated.resources.symbol_count_retry_save
+import oquturbo.resources.generated.resources.symbol_count_review_cell_match
+import oquturbo.resources.generated.resources.symbol_count_review_cell_other
+import oquturbo.resources.generated.resources.symbol_count_review_explanation
 import oquturbo.resources.generated.resources.symbol_count_save_failed
 import oquturbo.resources.generated.resources.symbol_count_saving_result
 import oquturbo.resources.generated.resources.symbol_count_score
@@ -721,6 +724,9 @@ object AppResource {
         val symbol_count_triangle = Res.string.symbol_count_triangle
         val symbol_count_diamond = Res.string.symbol_count_diamond
         val symbol_count_field_description = Res.string.symbol_count_field_description
+        val symbol_count_review_explanation = Res.string.symbol_count_review_explanation
+        val symbol_count_review_cell_match = Res.string.symbol_count_review_cell_match
+        val symbol_count_review_cell_other = Res.string.symbol_count_review_cell_other
         val symbol_count_cell_description = Res.string.symbol_count_cell_description
         val symbol_count_answer_description = Res.string.symbol_count_answer_description
         val symbol_count_correct = Res.string.symbol_count_correct

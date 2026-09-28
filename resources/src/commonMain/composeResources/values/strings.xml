@@ -894,4 +894,7 @@
     <string name="rule_switch_correct_answer">Correct answer: %1$s</string>
     <string name="rule_switch_exit">Exit to Ready</string>
     <string name="rule_switch_score_value">Score: %1$d</string>
+    <string name="symbol_count_review_explanation">Outlined cells match the target shape.</string>
+    <string name="symbol_count_review_cell_match">Row %1$d, column %2$d: %3$s. Matches the target.</string>
+    <string name="symbol_count_review_cell_other">Row %1$d, column %2$d: %3$s. Does not match the target.</string>
 </resources>
