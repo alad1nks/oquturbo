@@ -277,6 +277,68 @@ class RuleSwitchScreenSemanticsTest {
         }
 
     @Test
+    fun compactRussianAndKazakhReadyKeepStartReachable() {
+        val originalLocale = Locale.getDefault()
+        try {
+            for ((locale, start) in listOf("ru" to "Начать", "kk" to "Бастау")) {
+                Locale.setDefault(Locale.forLanguageTag(locale))
+                runComposeUiTest {
+                    var starts = 0
+                    setContent {
+                        CompositionLocalProvider(LocalDensity provides Density(1f)) {
+                            OquTurboTheme {
+                                RuleSwitchScreen(
+                                    ruleSwitchPreviewState(),
+                                    { starts++ },
+                                    { _, _ -> },
+                                    {},
+                                    modifier = Modifier.requiredSize(320.dp, 640.dp),
+                                )
+                            }
+                        }
+                    }
+                    onNodeWithText(start).performScrollTo().assertIsDisplayed().assertIsEnabled().performClick()
+                    assertEquals(1, starts)
+                }
+            }
+        } finally {
+            Locale.setDefault(originalLocale)
+        }
+    }
+
+    @Test
+    fun enlargedRussianActiveKeepsBothAnswersReachable() {
+        val originalLocale = Locale.getDefault()
+        try {
+            Locale.setDefault(Locale.forLanguageTag("ru"))
+            runComposeUiTest {
+                var answered: SwitchAnswer? = null
+                setContent {
+                    CompositionLocalProvider(LocalDensity provides Density(1f, 1.5f)) {
+                        OquTurboTheme {
+                            val state = ruleSwitchPreviewState(RuleSwitchPhase.Active, 5)
+                            RuleSwitchScreen(
+                                state.copy(game = state.game.copy(score = 12344), record = 23456),
+                                {},
+                                { _, answer -> answered = answer },
+                                {},
+                                modifier = Modifier.requiredSize(320.dp, 640.dp),
+                            )
+                        }
+                    }
+                }
+                for (answer in listOf(SwitchAnswer.Even, SwitchAnswer.Odd)) {
+                    onNodeWithTag("answer-$answer")
+                        .performScrollTo().assertIsDisplayed().assertIsEnabled().performClick()
+                    assertEquals(answer, answered)
+                }
+            }
+        } finally {
+            Locale.setDefault(originalLocale)
+        }
+    }
+
+    @Test
     fun enlargedKazakhResultKeepsReplayAndBackReachable() {
         val originalLocale = Locale.getDefault()
         try {

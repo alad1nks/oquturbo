@@ -589,7 +589,13 @@ internal fun ruleSwitchPreviewState(
     failure: RuleSwitchFailure? = null,
     save: RuleSwitchSaveStatus = RuleSwitchSaveStatus.None,
 ): RuleSwitchUiState {
-    val rule = if (size == 4) SwitchRule.Magnitude else SwitchRule.Parity
+    val roundScore =
+        when (size) {
+            3 -> 0
+            4 -> 5
+            else -> 10
+        }
+    val rule = if (roundScore % 2 == 0) SwitchRule.Parity else SwitchRule.Magnitude
     return RuleSwitchUiState(
         game =
             RuleSwitchState(
@@ -599,16 +605,9 @@ internal fun ruleSwitchPreviewState(
                         1,
                         if (rule == SwitchRule.Parity) 8 else 3,
                         rule,
-                        RuleSwitchGame.timeFor(if (size == 3) 0 else 5),
+                        RuleSwitchGame.timeFor(roundScore),
                     ),
-                score =
-                    if (size == 3) {
-                        0
-                    } else if (size == 4) {
-                        5
-                    } else {
-                        10
-                    },
+                score = roundScore + if (phase == RuleSwitchPhase.Correct) 1 else 0,
                 failure = failure,
                 selectedAnswer =
                     if (failure == RuleSwitchFailure.Wrong) {
@@ -730,7 +729,7 @@ private fun RuleSwitchPausedKkPreview() {
     OquTurboTheme {
         val state = ruleSwitchPreviewState(RuleSwitchPhase.Paused)
         RuleSwitchScreen(
-            state.copy(game = state.game.copy(returnPhase = RuleSwitchPhase.Correct)),
+            state.copy(game = state.game.copy(returnPhase = RuleSwitchPhase.Correct, score = 1)),
             {},
             { _, _ -> },
             null,
@@ -853,7 +852,7 @@ private fun RuleSwitchDarkPreview() {
 private fun RuleSwitchLargeTextPreview() {
     val state = ruleSwitchPreviewState(RuleSwitchPhase.Active, 5)
     OquTurboTheme {
-        RuleSwitchScreen(state.copy(game = state.game.copy(score = 12345), record = 23456), {}, { _, _ -> }, {})
+        RuleSwitchScreen(state.copy(game = state.game.copy(score = 12344), record = 23456), {}, { _, _ -> }, {})
     }
 }
 
