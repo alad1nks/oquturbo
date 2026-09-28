@@ -134,14 +134,17 @@ internal class RuleSwitchViewModel(
         scheduleTimer()
     }
 
-    fun abandon() {
-        if (game.state.phase == RuleSwitchPhase.Result && uiState.value.saveStatus != RuleSwitchSaveStatus.Saved) return
+    fun abandon(): Boolean {
+        if (game.state.phase == RuleSwitchPhase.Result && uiState.value.saveStatus != RuleSwitchSaveStatus.Saved) {
+            return false
+        }
         game.abandon()
         publish()
         attempt++
         liveAttempt = false
         cancelTimer()
         mark = null
+        return true
     }
 
     private fun elapsed(): Long {

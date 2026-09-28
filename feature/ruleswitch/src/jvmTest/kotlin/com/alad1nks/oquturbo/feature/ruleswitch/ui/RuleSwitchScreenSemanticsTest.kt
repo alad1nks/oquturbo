@@ -134,6 +134,34 @@ class RuleSwitchScreenSemanticsTest {
         }
 
     @Test
+    fun pausedFeedbackHidesTaskAndBackgroundResumeIsDisabled() =
+        runComposeUiTest {
+            val feedback = ruleSwitchPreviewState(RuleSwitchPhase.Correct, 4)
+            val state =
+                mutableStateOf(
+                    feedback.copy(
+                        game =
+                            feedback.game.copy(
+                                phase = RuleSwitchPhase.Paused,
+                                returnPhase = RuleSwitchPhase.Correct,
+                            ),
+                        isForeground = false,
+                    ),
+                )
+            setContent { OquTurboTheme { RuleSwitchScreen(state.value, {}, { _, _ -> }, null) } }
+            onNodeWithTag("digit").assertDoesNotExist()
+            onNodeWithTag("rule").assertDoesNotExist()
+            onNodeWithText("Correct").assertDoesNotExist()
+            for (answer in listOf("Even", "Odd", "Below", "Above")) {
+                onNodeWithTag("answer-$answer").assertDoesNotExist()
+            }
+            onNodeWithText("Resume").assertIsNotEnabled()
+            state.value = state.value.copy(isForeground = true)
+            onNodeWithText("Resume").assertIsEnabled()
+            onNodeWithTag("digit").assertDoesNotExist()
+        }
+
+    @Test
     fun correctFeedbackDisablesAllOptionsButPreservesPause() =
         runComposeUiTest {
             setContent {

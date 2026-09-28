@@ -32,6 +32,55 @@ import kotlin.time.TestTimeSource
 @OptIn(ExperimentalCoroutinesApi::class)
 class RuleSwitchViewModelTest {
     @Test
+    fun retainedActiveExitCannotDiscardWrongCompletionBeforeRecomposition() = retainedExitPreservesCompletion(false)
+
+    @Test
+    fun retainedActiveExitCannotDiscardTimeoutCompletionBeforeRecomposition() = retainedExitPreservesCompletion(true)
+
+    private fun retainedExitPreservesCompletion(timeout: Boolean) =
+        exercise { vm, storage, clock ->
+            runCurrent()
+            vm.start()
+            var navigations = 0
+            val retainedExit = { exitRuleSwitch(vm) { navigations++ } }
+            val gate = kotlinx.coroutines.CompletableDeferred<Unit>()
+            storage.writeGate = gate
+            storage.failWrites = true
+            if (timeout) {
+                clock += 6_000.milliseconds
+                vm.timerTickCallback()()
+            } else {
+                vm.wrong()
+            }
+            val terminal = vm.uiState.value.game
+            assertEquals(RuleSwitchSaveStatus.Pending, vm.uiState.value.saveStatus)
+            retainedExit()
+            assertEquals(0, navigations)
+            assertEquals(terminal, vm.uiState.value.game)
+            gate.complete(Unit)
+            runCurrent()
+            assertEquals(RuleSwitchSaveStatus.Failed, vm.uiState.value.saveStatus)
+            retainedExit()
+            assertEquals(0, navigations)
+            assertEquals(terminal, vm.uiState.value.game)
+            storage.failWrites = false
+            val retryGate = kotlinx.coroutines.CompletableDeferred<Unit>()
+            storage.writeGate = retryGate
+            vm.retrySave()
+            retainedExit()
+            assertEquals(0, navigations)
+            assertEquals(terminal, vm.uiState.value.game)
+            assertEquals(RuleSwitchSaveStatus.Pending, vm.uiState.value.saveStatus)
+            retryGate.complete(Unit)
+            runCurrent()
+            assertEquals(RuleSwitchSaveStatus.Saved, vm.uiState.value.saveStatus)
+            assertEquals(1, storage.gameSessionWriteCount)
+            retainedExit()
+            assertEquals(1, navigations)
+            assertEquals(RuleSwitchPhase.Ready, vm.uiState.value.game.phase)
+        }
+
+    @Test
     fun staleFeedbackAndPriorAttemptTimerCallbacksDoNotSettleNewRound() =
         exercise { vm, _, clock ->
             runCurrent()
