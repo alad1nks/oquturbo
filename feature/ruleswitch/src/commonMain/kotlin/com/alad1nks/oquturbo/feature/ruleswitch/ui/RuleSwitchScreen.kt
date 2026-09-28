@@ -159,7 +159,15 @@ internal fun RuleSwitchScreen(
             }
             if (state.game.phase in listOf(RuleSwitchPhase.Active, RuleSwitchPhase.Correct, RuleSwitchPhase.Paused)) {
                 OutlinedButton(onExitClick, Modifier.fillMaxWidth().heightIn(min = 56.dp)) {
-                    Text(stringResource(AppResource.String.rule_switch_exit))
+                    Text(
+                        stringResource(
+                            if (onBackClick != null) {
+                                AppResource.String.rule_switch_back
+                            } else {
+                                AppResource.String.rule_switch_exit
+                            },
+                        ),
+                    )
                 }
             }
             Box(Modifier.size(12.dp))
