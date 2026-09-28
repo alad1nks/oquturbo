@@ -941,4 +941,7 @@
     <string name="rule_switch_correct_answer">Верный ответ: %1$s</string>
     <string name="rule_switch_exit">К началу</string>
     <string name="rule_switch_score_value">Счёт: %1$d</string>
+    <string name="symbol_count_review_explanation">В рамки обведены клетки с искомой фигурой.</string>
+    <string name="symbol_count_review_cell_match">Строка %1$d, столбец %2$d: %3$s. Совпадает с искомой фигурой.</string>
+    <string name="symbol_count_review_cell_other">Строка %1$d, столбец %2$d: %3$s. Не совпадает с искомой фигурой.</string>
 </resources>

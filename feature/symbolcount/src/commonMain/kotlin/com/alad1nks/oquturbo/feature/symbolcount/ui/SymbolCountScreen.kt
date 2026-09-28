@@ -1,11 +1,13 @@
 package com.alad1nks.oquturbo.feature.symbolcount.ui
 
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
@@ -397,7 +399,7 @@ private fun TargetPrompt(shape: CountShape) {
 }
 
 @Composable
-private fun SymbolField(board: SymbolCountBoard, side: Dp) {
+private fun SymbolField(board: SymbolCountBoard, side: Dp, review: Boolean = false) {
     val description = stringResource(AppResource.String.symbol_count_field_description, board.size)
     Surface(
         Modifier.size(side).testTag("field").semantics { contentDescription = description },
@@ -411,12 +413,33 @@ private fun SymbolField(board: SymbolCountBoard, side: Dp) {
                         val shape = board.shapes[row * board.size + column]
                         val label =
                             stringResource(
-                                AppResource.String.symbol_count_cell_description,
+                                if (review) {
+                                    if (shape == board.target) {
+                                        AppResource.String.symbol_count_review_cell_match
+                                    } else {
+                                        AppResource.String.symbol_count_review_cell_other
+                                    }
+                                } else {
+                                    AppResource.String.symbol_count_cell_description
+                                },
                                 row + 1,
                                 column + 1,
                                 shapeName(shape),
                             )
-                        SymbolGlyph(shape, Modifier.weight(1f).fillMaxSize().semantics { contentDescription = label })
+                        Box(
+                            Modifier.weight(1f).fillMaxSize()
+                                .then(if (review) Modifier.testTag("review-cell-$row-$column") else Modifier)
+                                .semantics { contentDescription = label },
+                        ) {
+                            SymbolGlyph(shape, Modifier.fillMaxSize())
+                            if (review && shape == board.target) {
+                                Box(
+                                    Modifier.fillMaxSize().padding(2.dp)
+                                        .border(2.dp, MaterialTheme.colorScheme.onSurface, MaterialTheme.shapes.small)
+                                        .testTag("review-match-$row-$column"),
+                                )
+                            }
+                        }
                     }
                 }
             }
@@ -532,6 +555,16 @@ private fun ResultContent(
                 textAlign = TextAlign.Center,
             )
         }
+    }
+    Text(
+        stringResource(AppResource.String.symbol_count_review_explanation),
+        modifier = Modifier.testTag("review-explanation"),
+        style = MaterialTheme.typography.bodyMedium,
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
+        textAlign = TextAlign.Center,
+    )
+    BoxWithConstraints(Modifier.widthIn(max = 280.dp).fillMaxWidth().aspectRatio(1f)) {
+        SymbolField(board, maxWidth, review = true)
     }
     Button(
         if (state.saveStatus == SymbolCountSaveStatus.Failed) {
@@ -855,5 +888,59 @@ private fun SymbolCountLargeResultPreview() {
             { _, _ -> },
             {},
         )
+    }
+}
+
+internal fun symbolCountReviewPreviewState(size: Int, failure: SymbolCountFailure): SymbolCountUiState {
+    val state = symbolCountPreviewState(SymbolCountPhase.Result, size, failure, SymbolCountSaveStatus.Saved)
+    val board = requireNotNull(state.game.board)
+    val targets = if (size == 3) setOf(4) else setOf(0, 1, 4, 8, 12, 16, 20, 24)
+    return state.copy(
+        game =
+            state.game.copy(
+                board =
+                    board.copy(
+                        shapes =
+                            board.shapes.mapIndexed { index, shape ->
+                                if (index in targets) board.target else CountShape.entries[1 + shape.ordinal % 3]
+                            },
+                    ),
+            ),
+    )
+}
+
+@Preview(name = "Symbol Count review compact", widthDp = 320, heightDp = 640, locale = "en")
+@ScreenshotPreview
+@Composable
+private fun SymbolCountReviewCompactPreview() {
+    OquTurboTheme {
+        SymbolCountScreen(symbolCountReviewPreviewState(3, SymbolCountFailure.Wrong), {}, { _, _ -> }, {})
+    }
+}
+
+@Preview(name = "Symbol Count review timeout", widthDp = 320, heightDp = 1000, locale = "kk")
+@ScreenshotPreview
+@Composable
+private fun SymbolCountReviewTimeoutPreview() {
+    OquTurboTheme {
+        SymbolCountScreen(symbolCountReviewPreviewState(5, SymbolCountFailure.Timeout), {}, { _, _ -> }, null)
+    }
+}
+
+@Preview(name = "Symbol Count review large", widthDp = 320, heightDp = 1400, locale = "ru", fontScale = 1.5f)
+@ScreenshotPreview
+@Composable
+private fun SymbolCountReviewLargePreview() {
+    OquTurboTheme {
+        SymbolCountScreen(symbolCountReviewPreviewState(5, SymbolCountFailure.Wrong), {}, { _, _ -> }, {})
+    }
+}
+
+@Preview(name = "Symbol Count review dark", widthDp = 320, heightDp = 1000, locale = "en")
+@ScreenshotPreview
+@Composable
+private fun SymbolCountReviewDarkPreview() {
+    OquTurboTheme(darkTheme = true) {
+        SymbolCountScreen(symbolCountReviewPreviewState(5, SymbolCountFailure.Wrong), {}, { _, _ -> }, {})
     }
 }

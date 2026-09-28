@@ -9,6 +9,40 @@ import kotlin.test.assertTrue
 
 class SymbolCountGameTest {
     @Test
+    fun failuresRetainExactBoardAndReviewTimeCannotChangeCompletedMetrics() {
+        for (timeout in listOf(false, true)) {
+            for (score in listOf(0, 5, 10)) {
+                val game = SymbolCountGame(Random(score))
+                game.start()
+                repeat(score) {
+                    val board = requireNotNull(game.state.board)
+                    game.answer(board.id, board.actualCount)
+                    game.elapse(600)
+                }
+                val before = requireNotNull(game.state.board)
+                if (timeout) {
+                    game.elapse(before.remainingTimeMillis)
+                } else {
+                    game.answer(before.id, before.options.first { it != before.actualCount }, 90)
+                }
+                val failed = requireNotNull(game.state.board)
+                assertEquals(before.id, failed.id)
+                assertEquals(before.size, failed.size)
+                assertEquals(before.shapes, failed.shapes)
+                assertEquals(before.target, failed.target)
+                assertEquals(before.actualCount, failed.actualCount)
+                val terminal = game.state
+                game.elapse(Long.MAX_VALUE)
+                game.answer(before.id, before.actualCount)
+                assertEquals(terminal, game.state)
+                game.start()
+                assertNotEquals(before.id, game.state.board!!.id)
+                assertEquals(SymbolCountPhase.Active, game.state.phase)
+            }
+        }
+    }
+
+    @Test
     fun seededFieldsAndOptionsMeetEveryStageIncludingLongCappedRuns() {
         repeat(40) { seed ->
             val game = SymbolCountGame(Random(seed))
