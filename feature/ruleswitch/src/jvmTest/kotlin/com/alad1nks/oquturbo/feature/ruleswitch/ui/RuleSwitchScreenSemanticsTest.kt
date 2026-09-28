@@ -134,6 +134,31 @@ class RuleSwitchScreenSemanticsTest {
         }
 
     @Test
+    fun unfinishedExitNamesActualHubOrStandaloneDestination() =
+        runComposeUiTest {
+            val hub = mutableStateOf(true)
+            var exits = 0
+            setContent {
+                OquTurboTheme {
+                    RuleSwitchScreen(
+                        ruleSwitchPreviewState(RuleSwitchPhase.Paused),
+                        {},
+                        { _, _ -> },
+                        if (hub.value) ({}) else null,
+                        onExitClick = { exits++ },
+                    )
+                }
+            }
+            onNodeWithText("Back to Games").performClick()
+            assertEquals(1, exits)
+            onNodeWithText("Exit to Ready").assertDoesNotExist()
+            hub.value = false
+            onNodeWithText("Exit to Ready").performClick()
+            assertEquals(2, exits)
+            onNodeWithText("Back to Games").assertDoesNotExist()
+        }
+
+    @Test
     fun pausedFeedbackHidesTaskAndBackgroundResumeIsDisabled() =
         runComposeUiTest {
             val feedback = ruleSwitchPreviewState(RuleSwitchPhase.Correct, 4)
