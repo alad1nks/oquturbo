@@ -1,6 +1,7 @@
 package com.alad1nks.oquturbo.feature.symbolcount.ui
 
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -401,44 +402,56 @@ private fun TargetPrompt(shape: CountShape) {
 @Composable
 private fun SymbolField(board: SymbolCountBoard, side: Dp, review: Boolean = false) {
     val description = stringResource(AppResource.String.symbol_count_field_description, board.size)
-    Surface(
-        Modifier.size(side).testTag("field").semantics { contentDescription = description },
-        shape = MaterialTheme.shapes.large,
-        color = MaterialTheme.colorScheme.surfaceContainer,
-    ) {
-        Column(Modifier.fillMaxSize()) {
-            repeat(board.size) { row ->
-                Row(Modifier.weight(1f).fillMaxWidth()) {
-                    repeat(board.size) { column ->
-                        val shape = board.shapes[row * board.size + column]
-                        val label =
-                            stringResource(
-                                if (review) {
-                                    if (shape == board.target) {
-                                        AppResource.String.symbol_count_review_cell_match
-                                    } else {
-                                        AppResource.String.symbol_count_review_cell_other
-                                    }
+    val modifier = Modifier.size(side).testTag("field").semantics { contentDescription = description }
+    if (review) {
+        Box(modifier.background(MaterialTheme.colorScheme.surfaceContainer, MaterialTheme.shapes.large)) {
+            SymbolFieldCells(board, review = true)
+        }
+    } else {
+        Surface(
+            modifier,
+            shape = MaterialTheme.shapes.large,
+            color = MaterialTheme.colorScheme.surfaceContainer,
+        ) {
+            SymbolFieldCells(board, review = false)
+        }
+    }
+}
+
+@Composable
+private fun SymbolFieldCells(board: SymbolCountBoard, review: Boolean) {
+    Column(Modifier.fillMaxSize()) {
+        repeat(board.size) { row ->
+            Row(Modifier.weight(1f).fillMaxWidth()) {
+                repeat(board.size) { column ->
+                    val shape = board.shapes[row * board.size + column]
+                    val label =
+                        stringResource(
+                            if (review) {
+                                if (shape == board.target) {
+                                    AppResource.String.symbol_count_review_cell_match
                                 } else {
-                                    AppResource.String.symbol_count_cell_description
-                                },
-                                row + 1,
-                                column + 1,
-                                shapeName(shape),
+                                    AppResource.String.symbol_count_review_cell_other
+                                }
+                            } else {
+                                AppResource.String.symbol_count_cell_description
+                            },
+                            row + 1,
+                            column + 1,
+                            shapeName(shape),
+                        )
+                    Box(
+                        Modifier.weight(1f).fillMaxSize()
+                            .then(if (review) Modifier.testTag("review-cell-$row-$column") else Modifier)
+                            .semantics { contentDescription = label },
+                    ) {
+                        SymbolGlyph(shape, Modifier.fillMaxSize())
+                        if (review && shape == board.target) {
+                            Box(
+                                Modifier.fillMaxSize().padding(2.dp)
+                                    .border(2.dp, MaterialTheme.colorScheme.onSurface, MaterialTheme.shapes.small)
+                                    .testTag("review-match-$row-$column"),
                             )
-                        Box(
-                            Modifier.weight(1f).fillMaxSize()
-                                .then(if (review) Modifier.testTag("review-cell-$row-$column") else Modifier)
-                                .semantics { contentDescription = label },
-                        ) {
-                            SymbolGlyph(shape, Modifier.fillMaxSize())
-                            if (review && shape == board.target) {
-                                Box(
-                                    Modifier.fillMaxSize().padding(2.dp)
-                                        .border(2.dp, MaterialTheme.colorScheme.onSurface, MaterialTheme.shapes.small)
-                                        .testTag("review-match-$row-$column"),
-                                )
-                            }
                         }
                     }
                 }
