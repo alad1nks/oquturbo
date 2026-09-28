@@ -4,6 +4,7 @@ package com.alad1nks.oquturbo.feature.dualfocus.ui
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -36,6 +37,7 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
@@ -43,6 +45,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
@@ -113,6 +116,7 @@ internal fun DualFocusScreen(
     modifier: Modifier = Modifier,
     onPauseClick: () -> Unit = {},
     onResumeClick: () -> Unit = {},
+    scrollState: ScrollState = rememberScrollState(),
 ) {
     var headerHeight by remember { mutableIntStateOf(0) }
     val headerInset = with(LocalDensity.current) { headerHeight.toDp() }
@@ -120,10 +124,13 @@ internal fun DualFocusScreen(
         Column(
             Modifier.align(
                 Alignment.TopCenter,
-            ).widthIn(max = OquTurboLayout.playMaxWidth).fillMaxWidth().verticalScroll(rememberScrollState())
+            ).widthIn(
+                max = OquTurboLayout.playMaxWidth,
+            ).fillMaxWidth().padding(top = maxOf(104.dp, headerInset + OquTurboLayout.textGap))
+                .clipToBounds()
+                .verticalScroll(scrollState)
                 .navigationBarsPadding().padding(
                     start = OquTurboLayout.compactGameGutter,
-                    top = maxOf(104.dp, headerInset + OquTurboLayout.textGap),
                     end = OquTurboLayout.compactGameGutter,
                     bottom = 32.dp,
                 ),
@@ -796,4 +803,27 @@ private fun DualFocusResultKazakhPreview() {
 @Composable
 private fun DualFocusReadyCompactLargeTextPreview() {
     OquTurboTheme { DualFocusScreen(DualFocusUiState(record = 4, isRecordLoading = false), {}, { _, _ -> }, {}) }
+}
+
+@Preview(
+    name = "Dual Focus — ready scrolled compact large text",
+    widthDp = 320,
+    heightDp = 640,
+    fontScale = 1.5f,
+    locale = "ru",
+)
+@ScreenshotPreview
+@Composable
+private fun DualFocusReadyScrolledCompactLargeTextPreview() {
+    val scrollState = rememberScrollState()
+    LaunchedEffect(scrollState.maxValue) { scrollState.scrollTo(scrollState.maxValue) }
+    OquTurboTheme {
+        DualFocusScreen(
+            state = DualFocusUiState(record = 4, isRecordLoading = false),
+            onStartClick = {},
+            onCardClick = { _, _ -> },
+            onBackClick = {},
+            scrollState = scrollState,
+        )
+    }
 }
