@@ -1,6 +1,5 @@
 package com.alad1nks.oquturbo.feature.stats.ui
 
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -13,8 +12,6 @@ import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ChevronRight
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -25,6 +22,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
+import com.alad1nks.oquturbo.core.designsystem.theme.OquTurboLayout
+import com.alad1nks.oquturbo.core.ui.component.AppCard
 import com.alad1nks.oquturbo.core.ui.component.AppTopBar
 import com.alad1nks.oquturbo.core.ui.component.PageHeader
 import com.alad1nks.oquturbo.core.ui.component.appBackground
@@ -139,16 +138,12 @@ private fun ModeDetailCard(
     onClick: (() -> Unit)? = null,
 ) {
     val openDescription = stringResource(AppResource.String.stats_open_details)
-    Card(
+    AppCard(
         modifier =
             Modifier
                 .fillMaxWidth()
                 .clip(MaterialTheme.shapes.large)
                 .clickable(enabled = onClick != null, onClick = { onClick?.invoke() }),
-        shape = MaterialTheme.shapes.large,
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.55f)),
-        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
     ) {
         Column(
             modifier = Modifier.fillMaxWidth().padding(vertical = 18.dp),
@@ -206,8 +201,14 @@ private fun StatsDetailLayout(
                 contentAlignment = Alignment.TopCenter,
             ) {
                 LazyColumn(
-                    modifier = Modifier.fillMaxSize().widthIn(max = 760.dp),
-                    contentPadding = PaddingValues(start = 24.dp, top = 20.dp, end = 24.dp, bottom = 32.dp),
+                    modifier = Modifier.widthIn(max = OquTurboLayout.pageMaxWidth).fillMaxSize(),
+                    contentPadding =
+                        PaddingValues(
+                            start = OquTurboLayout.pageGutter,
+                            top = 20.dp,
+                            end = OquTurboLayout.pageGutter,
+                            bottom = 32.dp,
+                        ),
                     verticalArrangement = Arrangement.spacedBy(18.dp),
                     content = content,
                 )

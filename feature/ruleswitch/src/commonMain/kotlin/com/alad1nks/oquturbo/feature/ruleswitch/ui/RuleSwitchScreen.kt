@@ -16,7 +16,6 @@ import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
@@ -56,11 +55,14 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
+import com.alad1nks.oquturbo.core.designsystem.theme.OquTurboLayout
 import com.alad1nks.oquturbo.core.designsystem.theme.OquTurboTheme
 import com.alad1nks.oquturbo.core.ui.component.AppBackButton
 import com.alad1nks.oquturbo.core.ui.component.GameHeaderActionButton
 import com.alad1nks.oquturbo.core.ui.component.GameResultCard
 import com.alad1nks.oquturbo.core.ui.component.GameScoreBadge
+import com.alad1nks.oquturbo.core.ui.component.GameStage
+import com.alad1nks.oquturbo.core.ui.component.GameStagePanel
 import com.alad1nks.oquturbo.core.ui.component.appBackground
 import com.alad1nks.oquturbo.core.ui.preview.ScreenshotPreview
 import com.alad1nks.oquturbo.feature.ruleswitch.model.RuleSwitchBoard
@@ -128,9 +130,9 @@ internal fun RuleSwitchScreen(
 ) {
     BoxWithConstraints(modifier.fillMaxSize().appBackground().statusBarsPadding().navigationBarsPadding()) {
         val fieldSide = (maxHeight - 390.dp).coerceIn(120.dp, 160.dp)
-        val horizontal = if (maxWidth < 360.dp) 16.dp else 24.dp
+        val horizontal = if (maxWidth < 360.dp) OquTurboLayout.compactGameGutter else OquTurboLayout.pageGutter
         Column(
-            Modifier.align(Alignment.TopCenter).widthIn(max = 560.dp).fillMaxWidth()
+            Modifier.align(Alignment.TopCenter).widthIn(max = OquTurboLayout.playMaxWidth).fillMaxWidth()
                 .padding(horizontal = horizontal)
                 .verticalScroll(rememberScrollState()),
             horizontalAlignment = Alignment.CenterHorizontally,
@@ -158,7 +160,7 @@ internal fun RuleSwitchScreen(
                     )
             }
             if (state.game.phase in listOf(RuleSwitchPhase.Active, RuleSwitchPhase.Correct, RuleSwitchPhase.Paused)) {
-                OutlinedButton(onExitClick, Modifier.fillMaxWidth().heightIn(min = 56.dp)) {
+                OutlinedButton(onExitClick, Modifier.fillMaxWidth().heightIn(min = OquTurboLayout.actionMinHeight)) {
                     Text(
                         stringResource(
                             if (onBackClick != null) {
@@ -223,115 +225,99 @@ private fun ReadyContent(
     onStartClick: () -> Unit,
     onReloadClick: () -> Unit,
 ) {
-    Surface(
-        modifier = Modifier.fillMaxWidth(),
-        shape = MaterialTheme.shapes.extraLarge,
-        color = MaterialTheme.colorScheme.surface,
-        tonalElevation = 2.dp,
+    GameStagePanel(
+        stage = GameStage.Ready,
+        modifier = Modifier.widthIn(max = OquTurboLayout.playMaxWidth).fillMaxWidth(),
     ) {
-        Column(
-            Modifier.fillMaxWidth().padding(24.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(18.dp),
-        ) {
-            Text(
-                stringResource(AppResource.String.rule_switch_mode),
-                style = MaterialTheme.typography.titleMedium,
-                color = MaterialTheme.colorScheme.primary,
-                fontWeight = FontWeight.Bold,
-            )
-            Text(
-                stringResource(AppResource.String.rule_switch_ready_title),
-                modifier = Modifier.semantics { heading() },
-                style = MaterialTheme.typography.headlineSmall,
-                fontWeight = FontWeight.Bold,
-                textAlign = TextAlign.Center,
-            )
-            Text(
-                stringResource(AppResource.String.rule_switch_instructions),
-                style = MaterialTheme.typography.bodyLarge,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                textAlign = TextAlign.Center,
-            )
-            RuleSwitchGlyph(Modifier.size(56.dp))
-            Text(
-                if (state.recordLoadFailed) {
-                    stringResource(AppResource.String.rule_switch_record_unavailable)
-                } else if (state.isRecordLoading) {
-                    stringResource(AppResource.String.rule_switch_loading_record)
-                } else {
-                    stringResource(AppResource.String.rule_switch_record_value, state.record)
-                },
-                style = MaterialTheme.typography.titleMedium,
-                textAlign = TextAlign.Center,
-            )
+        Text(
+            stringResource(AppResource.String.rule_switch_mode),
+            style = MaterialTheme.typography.titleMedium,
+            color = MaterialTheme.colorScheme.primary,
+            fontWeight = FontWeight.Bold,
+        )
+        Text(
+            stringResource(AppResource.String.rule_switch_ready_title),
+            modifier = Modifier.semantics { heading() },
+            style = MaterialTheme.typography.headlineSmall,
+            fontWeight = FontWeight.Bold,
+            textAlign = TextAlign.Center,
+        )
+        Text(
+            stringResource(AppResource.String.rule_switch_instructions),
+            style = MaterialTheme.typography.bodyLarge,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            textAlign = TextAlign.Center,
+        )
+        RuleSwitchGlyph(Modifier.size(56.dp))
+        Text(
             if (state.recordLoadFailed) {
-                OutlinedButton(onReloadClick, Modifier.fillMaxWidth().heightIn(min = 56.dp)) {
-                    Text(stringResource(AppResource.String.rule_switch_retry_load))
-                }
+                stringResource(AppResource.String.rule_switch_record_unavailable)
+            } else if (state.isRecordLoading) {
+                stringResource(AppResource.String.rule_switch_loading_record)
+            } else {
+                stringResource(AppResource.String.rule_switch_record_value, state.record)
+            },
+            style = MaterialTheme.typography.titleMedium,
+            textAlign = TextAlign.Center,
+        )
+        if (state.recordLoadFailed) {
+            OutlinedButton(onReloadClick, Modifier.fillMaxWidth().heightIn(min = OquTurboLayout.actionMinHeight)) {
+                Text(stringResource(AppResource.String.rule_switch_retry_load))
             }
-            Button(
-                onClick = onStartClick,
-                enabled = !state.isRecordLoading && !state.recordLoadFailed,
-                modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp),
-            ) {
-                Icon(Icons.Default.PlayArrow, contentDescription = null)
-                Text(stringResource(AppResource.String.rule_switch_start))
-            }
+        }
+        Button(
+            onClick = onStartClick,
+            enabled = !state.isRecordLoading && !state.recordLoadFailed,
+            modifier = Modifier.fillMaxWidth().heightIn(min = OquTurboLayout.actionMinHeight),
+        ) {
+            Icon(Icons.Default.PlayArrow, contentDescription = null)
+            Text(stringResource(AppResource.String.rule_switch_start))
         }
     }
 }
 
 @Composable
 private fun PausedContent(onResumeClick: () -> Unit, foreground: Boolean) {
-    Surface(
+    GameStagePanel(
+        stage = GameStage.Paused,
         modifier =
-            Modifier
-                .widthIn(max = 420.dp)
-                .fillMaxWidth()
-                .semantics { liveRegion = LiveRegionMode.Polite },
-        shape = RoundedCornerShape(28.dp),
-        color = MaterialTheme.colorScheme.surfaceContainerHighest,
+            Modifier.widthIn(max = OquTurboLayout.stateMaxWidth).fillMaxWidth().semantics {
+                liveRegion = LiveRegionMode.Polite
+            },
     ) {
-        Column(
-            Modifier.padding(horizontal = 24.dp, vertical = 28.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(16.dp),
+        Surface(
+            modifier = Modifier.size(72.dp),
+            shape = CircleShape,
+            color = MaterialTheme.colorScheme.primaryContainer,
         ) {
-            Surface(
-                modifier = Modifier.size(72.dp),
-                shape = CircleShape,
-                color = MaterialTheme.colorScheme.primaryContainer,
-            ) {
-                Box(contentAlignment = Alignment.Center) {
-                    Icon(
-                        Icons.Filled.Pause,
-                        contentDescription = null,
-                        modifier = Modifier.size(36.dp),
-                        tint = MaterialTheme.colorScheme.primary,
-                    )
-                }
+            Box(contentAlignment = Alignment.Center) {
+                Icon(
+                    Icons.Filled.Pause,
+                    contentDescription = null,
+                    modifier = Modifier.size(36.dp),
+                    tint = MaterialTheme.colorScheme.primary,
+                )
             }
-            Text(
-                stringResource(AppResource.String.rule_switch_paused_title),
-                modifier = Modifier.semantics { heading() },
-                style = MaterialTheme.typography.headlineMedium,
-                fontWeight = FontWeight.Bold,
-                textAlign = TextAlign.Center,
-            )
-            Text(
-                stringResource(AppResource.String.rule_switch_paused_message),
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                textAlign = TextAlign.Center,
-            )
-            Button(
-                onClick = onResumeClick,
-                enabled = foreground,
-                modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp),
-            ) {
-                Icon(Icons.Filled.PlayArrow, contentDescription = null)
-                Text(stringResource(AppResource.String.rule_switch_resume))
-            }
+        }
+        Text(
+            stringResource(AppResource.String.rule_switch_paused_title),
+            modifier = Modifier.semantics { heading() },
+            style = MaterialTheme.typography.headlineMedium,
+            fontWeight = FontWeight.Bold,
+            textAlign = TextAlign.Center,
+        )
+        Text(
+            stringResource(AppResource.String.rule_switch_paused_message),
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            textAlign = TextAlign.Center,
+        )
+        Button(
+            onClick = onResumeClick,
+            enabled = foreground,
+            modifier = Modifier.fillMaxWidth().heightIn(min = OquTurboLayout.actionMinHeight),
+        ) {
+            Icon(Icons.Filled.PlayArrow, contentDescription = null)
+            Text(stringResource(AppResource.String.rule_switch_resume))
         }
     }
 }
@@ -413,7 +399,7 @@ private fun AnswerButton(
 ) {
     Button(onClick = {
         onAnswer(board.id, value)
-    }, enabled = active, modifier = modifier.heightIn(min = 56.dp).testTag("answer-$value")) {
+    }, enabled = active, modifier = modifier.heightIn(min = OquTurboLayout.actionMinHeight).testTag("answer-$value")) {
         Text(answerName(value), textAlign = TextAlign.Center)
     }
 }
@@ -560,7 +546,7 @@ private fun ResultContent(
         } else {
             onRetry
         },
-        Modifier.fillMaxWidth().heightIn(min = 56.dp),
+        Modifier.fillMaxWidth().heightIn(min = OquTurboLayout.actionMinHeight),
         enabled = !state.isRecordLoading && state.saveStatus != RuleSwitchSaveStatus.Pending,
     ) {
         Icon(Icons.Default.Replay, null)
@@ -577,7 +563,7 @@ private fun ResultContent(
         )
     }
     if (onBackClick != null && state.saveStatus == RuleSwitchSaveStatus.Saved) {
-        OutlinedButton(onBackClick, Modifier.fillMaxWidth().heightIn(min = 56.dp)) {
+        OutlinedButton(onBackClick, Modifier.fillMaxWidth().heightIn(min = OquTurboLayout.actionMinHeight)) {
             Text(stringResource(AppResource.String.rule_switch_back))
         }
     }

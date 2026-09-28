@@ -14,6 +14,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import com.alad1nks.oquturbo.core.designsystem.theme.OquTurboLayout
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -93,4 +94,4 @@ private fun AppTopBarContent(
 
 // CenterAlignedTopAppBar already adds 4.dp before its navigation slot.
 // The remaining padding keeps the button itself 24.dp from the screen start.
-private val AppTopBarBackButtonPadding = 20.dp
+private val AppTopBarBackButtonPadding = OquTurboLayout.pageGutter - 4.dp

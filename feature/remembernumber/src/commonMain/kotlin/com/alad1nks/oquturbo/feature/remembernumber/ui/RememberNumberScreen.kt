@@ -17,12 +17,16 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusProperties
 import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.semantics
@@ -31,6 +35,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.alad1nks.oquturbo.core.data.model.DailyTrainingEntry
+import com.alad1nks.oquturbo.core.designsystem.theme.OquTurboLayout
 import com.alad1nks.oquturbo.core.designsystem.theme.OquTurboTheme
 import com.alad1nks.oquturbo.core.ui.component.AnimatedGameStateOverlay
 import com.alad1nks.oquturbo.core.ui.component.AppBackButton
@@ -107,6 +112,8 @@ internal fun RememberNumberScreen(
         }
     }
 
+    var headerHeight by remember { mutableIntStateOf(0) }
+    val headerInset = with(LocalDensity.current) { headerHeight.toDp() }
     Box(modifier = modifier.fillMaxSize().appBackground()) {
         Box(
             modifier =
@@ -114,7 +121,7 @@ internal fun RememberNumberScreen(
                     .fillMaxSize()
                     .statusBarsPadding()
                     .navigationBarsPadding()
-                    .padding(top = 72.dp, bottom = 24.dp),
+                    .padding(top = maxOf(72.dp, headerInset), bottom = 24.dp),
             contentAlignment = Alignment.Center,
         ) {
             RememberNumberTextField(
@@ -160,7 +167,7 @@ internal fun RememberNumberScreen(
                             canFocus = uiState is RememberNumberUiState.Writing
                         }.widthIn(max = 600.dp)
                         .fillMaxWidth()
-                        .padding(horizontal = 24.dp),
+                        .padding(horizontal = OquTurboLayout.pageGutter),
             )
         }
 
@@ -181,12 +188,12 @@ internal fun RememberNumberScreen(
                     }
                 },
             modifier =
-                Modifier
+                Modifier.onSizeChanged { headerHeight = it.height }
                     .align(Alignment.TopCenter)
-                    .widthIn(max = 760.dp)
+                    .widthIn(max = OquTurboLayout.pageMaxWidth)
                     .fillMaxWidth()
                     .statusBarsPadding()
-                    .padding(horizontal = 24.dp, vertical = 16.dp),
+                    .padding(horizontal = OquTurboLayout.pageGutter, vertical = 16.dp),
         )
 
         AnimatedGameStateOverlay(

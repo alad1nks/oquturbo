@@ -34,6 +34,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.alad1nks.oquturbo.core.designsystem.theme.OquTurboLayout
 import com.alad1nks.oquturbo.core.designsystem.theme.OquTurboTheme
 import com.alad1nks.oquturbo.core.ui.component.appBackground
 import com.alad1nks.oquturbo.core.ui.preview.ScreenshotPreview
@@ -87,7 +88,7 @@ private fun RememberNumberMenuCustomOptionsContent(
         modifier =
             Modifier
                 .padding(16.dp)
-                .widthIn(max = 560.dp)
+                .widthIn(max = OquTurboLayout.playMaxWidth)
                 .fillMaxWidth(),
         shape = MaterialTheme.shapes.extraLarge,
         color = MaterialTheme.colorScheme.surfaceContainerHigh,

@@ -37,9 +37,14 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.scale
+import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
@@ -50,6 +55,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.alad1nks.oquturbo.core.designsystem.theme.OquTurboLayout
 import com.alad1nks.oquturbo.core.designsystem.theme.OquTurboTheme
 import com.alad1nks.oquturbo.core.ui.component.AppBackButton
 import com.alad1nks.oquturbo.core.ui.component.GameHeader
@@ -90,12 +96,18 @@ internal fun MemoryGridScreen(
         } else {
             Modifier
         }
+    var headerHeight by remember { mutableIntStateOf(0) }
+    val headerInset = with(LocalDensity.current) { headerHeight.toDp() }
     Box(modifier.fillMaxSize().appBackground()) {
         Column(
             modifier =
-                contentModifier.align(Alignment.Center).widthIn(max = 560.dp).fillMaxWidth()
+                contentModifier.align(Alignment.Center).widthIn(max = OquTurboLayout.playMaxWidth).fillMaxWidth()
                     .navigationBarsPadding()
-                    .padding(horizontal = 24.dp, vertical = if (gameOver) 88.dp else 96.dp),
+                    .padding(horizontal = OquTurboLayout.pageGutter)
+                    .padding(
+                        top = maxOf(if (gameOver) 88.dp else 96.dp, headerInset),
+                        bottom = if (gameOver) 88.dp else 96.dp,
+                    ),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(if (gameOver) 20.dp else 24.dp),
         ) {
@@ -147,8 +159,10 @@ internal fun MemoryGridScreen(
                 )
             },
             modifier =
-                Modifier.align(Alignment.TopCenter).widthIn(max = 760.dp).fillMaxWidth()
-                    .statusBarsPadding().padding(horizontal = 24.dp, vertical = 16.dp),
+                Modifier.onSizeChanged {
+                    headerHeight = it.height
+                }.align(Alignment.TopCenter).widthIn(max = OquTurboLayout.pageMaxWidth).fillMaxWidth()
+                    .statusBarsPadding().padding(horizontal = OquTurboLayout.pageGutter, vertical = 16.dp),
         )
     }
 }

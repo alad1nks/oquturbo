@@ -10,7 +10,7 @@ import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material.icons.outlined.Timer
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
+import com.alad1nks.oquturbo.core.designsystem.theme.OquTurboLayout
 import com.alad1nks.oquturbo.core.ui.component.GameMenuItem
 import com.alad1nks.oquturbo.core.ui.component.PageHeader
 import com.alad1nks.oquturbo.resources.AppResource
@@ -24,8 +24,8 @@ internal fun RememberNumberMenuContentColumn(
 ) {
     LazyColumn(
         modifier = modifier.fillMaxSize(),
-        contentPadding = PaddingValues(horizontal = 24.dp, vertical = 24.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp),
+        contentPadding = PaddingValues(horizontal = OquTurboLayout.pageGutter, vertical = OquTurboLayout.sectionGap),
+        verticalArrangement = Arrangement.spacedBy(OquTurboLayout.gap),
     ) {
         item {
             PageHeader(

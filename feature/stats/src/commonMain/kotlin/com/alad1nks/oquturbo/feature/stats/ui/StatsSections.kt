@@ -27,8 +27,6 @@ import androidx.compose.material.icons.filled.EventAvailable
 import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.SportsEsports
 import androidx.compose.material.icons.filled.Timer
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -46,6 +44,7 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import com.alad1nks.oquturbo.core.ui.component.AppCard
 import com.alad1nks.oquturbo.feature.stats.model.ActivityStatus
 import com.alad1nks.oquturbo.feature.stats.model.GameStatsRow
 import com.alad1nks.oquturbo.feature.stats.model.GameTrend
@@ -861,12 +860,8 @@ internal fun StatsSection(
             style = MaterialTheme.typography.titleLarge,
             color = MaterialTheme.colorScheme.onSurface,
         )
-        Card(
+        AppCard(
             modifier = Modifier.fillMaxWidth(),
-            shape = MaterialTheme.shapes.large,
-            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-            border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.55f)),
-            elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
         ) {
             Column(
                 modifier = Modifier.fillMaxWidth().padding(contentPadding),

@@ -22,6 +22,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.alad1nks.oquturbo.core.designsystem.theme.OquTurboLayout
 import com.alad1nks.oquturbo.core.designsystem.theme.OquTurboTheme
 import com.alad1nks.oquturbo.core.ui.component.PageHeader
 import com.alad1nks.oquturbo.core.ui.component.appBackground
@@ -73,10 +74,16 @@ internal fun ProfileScreen(
             modifier =
                 Modifier
                     .align(Alignment.TopCenter)
-                    .widthIn(max = 760.dp)
+                    .widthIn(max = OquTurboLayout.pageMaxWidth)
                     .fillMaxWidth()
                     .statusBarsPadding(),
-            contentPadding = PaddingValues(start = 24.dp, top = 24.dp, end = 24.dp, bottom = 32.dp),
+            contentPadding =
+                PaddingValues(
+                    start = OquTurboLayout.pageGutter,
+                    top = 24.dp,
+                    end = OquTurboLayout.pageGutter,
+                    bottom = 32.dp,
+                ),
             verticalArrangement = Arrangement.spacedBy(20.dp),
         ) {
             item {
@@ -134,7 +141,7 @@ private fun ProfileHeader(
 ) {
     Row(
         modifier = modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(16.dp),
+        horizontalArrangement = Arrangement.spacedBy(OquTurboLayout.gap),
         verticalAlignment = Alignment.Top,
     ) {
         PageHeader(

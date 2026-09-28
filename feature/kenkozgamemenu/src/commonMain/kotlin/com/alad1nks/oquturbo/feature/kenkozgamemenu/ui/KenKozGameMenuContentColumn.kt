@@ -12,6 +12,7 @@ import androidx.compose.material.icons.outlined.ViewWeek
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import com.alad1nks.oquturbo.core.designsystem.theme.OquTurboLayout
 import com.alad1nks.oquturbo.core.ui.component.GameMenuItem
 import com.alad1nks.oquturbo.core.ui.component.PageHeader
 import com.alad1nks.oquturbo.feature.kenkozgame.model.KenKozGameMode
@@ -25,8 +26,14 @@ internal fun KenKozGameMenuContentColumn(
 ) {
     LazyColumn(
         modifier = modifier.fillMaxSize(),
-        contentPadding = PaddingValues(start = 24.dp, top = 24.dp, end = 24.dp, bottom = 32.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp),
+        contentPadding =
+            PaddingValues(
+                start = OquTurboLayout.pageGutter,
+                top = 24.dp,
+                end = OquTurboLayout.pageGutter,
+                bottom = 32.dp,
+            ),
+        verticalArrangement = Arrangement.spacedBy(OquTurboLayout.gap),
     ) {
         item {
             PageHeader(
