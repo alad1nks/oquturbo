@@ -20,7 +20,9 @@ changing shared presentation; do not copy a card or stage surface into a feature
   scrolling, localized text, enabled controls and live-region semantics. Apply `widthIn` **before** `fillMaxWidth`.
 - `GameHeader.kt` preserves centered scores when measured content fits, uses a single row with an offset score
   when the total widths fit, and stacks only when necessary. Stacked values get the full width and a fitting theme
-  heading style (at least titleLarge), preserving font scale and whole numbers. Neither value is ellipsized. Overlay-style game screens reserve the actual header height.
+  heading style (at least titleLarge), preserving font scale and whole numbers. Neither value is ellipsized. Overlay-style game screens reserve the actual header height outside the scroll viewport: apply the measured
+  top inset, then clipToBounds, then verticalScroll. Top padding inside a scrollable column does not separate
+  content from a fixed transparent header.
 - `GameMenuItem.kt`, `AppBackButton.kt`, `AppTopBar.kt`, `PageHeader.kt` and `GameScoreBadge.kt` own shared chrome.
   Top bars remain transparent; page headers keep headlineMedium/bodyLarge hierarchy. AppTopBar and bottom
   navigation intentionally span the viewport; pageMaxWidth caps page and GameHeader content, not this viewport chrome.
@@ -58,7 +60,7 @@ stated otherwise. “Retained” means source review confirmed the existing dist
 | Don't Tap | `baspagame`: shared header/menu/result/overlay metrics; tap/reaction/stop semantics retained | existing state previews |
 | Memory Grid | `memorygrid`: shared header/score/result metrics and header clearance; grid/sequence/reverse/flash/accepted-tap geometry retained | existing state previews and logic tests |
 | Word Flow | `wordflow`: Ready/Paused GameStagePanel, header clearance, action metrics; sentence/choices/timer retained | ready/paused/result/error previews; compact pause/resume, single-line long-record and all-three-Kazakh-answers-visible semantics tests |
-| Dual Focus | `dualfocus`: Ready/Paused GameStagePanel, compact ready targets stack; active lanes untouched; header clearance | existing ready/paused/active/result previews plus compact Kazakh large-text ready |
+| Dual Focus | `dualfocus`: Ready/Paused GameStagePanel, compact ready targets stack; active lanes untouched; header clearance | existing ready/paused/active/result previews, compact Kazakh large-text ready and `DualFocusReadyScrolledCompactLargeTextPreview` (320x640, Russian, font scale 1.5) |
 | Rotation Match | `rotationmatch`: Ready/Paused GameStagePanel and header clearance; selector/grid and compact gutter retained | existing ready/paused/active/result/error and semantics cases |
 | Number Trail | `numbertrail`: Ready/Paused GameStagePanel; compact header variant and trail geometry retained | existing ready/paused/board/result/error and semantics cases |
 | Symbol Count | `symbolcount`: Ready/Paused GameStagePanel; compact header variant, icons and answers retained | existing ready/paused/board/result/error and semantics cases |
@@ -90,3 +92,11 @@ actual execution and must be distinguished from compilation and deterministic JV
 The language selector snapshot covers the real `LanguageOptions` content reused by `AlertDialog`, following Number
 Sprint's content-preview pattern. It does not claim popup-window, dismiss or focus acceptance: those require runtime
 QA. The desktop preview scanner captures one root and cannot capture an AlertDialog's additional window directly.
+
+The Dual Focus JVM scroll regression follows the existing Word Flow Compose UI test setup (test-only uiTest and
+Desktop runtime dependencies, unchanged version catalog). It scrolls the 320x640 / 1.5-font-scale ready screen to
+Start, asserts that every visible content text stays below the fixed header, and verifies the action fires once.
+The scrolled preview controls the real ScrollState and waits for its measured maximum; production uses the default
+remembered state. Word Flow, Rotation Match and Memory Grid result scrolling use the same viewport ordering.
+Number Sprint does not have this vertical-scroll parent; Number Trail, Symbol Count and Rule Switch scroll their
+headers with content and do not require fixed-header separation.

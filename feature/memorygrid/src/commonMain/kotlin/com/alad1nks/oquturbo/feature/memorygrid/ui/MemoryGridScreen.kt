@@ -42,6 +42,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
@@ -101,11 +102,13 @@ internal fun MemoryGridScreen(
     Box(modifier.fillMaxSize().appBackground()) {
         Column(
             modifier =
-                contentModifier.align(Alignment.Center).widthIn(max = OquTurboLayout.playMaxWidth).fillMaxWidth()
+                Modifier.align(Alignment.Center).widthIn(max = OquTurboLayout.playMaxWidth).fillMaxWidth()
+                    .padding(top = maxOf(if (gameOver) 88.dp else 96.dp, headerInset))
+                    .clipToBounds()
+                    .then(contentModifier)
                     .navigationBarsPadding()
                     .padding(horizontal = OquTurboLayout.pageGutter)
                     .padding(
-                        top = maxOf(if (gameOver) 88.dp else 96.dp, headerInset),
                         bottom = if (gameOver) 88.dp else 96.dp,
                     ),
             horizontalAlignment = Alignment.CenterHorizontally,
