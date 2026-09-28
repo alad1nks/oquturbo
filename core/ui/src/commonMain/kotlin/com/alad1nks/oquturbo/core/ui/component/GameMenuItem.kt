@@ -12,7 +12,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material.icons.outlined.Timer
@@ -28,6 +27,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.alad1nks.oquturbo.core.designsystem.theme.OquTurboLayout
 import com.alad1nks.oquturbo.core.designsystem.theme.OquTurboTheme
 import com.alad1nks.oquturbo.core.ui.preview.ScreenshotPreview
 
@@ -38,7 +38,7 @@ fun GameMenuItem(
     subtitle: String,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
-    shape: Shape = RoundedCornerShape(24.dp),
+    shape: Shape = MaterialTheme.shapes.large,
 ) {
     Surface(
         onClick = onClick,
@@ -49,11 +49,11 @@ fun GameMenuItem(
         tonalElevation = 1.dp,
     ) {
         Row(
-            modifier = Modifier.padding(16.dp),
+            modifier = Modifier.padding(OquTurboLayout.gap),
             verticalAlignment = Alignment.CenterVertically,
         ) {
             GameMenuItemIcon(imageVector = imageVector)
-            Spacer(modifier = Modifier.width(16.dp))
+            Spacer(modifier = Modifier.width(OquTurboLayout.gap))
             GameMenuItemTitleAndSubtitle(
                 title = title,
                 subtitle = subtitle,
@@ -76,8 +76,8 @@ private fun GameMenuItemIcon(
     modifier: Modifier = Modifier,
 ) {
     Surface(
-        modifier = modifier.size(56.dp),
-        shape = RoundedCornerShape(18.dp),
+        modifier = modifier.size(OquTurboLayout.menuIconTileSize),
+        shape = MaterialTheme.shapes.medium,
         color = MaterialTheme.colorScheme.primaryContainer,
         contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
     ) {
@@ -85,7 +85,7 @@ private fun GameMenuItemIcon(
             Icon(
                 imageVector = imageVector,
                 contentDescription = null,
-                modifier = Modifier.size(28.dp),
+                modifier = Modifier.size(OquTurboLayout.menuIconSize),
             )
         }
     }
@@ -99,7 +99,7 @@ private fun GameMenuItemTitleAndSubtitle(
 ) {
     Column(
         modifier = modifier,
-        verticalArrangement = Arrangement.spacedBy(4.dp),
+        verticalArrangement = Arrangement.spacedBy(OquTurboLayout.tightGap),
     ) {
         Text(
             text = title,
@@ -130,7 +130,7 @@ private fun GameMenuItemItemPreview() {
                 title = "Game Title",
                 subtitle = "Game Subtitle",
                 onClick = {},
-                modifier = Modifier.padding(16.dp),
+                modifier = Modifier.padding(OquTurboLayout.gap),
             )
         }
     }
@@ -147,8 +147,8 @@ private fun GameMenuItemsMatchingHeightPreview() {
     OquTurboTheme {
         Surface {
             Row(
-                modifier = Modifier.height(IntrinsicSize.Min).padding(16.dp),
-                horizontalArrangement = Arrangement.spacedBy(16.dp),
+                modifier = Modifier.height(IntrinsicSize.Min).padding(OquTurboLayout.gap),
+                horizontalArrangement = Arrangement.spacedBy(OquTurboLayout.gap),
             ) {
                 GameMenuItem(
                     imageVector = Icons.Outlined.Timer,

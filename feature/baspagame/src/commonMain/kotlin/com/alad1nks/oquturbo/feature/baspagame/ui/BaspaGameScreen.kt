@@ -68,6 +68,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.alad1nks.oquturbo.core.data.model.DailyTrainingEntry
+import com.alad1nks.oquturbo.core.designsystem.theme.OquTurboLayout
 import com.alad1nks.oquturbo.core.designsystem.theme.OquTurboTheme
 import com.alad1nks.oquturbo.core.ui.component.AnimatedGameStateOverlay
 import com.alad1nks.oquturbo.core.ui.component.AppBackButton
@@ -129,9 +130,9 @@ internal fun BaspaGameScreen(
                 modifier =
                     Modifier
                         .align(Alignment.Center)
-                        .widthIn(max = 760.dp)
+                        .widthIn(max = OquTurboLayout.pageMaxWidth)
                         .fillMaxSize()
-                        .padding(24.dp),
+                        .padding(OquTurboLayout.pageGutter),
             ) {
                 val compactLayout = maxHeight < 600.dp
                 Column(

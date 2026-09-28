@@ -27,9 +27,11 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.alad1nks.oquturbo.core.designsystem.theme.OquTurboLayout
 import com.alad1nks.oquturbo.core.designsystem.theme.OquTurboTheme
 import com.alad1nks.oquturbo.core.designsystem.theme.success
 import com.alad1nks.oquturbo.core.ui.component.appBackground
+import com.alad1nks.oquturbo.core.ui.preview.ScreenshotPreview
 import com.alad1nks.oquturbo.resources.AppResource
 import org.jetbrains.compose.resources.stringResource
 
@@ -39,7 +41,7 @@ internal fun DailyTrainingCompleteScreen(
     modifier: Modifier = Modifier,
 ) {
     Box(
-        modifier = modifier.fillMaxSize().appBackground().systemBarsPadding().padding(24.dp),
+        modifier = modifier.fillMaxSize().appBackground().systemBarsPadding().padding(OquTurboLayout.pageGutter),
         contentAlignment = Alignment.Center,
     ) {
         Surface(
@@ -78,7 +80,7 @@ internal fun DailyTrainingCompleteScreen(
                     onClick = onHomeClick,
                     modifier = Modifier.fillMaxWidth().heightIn(min = 52.dp),
                     shape = MaterialTheme.shapes.medium,
-                    contentPadding = PaddingValues(horizontal = 24.dp, vertical = 12.dp),
+                    contentPadding = PaddingValues(horizontal = OquTurboLayout.pageGutter, vertical = 12.dp),
                 ) {
                     Text(
                         text = stringResource(AppResource.String.home_training_return_home),
@@ -90,7 +92,8 @@ internal fun DailyTrainingCompleteScreen(
     }
 }
 
-@Preview
+@Preview(widthDp = 390, heightDp = 844)
+@ScreenshotPreview
 @Composable
 private fun DailyTrainingCompletePreview() {
     OquTurboTheme {

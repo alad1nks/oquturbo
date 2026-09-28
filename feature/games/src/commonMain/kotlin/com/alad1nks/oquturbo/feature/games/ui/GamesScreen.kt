@@ -7,13 +7,13 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
@@ -36,8 +36,6 @@ import androidx.compose.material.icons.filled.RotateRight
 import androidx.compose.material.icons.filled.TouchApp
 import androidx.compose.material.icons.filled.ViewColumn
 import androidx.compose.material.icons.filled.Visibility
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -53,7 +51,10 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.alad1nks.oquturbo.core.designsystem.theme.OquTurboLayout
 import com.alad1nks.oquturbo.core.designsystem.theme.OquTurboTheme
+import com.alad1nks.oquturbo.core.ui.component.AppCard
+import com.alad1nks.oquturbo.core.ui.component.AppCardTone
 import com.alad1nks.oquturbo.core.ui.component.appBackground
 import com.alad1nks.oquturbo.core.ui.preview.ScreenshotPreview
 import com.alad1nks.oquturbo.feature.games.model.TrainingGame
@@ -84,7 +85,7 @@ private fun GamesScreen(
             modifier =
                 Modifier
                     .align(Alignment.TopCenter)
-                    .widthIn(max = 760.dp)
+                    .widthIn(max = OquTurboLayout.pageMaxWidth)
                     .fillMaxWidth()
                     .statusBarsPadding(),
         ) {
@@ -97,7 +98,7 @@ private fun GamesScreen(
             item {
                 Text(
                     text = stringResource(AppResource.String.games_skills_title),
-                    modifier = Modifier.padding(horizontal = 24.dp),
+                    modifier = Modifier.padding(horizontal = OquTurboLayout.pageGutter),
                     style = MaterialTheme.typography.labelLarge,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
@@ -112,7 +113,7 @@ private fun GamesScreen(
                     ActiveGameCard(
                         summary = summary,
                         onClick = { onGameClick(summary.game) },
-                        modifier = Modifier.padding(horizontal = 24.dp, vertical = 6.dp),
+                        modifier = Modifier.padding(horizontal = OquTurboLayout.pageGutter, vertical = 6.dp),
                     )
                 }
             }
@@ -121,7 +122,7 @@ private fun GamesScreen(
                 item {
                     Text(
                         text = stringResource(AppResource.String.games_coming_soon_title),
-                        modifier = Modifier.padding(horizontal = 24.dp),
+                        modifier = Modifier.padding(horizontal = OquTurboLayout.pageGutter),
                         style = MaterialTheme.typography.labelLarge,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
@@ -131,14 +132,14 @@ private fun GamesScreen(
                     item {
                         UpcomingGameCard(
                             game = game,
-                            modifier = Modifier.padding(horizontal = 24.dp, vertical = 5.dp),
+                            modifier = Modifier.padding(horizontal = OquTurboLayout.pageGutter, vertical = 5.dp),
                         )
                     }
                 }
                 item { Spacer(modifier = Modifier.height(12.dp)) }
             }
             item {
-                MotivationBanner(modifier = Modifier.padding(horizontal = 24.dp))
+                MotivationBanner(modifier = Modifier.padding(horizontal = OquTurboLayout.pageGutter))
             }
             item { Spacer(modifier = Modifier.height(24.dp)) }
         }
@@ -171,7 +172,7 @@ private fun GamesHeader(
 private fun SkillsRow(modifier: Modifier = Modifier) {
     LazyRow(
         modifier = modifier.fillMaxWidth(),
-        contentPadding = PaddingValues(horizontal = 24.dp),
+        contentPadding = PaddingValues(horizontal = OquTurboLayout.pageGutter),
         horizontalArrangement = Arrangement.spacedBy(8.dp),
     ) {
         items(
@@ -224,82 +225,8 @@ private fun SkillChip(
 }
 
 @Composable
-private fun ActiveGameCard(
-    summary: GamesUiState.GameSummary,
-    onClick: () -> Unit,
-    modifier: Modifier = Modifier,
-) {
-    if (summary.game in listOf(TrainingGame.NumberTrail, TrainingGame.SymbolCount, TrainingGame.RuleSwitch)) {
-        WrappingGameCard(summary, onClick, modifier)
-        return
-    }
-    Card(
-        onClick = onClick,
-        modifier = modifier.fillMaxWidth(),
-        shape = MaterialTheme.shapes.large,
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.55f)),
-        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
-    ) {
-        Row(
-            modifier = Modifier.fillMaxWidth().heightIn(min = 128.dp).padding(12.dp),
-            horizontalArrangement = Arrangement.spacedBy(12.dp),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            GameArtwork(game = summary.game)
-            Column(
-                modifier = Modifier.weight(1f),
-                verticalArrangement = Arrangement.spacedBy(6.dp),
-            ) {
-                Text(
-                    text = stringResource(summary.game.titleResource()),
-                    style = MaterialTheme.typography.titleLarge,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.onSurface,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                )
-                Text(
-                    text = stringResource(summary.game.descriptionResource()),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    maxLines = 2,
-                    overflow = TextOverflow.Ellipsis,
-                )
-                SkillTags(skills = summary.skills)
-                Surface(
-                    shape = RoundedCornerShape(10.dp),
-                    color = MaterialTheme.colorScheme.surfaceContainerHighest,
-                ) {
-                    Text(
-                        text = stringResource(AppResource.String.games_modes_count, summary.modesCount),
-                        modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
-                        style = MaterialTheme.typography.labelMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
-                }
-            }
-            Surface(
-                modifier = Modifier.size(44.dp),
-                shape = RoundedCornerShape(22.dp),
-                color = MaterialTheme.colorScheme.primaryContainer,
-            ) {
-                Box(contentAlignment = Alignment.Center) {
-                    Icon(
-                        imageVector = Icons.Filled.ChevronRight,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.size(22.dp),
-                    )
-                }
-            }
-        }
-    }
-}
-
-@Composable
 private fun SkillTags(skills: List<GamesUiState.Skill>) {
-    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+    FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
         skills.forEach { skill ->
             Text(
                 text = "• ${stringResource(skill.titleResource())}",
@@ -349,14 +276,10 @@ private fun GameArtwork(game: TrainingGame) {
 }
 
 @Composable
-private fun WrappingGameCard(summary: GamesUiState.GameSummary, onClick: () -> Unit, modifier: Modifier) {
-    Card(
+private fun ActiveGameCard(summary: GamesUiState.GameSummary, onClick: () -> Unit, modifier: Modifier) {
+    AppCard(
         onClick = onClick,
         modifier = modifier.fillMaxWidth(),
-        shape = MaterialTheme.shapes.large,
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.55f)),
-        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
     ) {
         Column(Modifier.fillMaxWidth().padding(12.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
             Row(horizontalArrangement = Arrangement.spacedBy(12.dp), verticalAlignment = Alignment.CenterVertically) {
@@ -583,12 +506,9 @@ private fun UpcomingGameCard(
     game: GamesUiState.UpcomingGame,
     modifier: Modifier = Modifier,
 ) {
-    Card(
+    AppCard(
         modifier = modifier.fillMaxWidth(),
-        shape = MaterialTheme.shapes.large,
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow),
-        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.42f)),
-        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
+        tone = AppCardTone.Subdued,
     ) {
         Row(
             modifier = Modifier.fillMaxWidth().padding(12.dp),
@@ -597,7 +517,7 @@ private fun UpcomingGameCard(
         ) {
             Surface(
                 modifier = Modifier.size(56.dp),
-                shape = RoundedCornerShape(17.dp),
+                shape = MaterialTheme.shapes.medium,
                 color = MaterialTheme.colorScheme.surfaceContainerHighest,
             ) {
                 Box(contentAlignment = Alignment.Center) {
@@ -627,7 +547,7 @@ private fun UpcomingGameCard(
                 )
             }
             Surface(
-                shape = RoundedCornerShape(12.dp),
+                shape = MaterialTheme.shapes.extraSmall,
                 color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.7f),
             ) {
                 Text(

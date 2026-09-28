@@ -37,8 +37,13 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
@@ -52,11 +57,14 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.alad1nks.oquturbo.core.designsystem.theme.OquTurboLayout
 import com.alad1nks.oquturbo.core.designsystem.theme.OquTurboTheme
 import com.alad1nks.oquturbo.core.ui.component.AppBackButton
 import com.alad1nks.oquturbo.core.ui.component.GameHeader
 import com.alad1nks.oquturbo.core.ui.component.GameHeaderActionButton
 import com.alad1nks.oquturbo.core.ui.component.GameResultCard
+import com.alad1nks.oquturbo.core.ui.component.GameStage
+import com.alad1nks.oquturbo.core.ui.component.GameStagePanel
 import com.alad1nks.oquturbo.core.ui.component.appBackground
 import com.alad1nks.oquturbo.core.ui.preview.ScreenshotPreview
 import com.alad1nks.oquturbo.feature.rotationmatch.model.RotationMatchAnswer
@@ -117,15 +125,17 @@ internal fun RotationMatchScreen(
     onResumeClick: () -> Unit = {},
 ) {
     val game = state.game
+    var headerHeight by remember { mutableIntStateOf(0) }
+    val headerInset = with(LocalDensity.current) { headerHeight.toDp() }
     BoxWithConstraints(modifier.fillMaxSize().appBackground()) {
-        val horizontalPadding = if (maxWidth < 360.dp) 16.dp else 24.dp
+        val horizontalPadding = if (maxWidth < 360.dp) OquTurboLayout.compactGameGutter else OquTurboLayout.pageGutter
         Column(
             modifier =
-                Modifier.align(Alignment.TopCenter).widthIn(max = 560.dp).fillMaxWidth()
+                Modifier.align(Alignment.TopCenter).widthIn(max = OquTurboLayout.playMaxWidth).fillMaxWidth()
                     .verticalScroll(rememberScrollState()).navigationBarsPadding()
                     .padding(
                         start = horizontalPadding,
-                        top = 104.dp,
+                        top = maxOf(104.dp, headerInset + OquTurboLayout.textGap),
                         end = horizontalPadding,
                         bottom = 32.dp,
                     ),
@@ -160,7 +170,9 @@ internal fun RotationMatchScreen(
                     }
                 },
             modifier =
-                Modifier.align(Alignment.TopCenter).widthIn(max = 760.dp).fillMaxWidth()
+                Modifier.onSizeChanged {
+                    headerHeight = it.height
+                }.align(Alignment.TopCenter).widthIn(max = OquTurboLayout.pageMaxWidth).fillMaxWidth()
                     .statusBarsPadding().padding(horizontal = horizontalPadding, vertical = 16.dp),
         )
     }
@@ -171,53 +183,45 @@ private fun ReadyContent(
     state: RotationMatchUiState,
     onStartClick: () -> Unit,
 ) {
-    Surface(
-        modifier = Modifier.fillMaxWidth(),
-        shape = MaterialTheme.shapes.extraLarge,
-        color = MaterialTheme.colorScheme.surface,
-        tonalElevation = 2.dp,
+    GameStagePanel(
+        stage = GameStage.Ready,
+        modifier = Modifier.widthIn(max = OquTurboLayout.playMaxWidth).fillMaxWidth(),
     ) {
-        Column(
-            Modifier.fillMaxWidth().padding(24.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(18.dp),
+        Text(
+            stringResource(AppResource.String.rotation_match_mode),
+            style = MaterialTheme.typography.titleMedium,
+            color = MaterialTheme.colorScheme.primary,
+            fontWeight = FontWeight.Bold,
+        )
+        Text(
+            stringResource(AppResource.String.rotation_match_ready_title),
+            modifier = Modifier.semantics { heading() },
+            style = MaterialTheme.typography.headlineSmall,
+            fontWeight = FontWeight.Bold,
+            textAlign = TextAlign.Center,
+        )
+        Text(
+            stringResource(AppResource.String.rotation_match_instructions),
+            style = MaterialTheme.typography.bodyLarge,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            textAlign = TextAlign.Center,
+        )
+        Text(
+            if (state.isRecordLoading) {
+                stringResource(AppResource.String.rotation_match_loading_record)
+            } else {
+                stringResource(AppResource.String.rotation_match_record_value, state.record)
+            },
+            style = MaterialTheme.typography.titleMedium,
+            textAlign = TextAlign.Center,
+        )
+        Button(
+            onClick = onStartClick,
+            enabled = !state.isRecordLoading,
+            modifier = Modifier.fillMaxWidth().heightIn(min = OquTurboLayout.actionMinHeight),
         ) {
-            Text(
-                stringResource(AppResource.String.rotation_match_mode),
-                style = MaterialTheme.typography.titleMedium,
-                color = MaterialTheme.colorScheme.primary,
-                fontWeight = FontWeight.Bold,
-            )
-            Text(
-                stringResource(AppResource.String.rotation_match_ready_title),
-                modifier = Modifier.semantics { heading() },
-                style = MaterialTheme.typography.headlineSmall,
-                fontWeight = FontWeight.Bold,
-                textAlign = TextAlign.Center,
-            )
-            Text(
-                stringResource(AppResource.String.rotation_match_instructions),
-                style = MaterialTheme.typography.bodyLarge,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                textAlign = TextAlign.Center,
-            )
-            Text(
-                if (state.isRecordLoading) {
-                    stringResource(AppResource.String.rotation_match_loading_record)
-                } else {
-                    stringResource(AppResource.String.rotation_match_record_value, state.record)
-                },
-                style = MaterialTheme.typography.titleMedium,
-                textAlign = TextAlign.Center,
-            )
-            Button(
-                onClick = onStartClick,
-                enabled = !state.isRecordLoading,
-                modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp),
-            ) {
-                Icon(Icons.Default.PlayArrow, contentDescription = null)
-                Text(stringResource(AppResource.String.rotation_match_start))
-            }
+            Icon(Icons.Default.PlayArrow, contentDescription = null)
+            Text(stringResource(AppResource.String.rotation_match_start))
         }
     }
 }
@@ -251,53 +255,45 @@ private fun PlayingContent(
 
 @Composable
 private fun PausedContent(onResumeClick: () -> Unit) {
-    Surface(
+    GameStagePanel(
+        stage = GameStage.Paused,
         modifier =
-            Modifier
-                .widthIn(max = 420.dp)
-                .fillMaxWidth()
-                .semantics { liveRegion = LiveRegionMode.Polite },
-        shape = RoundedCornerShape(28.dp),
-        color = MaterialTheme.colorScheme.surfaceContainerHighest,
+            Modifier.widthIn(max = OquTurboLayout.stateMaxWidth).fillMaxWidth().semantics {
+                liveRegion = LiveRegionMode.Polite
+            },
     ) {
-        Column(
-            Modifier.padding(horizontal = 24.dp, vertical = 28.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(16.dp),
+        Surface(
+            modifier = Modifier.size(72.dp),
+            shape = CircleShape,
+            color = MaterialTheme.colorScheme.primaryContainer,
         ) {
-            Surface(
-                modifier = Modifier.size(72.dp),
-                shape = CircleShape,
-                color = MaterialTheme.colorScheme.primaryContainer,
-            ) {
-                Box(contentAlignment = Alignment.Center) {
-                    Icon(
-                        Icons.Filled.Pause,
-                        contentDescription = null,
-                        modifier = Modifier.size(36.dp),
-                        tint = MaterialTheme.colorScheme.primary,
-                    )
-                }
+            Box(contentAlignment = Alignment.Center) {
+                Icon(
+                    Icons.Filled.Pause,
+                    contentDescription = null,
+                    modifier = Modifier.size(36.dp),
+                    tint = MaterialTheme.colorScheme.primary,
+                )
             }
-            Text(
-                stringResource(AppResource.String.rotation_match_paused_title),
-                modifier = Modifier.semantics { heading() },
-                style = MaterialTheme.typography.headlineMedium,
-                fontWeight = FontWeight.Bold,
-                textAlign = TextAlign.Center,
-            )
-            Text(
-                stringResource(AppResource.String.rotation_match_paused_message),
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                textAlign = TextAlign.Center,
-            )
-            Button(
-                onClick = onResumeClick,
-                modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp),
-            ) {
-                Icon(Icons.Filled.PlayArrow, contentDescription = null)
-                Text(stringResource(AppResource.String.rotation_match_resume))
-            }
+        }
+        Text(
+            stringResource(AppResource.String.rotation_match_paused_title),
+            modifier = Modifier.semantics { heading() },
+            style = MaterialTheme.typography.headlineMedium,
+            fontWeight = FontWeight.Bold,
+            textAlign = TextAlign.Center,
+        )
+        Text(
+            stringResource(AppResource.String.rotation_match_paused_message),
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            textAlign = TextAlign.Center,
+        )
+        Button(
+            onClick = onResumeClick,
+            modifier = Modifier.fillMaxWidth().heightIn(min = OquTurboLayout.actionMinHeight),
+        ) {
+            Icon(Icons.Filled.PlayArrow, contentDescription = null)
+            Text(stringResource(AppResource.String.rotation_match_resume))
         }
     }
 }
@@ -492,7 +488,7 @@ private fun AnswerControl(
         status?.let { stringResource(AppResource.String.rotation_match_answer_accessibility, label, it) }
     Surface(
         modifier =
-            modifier.heightIn(min = 56.dp).semantics {
+            modifier.heightIn(min = OquTurboLayout.actionMinHeight).semantics {
                 role = Role.Button
                 if (status != null) {
                     stateDescription = status
@@ -616,12 +612,15 @@ private fun ResultContent(
             ),
         modifier = Modifier.fillMaxWidth(),
     )
-    Button(onClick = onReplayClick, modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp)) {
+    Button(onClick = onReplayClick, modifier = Modifier.fillMaxWidth().heightIn(min = OquTurboLayout.actionMinHeight)) {
         Icon(Icons.Default.Replay, contentDescription = null)
         Text(stringResource(AppResource.String.rotation_match_play_again))
     }
     if (onBackClick != null) {
-        OutlinedButton(onClick = onBackClick, modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp)) {
+        OutlinedButton(
+            onClick = onBackClick,
+            modifier = Modifier.fillMaxWidth().heightIn(min = OquTurboLayout.actionMinHeight),
+        ) {
             Text(stringResource(AppResource.String.rotation_match_back_to_games))
         }
     }

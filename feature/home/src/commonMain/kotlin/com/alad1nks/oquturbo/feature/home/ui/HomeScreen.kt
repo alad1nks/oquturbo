@@ -1,6 +1,5 @@
 package com.alad1nks.oquturbo.feature.home.ui
 
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -30,8 +29,6 @@ import androidx.compose.material.icons.filled.SwapHoriz
 import androidx.compose.material.icons.filled.ViewColumn
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material3.Button
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LinearProgressIndicator
@@ -56,8 +53,11 @@ import androidx.lifecycle.compose.LifecycleResumeEffect
 import com.alad1nks.oquturbo.core.data.model.DailyTrainingEntry
 import com.alad1nks.oquturbo.core.data.model.GameId
 import com.alad1nks.oquturbo.core.data.model.GameModeId
+import com.alad1nks.oquturbo.core.designsystem.theme.OquTurboLayout
 import com.alad1nks.oquturbo.core.designsystem.theme.OquTurboTheme
 import com.alad1nks.oquturbo.core.designsystem.theme.success
+import com.alad1nks.oquturbo.core.ui.component.AppCard
+import com.alad1nks.oquturbo.core.ui.component.AppCardTone
 import com.alad1nks.oquturbo.core.ui.component.PageHeader
 import com.alad1nks.oquturbo.core.ui.component.appBackground
 import com.alad1nks.oquturbo.core.ui.preview.ScreenshotPreview
@@ -96,10 +96,16 @@ private fun HomeScreen(
             modifier =
                 Modifier
                     .align(Alignment.TopCenter)
-                    .widthIn(max = 760.dp)
+                    .widthIn(max = OquTurboLayout.pageMaxWidth)
                     .fillMaxWidth()
                     .statusBarsPadding(),
-            contentPadding = PaddingValues(start = 24.dp, top = 24.dp, end = 24.dp, bottom = 32.dp),
+            contentPadding =
+                PaddingValues(
+                    start = OquTurboLayout.pageGutter,
+                    top = 24.dp,
+                    end = OquTurboLayout.pageGutter,
+                    bottom = 32.dp,
+                ),
             verticalArrangement = Arrangement.spacedBy(20.dp),
         ) {
             item {
@@ -131,15 +137,11 @@ private fun LevelProgress(
     rankNumber: Int,
     progress: Float,
 ) {
-    Card(
+    AppCard(
         modifier = Modifier.fillMaxWidth(),
-        shape = MaterialTheme.shapes.large,
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.55f)),
-        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
     ) {
         Column(
-            modifier = Modifier.fillMaxWidth().padding(20.dp),
+            modifier = Modifier.fillMaxWidth().padding(OquTurboLayout.cardInset),
             verticalArrangement = Arrangement.spacedBy(14.dp),
         ) {
             Row(
@@ -194,13 +196,12 @@ private fun TrainingCard(
     training: HomeUiState.DailyTraining?,
     onStartTrainingClick: () -> Unit,
 ) {
-    Card(
+    AppCard(
         modifier = Modifier.fillMaxWidth(),
-        shape = MaterialTheme.shapes.large,
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer),
+        tone = AppCardTone.Primary,
     ) {
         Column(
-            modifier = Modifier.fillMaxWidth().padding(20.dp),
+            modifier = Modifier.fillMaxWidth().padding(OquTurboLayout.cardInset),
             verticalArrangement = Arrangement.spacedBy(14.dp),
         ) {
             if (training?.isCompleted == true) {
@@ -230,7 +231,7 @@ private fun TrainingCard(
                                 .fillMaxWidth()
                                 .heightIn(min = 52.dp),
                         shape = MaterialTheme.shapes.medium,
-                        contentPadding = PaddingValues(horizontal = 24.dp, vertical = 12.dp),
+                        contentPadding = PaddingValues(horizontal = OquTurboLayout.pageGutter, vertical = 12.dp),
                     ) {
                         Text(
                             text =
@@ -291,12 +292,8 @@ private fun RecentRecords(records: List<HomeUiState.RecentRecord>) {
             text = stringResource(AppResource.String.home_recent_records),
             style = MaterialTheme.typography.titleLarge,
         )
-        Card(
+        AppCard(
             modifier = Modifier.fillMaxWidth(),
-            shape = MaterialTheme.shapes.large,
-            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-            border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.55f)),
-            elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
         ) {
             if (records.isEmpty()) {
                 Text(

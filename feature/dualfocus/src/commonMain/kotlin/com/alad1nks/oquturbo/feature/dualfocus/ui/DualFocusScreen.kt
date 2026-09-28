@@ -7,6 +7,7 @@ import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.aspectRatio
@@ -20,7 +21,6 @@ import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
@@ -38,6 +38,9 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
@@ -45,6 +48,8 @@ import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
@@ -56,11 +61,14 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.alad1nks.oquturbo.core.designsystem.theme.OquTurboLayout
 import com.alad1nks.oquturbo.core.designsystem.theme.OquTurboTheme
 import com.alad1nks.oquturbo.core.ui.component.AppBackButton
 import com.alad1nks.oquturbo.core.ui.component.GameHeader
 import com.alad1nks.oquturbo.core.ui.component.GameHeaderActionButton
 import com.alad1nks.oquturbo.core.ui.component.GameResultCard
+import com.alad1nks.oquturbo.core.ui.component.GameStage
+import com.alad1nks.oquturbo.core.ui.component.GameStagePanel
 import com.alad1nks.oquturbo.core.ui.component.appBackground
 import com.alad1nks.oquturbo.core.ui.preview.ScreenshotPreview
 import com.alad1nks.oquturbo.feature.dualfocus.model.DualFocusCard
@@ -106,12 +114,19 @@ internal fun DualFocusScreen(
     onPauseClick: () -> Unit = {},
     onResumeClick: () -> Unit = {},
 ) {
+    var headerHeight by remember { mutableIntStateOf(0) }
+    val headerInset = with(LocalDensity.current) { headerHeight.toDp() }
     Box(modifier.fillMaxSize().appBackground()) {
         Column(
             Modifier.align(
                 Alignment.TopCenter,
-            ).widthIn(max = 560.dp).fillMaxWidth().verticalScroll(rememberScrollState())
-                .navigationBarsPadding().padding(start = 16.dp, top = 104.dp, end = 16.dp, bottom = 32.dp),
+            ).widthIn(max = OquTurboLayout.playMaxWidth).fillMaxWidth().verticalScroll(rememberScrollState())
+                .navigationBarsPadding().padding(
+                    start = OquTurboLayout.compactGameGutter,
+                    top = maxOf(104.dp, headerInset + OquTurboLayout.textGap),
+                    end = OquTurboLayout.compactGameGutter,
+                    bottom = 32.dp,
+                ),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(18.dp),
         ) {
@@ -145,51 +160,75 @@ internal fun DualFocusScreen(
                     }
                 },
             modifier =
-                Modifier.align(
+                Modifier.onSizeChanged { headerHeight = it.height }.align(
                     Alignment.TopCenter,
                 ).widthIn(
-                    max = 760.dp,
-                ).fillMaxWidth().statusBarsPadding().padding(horizontal = 16.dp, vertical = 16.dp),
+                    max = OquTurboLayout.pageMaxWidth,
+                ).fillMaxWidth().statusBarsPadding().padding(
+                    horizontal = OquTurboLayout.compactGameGutter,
+                    vertical = OquTurboLayout.gap,
+                ),
         )
     }
 }
 
 @Composable
 private fun ReadyContent(state: DualFocusUiState, onStartClick: () -> Unit) {
-    Text(
-        stringResource(AppResource.String.dual_focus_title),
-        style = MaterialTheme.typography.headlineMedium,
-        fontWeight = FontWeight.Bold,
-    )
-    Text(
-        stringResource(AppResource.String.dual_focus_instructions),
-        textAlign = TextAlign.Center,
-        color = MaterialTheme.colorScheme.onSurfaceVariant,
-    )
-    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-        TargetBadge(
-            DualFocusLane.One,
-            state.game.targets[DualFocusLane.One] ?: DualFocusShape.Circle,
-            Modifier.weight(1f),
+    GameStagePanel(
+        stage = GameStage.Ready,
+        modifier = Modifier.widthIn(max = OquTurboLayout.playMaxWidth).fillMaxWidth(),
+    ) {
+        Text(
+            stringResource(AppResource.String.dual_focus_title),
+            style = MaterialTheme.typography.headlineMedium,
+            fontWeight = FontWeight.Bold,
         )
-        TargetBadge(
-            DualFocusLane.Two,
-            state.game.targets[DualFocusLane.Two] ?: DualFocusShape.Triangle,
-            Modifier.weight(1f),
+        Text(
+            stringResource(AppResource.String.dual_focus_instructions),
+            textAlign = TextAlign.Center,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
-    }
-    Text(
-        if (state.isRecordLoading) {
-            stringResource(
-                AppResource.String.dual_focus_loading_record,
-            )
-        } else {
-            stringResource(AppResource.String.dual_focus_record_value, state.record)
-        },
-    )
-    Button(onStartClick, enabled = !state.isRecordLoading, modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp)) {
-        Icon(Icons.Default.PlayArrow, null)
-        Text(stringResource(AppResource.String.dual_focus_start))
+        BoxWithConstraints(Modifier.fillMaxWidth()) {
+            val stacked = maxWidth < 320.dp || LocalDensity.current.fontScale > 1.2f
+            if (stacked) {
+                Column(verticalArrangement = Arrangement.spacedBy(OquTurboLayout.textGap)) {
+                    DualFocusLane.entries.forEach { lane ->
+                        TargetBadge(
+                            lane,
+                            state.game.targets[lane] ?: if (lane == DualFocusLane.One) DualFocusShape.Circle else DualFocusShape.Triangle,
+                            Modifier.fillMaxWidth(),
+                        )
+                    }
+                }
+            } else {
+                Row(horizontalArrangement = Arrangement.spacedBy(OquTurboLayout.textGap)) {
+                    DualFocusLane.entries.forEach { lane ->
+                        TargetBadge(
+                            lane,
+                            state.game.targets[lane] ?: if (lane == DualFocusLane.One) DualFocusShape.Circle else DualFocusShape.Triangle,
+                            Modifier.weight(1f),
+                        )
+                    }
+                }
+            }
+        }
+        Text(
+            if (state.isRecordLoading) {
+                stringResource(
+                    AppResource.String.dual_focus_loading_record,
+                )
+            } else {
+                stringResource(AppResource.String.dual_focus_record_value, state.record)
+            },
+        )
+        Button(
+            onStartClick,
+            enabled = !state.isRecordLoading,
+            modifier = Modifier.fillMaxWidth().heightIn(min = OquTurboLayout.actionMinHeight),
+        ) {
+            Icon(Icons.Default.PlayArrow, null)
+            Text(stringResource(AppResource.String.dual_focus_start))
+        }
     }
 }
 
@@ -228,53 +267,45 @@ private fun ActiveContent(
 
 @Composable
 private fun PausedContent(onResumeClick: () -> Unit) {
-    Surface(
+    GameStagePanel(
+        stage = GameStage.Paused,
         modifier =
-            Modifier
-                .fillMaxWidth()
-                .widthIn(max = 420.dp)
-                .semantics { liveRegion = LiveRegionMode.Polite },
-        shape = RoundedCornerShape(28.dp),
-        color = MaterialTheme.colorScheme.surfaceContainerHighest,
+            Modifier.widthIn(max = OquTurboLayout.stateMaxWidth).fillMaxWidth().semantics {
+                liveRegion = LiveRegionMode.Polite
+            },
     ) {
-        Column(
-            Modifier.padding(horizontal = 24.dp, vertical = 28.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(16.dp),
+        Surface(
+            modifier = Modifier.size(72.dp),
+            shape = CircleShape,
+            color = MaterialTheme.colorScheme.primaryContainer,
         ) {
-            Surface(
-                modifier = Modifier.size(72.dp),
-                shape = CircleShape,
-                color = MaterialTheme.colorScheme.primaryContainer,
-            ) {
-                Box(contentAlignment = Alignment.Center) {
-                    Icon(
-                        Icons.Filled.Pause,
-                        contentDescription = null,
-                        modifier = Modifier.size(36.dp),
-                        tint = MaterialTheme.colorScheme.primary,
-                    )
-                }
+            Box(contentAlignment = Alignment.Center) {
+                Icon(
+                    Icons.Filled.Pause,
+                    contentDescription = null,
+                    modifier = Modifier.size(36.dp),
+                    tint = MaterialTheme.colorScheme.primary,
+                )
             }
-            Text(
-                stringResource(AppResource.String.dual_focus_paused_title),
-                modifier = Modifier.semantics { heading() },
-                style = MaterialTheme.typography.headlineMedium,
-                fontWeight = FontWeight.Bold,
-                textAlign = TextAlign.Center,
-            )
-            Text(
-                stringResource(AppResource.String.dual_focus_paused_message),
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                textAlign = TextAlign.Center,
-            )
-            Button(
-                onClick = onResumeClick,
-                modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp),
-            ) {
-                Icon(Icons.Filled.PlayArrow, contentDescription = null)
-                Text(stringResource(AppResource.String.dual_focus_resume))
-            }
+        }
+        Text(
+            stringResource(AppResource.String.dual_focus_paused_title),
+            modifier = Modifier.semantics { heading() },
+            style = MaterialTheme.typography.headlineMedium,
+            fontWeight = FontWeight.Bold,
+            textAlign = TextAlign.Center,
+        )
+        Text(
+            stringResource(AppResource.String.dual_focus_paused_message),
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            textAlign = TextAlign.Center,
+        )
+        Button(
+            onClick = onResumeClick,
+            modifier = Modifier.fillMaxWidth().heightIn(min = OquTurboLayout.actionMinHeight),
+        ) {
+            Icon(Icons.Filled.PlayArrow, contentDescription = null)
+            Text(stringResource(AppResource.String.dual_focus_resume))
         }
     }
 }
@@ -419,12 +450,12 @@ private fun ResultContent(state: DualFocusUiState, onReplayClick: () -> Unit, on
             ),
         modifier = Modifier.fillMaxWidth(),
     )
-    Button(onReplayClick, Modifier.fillMaxWidth().heightIn(min = 56.dp)) {
+    Button(onReplayClick, Modifier.fillMaxWidth().heightIn(min = OquTurboLayout.actionMinHeight)) {
         Icon(Icons.Default.Replay, null)
         Text(stringResource(AppResource.String.dual_focus_replay))
     }
     if (onBackClick != null) {
-        OutlinedButton(onBackClick, Modifier.fillMaxWidth().heightIn(min = 56.dp)) {
+        OutlinedButton(onBackClick, Modifier.fillMaxWidth().heightIn(min = OquTurboLayout.actionMinHeight)) {
             Text(stringResource(AppResource.String.dual_focus_back_to_games))
         }
     }
@@ -752,4 +783,17 @@ private fun DualFocusResultKazakhPreview() {
             {},
         )
     }
+}
+
+@Preview(
+    name = "Dual Focus — ready compact large text",
+    widthDp = 320,
+    heightDp = 1100,
+    fontScale = 1.5f,
+    locale = "kk",
+)
+@ScreenshotPreview
+@Composable
+private fun DualFocusReadyCompactLargeTextPreview() {
+    OquTurboTheme { DualFocusScreen(DualFocusUiState(record = 4, isRecordLoading = false), {}, { _, _ -> }, {}) }
 }

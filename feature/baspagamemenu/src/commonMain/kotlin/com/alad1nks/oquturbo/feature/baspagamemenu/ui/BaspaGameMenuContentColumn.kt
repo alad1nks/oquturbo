@@ -17,6 +17,7 @@ import androidx.compose.material.icons.outlined.Straighten
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import com.alad1nks.oquturbo.core.designsystem.theme.OquTurboLayout
 import com.alad1nks.oquturbo.core.ui.component.GameMenuItem
 import com.alad1nks.oquturbo.core.ui.component.PageHeader
 import com.alad1nks.oquturbo.feature.baspagame.model.BaspaGameMode
@@ -29,8 +30,14 @@ internal fun BaspaGameMenuContentColumn(
     modifier: Modifier = Modifier,
 ) {
     LazyColumn(
-        modifier = modifier.widthIn(max = 760.dp).fillMaxWidth(),
-        contentPadding = PaddingValues(start = 24.dp, top = 12.dp, end = 24.dp, bottom = 32.dp),
+        modifier = modifier.widthIn(max = OquTurboLayout.pageMaxWidth).fillMaxWidth(),
+        contentPadding =
+            PaddingValues(
+                start = OquTurboLayout.pageGutter,
+                top = 12.dp,
+                end = OquTurboLayout.pageGutter,
+                bottom = 32.dp,
+            ),
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
         item {

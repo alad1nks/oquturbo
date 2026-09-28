@@ -1,6 +1,5 @@
 package com.alad1nks.oquturbo.feature.stats.ui
 
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -16,8 +15,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Equalizer
 import androidx.compose.material.icons.filled.SportsEsports
 import androidx.compose.material3.Button
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -28,6 +25,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import com.alad1nks.oquturbo.core.designsystem.theme.OquTurboLayout
+import com.alad1nks.oquturbo.core.ui.component.AppCard
 import com.alad1nks.oquturbo.core.ui.component.PageHeader
 import com.alad1nks.oquturbo.core.ui.component.appBackground
 import com.alad1nks.oquturbo.feature.stats.model.ModeTrend
@@ -78,7 +77,7 @@ internal fun StatsScreen(
             modifier =
                 Modifier
                     .align(Alignment.TopCenter)
-                    .widthIn(max = 760.dp)
+                    .widthIn(max = OquTurboLayout.pageMaxWidth)
                     .fillMaxWidth()
                     .statusBarsPadding(),
             contentPadding = PaddingValues(top = 24.dp, bottom = 32.dp),
@@ -184,7 +183,7 @@ internal fun StatsScreen(
     }
 }
 
-private val StatsScreenHorizontalPadding = 24.dp
+private val StatsScreenHorizontalPadding = OquTurboLayout.pageGutter
 
 @Composable
 private fun NewUserEmptyState(
@@ -221,15 +220,11 @@ private fun EmptyStateCard(
     modifier: Modifier = Modifier,
     action: @Composable (() -> Unit)? = null,
 ) {
-    Card(
+    AppCard(
         modifier = modifier.fillMaxWidth(),
-        shape = MaterialTheme.shapes.large,
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.55f)),
-        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
     ) {
         Column(
-            modifier = Modifier.fillMaxWidth().padding(horizontal = 24.dp, vertical = 36.dp),
+            modifier = Modifier.fillMaxWidth().padding(horizontal = OquTurboLayout.pageGutter, vertical = 36.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {

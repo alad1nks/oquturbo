@@ -16,7 +16,6 @@ import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
@@ -56,11 +55,14 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
+import com.alad1nks.oquturbo.core.designsystem.theme.OquTurboLayout
 import com.alad1nks.oquturbo.core.designsystem.theme.OquTurboTheme
 import com.alad1nks.oquturbo.core.ui.component.AppBackButton
 import com.alad1nks.oquturbo.core.ui.component.GameHeaderActionButton
 import com.alad1nks.oquturbo.core.ui.component.GameResultCard
 import com.alad1nks.oquturbo.core.ui.component.GameScoreBadge
+import com.alad1nks.oquturbo.core.ui.component.GameStage
+import com.alad1nks.oquturbo.core.ui.component.GameStagePanel
 import com.alad1nks.oquturbo.core.ui.component.appBackground
 import com.alad1nks.oquturbo.core.ui.preview.ScreenshotPreview
 import com.alad1nks.oquturbo.feature.symbolcount.model.CountShape
@@ -120,9 +122,9 @@ internal fun SymbolCountScreen(
 ) {
     BoxWithConstraints(modifier.fillMaxSize().appBackground().statusBarsPadding().navigationBarsPadding()) {
         val fieldSide = (maxHeight - 390.dp).coerceIn(180.dp, 320.dp).coerceAtMost(maxWidth - 32.dp)
-        val horizontal = if (maxWidth < 360.dp) 16.dp else 24.dp
+        val horizontal = if (maxWidth < 360.dp) OquTurboLayout.compactGameGutter else OquTurboLayout.pageGutter
         Column(
-            Modifier.align(Alignment.TopCenter).widthIn(max = 560.dp).fillMaxWidth()
+            Modifier.align(Alignment.TopCenter).widthIn(max = OquTurboLayout.playMaxWidth).fillMaxWidth()
                 .padding(horizontal = horizontal)
                 .verticalScroll(rememberScrollState()),
             horizontalAlignment = Alignment.CenterHorizontally,
@@ -199,124 +201,108 @@ private fun ReadyContent(
     onStartClick: () -> Unit,
     onReloadClick: () -> Unit,
 ) {
-    Surface(
-        modifier = Modifier.fillMaxWidth(),
-        shape = MaterialTheme.shapes.extraLarge,
-        color = MaterialTheme.colorScheme.surface,
-        tonalElevation = 2.dp,
+    GameStagePanel(
+        stage = GameStage.Ready,
+        modifier = Modifier.widthIn(max = OquTurboLayout.playMaxWidth).fillMaxWidth(),
     ) {
-        Column(
-            Modifier.fillMaxWidth().padding(24.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(18.dp),
-        ) {
-            Text(
-                stringResource(AppResource.String.symbol_count_mode),
-                style = MaterialTheme.typography.titleMedium,
-                color = MaterialTheme.colorScheme.primary,
-                fontWeight = FontWeight.Bold,
-            )
-            Text(
-                stringResource(AppResource.String.symbol_count_ready_title),
-                modifier = Modifier.semantics { heading() },
-                style = MaterialTheme.typography.headlineSmall,
-                fontWeight = FontWeight.Bold,
-                textAlign = TextAlign.Center,
-            )
-            Text(
-                stringResource(AppResource.String.symbol_count_instructions),
-                style = MaterialTheme.typography.bodyLarge,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                textAlign = TextAlign.Center,
-            )
-            Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-                CountShape.entries.forEach { SymbolGlyph(it, Modifier.size(32.dp)) }
-            }
-            Text(
+        Text(
+            stringResource(AppResource.String.symbol_count_mode),
+            style = MaterialTheme.typography.titleMedium,
+            color = MaterialTheme.colorScheme.primary,
+            fontWeight = FontWeight.Bold,
+        )
+        Text(
+            stringResource(AppResource.String.symbol_count_ready_title),
+            modifier = Modifier.semantics { heading() },
+            style = MaterialTheme.typography.headlineSmall,
+            fontWeight = FontWeight.Bold,
+            textAlign = TextAlign.Center,
+        )
+        Text(
+            stringResource(AppResource.String.symbol_count_instructions),
+            style = MaterialTheme.typography.bodyLarge,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            textAlign = TextAlign.Center,
+        )
+        Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+            CountShape.entries.forEach { SymbolGlyph(it, Modifier.size(32.dp)) }
+        }
+        Text(
+            if (state.recordLoadFailed) {
+                stringResource(AppResource.String.symbol_count_record_unavailable)
+            } else if (state.isRecordLoading) {
+                stringResource(AppResource.String.symbol_count_loading_record)
+            } else {
+                stringResource(AppResource.String.symbol_count_record_value, state.record)
+            },
+            style = MaterialTheme.typography.titleMedium,
+            textAlign = TextAlign.Center,
+        )
+        Button(
+            onClick =
                 if (state.recordLoadFailed) {
-                    stringResource(AppResource.String.symbol_count_record_unavailable)
-                } else if (state.isRecordLoading) {
-                    stringResource(AppResource.String.symbol_count_loading_record)
+                    onReloadClick
                 } else {
-                    stringResource(AppResource.String.symbol_count_record_value, state.record)
+                    onStartClick
                 },
-                style = MaterialTheme.typography.titleMedium,
-                textAlign = TextAlign.Center,
-            )
-            Button(
-                onClick =
+            enabled = !state.isRecordLoading,
+            modifier = Modifier.fillMaxWidth().heightIn(min = OquTurboLayout.actionMinHeight),
+        ) {
+            Icon(Icons.Default.PlayArrow, contentDescription = null)
+            Text(
+                stringResource(
                     if (state.recordLoadFailed) {
-                        onReloadClick
+                        AppResource.String.symbol_count_retry_load
                     } else {
-                        onStartClick
+                        AppResource.String.symbol_count_start
                     },
-                enabled = !state.isRecordLoading,
-                modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp),
-            ) {
-                Icon(Icons.Default.PlayArrow, contentDescription = null)
-                Text(
-                    stringResource(
-                        if (state.recordLoadFailed) {
-                            AppResource.String.symbol_count_retry_load
-                        } else {
-                            AppResource.String.symbol_count_start
-                        },
-                    ),
-                )
-            }
+                ),
+            )
         }
     }
 }
 
 @Composable
 private fun PausedContent(onResumeClick: () -> Unit) {
-    Surface(
+    GameStagePanel(
+        stage = GameStage.Paused,
         modifier =
-            Modifier
-                .widthIn(max = 420.dp)
-                .fillMaxWidth()
-                .semantics { liveRegion = LiveRegionMode.Polite },
-        shape = RoundedCornerShape(28.dp),
-        color = MaterialTheme.colorScheme.surfaceContainerHighest,
+            Modifier.widthIn(max = OquTurboLayout.stateMaxWidth).fillMaxWidth().semantics {
+                liveRegion = LiveRegionMode.Polite
+            },
     ) {
-        Column(
-            Modifier.padding(horizontal = 24.dp, vertical = 28.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(16.dp),
+        Surface(
+            modifier = Modifier.size(72.dp),
+            shape = CircleShape,
+            color = MaterialTheme.colorScheme.primaryContainer,
         ) {
-            Surface(
-                modifier = Modifier.size(72.dp),
-                shape = CircleShape,
-                color = MaterialTheme.colorScheme.primaryContainer,
-            ) {
-                Box(contentAlignment = Alignment.Center) {
-                    Icon(
-                        Icons.Filled.Pause,
-                        contentDescription = null,
-                        modifier = Modifier.size(36.dp),
-                        tint = MaterialTheme.colorScheme.primary,
-                    )
-                }
+            Box(contentAlignment = Alignment.Center) {
+                Icon(
+                    Icons.Filled.Pause,
+                    contentDescription = null,
+                    modifier = Modifier.size(36.dp),
+                    tint = MaterialTheme.colorScheme.primary,
+                )
             }
-            Text(
-                stringResource(AppResource.String.symbol_count_paused_title),
-                modifier = Modifier.semantics { heading() },
-                style = MaterialTheme.typography.headlineMedium,
-                fontWeight = FontWeight.Bold,
-                textAlign = TextAlign.Center,
-            )
-            Text(
-                stringResource(AppResource.String.symbol_count_paused_message),
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                textAlign = TextAlign.Center,
-            )
-            Button(
-                onClick = onResumeClick,
-                modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp),
-            ) {
-                Icon(Icons.Filled.PlayArrow, contentDescription = null)
-                Text(stringResource(AppResource.String.symbol_count_resume))
-            }
+        }
+        Text(
+            stringResource(AppResource.String.symbol_count_paused_title),
+            modifier = Modifier.semantics { heading() },
+            style = MaterialTheme.typography.headlineMedium,
+            fontWeight = FontWeight.Bold,
+            textAlign = TextAlign.Center,
+        )
+        Text(
+            stringResource(AppResource.String.symbol_count_paused_message),
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            textAlign = TextAlign.Center,
+        )
+        Button(
+            onClick = onResumeClick,
+            modifier = Modifier.fillMaxWidth().heightIn(min = OquTurboLayout.actionMinHeight),
+        ) {
+            Icon(Icons.Filled.PlayArrow, contentDescription = null)
+            Text(stringResource(AppResource.String.symbol_count_resume))
         }
     }
 }
@@ -365,7 +351,7 @@ private fun PlayingContent(
                         onClick = { onAnswerClick(board.id, value) },
                         enabled = active,
                         modifier =
-                            Modifier.weight(1f).heightIn(min = 56.dp).testTag("answer-$value")
+                            Modifier.weight(1f).heightIn(min = OquTurboLayout.actionMinHeight).testTag("answer-$value")
                                 .semantics { contentDescription = description },
                     ) {
                         Text(value.toString(), style = MaterialTheme.typography.titleLarge)
@@ -555,7 +541,7 @@ private fun ResultContent(
         } else {
             onRetry
         },
-        Modifier.fillMaxWidth().heightIn(min = 56.dp),
+        Modifier.fillMaxWidth().heightIn(min = OquTurboLayout.actionMinHeight),
         enabled = !state.isRecordLoading && state.saveStatus != SymbolCountSaveStatus.Pending,
     ) {
         Icon(Icons.Default.Replay, null)
@@ -572,7 +558,7 @@ private fun ResultContent(
         )
     }
     if (onBackClick != null) {
-        OutlinedButton(onBackClick, Modifier.fillMaxWidth().heightIn(min = 56.dp)) {
+        OutlinedButton(onBackClick, Modifier.fillMaxWidth().heightIn(min = OquTurboLayout.actionMinHeight)) {
             Text(stringResource(AppResource.String.symbol_count_back))
         }
     }

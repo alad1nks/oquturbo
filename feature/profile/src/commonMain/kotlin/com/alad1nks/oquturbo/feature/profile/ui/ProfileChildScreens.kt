@@ -30,8 +30,6 @@ import androidx.compose.material.icons.filled.Save
 import androidx.compose.material.icons.filled.Smartphone
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.ListItemDefaults
@@ -53,10 +51,16 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.alad1nks.oquturbo.core.data.model.AppLanguage
+import com.alad1nks.oquturbo.core.designsystem.theme.OquTurboLayout
+import com.alad1nks.oquturbo.core.designsystem.theme.OquTurboTheme
+import com.alad1nks.oquturbo.core.ui.component.AppCard
+import com.alad1nks.oquturbo.core.ui.component.AppCardTone
 import com.alad1nks.oquturbo.core.ui.component.AppTopBar
 import com.alad1nks.oquturbo.core.ui.component.appBackground
+import com.alad1nks.oquturbo.core.ui.preview.ScreenshotPreview
 import com.alad1nks.oquturbo.resources.AppResource
 import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.pluralStringResource
@@ -69,6 +73,19 @@ internal fun ProfileEditRouteContent(
     onBackClick: () -> Unit,
 ) {
     val uiState by viewModel.uiState.collectAsState()
+    ProfileEditScreen(
+        uiState,
+        onSave = { name, avatar -> viewModel.updateIdentity(name, avatar, onBackClick) },
+        onBackClick,
+    )
+}
+
+@Composable
+private fun ProfileEditScreen(
+    uiState: ProfileUiState,
+    onSave: (String, PersonalizationId) -> Unit,
+    onBackClick: () -> Unit,
+) {
     var name by remember(uiState.displayName) { mutableStateOf(uiState.displayName.orEmpty()) }
     var selectedAvatar by
         remember(uiState.personalization) {
@@ -89,7 +106,7 @@ internal fun ProfileEditRouteContent(
                 color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.6f),
             ) {
                 Column(
-                    modifier = Modifier.fillMaxWidth().padding(20.dp),
+                    modifier = Modifier.fillMaxWidth().padding(OquTurboLayout.cardInset),
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.spacedBy(14.dp),
                 ) {
@@ -162,11 +179,7 @@ internal fun ProfileEditRouteContent(
         item {
             Button(
                 onClick = {
-                    viewModel.updateIdentity(
-                        displayName = name,
-                        avatarId = selectedAvatar,
-                        onSaved = onBackClick,
-                    )
+                    onSave(name, selectedAvatar)
                 },
                 modifier = Modifier.fillMaxWidth(),
                 shape = MaterialTheme.shapes.medium,
@@ -188,6 +201,14 @@ internal fun ProfileRanksRouteContent(
     onBackClick: () -> Unit,
 ) {
     val uiState by viewModel.uiState.collectAsState()
+    ProfileRanksScreen(uiState, onBackClick)
+}
+
+@Composable
+private fun ProfileRanksScreen(
+    uiState: ProfileUiState,
+    onBackClick: () -> Unit,
+) {
     ProfileDetailScaffold(
         title = AppResource.String.profile_ranks_title,
         onBackClick = onBackClick,
@@ -224,19 +245,10 @@ private fun RankListItem(
     lastLevel: Int,
     status: RankStatus,
 ) {
-    Card(
+    AppCard(
         modifier = Modifier.fillMaxWidth(),
-        shape = MaterialTheme.shapes.medium,
-        colors =
-            CardDefaults.cardColors(
-                containerColor =
-                    if (status == RankStatus.Current) {
-                        MaterialTheme.colorScheme.primaryContainer
-                    } else {
-                        MaterialTheme.colorScheme.surface
-                    },
-            ),
-        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)),
+        compact = true,
+        tone = if (status == RankStatus.Current) AppCardTone.Primary else AppCardTone.Neutral,
     ) {
         Row(
             modifier = Modifier.fillMaxWidth().padding(16.dp),
@@ -291,6 +303,14 @@ internal fun ProfileAchievementsRouteContent(
     onBackClick: () -> Unit,
 ) {
     val uiState by viewModel.uiState.collectAsState()
+    ProfileAchievementsScreen(uiState, onBackClick)
+}
+
+@Composable
+private fun ProfileAchievementsScreen(
+    uiState: ProfileUiState,
+    onBackClick: () -> Unit,
+) {
     ProfileDetailScaffold(
         title = AppResource.String.profile_all_achievements,
         onBackClick = onBackClick,
@@ -307,6 +327,15 @@ internal fun ProfileTitlesRouteContent(
     onBackClick: () -> Unit,
 ) {
     val uiState by viewModel.uiState.collectAsState()
+    ProfileTitlesScreen(uiState, viewModel::selectTitle, onBackClick)
+}
+
+@Composable
+private fun ProfileTitlesScreen(
+    uiState: ProfileUiState,
+    onSelectTitle: (TitleId) -> Unit,
+    onBackClick: () -> Unit,
+) {
     ProfileDetailScaffold(
         title = AppResource.String.profile_titles_title,
         onBackClick = onBackClick,
@@ -354,13 +383,11 @@ internal fun ProfileTitlesRouteContent(
         }
         uiState.titles.forEach { title ->
             item {
-                Card(
-                    onClick = { viewModel.selectTitle(title.id) },
+                AppCard(
+                    onClick = { onSelectTitle(title.id) },
                     modifier = Modifier.fillMaxWidth(),
                     enabled = title.isUnlocked,
-                    shape = MaterialTheme.shapes.medium,
-                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-                    border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)),
+                    compact = true,
                 ) {
                     Row(
                         modifier = Modifier.fillMaxWidth().padding(16.dp),
@@ -412,6 +439,15 @@ internal fun ProfilePersonalizationRouteContent(
     onBackClick: () -> Unit,
 ) {
     val uiState by viewModel.uiState.collectAsState()
+    ProfilePersonalizationScreen(uiState, viewModel::selectPersonalization, onBackClick)
+}
+
+@Composable
+private fun ProfilePersonalizationScreen(
+    uiState: ProfileUiState,
+    onSelectPersonalization: (PersonalizationId) -> Unit,
+    onBackClick: () -> Unit,
+) {
     ProfileDetailScaffold(
         title = AppResource.String.profile_personalization_title,
         onBackClick = onBackClick,
@@ -427,7 +463,7 @@ internal fun ProfilePersonalizationRouteContent(
                 item {
                     PersonalizationListItem(
                         item = item,
-                        onClick = { viewModel.selectPersonalization(item.id) },
+                        onClick = { onSelectPersonalization(item.id) },
                     )
                 }
             }
@@ -440,13 +476,11 @@ private fun PersonalizationListItem(
     item: ProfileUiState.PersonalizationItem,
     onClick: () -> Unit,
 ) {
-    Card(
+    AppCard(
         onClick = onClick,
         modifier = Modifier.fillMaxWidth(),
         enabled = item.isUnlocked,
-        shape = MaterialTheme.shapes.medium,
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)),
+        compact = true,
     ) {
         Row(
             modifier = Modifier.fillMaxWidth().padding(16.dp),
@@ -515,6 +549,27 @@ internal fun ProfileSettingsRouteContent(
     onBackClick: () -> Unit,
 ) {
     val settings by viewModel.settingsUiState.collectAsState()
+    ProfileSettingsScreen(
+        settings,
+        viewModel::setLanguage,
+        viewModel::setDarkTheme,
+        viewModel::setSoundEnabled,
+        viewModel::setVibrationEnabled,
+        viewModel::setRemindersEnabled,
+        onBackClick,
+    )
+}
+
+@Composable
+private fun ProfileSettingsScreen(
+    settings: ProfileSettingsUiState,
+    onLanguageChange: (AppLanguage) -> Unit,
+    onDarkThemeChange: (Boolean) -> Unit,
+    onSoundChange: (Boolean) -> Unit,
+    onVibrationChange: (Boolean) -> Unit,
+    onRemindersChange: (Boolean) -> Unit,
+    onBackClick: () -> Unit,
+) {
     var showLanguageDialog by remember { mutableStateOf(false) }
 
     if (showLanguageDialog) {
@@ -522,7 +577,7 @@ internal fun ProfileSettingsRouteContent(
             selectedLanguage = settings.language,
             onLanguageSelect = { language ->
                 showLanguageDialog = false
-                viewModel.setLanguage(language)
+                onLanguageChange(language)
             },
             onDismissRequest = { showLanguageDialog = false },
         )
@@ -545,7 +600,7 @@ internal fun ProfileSettingsRouteContent(
                 icon = Icons.Filled.DarkMode,
                 title = AppResource.String.profile_settings_theme,
                 checked = settings.darkThemeEnabled,
-                onCheckedChange = viewModel::setDarkTheme,
+                onCheckedChange = onDarkThemeChange,
             )
         }
         item {
@@ -553,7 +608,7 @@ internal fun ProfileSettingsRouteContent(
                 icon = Icons.AutoMirrored.Filled.VolumeUp,
                 title = AppResource.String.profile_settings_sound,
                 checked = settings.soundEnabled,
-                onCheckedChange = viewModel::setSoundEnabled,
+                onCheckedChange = onSoundChange,
             )
         }
         item {
@@ -561,7 +616,7 @@ internal fun ProfileSettingsRouteContent(
                 icon = Icons.Filled.Smartphone,
                 title = AppResource.String.profile_settings_vibration,
                 checked = settings.vibrationEnabled,
-                onCheckedChange = viewModel::setVibrationEnabled,
+                onCheckedChange = onVibrationChange,
             )
         }
         item {
@@ -569,7 +624,7 @@ internal fun ProfileSettingsRouteContent(
                 icon = Icons.Filled.Notifications,
                 title = AppResource.String.profile_settings_reminders,
                 checked = settings.remindersEnabled,
-                onCheckedChange = viewModel::setRemindersEnabled,
+                onCheckedChange = onRemindersChange,
             )
         }
         item {
@@ -615,36 +670,7 @@ private fun LanguageSelectionDialog(
     AlertDialog(
         onDismissRequest = onDismissRequest,
         title = { Text(stringResource(AppResource.String.profile_settings_language)) },
-        text = {
-            Column(
-                modifier = Modifier.selectableGroup(),
-                verticalArrangement = Arrangement.spacedBy(4.dp),
-            ) {
-                AppLanguage.entries.forEach { language ->
-                    ListItem(
-                        headlineContent = { Text(stringResource(language.titleResource())) },
-                        leadingContent = {
-                            RadioButton(
-                                selected = language == selectedLanguage,
-                                onClick = null,
-                            )
-                        },
-                        modifier =
-                            Modifier
-                                .fillMaxWidth()
-                                .selectable(
-                                    selected = language == selectedLanguage,
-                                    onClick = { onLanguageSelect(language) },
-                                    role = Role.RadioButton,
-                                ),
-                        colors =
-                            ListItemDefaults.colors(
-                                containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
-                            ),
-                    )
-                }
-            }
-        },
+        text = { LanguageOptions(selectedLanguage, onLanguageSelect) },
         confirmButton = {},
         dismissButton = {
             TextButton(onClick = onDismissRequest) {
@@ -652,6 +678,41 @@ private fun LanguageSelectionDialog(
             }
         },
     )
+}
+
+@Composable
+private fun LanguageOptions(
+    selectedLanguage: AppLanguage,
+    onLanguageSelect: (AppLanguage) -> Unit,
+) {
+    Column(
+        modifier = Modifier.selectableGroup(),
+        verticalArrangement = Arrangement.spacedBy(4.dp),
+    ) {
+        AppLanguage.entries.forEach { language ->
+            ListItem(
+                headlineContent = { Text(stringResource(language.titleResource())) },
+                leadingContent = {
+                    RadioButton(
+                        selected = language == selectedLanguage,
+                        onClick = null,
+                    )
+                },
+                modifier =
+                    Modifier
+                        .fillMaxWidth()
+                        .selectable(
+                            selected = language == selectedLanguage,
+                            onClick = { onLanguageSelect(language) },
+                            role = Role.RadioButton,
+                        ),
+                colors =
+                    ListItemDefaults.colors(
+                        containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
+                    ),
+            )
+        }
+    }
 }
 
 private fun AppLanguage.titleResource(): StringResource =
@@ -715,24 +776,18 @@ private fun SettingsCard(
     content: @Composable () -> Unit,
 ) {
     val modifier = Modifier.fillMaxWidth()
-    val colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
-    val border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
 
     if (onClick == null) {
-        Card(
+        AppCard(
             modifier = modifier,
-            shape = MaterialTheme.shapes.medium,
-            colors = colors,
-            border = border,
+            compact = true,
             content = { content() },
         )
     } else {
-        Card(
+        AppCard(
             onClick = onClick,
             modifier = modifier,
-            shape = MaterialTheme.shapes.medium,
-            colors = colors,
-            border = border,
+            compact = true,
             content = { content() },
         )
     }
@@ -751,8 +806,11 @@ private fun ProfileDetailScaffold(
                 onBackClick = onBackClick,
             )
             LazyColumn(
-                modifier = Modifier.align(Alignment.CenterHorizontally).widthIn(max = 760.dp).fillMaxWidth(),
-                contentPadding = PaddingValues(24.dp),
+                modifier =
+                    Modifier.align(
+                        Alignment.CenterHorizontally,
+                    ).widthIn(max = OquTurboLayout.pageMaxWidth).fillMaxWidth(),
+                contentPadding = PaddingValues(OquTurboLayout.pageGutter),
                 verticalArrangement = Arrangement.spacedBy(14.dp),
                 content = content,
             )
@@ -763,3 +821,82 @@ private fun ProfileDetailScaffold(
 @Composable
 private fun ProfileUiState.Rank.title(rankNames: List<String>): String =
     rankNames.getOrNull(number - 1) ?: stringResource(AppResource.String.profile_rank_neutral_format, number)
+
+@Preview(widthDp = 390, heightDp = 1000)
+@ScreenshotPreview
+@Composable
+private fun ProfileEditPreview() {
+    OquTurboTheme { ProfileEditScreen(ProfileDemoData.midRank, { _, _ -> }, {}) }
+}
+
+@Preview(widthDp = 390, heightDp = 1000)
+@ScreenshotPreview
+@Composable
+private fun ProfileRanksPreview() {
+    OquTurboTheme { ProfileRanksScreen(ProfileDemoData.midRank, {}) }
+}
+
+@Preview(widthDp = 390, heightDp = 1000)
+@ScreenshotPreview
+@Composable
+private fun ProfileAchievementsPreview() {
+    OquTurboTheme { ProfileAchievementsScreen(ProfileDemoData.midRank, {}) }
+}
+
+@Preview(widthDp = 390, heightDp = 1000)
+@ScreenshotPreview
+@Composable
+private fun ProfileTitlesPreview() {
+    OquTurboTheme { ProfileTitlesScreen(ProfileDemoData.midRank, {}, {}) }
+}
+
+@Preview(widthDp = 390, heightDp = 1000)
+@ScreenshotPreview
+@Composable
+private fun ProfilePersonalizationPreview() {
+    OquTurboTheme { ProfilePersonalizationScreen(ProfileDemoData.midRank, {}, {}) }
+}
+
+@Preview(widthDp = 390, heightDp = 1000)
+@ScreenshotPreview
+@Composable
+private fun ProfileSettingsPreview() {
+    OquTurboTheme { ProfileSettingsScreen(ProfileSettingsUiState(), {}, {}, {}, {}, {}, {}) }
+}
+
+@Preview(widthDp = 320, heightDp = 1100, fontScale = 1.5f, locale = "ru")
+@ScreenshotPreview
+@Composable
+private fun ProfileSettingsDarkLargeTextPreview() {
+    OquTurboTheme(darkTheme = true) {
+        ProfileSettingsScreen(ProfileSettingsUiState(darkThemeEnabled = true), {}, {}, {}, {}, {}, {})
+    }
+}
+
+@Preview(widthDp = 390, heightDp = 844, locale = "kk")
+@ScreenshotPreview
+@Composable
+private fun ProfileLanguageOptionsPreview() {
+    OquTurboTheme {
+        Box(
+            Modifier.fillMaxSize().appBackground().padding(OquTurboLayout.pageGutter),
+            contentAlignment = Alignment.Center,
+        ) {
+            Surface(
+                shape = MaterialTheme.shapes.extraLarge,
+                color = MaterialTheme.colorScheme.surfaceContainerHigh,
+            ) {
+                Column(
+                    Modifier.padding(OquTurboLayout.pageGutter),
+                    verticalArrangement = Arrangement.spacedBy(OquTurboLayout.gap),
+                ) {
+                    Text(
+                        stringResource(AppResource.String.profile_settings_language),
+                        style = MaterialTheme.typography.headlineSmall,
+                    )
+                    LanguageOptions(AppLanguage.Kazakh, {})
+                }
+            }
+        }
+    }
+}

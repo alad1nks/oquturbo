@@ -1,6 +1,5 @@
 package com.alad1nks.oquturbo.feature.profile.ui
 
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -21,8 +20,6 @@ import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.School
 import androidx.compose.material.icons.filled.WorkspacePremium
 import androidx.compose.material3.Button
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
@@ -39,6 +36,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import com.alad1nks.oquturbo.core.ui.component.AppCard
+import com.alad1nks.oquturbo.core.ui.component.AppCardTone
 import com.alad1nks.oquturbo.resources.AppResource
 import org.jetbrains.compose.resources.pluralStringResource
 import org.jetbrains.compose.resources.stringArrayResource
@@ -158,12 +157,10 @@ private fun SummaryFact(
     fact: SummaryFactData,
     modifier: Modifier = Modifier,
 ) {
-    Card(
+    AppCard(
         onClick = fact.onClick,
         modifier = modifier.fillMaxHeight(),
-        shape = MaterialTheme.shapes.medium,
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)),
+        compact = true,
     ) {
         Column(
             modifier = Modifier.fillMaxWidth().padding(14.dp),
@@ -216,11 +213,9 @@ internal fun AchievementCard(
     achievement: ProfileUiState.Achievement,
     modifier: Modifier = Modifier,
 ) {
-    Card(
+    AppCard(
         modifier = modifier.fillMaxWidth(),
-        shape = MaterialTheme.shapes.medium,
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)),
+        compact = true,
     ) {
         Row(
             modifier = Modifier.fillMaxWidth().padding(16.dp),
@@ -338,11 +333,10 @@ internal fun ProfileTitleSection(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    Card(
+    AppCard(
         onClick = onClick,
         modifier = modifier.fillMaxWidth(),
-        shape = MaterialTheme.shapes.large,
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer),
+        tone = AppCardTone.Secondary,
     ) {
         Row(
             modifier = Modifier.fillMaxWidth().padding(18.dp),
@@ -401,11 +395,8 @@ internal fun ProfilePersonalizationSection(
             text = stringResource(AppResource.String.profile_personalization_title),
             style = MaterialTheme.typography.titleLarge,
         )
-        Card(
+        AppCard(
             modifier = Modifier.fillMaxWidth(),
-            shape = MaterialTheme.shapes.large,
-            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-            border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)),
         ) {
             Column(
                 modifier = Modifier.fillMaxWidth().padding(18.dp),
@@ -473,11 +464,8 @@ internal fun ProfileRecentlyUnlockedSection(
             text = stringResource(AppResource.String.profile_recently_unlocked),
             style = MaterialTheme.typography.titleLarge,
         )
-        Card(
+        AppCard(
             modifier = Modifier.fillMaxWidth(),
-            shape = MaterialTheme.shapes.large,
-            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-            border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)),
         ) {
             Column(modifier = Modifier.fillMaxWidth().padding(horizontal = 18.dp, vertical = 8.dp)) {
                 recentUnlocks.take(3).forEach { unlock ->

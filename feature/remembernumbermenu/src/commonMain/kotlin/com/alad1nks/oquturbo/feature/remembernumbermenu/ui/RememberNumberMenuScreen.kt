@@ -14,7 +14,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
+import com.alad1nks.oquturbo.core.designsystem.theme.OquTurboLayout
 import com.alad1nks.oquturbo.core.designsystem.theme.OquTurboTheme
 import com.alad1nks.oquturbo.core.ui.component.AppTopBar
 import com.alad1nks.oquturbo.core.ui.component.appBackground
@@ -102,7 +102,7 @@ private fun RememberNumberMenuScreen(
                 RememberNumberMenuContentColumn(
                     onPlayClick = onPlayClick,
                     onCustomClick = onCustomClick,
-                    modifier = Modifier.widthIn(max = 760.dp).fillMaxSize(),
+                    modifier = Modifier.widthIn(max = OquTurboLayout.pageMaxWidth).fillMaxSize(),
                 )
             }
         }

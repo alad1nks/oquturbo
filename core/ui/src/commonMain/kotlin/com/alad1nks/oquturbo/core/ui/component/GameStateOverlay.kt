@@ -11,7 +11,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -24,6 +23,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import com.alad1nks.oquturbo.core.designsystem.theme.OquTurboLayout
 
 @Composable
 fun GameStateOverlay(
@@ -47,8 +47,8 @@ fun GameStateOverlay(
             contentAlignment = Alignment.Center,
         ) {
             Surface(
-                modifier = Modifier.widthIn(max = 420.dp).fillMaxWidth(),
-                shape = RoundedCornerShape(28.dp),
+                modifier = Modifier.widthIn(max = OquTurboLayout.stateMaxWidth).fillMaxWidth(),
+                shape = MaterialTheme.shapes.large,
                 color = MaterialTheme.colorScheme.surfaceContainerHighest,
                 contentColor = MaterialTheme.colorScheme.onSurface,
                 tonalElevation = 6.dp,

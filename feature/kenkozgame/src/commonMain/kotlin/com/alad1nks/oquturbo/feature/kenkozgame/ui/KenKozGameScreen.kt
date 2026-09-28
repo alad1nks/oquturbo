@@ -45,6 +45,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.alad1nks.oquturbo.core.data.model.DailyTrainingEntry
+import com.alad1nks.oquturbo.core.designsystem.theme.OquTurboLayout
 import com.alad1nks.oquturbo.core.designsystem.theme.OquTurboTheme
 import com.alad1nks.oquturbo.core.ui.component.AnimatedGameStateOverlay
 import com.alad1nks.oquturbo.core.ui.component.AppBackButton
@@ -108,10 +109,10 @@ internal fun KenKozGameScreen(
             modifier =
                 Modifier
                     .align(Alignment.TopCenter)
-                    .widthIn(max = 760.dp)
+                    .widthIn(max = OquTurboLayout.pageMaxWidth)
                     .fillMaxSize()
                     .systemBarsPadding()
-                    .padding(horizontal = 24.dp, vertical = 16.dp)
+                    .padding(horizontal = OquTurboLayout.pageGutter, vertical = 16.dp)
                     .blur(blurRadius),
         ) {
             GameHeader(
@@ -402,7 +403,7 @@ private fun QuestionCard(
                     rowAnswers.forEach { answer ->
                         FilledTonalButton(
                             onClick = { onAnswerClick(answer) },
-                            modifier = Modifier.weight(1f).heightIn(min = 56.dp),
+                            modifier = Modifier.weight(1f).heightIn(min = OquTurboLayout.actionMinHeight),
                             shape = RoundedCornerShape(18.dp),
                             contentPadding = PaddingValues(horizontal = 12.dp, vertical = 14.dp),
                         ) {

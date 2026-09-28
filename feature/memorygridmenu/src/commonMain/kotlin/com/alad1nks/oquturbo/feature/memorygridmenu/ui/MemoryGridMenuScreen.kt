@@ -17,7 +17,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
+import com.alad1nks.oquturbo.core.designsystem.theme.OquTurboLayout
 import com.alad1nks.oquturbo.core.designsystem.theme.OquTurboTheme
 import com.alad1nks.oquturbo.core.ui.component.AppTopBar
 import com.alad1nks.oquturbo.core.ui.component.GameMenuItem
@@ -44,9 +44,16 @@ internal fun MemoryGridMenuScreen(
                 scrollBehavior = scrollBehavior,
             )
             LazyColumn(
-                modifier = Modifier.align(Alignment.CenterHorizontally).widthIn(max = 760.dp).fillMaxWidth().weight(1f),
-                contentPadding = PaddingValues(horizontal = 24.dp, vertical = 24.dp),
-                verticalArrangement = Arrangement.spacedBy(16.dp),
+                modifier =
+                    Modifier.align(
+                        Alignment.CenterHorizontally,
+                    ).widthIn(max = OquTurboLayout.pageMaxWidth).fillMaxWidth().weight(1f),
+                contentPadding =
+                    PaddingValues(
+                        horizontal = OquTurboLayout.pageGutter,
+                        vertical = OquTurboLayout.sectionGap,
+                    ),
+                verticalArrangement = Arrangement.spacedBy(OquTurboLayout.gap),
             ) {
                 item {
                     PageHeader(

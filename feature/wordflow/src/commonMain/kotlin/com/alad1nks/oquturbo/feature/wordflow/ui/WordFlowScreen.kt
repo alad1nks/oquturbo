@@ -37,8 +37,13 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
@@ -51,10 +56,13 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.alad1nks.oquturbo.core.designsystem.theme.OquTurboLayout
 import com.alad1nks.oquturbo.core.designsystem.theme.OquTurboTheme
 import com.alad1nks.oquturbo.core.ui.component.AppBackButton
 import com.alad1nks.oquturbo.core.ui.component.GameHeader
 import com.alad1nks.oquturbo.core.ui.component.GameResultCard
+import com.alad1nks.oquturbo.core.ui.component.GameStage
+import com.alad1nks.oquturbo.core.ui.component.GameStagePanel
 import com.alad1nks.oquturbo.core.ui.component.appBackground
 import com.alad1nks.oquturbo.core.ui.preview.ScreenshotPreview
 import com.alad1nks.oquturbo.feature.wordflow.model.WordFlowFailure
@@ -115,19 +123,29 @@ internal fun WordFlowScreen(
     onResumeClick: () -> Unit = {},
 ) {
     val game = state.game
+    var headerHeight by remember { mutableIntStateOf(0) }
+    val headerInset = with(LocalDensity.current) { headerHeight.toDp() }
     Box(modifier.fillMaxSize().appBackground()) {
         Column(
             modifier =
-                Modifier.align(Alignment.TopCenter).widthIn(max = 560.dp).fillMaxWidth()
+                Modifier.align(Alignment.TopCenter).widthIn(max = OquTurboLayout.playMaxWidth).fillMaxWidth()
                     .verticalScroll(rememberScrollState()).navigationBarsPadding()
-                    .padding(start = 24.dp, top = 104.dp, end = 24.dp, bottom = 32.dp),
+                    .padding(
+                        start = OquTurboLayout.pageGutter,
+                        top = maxOf(104.dp, headerInset + OquTurboLayout.textGap),
+                        end = OquTurboLayout.pageGutter,
+                        bottom = 32.dp,
+                    ),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(20.dp),
         ) {
             when (game.phase) {
                 WordFlowPhase.Ready -> ReadyContent(state, onStartClick)
                 WordFlowPhase.Active -> {
-                    OutlinedButton(onClick = onPauseClick, modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp)) {
+                    OutlinedButton(
+                        onClick = onPauseClick,
+                        modifier = Modifier.fillMaxWidth().heightIn(min = OquTurboLayout.actionMinHeight),
+                    ) {
                         Icon(Icons.Default.Pause, contentDescription = null)
                         Text(stringResource(AppResource.String.word_flow_pause))
                     }
@@ -160,96 +178,90 @@ internal fun WordFlowScreen(
                     }
                 },
             modifier =
-                Modifier.align(Alignment.TopCenter).widthIn(max = 760.dp).fillMaxWidth()
-                    .statusBarsPadding().padding(horizontal = 24.dp, vertical = 16.dp),
+                Modifier.onSizeChanged {
+                    headerHeight = it.height
+                }.align(Alignment.TopCenter).widthIn(max = OquTurboLayout.pageMaxWidth).fillMaxWidth()
+                    .statusBarsPadding().padding(horizontal = OquTurboLayout.pageGutter, vertical = 16.dp),
         )
     }
 }
 
 @Composable
 private fun ReadyContent(state: WordFlowUiState, onStartClick: () -> Unit) {
-    Surface(
-        shape = MaterialTheme.shapes.extraLarge,
-        color = MaterialTheme.colorScheme.surface,
-        tonalElevation = 2.dp,
+    GameStagePanel(
+        stage = GameStage.Ready,
+        modifier = Modifier.widthIn(max = OquTurboLayout.playMaxWidth).fillMaxWidth(),
     ) {
-        Column(
-            Modifier.fillMaxWidth().padding(24.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(18.dp),
+        Text(
+            stringResource(AppResource.String.word_flow_title),
+            style = MaterialTheme.typography.titleMedium,
+            color = MaterialTheme.colorScheme.primary,
+            fontWeight = FontWeight.Bold,
+        )
+        Text(
+            stringResource(AppResource.String.word_flow_ready_title),
+            modifier = Modifier.semantics { heading() },
+            style = MaterialTheme.typography.headlineSmall,
+            fontWeight = FontWeight.Bold,
+            textAlign = TextAlign.Center,
+        )
+        Text(
+            stringResource(AppResource.String.word_flow_instructions),
+            style = MaterialTheme.typography.bodyLarge,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            textAlign = TextAlign.Center,
+        )
+        Text(
+            if (state.isRecordLoading) {
+                stringResource(AppResource.String.word_flow_loading_record)
+            } else {
+                stringResource(AppResource.String.word_flow_record_value, state.record)
+            },
+            style = MaterialTheme.typography.titleMedium,
+        )
+        Button(
+            onClick = onStartClick,
+            enabled = !state.isRecordLoading,
+            modifier = Modifier.fillMaxWidth().heightIn(min = OquTurboLayout.actionMinHeight),
         ) {
-            Text(
-                stringResource(AppResource.String.word_flow_title),
-                style = MaterialTheme.typography.titleMedium,
-                color = MaterialTheme.colorScheme.primary,
-                fontWeight = FontWeight.Bold,
-            )
-            Text(
-                stringResource(AppResource.String.word_flow_ready_title),
-                modifier = Modifier.semantics { heading() },
-                style = MaterialTheme.typography.headlineSmall,
-                fontWeight = FontWeight.Bold,
-                textAlign = TextAlign.Center,
-            )
-            Text(
-                stringResource(AppResource.String.word_flow_instructions),
-                style = MaterialTheme.typography.bodyLarge,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                textAlign = TextAlign.Center,
-            )
-            Text(
-                if (state.isRecordLoading) {
-                    stringResource(AppResource.String.word_flow_loading_record)
-                } else {
-                    stringResource(AppResource.String.word_flow_record_value, state.record)
-                },
-                style = MaterialTheme.typography.titleMedium,
-            )
-            Button(
-                onClick = onStartClick,
-                enabled = !state.isRecordLoading,
-                modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp),
-            ) {
-                Icon(Icons.Default.PlayArrow, contentDescription = null)
-                Text(stringResource(AppResource.String.word_flow_start))
-            }
+            Icon(Icons.Default.PlayArrow, contentDescription = null)
+            Text(stringResource(AppResource.String.word_flow_start))
         }
     }
 }
 
 @Composable
 private fun PausedContent(onResumeClick: () -> Unit) {
-    Surface(
-        modifier = Modifier.fillMaxWidth().semantics { liveRegion = LiveRegionMode.Polite },
-        shape = RoundedCornerShape(28.dp),
-        color = MaterialTheme.colorScheme.surfaceContainerHighest,
+    GameStagePanel(
+        stage = GameStage.Paused,
+        modifier =
+            Modifier.widthIn(max = OquTurboLayout.stateMaxWidth).fillMaxWidth().semantics {
+                liveRegion = LiveRegionMode.Polite
+            },
     ) {
-        Column(
-            Modifier.fillMaxWidth().padding(horizontal = 24.dp, vertical = 28.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(16.dp),
+        Surface(shape = CircleShape, color = MaterialTheme.colorScheme.primaryContainer) {
+            Box(Modifier.size(72.dp), contentAlignment = Alignment.Center) {
+                Icon(Icons.Default.Pause, null, Modifier.size(36.dp), tint = MaterialTheme.colorScheme.primary)
+            }
+        }
+        Text(
+            stringResource(AppResource.String.word_flow_paused_title),
+            modifier = Modifier.semantics { heading() },
+            style = MaterialTheme.typography.headlineMedium,
+            fontWeight = FontWeight.Bold,
+            textAlign = TextAlign.Center,
+        )
+        Text(
+            stringResource(AppResource.String.word_flow_paused_message),
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            textAlign = TextAlign.Center,
+        )
+        Button(
+            onClick = onResumeClick,
+            modifier = Modifier.fillMaxWidth().heightIn(min = OquTurboLayout.actionMinHeight),
         ) {
-            Surface(shape = CircleShape, color = MaterialTheme.colorScheme.primaryContainer) {
-                Box(Modifier.size(72.dp), contentAlignment = Alignment.Center) {
-                    Icon(Icons.Default.Pause, null, Modifier.size(36.dp), tint = MaterialTheme.colorScheme.primary)
-                }
-            }
-            Text(
-                stringResource(AppResource.String.word_flow_paused_title),
-                modifier = Modifier.semantics { heading() },
-                style = MaterialTheme.typography.headlineMedium,
-                fontWeight = FontWeight.Bold,
-                textAlign = TextAlign.Center,
-            )
-            Text(
-                stringResource(AppResource.String.word_flow_paused_message),
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                textAlign = TextAlign.Center,
-            )
-            Button(onClick = onResumeClick, modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp)) {
-                Icon(Icons.Default.PlayArrow, contentDescription = null)
-                Text(stringResource(AppResource.String.word_flow_resume))
-            }
+            Icon(Icons.Default.PlayArrow, contentDescription = null)
+            Text(stringResource(AppResource.String.word_flow_resume))
         }
     }
 }
@@ -368,7 +380,7 @@ private fun Choice(state: WordFlowUiState, choice: String, onChoiceClick: (Strin
         }
     Surface(
         modifier =
-            Modifier.fillMaxWidth().heightIn(min = 56.dp)
+            Modifier.fillMaxWidth().heightIn(min = OquTurboLayout.actionMinHeight)
                 .semantics {
                     role = Role.Button
                     contentDescription = choiceDescription
@@ -469,12 +481,15 @@ private fun ResultContent(
             ),
         modifier = Modifier.fillMaxWidth(),
     )
-    Button(onClick = onReplayClick, modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp)) {
+    Button(onClick = onReplayClick, modifier = Modifier.fillMaxWidth().heightIn(min = OquTurboLayout.actionMinHeight)) {
         Icon(Icons.Default.Replay, contentDescription = null)
         Text(stringResource(AppResource.String.word_flow_replay))
     }
     if (onBackClick != null) {
-        OutlinedButton(onClick = onBackClick, modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp)) {
+        OutlinedButton(
+            onClick = onBackClick,
+            modifier = Modifier.fillMaxWidth().heightIn(min = OquTurboLayout.actionMinHeight),
+        ) {
             Text(stringResource(AppResource.String.word_flow_back))
         }
     }

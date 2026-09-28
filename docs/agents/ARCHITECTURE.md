@@ -88,3 +88,8 @@ is stored by `SettingsRepository` and applied once through `feature/main`'s plat
 For a normal feature, begin with the closest feature's route/ViewModel/screen/DI structure. For a game, prefer the
 separation shown by Memory Grid (pure rules + lifecycle ViewModel) while retaining compatibility patterns required
 by an existing shared game. Do not introduce a new layer merely to make examples uniform.
+
+## Shared UI design ownership
+
+See [UI_DESIGN.md](UI_DESIGN.md) for foundation tokens, reusable card/stage recipes, responsive header policy,
+complete UI migration inventory, intentional gameplay exceptions and screenshot coverage to update for design changes.

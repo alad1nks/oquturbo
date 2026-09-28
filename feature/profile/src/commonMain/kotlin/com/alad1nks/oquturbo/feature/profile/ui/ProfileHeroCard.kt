@@ -16,8 +16,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.EmojiEvents
 import androidx.compose.material.icons.filled.Person
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
@@ -32,6 +30,8 @@ import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import com.alad1nks.oquturbo.core.designsystem.theme.OquTurboLayout
+import com.alad1nks.oquturbo.core.ui.component.AppCard
 import com.alad1nks.oquturbo.resources.AppResource
 import org.jetbrains.compose.resources.pluralStringResource
 import org.jetbrains.compose.resources.stringArrayResource
@@ -48,23 +48,17 @@ internal fun ProfileHeroCard(
         uiState.personalization.firstOrNull {
             it.category == PersonalizationCategory.CardBackground && it.isSelected
         }?.id
-    Card(
+    AppCard(
         modifier = modifier.fillMaxWidth(),
-        shape = MaterialTheme.shapes.large,
-        colors =
-            CardDefaults.cardColors(
-                containerColor =
-                    if (selectedBackground == PersonalizationId.TwilightBackground) {
-                        MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.65f)
-                    } else {
-                        MaterialTheme.colorScheme.surface
-                    },
-            ),
-        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.55f)),
-        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
+        containerColor =
+            if (selectedBackground == PersonalizationId.TwilightBackground) {
+                MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.65f)
+            } else {
+                MaterialTheme.colorScheme.surface
+            },
     ) {
         Column(
-            modifier = Modifier.fillMaxWidth().padding(20.dp),
+            modifier = Modifier.fillMaxWidth().padding(OquTurboLayout.cardInset),
             verticalArrangement = Arrangement.spacedBy(18.dp),
         ) {
             BoxWithConstraints(modifier = Modifier.fillMaxWidth()) {
