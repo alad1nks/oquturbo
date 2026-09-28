@@ -307,6 +307,38 @@ class RuleSwitchScreenSemanticsTest {
     }
 
     @Test
+    fun compactRussianRecordFailureKeepsRetryReachableAndStartDisabled() {
+        val originalLocale = Locale.getDefault()
+        try {
+            Locale.setDefault(Locale.forLanguageTag("ru"))
+            runComposeUiTest {
+                var reloads = 0
+                setContent {
+                    CompositionLocalProvider(LocalDensity provides Density(1f)) {
+                        OquTurboTheme {
+                            RuleSwitchScreen(
+                                RuleSwitchUiState(isRecordLoading = false, recordLoadFailed = true),
+                                {},
+                                { _, _ -> },
+                                null,
+                                modifier = Modifier.requiredSize(320.dp, 640.dp),
+                                onReloadClick = { reloads++ },
+                            )
+                        }
+                    }
+                }
+                onNodeWithText("Начать").assertIsNotEnabled()
+                onNodeWithText("Повторить загрузку")
+                    .performScrollTo().assertIsDisplayed().assertIsEnabled().performClick()
+                assertEquals(1, reloads)
+                onNodeWithText("Начать").assertIsNotEnabled()
+            }
+        } finally {
+            Locale.setDefault(originalLocale)
+        }
+    }
+
+    @Test
     fun enlargedRussianActiveKeepsBothAnswersReachable() {
         val originalLocale = Locale.getDefault()
         try {
