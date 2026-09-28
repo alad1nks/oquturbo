@@ -93,12 +93,7 @@ internal fun RuleSwitchRoute(viewModel: RuleSwitchViewModel, onBackClick: (() ->
     }
     val unfinished = state.game.phase in listOf(RuleSwitchPhase.Active, RuleSwitchPhase.Correct, RuleSwitchPhase.Paused)
     val blocked = state.game.phase == RuleSwitchPhase.Result && state.saveStatus != RuleSwitchSaveStatus.Saved
-    val exit: () -> Unit = {
-        if (!blocked) {
-            viewModel.abandon()
-            onBackClick?.invoke()
-        }
-    }
+    val exit: () -> Unit = { exitRuleSwitch(viewModel, onBackClick) }
     BackHandler(enabled = unfinished || blocked) { exit() }
     RuleSwitchScreen(
         state,
@@ -111,6 +106,11 @@ internal fun RuleSwitchRoute(viewModel: RuleSwitchViewModel, onBackClick: (() ->
         onRetrySaveClick = viewModel::retrySave,
         onExitClick = exit,
     )
+}
+
+// A callback retained from an earlier composition must ask the live attempt before navigating.
+internal fun exitRuleSwitch(viewModel: RuleSwitchViewModel, onBackClick: (() -> Unit)?) {
+    if (viewModel.abandon()) onBackClick?.invoke()
 }
 
 @Composable
