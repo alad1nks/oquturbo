@@ -1,5 +1,6 @@
 package com.alad1nks.oquturbo.core.data.repository
 
+import com.alad1nks.oquturbo.core.data.model.DayHistory
 import com.alad1nks.oquturbo.core.data.model.GameActivityTotals
 import com.alad1nks.oquturbo.core.data.model.GameId
 import com.alad1nks.oquturbo.core.data.model.GameModeId
@@ -14,16 +15,24 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.Transient
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonElement
+import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.encodeToJsonElement
+import kotlinx.serialization.json.jsonObject
 import kotlin.time.Clock
 import kotlin.time.ExperimentalTime
 
+@OptIn(ExperimentalTime::class)
 class GameActivityRepository(
     private val storage: Storage,
+    private val clock: Clock = Clock.System,
 ) {
     private val writeMutex = Mutex()
     private val json =
@@ -55,7 +64,34 @@ class GameActivityRepository(
             .map { payload -> requireNotNull(payload.totals) }
             .distinctUntilChanged()
 
-    @OptIn(ExperimentalTime::class)
+    fun observePracticeHistory(): Flow<DayHistory> =
+        storage.getGameSessionsJson()
+            .onStart { initializePracticeHistory() }
+            .map { requireNotNull(decodeDayHistory(decodePayload(it).practiceHistory)) }
+            .distinctUntilChanged()
+
+    private suspend fun initializePracticeHistory() {
+        writeMutex.withLock {
+            val payload = decodePayload(storage.getGameSessionsJson().first())
+            if (decodeDayHistory(payload.practiceHistory) == null) {
+                val history = payload.initialHistory()
+                storage.setGameSessionsJson(encodePayload(payload.copy(practiceHistory = history.encodeHistory())))
+            }
+        }
+    }
+
+    private fun GameSessionsPayload.initialHistory(): DayHistory {
+        val start = clock.now().toEpochMilliseconds() / MILLIS_PER_DAY
+        return DayHistory(start, sessions.filter { it.completedEpochDay == start }.map { it.completedEpochDay })
+    }
+
+    private fun encodePayload(payload: GameSessionsPayload): String {
+        val fields = json.encodeToJsonElement(payload).jsonObject
+        return JsonObject(
+            fields + (payload.practiceHistory?.let { mapOf("practiceHistory" to it) } ?: emptyMap()),
+        ).toString()
+    }
+
     suspend fun recordCompletedSession(
         game: GameId,
         mode: GameModeId,
@@ -64,7 +100,7 @@ class GameActivityRepository(
         correctAnswers: Int = score,
         durationMillis: Long,
         isNewRecord: Boolean,
-        completedAtEpochMillis: Long = Clock.System.now().toEpochMilliseconds(),
+        completedAtEpochMillis: Long = clock.now().toEpochMilliseconds(),
     ): GameSession =
         withContext(NonCancellable) {
             val session =
@@ -82,6 +118,7 @@ class GameActivityRepository(
 
             writeMutex.withLock {
                 val payload = decodePayload(storage.getGameSessionsJson().first())
+                val storedHistory = decodeDayHistory(payload.practiceHistory)
                 val previousStoredRecord =
                     payload.records
                         .filter { it.key() == session.key() }
@@ -106,13 +143,18 @@ class GameActivityRepository(
                     } else {
                         payload.records
                     }
+                val history =
+                    (storedHistory ?: payload.initialHistory()).withCompletedDay(
+                        verifiedSession.completedEpochDay,
+                    )
                 storage.setGameSessionsJson(
-                    json.encodeToString(
+                    encodePayload(
                         GameSessionsPayload(
                             sessions = updatedSessions,
                             records = updatedRecords,
                             totalCorrectAnswers = updatedTotals.correctAnswers,
                             totals = updatedTotals,
+                            practiceHistory = history.encodeHistory(),
                         ),
                     ),
                 )
@@ -136,7 +178,7 @@ class GameActivityRepository(
         check(payload.version == STORAGE_VERSION) {
             "Unsupported game activity payload version: ${payload.version}"
         }
-        return payload.normalized()
+        return payload.copy(practiceHistory = json.parseToJsonElement(value).jsonObject["practiceHistory"]).normalized()
     }
 
     private fun GameSessionsPayload.normalized(): GameSessionsPayload {
@@ -345,6 +387,7 @@ class GameActivityRepository(
         val records: List<GameRecord> = emptyList(),
         val totalCorrectAnswers: Long = 0,
         val totals: GameActivityTotals? = null,
+        @Transient val practiceHistory: JsonElement? = null,
     )
 
     private data class LegacyRecordSource(

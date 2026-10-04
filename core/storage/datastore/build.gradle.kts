@@ -31,6 +31,11 @@ kotlin {
     jvm()
 
     sourceSets {
+        jvmTest.dependencies {
+            implementation(libs.kotlin.test)
+            implementation(libs.kotlinx.coroutines.test)
+            implementation(projects.core.data)
+        }
         commonMain.dependencies {
             implementation(libs.datastore)
             implementation(libs.datastore.preferences)
