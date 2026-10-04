@@ -15,6 +15,8 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListState
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AutoStories
 import androidx.compose.material.icons.filled.Block
@@ -55,6 +57,7 @@ import androidx.lifecycle.compose.LifecycleResumeEffect
 import com.alad1nks.oquturbo.core.data.model.DailyTrainingEntry
 import com.alad1nks.oquturbo.core.data.model.GameId
 import com.alad1nks.oquturbo.core.data.model.GameModeId
+import com.alad1nks.oquturbo.core.data.model.GameSeriesKey
 import com.alad1nks.oquturbo.core.designsystem.theme.OquTurboLayout
 import com.alad1nks.oquturbo.core.designsystem.theme.OquTurboTheme
 import com.alad1nks.oquturbo.core.designsystem.theme.success
@@ -73,11 +76,12 @@ internal fun HomeRoute(
     viewModel: HomeViewModel,
     onStartTrainingClick: (DailyTrainingEntry) -> Unit,
     onViewProgressClick: () -> Unit,
+    onModeStatisticsClick: (GameSeriesKey) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val uiState by viewModel.uiState.collectAsState()
     LifecycleResumeEffect(viewModel) {
-        viewModel.refreshDailyTraining()
+        viewModel.refreshHome()
         onPauseOrDispose {}
     }
 
@@ -86,20 +90,26 @@ internal fun HomeRoute(
         onStartTrainingClick = { viewModel.startTraining(onStartTrainingClick) },
         onViewProgressClick = onViewProgressClick,
         onRetryTrainingClick = viewModel::retryDailyTraining,
+        onRetryPersonalResultClick = viewModel::retryPersonalResult,
+        onModeStatisticsClick = onModeStatisticsClick,
         modifier = modifier,
     )
 }
 
 @Composable
-private fun HomeScreen(
+internal fun HomeScreen(
     uiState: HomeUiState,
     onStartTrainingClick: () -> Unit,
     onViewProgressClick: () -> Unit = {},
     onRetryTrainingClick: () -> Unit = {},
+    onRetryPersonalResultClick: () -> Unit = {},
+    onModeStatisticsClick: (GameSeriesKey) -> Unit = {},
     modifier: Modifier = Modifier,
+    listState: LazyListState = rememberLazyListState(),
 ) {
     Box(modifier = modifier.fillMaxSize().appBackground()) {
         LazyColumn(
+            state = listState,
             modifier =
                 Modifier
                     .align(Alignment.TopCenter)
@@ -133,6 +143,13 @@ private fun HomeScreen(
                     onViewProgressClick = onViewProgressClick,
                     onRetryTrainingClick = onRetryTrainingClick,
                     onStartTrainingClick = onStartTrainingClick,
+                )
+            }
+            item(key = "personal-result") {
+                PersonalResultCard(
+                    state = uiState.personalResult,
+                    onRetryClick = onRetryPersonalResultClick,
+                    onModeStatisticsClick = onModeStatisticsClick,
                 )
             }
             item {
@@ -546,7 +563,7 @@ private fun HomeUiState.RecentRecord.modeTitle(): String {
     }
 }
 
-private fun String.wordFlowLanguageResource(): StringResource? =
+internal fun String.wordFlowLanguageResource(): StringResource? =
     when (this) {
         "en" -> AppResource.String.language_english
         "ru" -> AppResource.String.language_russian
@@ -593,7 +610,7 @@ internal fun HomeUiState.Game.icon(): ImageVector =
 private fun HomeScreenPreview() {
     OquTurboTheme {
         HomeScreen(
-            uiState = HomeUiState(),
+            uiState = HomeUiState(personalResult = previewNoRecentResult()),
             onStartTrainingClick = {},
         )
     }
@@ -611,6 +628,7 @@ private fun HomeScreenPopulatedPreview() {
         HomeScreen(
             uiState =
                 HomeUiState(
+                    personalResult = previewNoRecentResult(),
                     overallLevel = 17,
                     rankNumber = 4,
                     levelProgress = 0.68f,
@@ -652,6 +670,7 @@ private fun HomeScreenCompletedTrainingPreview() {
         HomeScreen(
             uiState =
                 HomeUiState(
+                    personalResult = previewNoRecentResult(),
                     overallLevel = 21,
                     rankNumber = 5,
                     levelProgress = 0.1f,
@@ -662,7 +681,7 @@ private fun HomeScreenCompletedTrainingPreview() {
     }
 }
 
-private fun previewDailyTraining(completed: Boolean): HomeUiState.DailyTraining {
+internal fun previewDailyTraining(completed: Boolean): HomeUiState.DailyTraining {
     val items =
         listOf(
             previewTrainingItem(
@@ -728,6 +747,7 @@ private fun NumberTrailHomeRecordPreview() {
         HomeScreen(
             uiState =
                 HomeUiState(
+                    personalResult = previewNoRecentResult(),
                     recentRecords =
                         listOf(
                             HomeUiState.RecentRecord(
@@ -750,6 +770,7 @@ private fun SymbolCountHomeRecordPreview() {
         HomeScreen(
             uiState =
                 HomeUiState(
+                    personalResult = previewNoRecentResult(),
                     recentRecords =
                         listOf(
                             HomeUiState.RecentRecord(
@@ -775,14 +796,14 @@ private fun HomeFreshTrainingPreview() {
 @ScreenshotPreview
 @Composable
 private fun HomeLoadingTrainingPreview() {
-    OquTurboTheme { HomeScreen(HomeUiState(), {}) }
+    OquTurboTheme { HomeScreen(HomeUiState(personalResult = previewNoRecentResult()), {}) }
 }
 
 @Preview(name = "Home training error", widthDp = 390, heightDp = 1000)
 @ScreenshotPreview
 @Composable
 private fun HomeTrainingErrorPreview() {
-    OquTurboTheme { HomeScreen(HomeUiState(trainingLoadFailed = true), {}) }
+    OquTurboTheme { HomeScreen(HomeUiState(personalResult = previewNoRecentResult(), trainingLoadFailed = true), {}) }
 }
 
 @Preview(name = "Home launch pending", widthDp = 390, heightDp = 1100)
@@ -810,7 +831,7 @@ private fun HomeCompletedKazakhPreview() {
 @ScreenshotPreview
 @Composable
 private fun HomeErrorKazakhPreview() {
-    OquTurboTheme { HomeScreen(HomeUiState(trainingLoadFailed = true), {}) }
+    OquTurboTheme { HomeScreen(HomeUiState(personalResult = previewNoRecentResult(), trainingLoadFailed = true), {}) }
 }
 
 @Preview(name = "Home wide training", widthDp = 800, heightDp = 1100)
@@ -824,7 +845,9 @@ private fun HomeWideTrainingPreview() {
 @ScreenshotPreview
 @Composable
 private fun HomeDarkErrorPreview() {
-    OquTurboTheme(darkTheme = true) { HomeScreen(HomeUiState(trainingLoadFailed = true), {}) }
+    OquTurboTheme(darkTheme = true) {
+        HomeScreen(HomeUiState(personalResult = previewNoRecentResult(), trainingLoadFailed = true), {})
+    }
 }
 
 @Composable
@@ -834,6 +857,7 @@ private fun TrainingStatePreview(completedCount: Int, starting: Boolean = false)
         HomeScreen(
             uiState =
                 HomeUiState(
+                    personalResult = previewNoRecentResult(),
                     dailyTraining =
                         training.copy(
                             items =

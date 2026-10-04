@@ -2,6 +2,9 @@ package com.alad1nks.oquturbo.feature.home.ui
 
 import androidx.lifecycle.viewModelScope
 import com.alad1nks.oquturbo.core.data.model.DailyTrainingEntry
+import com.alad1nks.oquturbo.core.data.model.GameId
+import com.alad1nks.oquturbo.core.data.model.GameModeId
+import com.alad1nks.oquturbo.core.data.model.ProgressComparison
 import com.alad1nks.oquturbo.core.data.repository.DailyTrainingRepository
 import com.alad1nks.oquturbo.core.data.repository.GameActivityRepository
 import com.alad1nks.oquturbo.core.storage.common.Storage
@@ -27,6 +30,7 @@ import kotlinx.coroutines.test.setMain
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
+import kotlin.test.assertIs
 import kotlin.test.assertNotNull
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
@@ -281,6 +285,182 @@ class HomeViewModelTest {
             assertEquals(known.recentRecords, vm.uiState.value.recentRecords)
         }
 
+    @Test
+    fun resultWaitsForActualHistoryReadAndLegacyRecordsDoNotBecomeAttempts() =
+        exercise {
+            storage.activityGate = CompletableDeferred()
+            runCurrent()
+            assertEquals(PersonalResultState.Loading, vm.uiState.value.personalResult)
+            assertNotNull(vm.uiState.value.dailyTraining)
+            storage.setRememberNumberRecord(4, "0123456789", 100)
+            storage.activityGate!!.complete(Unit)
+            storage.activityGate = null
+            runCurrent()
+            assertIs<ProgressComparison.NoRecentSessions>(result())
+        }
+
+    @Test
+    fun latestSeriesNineBecomesComparedOnTenthSavedAttempt() =
+        exercise {
+            runCurrent()
+            repeat(10) { record(score = 99, variant = "older") }
+            repeat(9) { record(score = if (it < 5) 2 else 4, variant = "latest") }
+            runCurrent()
+            val scarce = assertIs<ProgressComparison.InsufficientData>(result())
+            assertEquals("latest", scarce.series.variantId)
+            assertEquals(9, scarce.availableCount)
+            record(score = 4, variant = "latest")
+            runCurrent()
+            val compared = assertIs<ProgressComparison.Compared>(result())
+            assertEquals(2, compared.previousMedian)
+            assertEquals(4, compared.currentMedian)
+            assertEquals(2, compared.absoluteChange)
+            record(score = 0, variant = "new-series")
+            runCurrent()
+            assertEquals(1, assertIs<ProgressComparison.InsufficientData>(result()).availableCount)
+        }
+
+    @Test
+    fun historyFailureKeepsTrainingAndKnownActivityWhileRetryIsCoalesced() =
+        exercise {
+            runCurrent()
+            record(score = 100)
+            runCurrent()
+            val known = vm.uiState.value
+            val sessionWrites = storage.sessionWrites
+            val trainingWrites = storage.writes
+            storage.failActivity = true
+            runCurrent()
+            assertEquals(PersonalResultState.Error, vm.uiState.value.personalResult)
+            assertEquals(known.dailyTraining, vm.uiState.value.dailyTraining)
+            assertEquals(known.levelProgress, vm.uiState.value.levelProgress)
+            advanceTimeBy(5_001)
+            runCurrent()
+            assertEquals(PersonalResultState.Error, vm.uiState.value.personalResult)
+            storage.maximumActivityCollectors = storage.activeActivityCollectors
+            vm.retryPersonalResult()
+            vm.retryPersonalResult()
+            assertEquals(PersonalResultState.Loading, vm.uiState.value.personalResult)
+            runCurrent()
+            assertEquals(PersonalResultState.Error, vm.uiState.value.personalResult)
+            storage.failActivity = false
+            vm.retryPersonalResult()
+            runCurrent()
+            assertIs<PersonalResultState.Loaded>(vm.uiState.value.personalResult)
+            assertTrue(storage.maximumActivityCollectors <= 2)
+            assertEquals(sessionWrites, storage.sessionWrites)
+            assertEquals(trainingWrites, storage.writes)
+        }
+
+    @Test
+    fun malformedAndUnsupportedHistoryUseErrorAndBackgroundRetryRecovers() =
+        exercise {
+            runCurrent()
+            for (payload in listOf("{invalid", "{\"version\":999}")) {
+                storage.setGameSessionsJson(payload)
+                runCurrent()
+                assertEquals(PersonalResultState.Error, vm.uiState.value.personalResult)
+                assertNotNull(vm.uiState.value.dailyTraining)
+                storage.setGameSessionsJson("")
+                advanceTimeBy(5_001)
+                runCurrent()
+                assertIs<ProgressComparison.NoRecentSessions>(result())
+            }
+        }
+
+    @Test
+    fun subscriptionTimeoutHidesOldResultUntilFreshReadButKeepsLevelAndRecords() =
+        exercise {
+            runCurrent()
+            record(score = 100)
+            runCurrent()
+            val known = vm.uiState.value
+            stopObserving()
+            advanceTimeBy(5_001)
+            runCurrent()
+            assertEquals(0, storage.activeActivityCollectors)
+            assertEquals(PersonalResultState.Loading, vm.uiState.value.personalResult)
+            storage.activityGate = CompletableDeferred()
+            observe()
+            runCurrent()
+            assertEquals(PersonalResultState.Loading, vm.uiState.value.personalResult)
+            assertEquals(known.recentRecords, vm.uiState.value.recentRecords)
+            assertEquals(known.levelProgress, vm.uiState.value.levelProgress)
+            storage.activityGate!!.complete(Unit)
+            storage.activityGate = null
+            runCurrent()
+            assertIs<ProgressComparison.InsufficientData>(result())
+        }
+
+    @Test
+    fun midnightAndResumeRecomputeWindowWithoutNewSessions() =
+        exercise {
+            runCurrent()
+            repeat(5) { record(score = 2, day = clock.millis / DAY - 27) }
+            repeat(5) { record(score = 4) }
+            runCurrent()
+            assertIs<ProgressComparison.Compared>(result())
+            clock.millis += DAY
+            advanceTimeBy(60_001)
+            runCurrent()
+            assertEquals(5, assertIs<ProgressComparison.InsufficientData>(result()).availableCount)
+            clock.millis += DAY * 28
+            vm.refreshHome()
+            assertEquals(PersonalResultState.Loading, vm.uiState.value.personalResult)
+            runCurrent()
+            assertIs<ProgressComparison.NoRecentSessions>(result())
+            storage.failActivity = true
+            runCurrent()
+            clock.millis += DAY
+            advanceTimeBy(60_001)
+            runCurrent()
+            assertEquals(PersonalResultState.Error, vm.uiState.value.personalResult)
+        }
+
+    @Test
+    fun trainingFailureDoesNotHideLoadedResultAndCancelledHistoryDoesNotBecomeError() =
+        exercise(initialFailure = true) {
+            runCurrent()
+            advanceTimeBy(701)
+            runCurrent()
+            assertTrue(vm.uiState.value.trainingLoadFailed)
+            assertIs<ProgressComparison.NoRecentSessions>(result())
+            storage.activityGate = CompletableDeferred()
+            vm.refreshHome()
+            runCurrent()
+            assertEquals(PersonalResultState.Loading, vm.uiState.value.personalResult)
+            vm.viewModelScope.cancel()
+            runCurrent()
+            assertEquals(0, storage.activeActivityCollectors)
+            assertEquals(PersonalResultState.Loading, vm.uiState.value.personalResult)
+        }
+
+    @Test
+    fun returningWithinStopTimeoutCancelsScheduledStopAndResumeCoalescesFreshReads() =
+        exercise {
+            runCurrent()
+            assertEquals(2, storage.activeActivityCollectors)
+            storage.maximumActivityCollectors = 2
+            stopObserving()
+            advanceTimeBy(4_000)
+            observe()
+            runCurrent()
+            advanceTimeBy(2_000)
+            runCurrent()
+            assertEquals(2, storage.activeActivityCollectors)
+            storage.activityGate = CompletableDeferred()
+            vm.refreshHome()
+            vm.refreshHome()
+            runCurrent()
+            assertEquals(PersonalResultState.Loading, vm.uiState.value.personalResult)
+            assertTrue(storage.maximumActivityCollectors <= 2)
+            storage.activityGate!!.complete(Unit)
+            storage.activityGate = null
+            runCurrent()
+            assertIs<ProgressComparison.NoRecentSessions>(result())
+            assertEquals(2, storage.activeActivityCollectors)
+        }
+
     private fun exercise(
         initialFailure: Boolean = false,
         sharedFailure: Boolean = false,
@@ -301,6 +481,25 @@ class HomeViewModelTest {
         }
 
     private class Fixture(private val scope: TestScope, initialFailure: Boolean, sharedFailure: Boolean) {
+        private var recordIndex = 0L
+
+        suspend fun record(score: Int, variant: String? = null, day: Long = clock.millis / DAY) {
+            activity.recordCompletedSession(
+                game = GameId.NumberSprint,
+                mode = GameModeId.NumberSprintCustom,
+                variantId = variant,
+                score = score,
+                durationMillis = 0,
+                isNewRecord = true,
+                completedAtEpochMillis = day * DAY + recordIndex++,
+            )
+        }
+
+        fun result(): ProgressComparison =
+            assertIs<PersonalResultState.Loaded>(
+                vm.uiState.value.personalResult,
+            ).comparison
+
         private var collector: Job? = null
 
         fun observe() {
@@ -367,10 +566,32 @@ class HomeViewModelTest {
                 allReadFailure.value = value
             }
 
+        private val activityFailure = MutableStateFlow(false)
+        var failActivity: Boolean
+            get() = activityFailure.value
+            set(value) {
+                activityFailure.value = value
+            }
+        var activityGate: CompletableDeferred<Unit>? = null
+        var activeActivityCollectors = 0
+        var maximumActivityCollectors = 0
+        var sessionWrites = 0
+
         override fun getGameSessionsJson(): Flow<String?> =
-            combine(allReadFailure, gameSessionsJson) { failed, value ->
-                check(!failed) { "Shared storage unavailable" }
-                value
+            flow {
+                activeActivityCollectors++
+                maximumActivityCollectors = maxOf(maximumActivityCollectors, activeActivityCollectors)
+                try {
+                    activityGate?.await()
+                    emitAll(
+                        combine(allReadFailure, activityFailure, gameSessionsJson) { allFailed, failed, value ->
+                            check(!allFailed && !failed) { "Activity storage unavailable" }
+                            value
+                        },
+                    )
+                } finally {
+                    activeActivityCollectors--
+                }
             }
 
         var failReads = false
@@ -422,6 +643,7 @@ class HomeViewModelTest {
         }
 
         override suspend fun setGameSessionsJson(value: String) {
+            sessionWrites++
             gameSessionsJson.value = value
         }
 

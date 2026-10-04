@@ -911,4 +911,22 @@
     <string name="home_training_loading">Жаттығу жүктелуде…</string>
     <string name="home_training_unavailable">Жаттығу қолжетімсіз. Қайта жүктеп көріңіз.</string>
     <string name="home_retry_training">Қайталау</string>
+    <string name="home_personal_result_title">Жеке нәтиже</string>
+    <string name="home_personal_result_loading">Нәтиже жүктелуде…</string>
+    <string name="home_personal_result_error">Нәтижені жүктеу мүмкін болмады.</string>
+    <string name="home_personal_result_retry">Қайталау</string>
+    <string name="home_personal_result_empty">Соңғы 28 күнде (UTC) сақталған әрекеттер жоқ.</string>
+    <string name="home_personal_result_empty_hint">Нәтижені көру үшін жаттығуды аяқтаңыз.</string>
+    <string name="home_personal_result_window">Соңғы 28 күн (UTC)</string>
+    <string name="home_personal_result_source">Сақталған әрекеттер негізінде</string>
+    <string name="home_personal_result_count">Сақталған әрекеттер: %1$d / 10</string>
+    <string name="home_personal_result_insufficient_hint">Салыстыру үшін бір ойында, бір режимде және бірдей баптаулармен орындалған 10 сақталған әрекет қажет.</string>
+    <string name="home_personal_result_median">Нәтиженің медианасы</string>
+    <string name="home_personal_result_previous">Алдыңғы 5 әрекет</string>
+    <string name="home_personal_result_current">Соңғы 5 әрекет</string>
+    <string name="home_personal_result_change">Өзгеріс</string>
+    <string name="home_personal_result_statistics">Режим статистикасы</string>
+    <string name="home_personal_result_unknown_settings">Баптаулар белгісіз</string>
+    <string name="home_personal_result_unknown_language">Тіл көрсетілмеген</string>
+    <string name="home_personal_result_unknown_variant">Нұсқа мәліметтері белгісіз</string>
 </resources>
