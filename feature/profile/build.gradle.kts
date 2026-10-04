@@ -9,6 +9,7 @@ plugins {
     alias(libs.plugins.kotlinxSerialization)
 }
 
+@OptIn(org.jetbrains.compose.ExperimentalComposeLibrary::class)
 kotlin {
     android {
         namespace = "com.alad1nks.oquturbo.feature.profile"
@@ -43,6 +44,10 @@ kotlin {
     }
 
     sourceSets {
+        jvmTest.dependencies {
+            implementation(compose.uiTest)
+            runtimeOnly(compose.desktop.currentOs)
+        }
         commonMain.dependencies {
             implementation(libs.compose.foundation)
             implementation(libs.compose.material.icons.extended)
@@ -68,6 +73,8 @@ kotlin {
         }
         commonTest.dependencies {
             implementation(libs.kotlin.test)
+            implementation(libs.kotlinx.coroutines.test)
+            implementation(projects.core.storage.common)
         }
     }
 }

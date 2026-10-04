@@ -160,7 +160,7 @@
     <string name="profile_progress_summary_title">Ойын барысы</string>
     <string name="profile_completed_trainings">Аяқталған жаттығулар</string>
     <string name="profile_current_streak">Қазіргі серия</string>
-    <string name="profile_best_streak">Үздік серия</string>
+    <string name="profile_best_streak">Ең ұзақ расталған қатар</string>
     <string name="profile_achievements_count">Алынған жетістіктер</string>
     <plurals name="profile_days_format">
         <item quantity="one">%1$d күн</item>
@@ -171,7 +171,7 @@
     <string name="profile_achievement_first_training_title">Алғашқы жаттығу</string>
     <string name="profile_achievement_first_training_condition">Алғашқы күнделікті жаттығуды аяқтаңыз</string>
     <string name="profile_achievement_seven_days_title">7 күн қатарынан</string>
-    <string name="profile_achievement_seven_days_condition">Жаттығуды 7 күн қатарынан аяқтаңыз</string>
+    <string name="profile_achievement_seven_days_condition">Қатарынан 7 күннің әрқайсысында ойынды аяқтап, сақтаңыз.</string>
     <string name="profile_achievement_memory_master_title">Жад шебері</string>
     <string name="profile_achievement_memory_master_condition">Number Sprint ойынының бірнеше режимінде рекорд орнатыңыз</string>
     <string name="profile_achievement_correct_answers_title">1000 дұрыс жауап</string>
@@ -929,4 +929,39 @@
     <string name="home_personal_result_unknown_settings">Баптаулар белгісіз</string>
     <string name="home_personal_result_unknown_language">Тіл көрсетілмеген</string>
     <string name="home_personal_result_unknown_variant">Нұсқа мәліметтері белгісіз</string>
+    <string name="practice_rhythm_title">Жаттығу ырғағы</string>
+    <string name="practice_rhythm_goal">Мақсат: соңғы 7 күннің 4 күнінде ойнау</string>
+    <string name="practice_rhythm_count">Ойнаған күндер: %1$d / 7</string>
+    <string name="practice_rhythm_count_partial">Расталған күндер: %1$d. Тарихтың бір бөлігі белгісіз.</string>
+    <string name="practice_rhythm_reached">Мақсат орындалды</string>
+    <string name="practice_rhythm_continue">Өзіңізге ыңғайлы қарқынмен жалғастырыңыз.</string>
+    <string name="practice_definition">Ойын аяқталып, сақталған күн жаттығу күні болып саналады.</string>
+    <string name="practice_date_range">%1$s – %2$s (UTC)</string>
+    <string name="practice_today">Бүгін: %1$s (UTC): %2$s</string>
+    <string name="practice_day_complete">Ойын сақталған</string>
+    <string name="practice_day_none">Сақталған ойын жоқ</string>
+    <string name="practice_day_today_none">Әзірге сақталған аяқталған ойын жоқ</string>
+    <string name="practice_day_unknown">Дерек жоқ</string>
+    <string name="practice_tracking_start">Есепке алу %1$s күні (UTC) басталды. Алғашқы күннің деректері толық болмауы мүмкін.</string>
+    <string name="practice_history_loading">Жаттығу тарихы жүктелуде…</string>
+    <string name="practice_history_error">Жаттығу тарихы қолжетімсіз.</string>
+    <string name="practice_history_retry">Қайталау</string>
+    <string name="practice_future_dates">Тарихта бүгіннен кейінгі күндер бар. Құрылғының күнін тексеріңіз.</string>
+    <string name="practice_insufficient_history">Тарих жеткіліксіз</string>
+    <string name="practice_no_confirmed_streak">Әзірге расталған қатар жоқ</string>
+    <string name="practice_profile_scope">Есепке алу %1$s күні (UTC) басталды. Бұрынғы тарих толық болмауы мүмкін. Қатарлар сақталған күндер бойынша есептеледі.</string>
+    <string name="practice_loading_short">Жүктелуде…</string>
+    <string name="practice_unavailable_short">Қолжетімсіз</string>
+    <string name="practice_at_least_count">Кемінде %1$d</string>
+    <string name="practice_achievements_partial">Кейбір жетістіктер әзірге қолжетімсіз.</string>
+    <string name="practice_best_progress">Ең ұзақ расталған қатар бойынша</string>
+    <string name="practice_earned_evidence">Сақталған жаттығу күндерімен расталған</string>
+    <string name="practice_saved_scope">Сақталған тарих бойынша</string>
+    <string name="practice_day_semantics">%1$s (UTC): %2$s</string>
+    <string name="practice_today_semantics">Бүгін, %1$s (UTC): %2$s</string>
+    <string name="practice_date_format">%3$s.%2$s.%1$s</string>
+    <plurals name="practice_at_least_days">
+        <item quantity="one">Кемінде %1$d күн</item>
+        <item quantity="other">Кемінде %1$d күн</item>
+    </plurals>
 </resources>

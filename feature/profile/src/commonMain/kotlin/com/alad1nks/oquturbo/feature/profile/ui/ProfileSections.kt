@@ -32,6 +32,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -39,7 +40,6 @@ import androidx.compose.ui.unit.dp
 import com.alad1nks.oquturbo.core.ui.component.AppCard
 import com.alad1nks.oquturbo.core.ui.component.AppCardTone
 import com.alad1nks.oquturbo.resources.AppResource
-import org.jetbrains.compose.resources.pluralStringResource
 import org.jetbrains.compose.resources.stringArrayResource
 import org.jetbrains.compose.resources.stringResource
 
@@ -74,6 +74,7 @@ internal fun ProfileSummarySection(
     uiState: ProfileUiState,
     onStatsClick: () -> Unit,
     onAchievementsClick: () -> Unit,
+    onRetryPracticeHistory: () -> Unit = {},
     modifier: Modifier = Modifier,
 ) {
     Column(
@@ -85,7 +86,13 @@ internal fun ProfileSummarySection(
             style = MaterialTheme.typography.titleLarge,
         )
         BoxWithConstraints(modifier = Modifier.fillMaxWidth()) {
-            val columns = if (maxWidth < 560.dp) 2 else 4
+            val minimum = 150.dp * LocalDensity.current.fontScale
+            val columns =
+                when {
+                    maxWidth >= minimum * 4 + 30.dp -> 4
+                    maxWidth >= minimum * 2 + 10.dp -> 2
+                    else -> 1
+                }
             val facts =
                 listOf(
                     SummaryFactData(
@@ -95,29 +102,34 @@ internal fun ProfileSummarySection(
                         onClick = onStatsClick,
                     ),
                     SummaryFactData(
-                        value =
-                            pluralStringResource(
-                                AppResource.Plural.profile_days_format,
-                                uiState.currentStreakDays,
-                                uiState.currentStreakDays,
-                            ),
+                        value = currentPracticeValue(uiState.practiceHistory),
+                        words =
+                            uiState.practiceHistory !is ProfilePracticeState.Ready ||
+                                (
+                                    !uiState.practiceHistory.rhythm.currentStreakIsExact &&
+                                        uiState.currentStreakDays == 0
+                                ),
                         label = { stringResource(AppResource.String.profile_current_streak) },
                         icon = Icons.Filled.LocalFireDepartment,
                         onClick = onStatsClick,
                     ),
                     SummaryFactData(
-                        value =
-                            pluralStringResource(
-                                AppResource.Plural.profile_days_format,
-                                uiState.bestStreakDays,
-                                uiState.bestStreakDays,
-                            ),
+                        value = bestPracticeValue(uiState.practiceHistory),
+                        words = uiState.practiceHistory !is ProfilePracticeState.Ready,
                         label = { stringResource(AppResource.String.profile_best_streak) },
                         icon = Icons.Filled.WorkspacePremium,
                         onClick = onStatsClick,
                     ),
                     SummaryFactData(
-                        value = uiState.earnedAchievementsCount.toString(),
+                        value =
+                            if (uiState.practiceHistory is ProfilePracticeState.Ready) {
+                                uiState.earnedAchievementsCount.toString()
+                            } else {
+                                stringResource(
+                                    AppResource.String.practice_at_least_count,
+                                    uiState.earnedAchievementsCount,
+                                )
+                            },
                         label = { stringResource(AppResource.String.profile_achievements_count) },
                         icon = Icons.Filled.EmojiEvents,
                         onClick = onAchievementsClick,
@@ -142,6 +154,7 @@ internal fun ProfileSummarySection(
                 }
             }
         }
+        PracticeProfileContext(uiState.practiceHistory, onRetryPracticeHistory)
     }
 }
 
@@ -150,6 +163,7 @@ private data class SummaryFactData(
     val label: @Composable () -> String,
     val icon: ImageVector,
     val onClick: () -> Unit,
+    val words: Boolean = false,
 )
 
 @Composable
@@ -174,7 +188,7 @@ private fun SummaryFact(
             )
             Text(
                 text = fact.value,
-                style = MaterialTheme.typography.titleLarge,
+                style = if (fact.words) MaterialTheme.typography.titleMedium else MaterialTheme.typography.titleLarge,
                 fontWeight = FontWeight.Bold,
             )
             Text(
@@ -191,6 +205,8 @@ private fun SummaryFact(
 internal fun ProfileAchievementsSection(
     achievements: List<ProfileUiState.Achievement>,
     onAllAchievementsClick: () -> Unit,
+    practiceHistory: ProfilePracticeState = ProfilePracticeState.Loading,
+    onRetryPracticeHistory: () -> Unit = {},
     modifier: Modifier = Modifier,
 ) {
     Column(
@@ -203,7 +219,11 @@ internal fun ProfileAchievementsSection(
             onActionClick = onAllAchievementsClick,
         )
         achievements.take(3).forEach { achievement ->
-            AchievementCard(achievement = achievement)
+            AchievementCard(
+                achievement = achievement,
+                history = practiceHistory,
+                onRetryPracticeHistory = onRetryPracticeHistory,
+            )
         }
     }
 }
@@ -212,7 +232,14 @@ internal fun ProfileAchievementsSection(
 internal fun AchievementCard(
     achievement: ProfileUiState.Achievement,
     modifier: Modifier = Modifier,
+    history: ProfilePracticeState = ProfilePracticeState.Loading,
+    onRetryPracticeHistory: () -> Unit = {},
+    showFutureNote: Boolean = false,
 ) {
+    if (achievement.id == AchievementId.SevenDayStreak) {
+        SevenDayAchievementCard(achievement, history, onRetryPracticeHistory, showFutureNote, modifier)
+        return
+    }
     AppCard(
         modifier = modifier.fillMaxWidth(),
         compact = true,
@@ -303,7 +330,7 @@ internal fun AchievementCard(
 }
 
 @Composable
-private fun AchievementStatusLabel(status: AchievementStatus) {
+internal fun AchievementStatusLabel(status: AchievementStatus) {
     Surface(
         shape = MaterialTheme.shapes.small,
         color =

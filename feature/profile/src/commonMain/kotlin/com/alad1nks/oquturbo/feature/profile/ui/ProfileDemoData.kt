@@ -1,8 +1,15 @@
 package com.alad1nks.oquturbo.feature.profile.ui
 
+import com.alad1nks.oquturbo.core.data.model.DayHistory
+import com.alad1nks.oquturbo.core.data.practice.calculatePracticeRhythm
+
 internal object ProfileDemoData {
     val newUser =
         ProfileUiState(
+            practiceHistory =
+                ProfilePracticeState.Ready(
+                    calculatePracticeRhythm(DayHistory(20_000, emptyList()), 20_000),
+                ),
             achievements =
                 listOf(
                     achievement(AchievementId.FirstTraining, progress = 0, target = 1),
@@ -60,7 +67,6 @@ internal object ProfileDemoData {
                 listOf(
                     ProfileUiState.RecentUnlock.Personalization(PersonalizationId.ExplorerFrame),
                     ProfileUiState.RecentUnlock.Title(TitleId.QuickLook),
-                    ProfileUiState.RecentUnlock.Achievement(AchievementId.SevenDayStreak),
                 ),
         )
 
@@ -92,6 +98,13 @@ internal object ProfileDemoData {
             currentLevelXp = currentXp,
             nextLevelXp = nextXp,
             completedTrainings = 26,
+            practiceHistory =
+                ProfilePracticeState.Ready(
+                    calculatePracticeRhythm(
+                        DayHistory(19_900, (19_970L..19_983L).toList() + (19_993L..20_000L).toList()),
+                        20_000,
+                    ),
+                ),
             currentStreakDays = 8,
             bestStreakDays = 14,
             achievements = mixedAchievementItems(),
@@ -106,7 +119,6 @@ internal object ProfileDemoData {
             recentUnlocks =
                 listOf(
                     ProfileUiState.RecentUnlock.Level(value = level),
-                    ProfileUiState.RecentUnlock.Achievement(AchievementId.SevenDayStreak),
                 ),
         )
 
@@ -127,7 +139,6 @@ internal object ProfileDemoData {
                 status = AchievementStatus.Earned,
                 currentProgress = 7,
                 targetProgress = 7,
-                earnedDate = EarnedDate.Today,
             ),
         )
 

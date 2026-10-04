@@ -4,27 +4,62 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.alad1nks.oquturbo.core.data.model.AppLanguage
 import com.alad1nks.oquturbo.core.data.model.DailyTrainingProgress
+import com.alad1nks.oquturbo.core.data.model.DayHistory
 import com.alad1nks.oquturbo.core.data.model.PlayerProgress
 import com.alad1nks.oquturbo.core.data.model.ProfilePreferences
+import com.alad1nks.oquturbo.core.data.practice.calculatePracticeRhythm
 import com.alad1nks.oquturbo.core.data.repository.DailyTrainingRepository
 import com.alad1nks.oquturbo.core.data.repository.GameActivityRepository
 import com.alad1nks.oquturbo.core.data.repository.ProfileRepository
 import com.alad1nks.oquturbo.core.data.repository.SettingsRepository
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.cancelAndJoin
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.retryWhen
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import kotlin.time.Clock
+import kotlin.time.ExperimentalTime
 
+@OptIn(ExperimentalTime::class)
 internal class ProfileViewModel(
     private val activityRepository: GameActivityRepository,
     private val dailyTrainingRepository: DailyTrainingRepository,
     private val profileRepository: ProfileRepository,
     private val settingsRepository: SettingsRepository,
+    private val clock: Clock = Clock.System,
 ) : ViewModel() {
     private var isSavingIdentity = false
 
-    val uiState: StateFlow<ProfileUiState> =
+    private var baseState =
+        createProfileUiState(
+            emptyPlayerProgress(),
+            emptyList(),
+            ProfilePreferences(),
+            emptyList(),
+            null,
+            DailyTrainingProgress(),
+        )
+    private var historyState: ProfilePracticeState = ProfilePracticeState.Loading
+    private val mutableUiState = MutableStateFlow(baseState)
+    val uiState = mutableUiState.asStateFlow()
+    private var baseJob: Job? = null
+    private var historyJob: Job? = null
+    private val historyReload = MutableStateFlow(0L)
+    private var historyLoading = false
+    private var lastHistory: DayHistory? = null
+    private var historyEpochDay = currentEpochDay()
+
+    private val baseFlow =
         combine(
             activityRepository.observeProgress(),
             activityRepository.observeRecords(),
@@ -45,19 +80,105 @@ internal class ProfileViewModel(
                 todayTraining = trainingState.first,
                 trainingProgress = trainingState.second,
             )
-        }.stateIn(
-            scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(STOP_TIMEOUT_MILLIS),
-            initialValue =
-                createProfileUiState(
-                    emptyPlayerProgress(),
-                    emptyList(),
-                    ProfilePreferences(),
-                    emptyList(),
-                    null,
-                    DailyTrainingProgress(),
-                ),
-        )
+        }
+
+    init {
+        viewModelScope.launch {
+            mutableUiState.subscriptionCount.map { it > 0 }.distinctUntilChanged().collectLatest { subscribed ->
+                if (subscribed) {
+                    if (baseJob?.isActive != true) {
+                        baseJob =
+                            viewModelScope.launch {
+                                baseFlow.retryWhen { error, _ ->
+                                    if (error is CancellationException) return@retryWhen false
+                                    delay(1_000)
+                                    true
+                                }.collect {
+                                    baseState = it
+                                    renderHistory()
+                                }
+                            }
+                    }
+                    if (historyJob?.isActive != true) observeHistory()
+                } else {
+                    delay(STOP_TIMEOUT_MILLIS)
+                    showHistoryLoading()
+                    historyJob?.cancelAndJoin()
+                    historyJob = null
+                    baseJob?.cancelAndJoin()
+                    baseJob = null
+                }
+            }
+        }
+        viewModelScope.launch {
+            while (true) {
+                refreshPracticeDay()
+                delay(1_000)
+            }
+        }
+    }
+
+    private fun observeHistory() {
+        showHistoryLoading()
+        historyJob =
+            viewModelScope.launch {
+                historyReload.collectLatest {
+                    showHistoryLoading()
+                    activityRepository.observePracticeHistory().retryWhen { error, _ ->
+                        if (error is CancellationException) return@retryWhen false
+                        historyLoading = false
+                        historyState = ProfilePracticeState.Error
+                        renderHistory()
+                        delay(1_000)
+                        true
+                    }.collect { history ->
+                        historyLoading = false
+                        lastHistory = history
+                        historyEpochDay = currentEpochDay()
+                        historyState = ProfilePracticeState.Ready(calculatePracticeRhythm(history, historyEpochDay))
+                        renderHistory()
+                    }
+                }
+            }
+    }
+
+    private fun renderHistory() {
+        mutableUiState.value = baseState.withPracticeHistory(historyState)
+    }
+
+    private fun showHistoryLoading() {
+        historyLoading = true
+        historyState = ProfilePracticeState.Loading
+        renderHistory()
+    }
+
+    fun retryPracticeHistory() {
+        if (historyLoading || historyState != ProfilePracticeState.Error) return
+        showHistoryLoading()
+        historyReload.value++
+    }
+
+    fun refreshProfile() {
+        if (!historyLoading) {
+            showHistoryLoading()
+            historyReload.value++
+        }
+        refreshPracticeDay()
+    }
+
+    private fun refreshPracticeDay() {
+        val today = currentEpochDay()
+        if (today == historyEpochDay) return
+        historyEpochDay = today
+        if (historyState is ProfilePracticeState.Ready) {
+            lastHistory?.let {
+                historyState = ProfilePracticeState.Ready(calculatePracticeRhythm(it, today))
+                renderHistory()
+            }
+        }
+    }
+
+    private fun currentEpochDay(): Long = clock.now().toEpochMilliseconds() / 86_400_000L
 
     val settingsUiState: StateFlow<ProfileSettingsUiState> =
         combine(

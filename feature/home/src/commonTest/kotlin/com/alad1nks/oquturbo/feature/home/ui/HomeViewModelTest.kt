@@ -2,6 +2,7 @@ package com.alad1nks.oquturbo.feature.home.ui
 
 import androidx.lifecycle.viewModelScope
 import com.alad1nks.oquturbo.core.data.model.DailyTrainingEntry
+import com.alad1nks.oquturbo.core.data.model.DayCompletionStatus
 import com.alad1nks.oquturbo.core.data.model.GameId
 import com.alad1nks.oquturbo.core.data.model.GameModeId
 import com.alad1nks.oquturbo.core.data.model.ProgressComparison
@@ -27,6 +28,9 @@ import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonNull
+import kotlinx.serialization.json.JsonObject
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
@@ -347,7 +351,7 @@ class HomeViewModelTest {
             vm.retryPersonalResult()
             runCurrent()
             assertIs<PersonalResultState.Loaded>(vm.uiState.value.personalResult)
-            assertTrue(storage.maximumActivityCollectors <= 2)
+            assertTrue(storage.maximumActivityCollectors <= 3)
             assertEquals(sessionWrites, storage.sessionWrites)
             assertEquals(trainingWrites, storage.writes)
         }
@@ -439,26 +443,125 @@ class HomeViewModelTest {
     fun returningWithinStopTimeoutCancelsScheduledStopAndResumeCoalescesFreshReads() =
         exercise {
             runCurrent()
-            assertEquals(2, storage.activeActivityCollectors)
-            storage.maximumActivityCollectors = 2
+            assertEquals(3, storage.activeActivityCollectors)
+            storage.maximumActivityCollectors = 3
             stopObserving()
             advanceTimeBy(4_000)
             observe()
             runCurrent()
             advanceTimeBy(2_000)
             runCurrent()
-            assertEquals(2, storage.activeActivityCollectors)
+            assertEquals(3, storage.activeActivityCollectors)
             storage.activityGate = CompletableDeferred()
             vm.refreshHome()
             vm.refreshHome()
             runCurrent()
             assertEquals(PersonalResultState.Loading, vm.uiState.value.personalResult)
-            assertTrue(storage.maximumActivityCollectors <= 2)
+            assertTrue(storage.maximumActivityCollectors <= 3)
             storage.activityGate!!.complete(Unit)
             storage.activityGate = null
             runCurrent()
             assertIs<ProgressComparison.NoRecentSessions>(result())
-            assertEquals(2, storage.activeActivityCollectors)
+            assertEquals(3, storage.activeActivityCollectors)
+        }
+
+    @Test
+    fun savedZeroSessionUpdatesRhythmOnceAndTrainingOnlyDoesNotAddADay() =
+        exercise {
+            runCurrent()
+            assertEquals(
+                0,
+                assertIs<PracticeRhythmState.Ready>(vm.uiState.value.practiceRhythm).rhythm.completedDaysInWindow,
+            )
+            record(0)
+            runCurrent()
+            assertEquals(
+                1,
+                assertIs<PracticeRhythmState.Ready>(vm.uiState.value.practiceRhythm).rhythm.completedDaysInWindow,
+            )
+            record(0)
+            runCurrent()
+            assertEquals(
+                1,
+                assertIs<PracticeRhythmState.Ready>(vm.uiState.value.practiceRhythm).rhythm.completedDaysInWindow,
+            )
+            clock.millis += DAY
+            repository.ensureTodayTraining().entries.forEach { repository.completeEntry(it.id, Int.MAX_VALUE) }
+            vm.refreshHome()
+            runCurrent()
+            val rhythm = assertIs<PracticeRhythmState.Ready>(vm.uiState.value.practiceRhythm).rhythm
+            assertEquals(1, rhythm.completedDaysInWindow)
+            assertEquals(
+                DayCompletionStatus.NoCompletionRecorded,
+                rhythm.days.last().status,
+            )
+        }
+
+    @Test
+    fun corruptHistoryRetryIsLocalImmediateAndCoalescedWhileOtherCardsStayReady() =
+        exercise {
+            runCurrent()
+            record(500)
+            runCurrent()
+            val valid = storage.getGameSessionsJson().first()!!
+            val json =
+                Json.parseToJsonElement(
+                    valid,
+                ) as JsonObject
+            storage.setGameSessionsJson(
+                JsonObject(
+                    json + ("practiceHistory" to JsonNull),
+                ).toString(),
+            )
+            runCurrent()
+            assertEquals(PracticeRhythmState.Error, vm.uiState.value.practiceRhythm)
+            assertEquals(2, vm.uiState.value.overallLevel)
+            assertIs<PersonalResultState.Loaded>(vm.uiState.value.personalResult)
+            assertNotNull(vm.uiState.value.dailyTraining)
+            val writes = storage.sessionWrites
+            storage.activityGate = CompletableDeferred()
+            vm.retryPracticeHistory()
+            vm.retryPracticeHistory()
+            assertEquals(PracticeRhythmState.Loading, vm.uiState.value.practiceRhythm)
+            runCurrent()
+            assertEquals(3, storage.activeActivityCollectors)
+            storage.setGameSessionsJson(valid)
+            storage.activityGate!!.complete(Unit)
+            storage.activityGate = null
+            runCurrent()
+            assertIs<PracticeRhythmState.Ready>(vm.uiState.value.practiceRhythm)
+            assertEquals(writes + 1, storage.sessionWrites) // only explicit fixture restoration, no retry write
+        }
+
+    @Test
+    fun rhythmRollsOverWithoutEmissionAndResubscriptionRequiresFreshSnapshot() =
+        exercise {
+            runCurrent()
+            record(0, day = 19_994)
+            runCurrent()
+            assertEquals(
+                1,
+                assertIs<PracticeRhythmState.Ready>(vm.uiState.value.practiceRhythm).rhythm.completedDaysInWindow,
+            )
+            clock.millis += DAY
+            advanceTimeBy(60_000)
+            runCurrent()
+            assertEquals(
+                0,
+                assertIs<PracticeRhythmState.Ready>(vm.uiState.value.practiceRhythm).rhythm.completedDaysInWindow,
+            )
+            stopObserving()
+            advanceTimeBy(5_001)
+            runCurrent()
+            assertEquals(PracticeRhythmState.Loading, vm.uiState.value.practiceRhythm)
+            storage.activityGate = CompletableDeferred()
+            observe()
+            runCurrent()
+            assertEquals(PracticeRhythmState.Loading, vm.uiState.value.practiceRhythm)
+            storage.activityGate!!.complete(Unit)
+            storage.activityGate = null
+            runCurrent()
+            assertIs<PracticeRhythmState.Ready>(vm.uiState.value.practiceRhythm)
         }
 
     private fun exercise(
@@ -521,7 +624,7 @@ class HomeViewModelTest {
             }
         val clock = TestClock()
         val repository = DailyTrainingRepository(storage, clock)
-        val activity = GameActivityRepository(storage)
+        val activity = GameActivityRepository(storage, clock)
         val vm = HomeViewModel(activity, repository, clock)
     }
 

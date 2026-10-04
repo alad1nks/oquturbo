@@ -10,6 +10,7 @@ internal data class HomeUiState(
     val dailyTraining: DailyTraining? = null,
     val trainingLoadFailed: Boolean = false,
     val isStartingTraining: Boolean = false,
+    val practiceRhythm: PracticeRhythmState = PracticeRhythmState.Loading,
     val personalResult: PersonalResultState = PersonalResultState.Loading,
     val recentRecords: List<RecentRecord> = emptyList(),
 ) {
@@ -90,4 +91,12 @@ internal sealed interface PersonalResultState {
     data object Error : PersonalResultState
 
     data class Loaded(val comparison: ProgressComparison) : PersonalResultState
+}
+
+internal sealed interface PracticeRhythmState {
+    data object Loading : PracticeRhythmState
+
+    data object Error : PracticeRhythmState
+
+    data class Ready(val rhythm: com.alad1nks.oquturbo.core.data.practice.PracticeRhythm) : PracticeRhythmState
 }

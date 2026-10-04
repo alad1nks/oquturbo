@@ -292,6 +292,38 @@ import oquturbo.resources.generated.resources.oquturbo_navigation_profile
 import oquturbo.resources.generated.resources.oquturbo_navigation_stats
 import oquturbo.resources.generated.resources.oquturbo_profile_subtitle
 import oquturbo.resources.generated.resources.oquturbo_stats_subtitle
+import oquturbo.resources.generated.resources.practice_achievements_partial
+import oquturbo.resources.generated.resources.practice_at_least_count
+import oquturbo.resources.generated.resources.practice_at_least_days
+import oquturbo.resources.generated.resources.practice_best_progress
+import oquturbo.resources.generated.resources.practice_date_format
+import oquturbo.resources.generated.resources.practice_date_range
+import oquturbo.resources.generated.resources.practice_day_complete
+import oquturbo.resources.generated.resources.practice_day_none
+import oquturbo.resources.generated.resources.practice_day_semantics
+import oquturbo.resources.generated.resources.practice_day_today_none
+import oquturbo.resources.generated.resources.practice_day_unknown
+import oquturbo.resources.generated.resources.practice_definition
+import oquturbo.resources.generated.resources.practice_earned_evidence
+import oquturbo.resources.generated.resources.practice_future_dates
+import oquturbo.resources.generated.resources.practice_history_error
+import oquturbo.resources.generated.resources.practice_history_loading
+import oquturbo.resources.generated.resources.practice_history_retry
+import oquturbo.resources.generated.resources.practice_insufficient_history
+import oquturbo.resources.generated.resources.practice_loading_short
+import oquturbo.resources.generated.resources.practice_no_confirmed_streak
+import oquturbo.resources.generated.resources.practice_profile_scope
+import oquturbo.resources.generated.resources.practice_rhythm_continue
+import oquturbo.resources.generated.resources.practice_rhythm_count
+import oquturbo.resources.generated.resources.practice_rhythm_count_partial
+import oquturbo.resources.generated.resources.practice_rhythm_goal
+import oquturbo.resources.generated.resources.practice_rhythm_reached
+import oquturbo.resources.generated.resources.practice_rhythm_title
+import oquturbo.resources.generated.resources.practice_saved_scope
+import oquturbo.resources.generated.resources.practice_today
+import oquturbo.resources.generated.resources.practice_today_semantics
+import oquturbo.resources.generated.resources.practice_tracking_start
+import oquturbo.resources.generated.resources.practice_unavailable_short
 import oquturbo.resources.generated.resources.profile_about_description
 import oquturbo.resources.generated.resources.profile_achievement_correct_answers_condition
 import oquturbo.resources.generated.resources.profile_achievement_correct_answers_title
@@ -670,6 +702,7 @@ object AppResource {
     }
 
     object Plural {
+        val practice_at_least_days = Res.plurals.practice_at_least_days
         val dual_focus_duration_minutes = Res.plurals.dual_focus_duration_minutes
         val dual_focus_duration_seconds = Res.plurals.dual_focus_duration_seconds
         val memory_grid_duration_minutes = Res.plurals.memory_grid_duration_minutes
@@ -696,6 +729,38 @@ object AppResource {
     }
 
     object String {
+        val practice_rhythm_title = Res.string.practice_rhythm_title
+        val practice_rhythm_goal = Res.string.practice_rhythm_goal
+        val practice_rhythm_count = Res.string.practice_rhythm_count
+        val practice_rhythm_count_partial = Res.string.practice_rhythm_count_partial
+        val practice_rhythm_reached = Res.string.practice_rhythm_reached
+        val practice_rhythm_continue = Res.string.practice_rhythm_continue
+        val practice_definition = Res.string.practice_definition
+        val practice_date_range = Res.string.practice_date_range
+        val practice_today = Res.string.practice_today
+        val practice_day_complete = Res.string.practice_day_complete
+        val practice_day_none = Res.string.practice_day_none
+        val practice_day_today_none = Res.string.practice_day_today_none
+        val practice_day_unknown = Res.string.practice_day_unknown
+        val practice_tracking_start = Res.string.practice_tracking_start
+        val practice_history_loading = Res.string.practice_history_loading
+        val practice_history_error = Res.string.practice_history_error
+        val practice_history_retry = Res.string.practice_history_retry
+        val practice_future_dates = Res.string.practice_future_dates
+        val practice_insufficient_history = Res.string.practice_insufficient_history
+        val practice_no_confirmed_streak = Res.string.practice_no_confirmed_streak
+        val practice_profile_scope = Res.string.practice_profile_scope
+        val practice_loading_short = Res.string.practice_loading_short
+        val practice_unavailable_short = Res.string.practice_unavailable_short
+        val practice_at_least_count = Res.string.practice_at_least_count
+        val practice_achievements_partial = Res.string.practice_achievements_partial
+        val practice_best_progress = Res.string.practice_best_progress
+        val practice_earned_evidence = Res.string.practice_earned_evidence
+        val practice_saved_scope = Res.string.practice_saved_scope
+        val practice_day_semantics = Res.string.practice_day_semantics
+        val practice_today_semantics = Res.string.practice_today_semantics
+        val practice_date_format = Res.string.practice_date_format
+
         val rule_switch_title = Res.string.rule_switch_title
         val rule_switch_description = Res.string.rule_switch_description
         val rule_switch_mode = Res.string.rule_switch_mode

@@ -96,6 +96,7 @@ internal fun HomeRoute(
         onViewProgressClick = onViewProgressClick,
         onRetryTrainingClick = viewModel::retryDailyTraining,
         onRetryPersonalResultClick = viewModel::retryPersonalResult,
+        onRetryPracticeHistoryClick = viewModel::retryPracticeHistory,
         onModeStatisticsClick = onModeStatisticsClick,
         modifier = modifier,
     )
@@ -108,6 +109,7 @@ internal fun HomeScreen(
     onViewProgressClick: () -> Unit = {},
     onRetryTrainingClick: () -> Unit = {},
     onRetryPersonalResultClick: () -> Unit = {},
+    onRetryPracticeHistoryClick: () -> Unit = {},
     onModeStatisticsClick: (GameSeriesKey) -> Unit = {},
     modifier: Modifier = Modifier,
     listState: LazyListState = rememberLazyListState(),
@@ -174,6 +176,9 @@ internal fun HomeScreen(
                         onModeStatisticsClick(series)
                     },
                 )
+            }
+            item(key = "practice-rhythm") {
+                PracticeRhythmCard(uiState.practiceRhythm, onRetryPracticeHistoryClick)
             }
             item {
                 RecentRecords(records = uiState.recentRecords)

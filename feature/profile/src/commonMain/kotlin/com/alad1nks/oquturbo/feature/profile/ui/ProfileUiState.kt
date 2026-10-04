@@ -8,6 +8,7 @@ internal data class ProfileUiState(
     val ranks: List<Rank> = defaultRanks,
     val completedTrainings: Int = 0,
     val hasGameActivity: Boolean = level > 1 || currentLevelXp > 0 || completedTrainings > 0,
+    val practiceHistory: ProfilePracticeState = ProfilePracticeState.Loading,
     val currentStreakDays: Int = 0,
     val bestStreakDays: Int = 0,
     val achievements: List<Achievement> = emptyList(),
@@ -89,6 +90,8 @@ internal enum class AchievementId {
 }
 
 internal enum class AchievementStatus {
+    Loading,
+    Unavailable,
     Earned,
     InProgress,
     Hidden,
@@ -119,4 +122,47 @@ internal enum class PersonalizationId {
     ExplorerFrame,
     DefaultBackground,
     TwilightBackground,
+}
+
+internal sealed interface ProfilePracticeState {
+    data object Loading : ProfilePracticeState
+
+    data object Error : ProfilePracticeState
+
+    data class Ready(val rhythm: com.alad1nks.oquturbo.core.data.practice.PracticeRhythm) : ProfilePracticeState
+}
+
+internal fun ProfileUiState.withPracticeHistory(history: ProfilePracticeState): ProfileUiState {
+    val ready = (history as? ProfilePracticeState.Ready)?.rhythm
+    val streak =
+        ProfileUiState.Achievement(
+            id = AchievementId.SevenDayStreak,
+            status =
+                when (history) {
+                    ProfilePracticeState.Loading -> AchievementStatus.Loading
+                    ProfilePracticeState.Error -> AchievementStatus.Unavailable
+                    is ProfilePracticeState.Ready ->
+                        if (history.rhythm.sevenDayStreakEarned) {
+                            AchievementStatus.Earned
+                        } else {
+                            AchievementStatus.InProgress
+                        }
+                },
+            currentProgress = ready?.bestRecordedStreakDays?.coerceAtMost(7) ?: 0,
+            targetProgress = 7,
+        )
+    val updated = achievements.map { if (it.id == AchievementId.SevenDayStreak) streak else it }
+    return copy(
+        practiceHistory = history,
+        currentStreakDays = ready?.currentStreakDays ?: 0,
+        bestStreakDays = ready?.bestRecordedStreakDays ?: 0,
+        achievements = if (updated.any { it.id == AchievementId.SevenDayStreak }) updated else updated + streak,
+        recentUnlocks =
+            recentUnlocks.filterNot {
+                it ==
+                    ProfileUiState.RecentUnlock.Achievement(
+                        AchievementId.SevenDayStreak,
+                    )
+            },
+    )
 }
