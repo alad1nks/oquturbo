@@ -909,4 +909,22 @@
     <string name="home_training_loading">Loading training…</string>
     <string name="home_training_unavailable">Training is unavailable. Try loading again.</string>
     <string name="home_retry_training">Retry</string>
+    <string name="home_personal_result_title">Personal result</string>
+    <string name="home_personal_result_loading">Loading result…</string>
+    <string name="home_personal_result_error">Could not load your result.</string>
+    <string name="home_personal_result_retry">Retry</string>
+    <string name="home_personal_result_empty">No saved attempts in the last 28 days (UTC).</string>
+    <string name="home_personal_result_empty_hint">Complete an exercise to see your result.</string>
+    <string name="home_personal_result_window">Last 28 days (UTC)</string>
+    <string name="home_personal_result_source">Based on saved attempts</string>
+    <string name="home_personal_result_count">Saved attempts: %1$d of 10</string>
+    <string name="home_personal_result_insufficient_hint">Comparison needs 10 saved attempts in the same game, mode and settings.</string>
+    <string name="home_personal_result_median">Median score</string>
+    <string name="home_personal_result_previous">Previous 5 attempts</string>
+    <string name="home_personal_result_current">Latest 5 attempts</string>
+    <string name="home_personal_result_change">Change</string>
+    <string name="home_personal_result_statistics">Mode statistics</string>
+    <string name="home_personal_result_unknown_settings">Settings unknown</string>
+    <string name="home_personal_result_unknown_language">Language not specified</string>
+    <string name="home_personal_result_unknown_variant">Variant details unknown</string>
 </resources>

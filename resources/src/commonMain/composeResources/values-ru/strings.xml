@@ -956,4 +956,22 @@
     <string name="home_training_loading">Загрузка тренировки…</string>
     <string name="home_training_unavailable">Тренировка недоступна. Попробуйте загрузить снова.</string>
     <string name="home_retry_training">Повторить</string>
+    <string name="home_personal_result_title">Личный результат</string>
+    <string name="home_personal_result_loading">Загружаем результат…</string>
+    <string name="home_personal_result_error">Не удалось загрузить результат.</string>
+    <string name="home_personal_result_retry">Повторить</string>
+    <string name="home_personal_result_empty">Нет сохранённых попыток за последние 28 дней (UTC).</string>
+    <string name="home_personal_result_empty_hint">Завершите упражнение, чтобы увидеть результат.</string>
+    <string name="home_personal_result_window">За последние 28 дней (UTC)</string>
+    <string name="home_personal_result_source">По сохранённым попыткам</string>
+    <string name="home_personal_result_count">Сохранённые попытки: %1$d из 10</string>
+    <string name="home_personal_result_insufficient_hint">Для сравнения нужны 10 сохранённых попыток в той же игре, режиме и с теми же настройками.</string>
+    <string name="home_personal_result_median">Медиана результата</string>
+    <string name="home_personal_result_previous">Предыдущие 5 попыток</string>
+    <string name="home_personal_result_current">Последние 5 попыток</string>
+    <string name="home_personal_result_change">Изменение</string>
+    <string name="home_personal_result_statistics">Статистика режима</string>
+    <string name="home_personal_result_unknown_settings">Настройки неизвестны</string>
+    <string name="home_personal_result_unknown_language">Язык не указан</string>
+    <string name="home_personal_result_unknown_variant">Детали варианта неизвестны</string>
 </resources>

@@ -117,6 +117,24 @@ import oquturbo.resources.generated.resources.games_word_flow_title
 import oquturbo.resources.generated.resources.home_continue_training
 import oquturbo.resources.generated.resources.home_no_recent_records
 import oquturbo.resources.generated.resources.home_overall_level
+import oquturbo.resources.generated.resources.home_personal_result_change
+import oquturbo.resources.generated.resources.home_personal_result_count
+import oquturbo.resources.generated.resources.home_personal_result_current
+import oquturbo.resources.generated.resources.home_personal_result_empty
+import oquturbo.resources.generated.resources.home_personal_result_empty_hint
+import oquturbo.resources.generated.resources.home_personal_result_error
+import oquturbo.resources.generated.resources.home_personal_result_insufficient_hint
+import oquturbo.resources.generated.resources.home_personal_result_loading
+import oquturbo.resources.generated.resources.home_personal_result_median
+import oquturbo.resources.generated.resources.home_personal_result_previous
+import oquturbo.resources.generated.resources.home_personal_result_retry
+import oquturbo.resources.generated.resources.home_personal_result_source
+import oquturbo.resources.generated.resources.home_personal_result_statistics
+import oquturbo.resources.generated.resources.home_personal_result_title
+import oquturbo.resources.generated.resources.home_personal_result_unknown_language
+import oquturbo.resources.generated.resources.home_personal_result_unknown_settings
+import oquturbo.resources.generated.resources.home_personal_result_unknown_variant
+import oquturbo.resources.generated.resources.home_personal_result_window
 import oquturbo.resources.generated.resources.home_rank
 import oquturbo.resources.generated.resources.home_rank_master
 import oquturbo.resources.generated.resources.home_recent_records
@@ -890,6 +908,24 @@ object AppResource {
         val home_training_loading = Res.string.home_training_loading
         val home_training_unavailable = Res.string.home_training_unavailable
         val home_retry_training = Res.string.home_retry_training
+        val home_personal_result_title = Res.string.home_personal_result_title
+        val home_personal_result_loading = Res.string.home_personal_result_loading
+        val home_personal_result_error = Res.string.home_personal_result_error
+        val home_personal_result_retry = Res.string.home_personal_result_retry
+        val home_personal_result_empty = Res.string.home_personal_result_empty
+        val home_personal_result_empty_hint = Res.string.home_personal_result_empty_hint
+        val home_personal_result_window = Res.string.home_personal_result_window
+        val home_personal_result_source = Res.string.home_personal_result_source
+        val home_personal_result_count = Res.string.home_personal_result_count
+        val home_personal_result_insufficient_hint = Res.string.home_personal_result_insufficient_hint
+        val home_personal_result_median = Res.string.home_personal_result_median
+        val home_personal_result_previous = Res.string.home_personal_result_previous
+        val home_personal_result_current = Res.string.home_personal_result_current
+        val home_personal_result_change = Res.string.home_personal_result_change
+        val home_personal_result_statistics = Res.string.home_personal_result_statistics
+        val home_personal_result_unknown_settings = Res.string.home_personal_result_unknown_settings
+        val home_personal_result_unknown_language = Res.string.home_personal_result_unknown_language
+        val home_personal_result_unknown_variant = Res.string.home_personal_result_unknown_variant
         val home_start_training = Res.string.home_start_training
         val home_today_training = Res.string.home_today_training
         val home_training_completed = Res.string.home_training_completed

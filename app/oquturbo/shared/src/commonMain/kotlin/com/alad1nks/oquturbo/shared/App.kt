@@ -59,6 +59,7 @@ import com.alad1nks.oquturbo.feature.rotationmatch.navigation.navigateToRotation
 import com.alad1nks.oquturbo.feature.rotationmatch.navigation.rotationMatchScreen
 import com.alad1nks.oquturbo.feature.ruleswitch.navigation.navigateToRuleSwitch
 import com.alad1nks.oquturbo.feature.ruleswitch.navigation.ruleSwitchScreen
+import com.alad1nks.oquturbo.feature.stats.model.StatsPeriod
 import com.alad1nks.oquturbo.feature.stats.navigation.navigateToStatsGame
 import com.alad1nks.oquturbo.feature.stats.navigation.navigateToStatsMode
 import com.alad1nks.oquturbo.feature.stats.navigation.statsGameDetailScreen
@@ -69,6 +70,8 @@ import com.alad1nks.oquturbo.feature.symbolcount.navigation.symbolCountScreen
 import com.alad1nks.oquturbo.feature.wordflow.navigation.navigateToWordFlow
 import com.alad1nks.oquturbo.feature.wordflow.navigation.wordFlowScreen
 import com.alad1nks.oquturbo.shared.navigation.OquTurboTopLevelDestination
+import com.alad1nks.oquturbo.shared.navigation.toProgressStatsGame
+import com.alad1nks.oquturbo.shared.navigation.toProgressStatsMode
 import com.alad1nks.oquturbo.shared.ui.OquTurboNavigationBar
 import com.alad1nks.oquturbo.shared.ui.rememberOquTurboAppState
 
@@ -92,6 +95,13 @@ fun App() {
         },
     ) {
         homeScreen(
+            onModeStatisticsClick = { series ->
+                appState.navController.navigateToStatsMode(
+                    game = series.game.toProgressStatsGame(),
+                    mode = series.mode.toProgressStatsMode(),
+                    period = StatsPeriod.ThirtyDays,
+                ) { launchSingleTop = true }
+            },
             onStartTrainingClick = appState.navController::navigateToDailyTrainingEntry,
             onViewProgressClick = {
                 appState.navigateToTopLevelDestination(OquTurboTopLevelDestination.STATS)

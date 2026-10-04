@@ -6,17 +6,23 @@ import com.alad1nks.oquturbo.core.data.model.DailyTrainingEntry
 import com.alad1nks.oquturbo.core.data.model.DailyTrainingPlan
 import com.alad1nks.oquturbo.core.data.model.GameId
 import com.alad1nks.oquturbo.core.data.model.GameModeId
+import com.alad1nks.oquturbo.core.data.model.GameSession
+import com.alad1nks.oquturbo.core.data.model.PlayerProgress
+import com.alad1nks.oquturbo.core.data.progress.calculateProgressComparison
 import com.alad1nks.oquturbo.core.data.repository.DailyTrainingRepository
 import com.alad1nks.oquturbo.core.data.repository.GameActivityRepository
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.onEach
-import kotlinx.coroutines.flow.onStart
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.retryWhen
-import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlin.time.Clock
 import kotlin.time.Duration.Companion.milliseconds
@@ -24,7 +30,7 @@ import kotlin.time.ExperimentalTime
 
 @OptIn(ExperimentalTime::class)
 internal class HomeViewModel(
-    activityRepository: GameActivityRepository,
+    private val activityRepository: GameActivityRepository,
     private val dailyTrainingRepository: DailyTrainingRepository,
     private val clock: Clock = Clock.System,
 ) : ViewModel() {
@@ -37,58 +43,141 @@ internal class HomeViewModel(
     private val trainingState = MutableStateFlow(TrainingState())
     private var operationPending = false
     private var navigationPending = false
-    private var lastActivityState = HomeUiState()
+    private val mutableUiState = MutableStateFlow(HomeUiState())
+    val uiState = mutableUiState.asStateFlow()
+    private val activityReload = MutableStateFlow(0L)
+    private var activityJob: Job? = null
+    private var activityLoading = false
+    private var activityAvailable = false
+    private var lastSessions: List<GameSession> = emptyList()
+    private var comparisonEpochDay = currentEpochDay()
 
-    val uiState =
-        combine(
-            activityRepository.observeProgress(),
-            activityRepository.observeSessions(),
-        ) { progress, sessions ->
-            HomeUiState(
-                overallLevel = progress.level,
-                rankNumber = ((progress.level - 1) / LEVELS_PER_RANK + 1).coerceAtMost(MAX_KNOWN_RANKS),
-                levelProgress =
-                    if (progress.xpPerLevel > 0) {
-                        progress.currentLevelXp.toFloat() / progress.xpPerLevel
-                    } else {
-                        0f
-                    },
-                recentRecords =
-                    sessions
-                        .asReversed()
-                        .asSequence()
-                        .filter { it.isNewRecord }
-                        .take(MAX_RECENT_RECORDS)
-                        .map { session ->
-                            HomeUiState.RecentRecord(
-                                game = session.game.toHomeGame(),
-                                mode = session.mode.toHomeMode(),
-                                variantId = session.variantId,
-                                score = session.score,
-                            )
-                        }.toList(),
-            )
-        }.retryWhen { error, _ ->
-            if (error is CancellationException) return@retryWhen false
-            delay(HOME_STORAGE_RETRY_DELAY_MILLIS.milliseconds)
-            true
-        }.onEach { activity ->
-            lastActivityState = activity
-        }.onStart {
-            emit(lastActivityState)
-        }.combine(trainingState) { activity, training ->
-            activity.copy(
-                dailyTraining = training.plan?.toHomeDailyTraining(),
-                trainingLoadFailed = training.failed,
-                isStartingTraining = training.starting,
-            )
-        }.stateIn(
-            scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(STOP_TIMEOUT_MILLIS),
-            initialValue = HomeUiState(),
-        )
+    private sealed interface ActivityRead {
+        data class Loaded(val progress: PlayerProgress, val sessions: List<GameSession>) : ActivityRead
+
+        data object Failed : ActivityRead
+    }
+
+    private fun observeActivity() {
+        showActivityLoading()
+        activityJob =
+            viewModelScope.launch {
+                activityReload.collectLatest {
+                    showActivityLoading()
+                    combine(
+                        activityRepository.observeProgress(),
+                        activityRepository.observeSessions(),
+                    ) { progress, sessions ->
+                        ActivityRead.Loaded(progress, sessions) as ActivityRead
+                    }.retryWhen { error, _ ->
+                        if (error is CancellationException) return@retryWhen false
+                        emit(ActivityRead.Failed)
+                        delay(HOME_STORAGE_RETRY_DELAY_MILLIS.milliseconds)
+                        true
+                    }.collect { read ->
+                        activityLoading = false
+                        when (read) {
+                            ActivityRead.Failed -> {
+                                activityAvailable = false
+                                mutableUiState.update { it.copy(personalResult = PersonalResultState.Error) }
+                            }
+                            is ActivityRead.Loaded -> {
+                                activityAvailable = true
+                                lastSessions = read.sessions
+                                comparisonEpochDay = currentEpochDay()
+                                val progress = read.progress
+                                mutableUiState.update { state ->
+                                    state.copy(
+                                        overallLevel = progress.level,
+                                        rankNumber =
+                                            ((progress.level - 1) / LEVELS_PER_RANK + 1).coerceAtMost(
+                                                MAX_KNOWN_RANKS,
+                                            ),
+                                        levelProgress =
+                                            if (progress.xpPerLevel > 0) {
+                                                progress.currentLevelXp.toFloat() / progress.xpPerLevel
+                                            } else {
+                                                0f
+                                            },
+                                        recentRecords =
+                                            read.sessions.asReversed().asSequence().filter { it.isNewRecord }
+                                                .take(MAX_RECENT_RECORDS).map { session ->
+                                                    HomeUiState.RecentRecord(
+                                                        game = session.game.toHomeGame(),
+                                                        mode = session.mode.toHomeMode(),
+                                                        variantId = session.variantId,
+                                                        score = session.score,
+                                                    )
+                                                }.toList(),
+                                        personalResult =
+                                            PersonalResultState.Loaded(
+                                                calculateProgressComparison(read.sessions, comparisonEpochDay),
+                                            ),
+                                    )
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+    }
+
+    private fun showActivityLoading() {
+        activityLoading = true
+        activityAvailable = false
+        mutableUiState.update { it.copy(personalResult = PersonalResultState.Loading) }
+    }
+
+    fun retryPersonalResult() {
+        if (activityLoading || uiState.value.personalResult != PersonalResultState.Error) return
+        showActivityLoading()
+        activityReload.value++
+    }
+
+    fun refreshHome() {
+        refreshDailyTraining()
+        refreshComparisonDay()
+        if (!activityLoading) {
+            showActivityLoading()
+            activityReload.value++
+        }
+    }
+
+    private fun refreshComparisonDay() {
+        val today = currentEpochDay()
+        if (today == comparisonEpochDay) return
+        comparisonEpochDay = today
+        if (activityAvailable) {
+            mutableUiState.update {
+                it.copy(personalResult = PersonalResultState.Loaded(calculateProgressComparison(lastSessions, today)))
+            }
+        }
+    }
 
     init {
+        viewModelScope.launch {
+            trainingState.collect { training ->
+                mutableUiState.update {
+                    it.copy(
+                        dailyTraining = training.plan?.toHomeDailyTraining(),
+                        trainingLoadFailed = training.failed,
+                        isStartingTraining = training.starting,
+                    )
+                }
+            }
+        }
+        viewModelScope.launch {
+            mutableUiState.subscriptionCount.map { it > 0 }.distinctUntilChanged().collectLatest { subscribed ->
+                if (subscribed) {
+                    if (activityJob?.isActive != true) observeActivity()
+                } else {
+                    delay(STOP_TIMEOUT_MILLIS)
+                    showActivityLoading()
+                    activityJob?.cancelAndJoin()
+                    activityJob = null
+                }
+            }
+        }
         viewModelScope.launch {
             dailyTrainingRepository.observeTodayTraining().collect { plan ->
                 if (plan != null && plan.epochDay == currentEpochDay()) {
@@ -100,6 +189,7 @@ internal class HomeViewModel(
         }
         viewModelScope.launch {
             while (true) {
+                refreshComparisonDay()
                 discardStalePlan()
                 if (trainingState.value.plan == null) loadTraining(showLoading = false)
                 val now = clock.now().toEpochMilliseconds()

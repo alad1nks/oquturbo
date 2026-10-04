@@ -1,6 +1,7 @@
 package com.alad1nks.oquturbo.feature.home.ui
 
 import com.alad1nks.oquturbo.core.data.model.DailyTrainingEntry
+import com.alad1nks.oquturbo.core.data.model.ProgressComparison
 
 internal data class HomeUiState(
     val overallLevel: Int = 1,
@@ -9,6 +10,7 @@ internal data class HomeUiState(
     val dailyTraining: DailyTraining? = null,
     val trainingLoadFailed: Boolean = false,
     val isStartingTraining: Boolean = false,
+    val personalResult: PersonalResultState = PersonalResultState.Loading,
     val recentRecords: List<RecentRecord> = emptyList(),
 ) {
     enum class Game {
@@ -80,4 +82,12 @@ internal data class HomeUiState(
         val requiredScore: Int,
         val isCompleted: Boolean,
     )
+}
+
+internal sealed interface PersonalResultState {
+    data object Loading : PersonalResultState
+
+    data object Error : PersonalResultState
+
+    data class Loaded(val comparison: ProgressComparison) : PersonalResultState
 }
