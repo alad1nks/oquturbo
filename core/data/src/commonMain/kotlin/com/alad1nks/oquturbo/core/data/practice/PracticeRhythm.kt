@@ -85,10 +85,16 @@ data class PracticeDate(val year: Long, val month: Int, val day: Int) {
 }
 
 fun practiceDate(epochDay: Long): PracticeDate {
-    // Same civil-calendar arithmetic used by Stats, extended to include year and month.
-    val shifted = epochDay + 719_468L
-    val era = if (shifted >= 0) shifted / 146_097L else (shifted - 146_096L) / 146_097L
-    val dayOfEra = shifted - era * 146_097L
+    // Normalize using / and %, never floorQuotient * cycle: that product overflows at MIN.
+    var epochEra = epochDay / 146_097L
+    var remainder = epochDay % 146_097L
+    if (remainder < 0) {
+        epochEra--
+        remainder += 146_097L
+    }
+    val shifted = remainder + 719_468L
+    val era = epochEra + shifted / 146_097L
+    val dayOfEra = shifted % 146_097L
     val yearOfEra = (dayOfEra - dayOfEra / 1_460L + dayOfEra / 36_524L - dayOfEra / 146_096L) / 365L
     val dayOfYear = dayOfEra - (365L * yearOfEra + yearOfEra / 4L - yearOfEra / 100L)
     val monthPrime = (5L * dayOfYear + 2L) / 153L

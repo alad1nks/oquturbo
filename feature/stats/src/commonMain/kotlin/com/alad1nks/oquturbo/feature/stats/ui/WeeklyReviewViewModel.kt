@@ -2,6 +2,7 @@ package com.alad1nks.oquturbo.feature.stats.ui
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.alad1nks.oquturbo.core.data.model.WeeklyFocusPhase
 import com.alad1nks.oquturbo.core.data.practice.calculatePracticeRhythm
 import com.alad1nks.oquturbo.core.data.progress.calculateProgressComparison
 import com.alad1nks.oquturbo.feature.stats.data.WeeklyReviewDataSource
@@ -22,11 +23,23 @@ import kotlin.time.ExperimentalTime
 
 @OptIn(ExperimentalTime::class)
 internal class WeeklyReviewViewModel(
-    dataSource: WeeklyReviewDataSource,
+    private val dataSource: WeeklyReviewDataSource,
     private val clock: Clock = Clock.System,
 ) : ViewModel() {
     private val mutableUiState = MutableStateFlow(WeeklyReviewUiState(today()))
     val uiState = mutableUiState.asStateFlow()
+    private var focusOperation: WeeklyFocusUiState? = null
+    private var focusMutation: Job? = null
+    private val focus =
+        Source(
+            dataSource::observeFocus,
+            onValue = { focusOperation = null },
+            onFailure = {
+                if (focusOperation == WeeklyFocusUiState.Saving || focusOperation == WeeklyFocusUiState.Checking) {
+                    focusOperation = WeeklyFocusUiState.Unconfirmed
+                }
+            },
+        )
     private val practice = Source(dataSource::observePractice)
     private val training = Source(dataSource::observeTraining)
     private val sessions = Source(dataSource::observeSessions)
@@ -38,11 +51,13 @@ internal class WeeklyReviewViewModel(
                     practice.start()
                     training.start()
                     sessions.start()
+                    if (focusMutation?.isActive != true) focus.start()
                 } else {
                     delay(STOP_TIMEOUT_MILLIS)
                     practice.stop()
                     training.stop()
                     sessions.stop()
+                    focus.stop()
                 }
             }
         }
@@ -60,10 +75,68 @@ internal class WeeklyReviewViewModel(
 
     fun retrySessions() = sessions.retry()
 
+    fun selectFocus() {
+        val current = uiState.value.focus as? WeeklyFocusUiState.Ready ?: return
+        if (current.focus.phaseOn(today()) !in setOf(WeeklyFocusPhase.Off, WeeklyFocusPhase.Expired)) return
+        mutateFocus(dataSource::selectFocus)
+    }
+
+    fun disableFocus() {
+        val current = uiState.value.focus as? WeeklyFocusUiState.Ready ?: return
+        if (current.focus.phaseOn(today()) !in setOf(WeeklyFocusPhase.Scheduled, WeeklyFocusPhase.Active)) return
+        mutateFocus(dataSource::disableFocus)
+    }
+
+    fun resetFocus() {
+        if (uiState.value.focus !in setOf(WeeklyFocusUiState.Error, WeeklyFocusUiState.Unconfirmed)) return
+        mutateFocus(dataSource::resetFocus)
+    }
+
+    fun retryFocus() {
+        if (focusBusy()) return
+        if (focusOperation == WeeklyFocusUiState.Unconfirmed) focusOperation = WeeklyFocusUiState.Checking
+        focus.retry()
+    }
+
+    private fun focusBusy(): Boolean =
+        focusMutation?.isActive == true ||
+            focusOperation == WeeklyFocusUiState.Saving || focusOperation == WeeklyFocusUiState.Checking
+
+    private fun mutateFocus(mutation: suspend () -> Any) {
+        if (focusBusy()) return
+        focusOperation = WeeklyFocusUiState.Saving
+        render()
+        focusMutation =
+            viewModelScope.launch {
+                focus.stop()
+                try {
+                    mutation()
+                } catch (cancelled: CancellationException) {
+                    focusOperation = null
+                    render()
+                    throw cancelled
+                } catch (_: Exception) {
+                    focusOperation = WeeklyFocusUiState.Checking
+                }
+                // Start a new read even after a successful acknowledgement. No observer emission from
+                // before this operation can turn Saving into a guessed success or a compensating write.
+                if (mutableUiState.subscriptionCount.value > 0) {
+                    focus.start()
+                } else {
+                    focusOperation = null
+                    render()
+                }
+            }
+    }
+
     fun refreshReview() {
         practice.refresh()
         training.refresh()
         sessions.refresh()
+        if (!focusBusy()) {
+            if (focusOperation == WeeklyFocusUiState.Unconfirmed) focusOperation = WeeklyFocusUiState.Checking
+            focus.refresh()
+        }
         render()
     }
 
@@ -76,13 +149,23 @@ internal class WeeklyReviewViewModel(
         mutableUiState.value =
             WeeklyReviewUiState(
                 todayEpochDay = day,
+                focus =
+                    focusOperation ?: when (val value = focus.state) {
+                        WeeklySource.Loading -> WeeklyFocusUiState.Loading
+                        WeeklySource.Error -> WeeklyFocusUiState.Error
+                        is WeeklySource.Ready -> WeeklyFocusUiState.Ready(value.value)
+                    },
                 practice = practice.state.project { calculatePracticeRhythm(it, day) },
                 training = training.state.project { calculatePracticeRhythm(it, day) },
                 comparison = sessions.state.project { calculateProgressComparison(it, day) },
             )
     }
 
-    private inner class Source<T>(private val observe: () -> Flow<T>) {
+    private inner class Source<T>(
+        private val observe: () -> Flow<T>,
+        private val onValue: () -> Unit = {},
+        private val onFailure: () -> Unit = {},
+    ) {
         var state: WeeklySource<T> = WeeklySource.Loading
             private set
         private val reload = MutableStateFlow(0L)
@@ -99,12 +182,14 @@ internal class WeeklyReviewViewModel(
                         observe().retryWhen { error, _ ->
                             if (error is CancellationException) return@retryWhen false
                             loading = false
+                            onFailure()
                             state = WeeklySource.Error
                             render()
                             delay(RETRY_MILLIS)
                             true
                         }.collect { value ->
                             loading = false
+                            onValue()
                             state = WeeklySource.Ready(value)
                             render()
                         }

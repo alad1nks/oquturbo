@@ -18,6 +18,11 @@ internal class HistoryClock(var day: Long = 100) : Clock {
 }
 
 internal class HistoryTestStorage : Storage {
+    val focus = MutableStateFlow<String?>(null)
+    var focusWrites = 0
+    var beforeFocusRead: suspend () -> Unit = {}
+    var beforeFocusWrite: suspend (String) -> Unit = {}
+    var afterFocusWrite: suspend () -> Unit = {}
     val activity = MutableStateFlow<String?>(null)
     val progress = MutableStateFlow<String?>(null)
     val plan = MutableStateFlow<String?>(null)
@@ -60,6 +65,19 @@ internal class HistoryTestStorage : Storage {
         beforePlanWrite()
         plan.value = value
         planWrites++
+    }
+
+    override fun getWeeklyFocusJson(): Flow<String?> =
+        flow {
+            beforeFocusRead()
+            emitAll(focus)
+        }
+
+    override suspend fun setWeeklyFocusJson(value: String) {
+        beforeFocusWrite(value)
+        focus.value = value
+        focusWrites++
+        afterFocusWrite()
     }
 
     override fun getDarkTheme(): Flow<Boolean?> = flowOf(null)

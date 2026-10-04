@@ -6,6 +6,9 @@ import com.alad1nks.oquturbo.core.data.model.DailyTrainingProgress
 import com.alad1nks.oquturbo.core.data.model.DayHistory
 import com.alad1nks.oquturbo.core.data.model.GameId
 import com.alad1nks.oquturbo.core.data.model.GameModeId
+import com.alad1nks.oquturbo.core.data.model.WeeklyFocus
+import com.alad1nks.oquturbo.core.data.model.WeeklyFocusPhase
+import com.alad1nks.oquturbo.core.data.model.WeeklyFocusSelection
 import com.alad1nks.oquturbo.core.storage.common.Storage
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.delay
@@ -38,6 +41,39 @@ class DailyTrainingRepository(
             encodeDefaults = true
             ignoreUnknownKeys = true
         }
+
+    fun observeWeeklyFocus(): Flow<WeeklyFocus> =
+        storage.getWeeklyFocusJson().map(::decodeWeeklyFocus).distinctUntilChanged()
+
+    suspend fun selectWeeklyFocus(): WeeklyFocus =
+        writeMutex.withLock {
+            val current = readFocus()
+            val day = currentEpochDay()
+            if (current.phaseOn(day) in setOf(WeeklyFocusPhase.Scheduled, WeeklyFocusPhase.Active)) {
+                current
+            } else {
+                writeFocus(WeeklyFocus(WeeklyFocusSelection.after(day)))
+            }
+        }
+
+    suspend fun disableWeeklyFocus(): WeeklyFocus =
+        writeMutex.withLock {
+            val current = readFocus()
+            if (current.selection == null) current else writeFocus(WeeklyFocus())
+        }
+
+    /** Explicit recovery changes only focus; it does not depend on decoding the old setting. */
+    suspend fun resetWeeklyFocus(): WeeklyFocus = writeMutex.withLock { writeFocus(WeeklyFocus()) }
+
+    private suspend fun readFocus(): WeeklyFocus =
+        decodeWeeklyFocus(withStorageRetry { storage.getWeeklyFocusJson().first() })
+
+    private suspend fun writeFocus(focus: WeeklyFocus): WeeklyFocus {
+        // Keep one sampled interval and the exact same bytes through all write attempts.
+        val payload = focus.encodeFocus()
+        withStorageRetry { storage.setWeeklyFocusJson(payload) }
+        return focus
+    }
 
     fun observeTodayTraining(): Flow<DailyTrainingPlan?> =
         storage
@@ -245,7 +281,20 @@ class DailyTrainingRepository(
         ).toString()
     }
 
-    private fun createPlan(epochDay: Long): DailyTrainingPlan {
+    private suspend fun createPlan(epochDay: Long): DailyTrainingPlan {
+        val focus = readFocus()
+        val baseline = createBaselinePlan(epochDay)
+        if (focus.phaseOn(epochDay) != WeeklyFocusPhase.Active) return baseline
+        val classic =
+            baseline.entries.single { it.game == GameId.NumberSprint }.copy(
+                id = trainingEntryId(epochDay, GameId.NumberSprint, GameModeId.NumberSprintClassic),
+                mode = GameModeId.NumberSprintClassic,
+                requiredScore = GameId.NumberSprint.requiredTrainingScore(),
+            )
+        return baseline.copy(entries = listOf(classic) + baseline.entries.filter { it.game != GameId.NumberSprint })
+    }
+
+    private fun createBaselinePlan(epochDay: Long): DailyTrainingPlan {
         val random = Random(epochDay.toRandomSeed())
         return DailyTrainingPlan(
             epochDay = epochDay,

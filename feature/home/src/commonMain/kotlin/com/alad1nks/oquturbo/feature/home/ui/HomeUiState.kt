@@ -13,6 +13,7 @@ internal data class HomeUiState(
     val practiceRhythm: PracticeRhythmState = PracticeRhythmState.Loading,
     val personalResult: PersonalResultState = PersonalResultState.Loading,
     val recentRecords: List<RecentRecord> = emptyList(),
+    val focus: HomeFocusState = HomeFocusState.Loading,
 ) {
     enum class Game {
         NumberSprint,
