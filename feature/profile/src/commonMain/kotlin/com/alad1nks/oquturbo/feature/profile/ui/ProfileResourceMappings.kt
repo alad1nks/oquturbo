@@ -41,6 +41,8 @@ internal fun AchievementId.icon(): ImageVector =
 
 internal fun AchievementStatus.labelResource(): StringResource =
     when (this) {
+        AchievementStatus.Loading -> AppResource.String.practice_loading_short
+        AchievementStatus.Unavailable -> AppResource.String.practice_unavailable_short
         AchievementStatus.Earned -> AppResource.String.profile_achievement_earned
         AchievementStatus.InProgress -> AppResource.String.profile_achievement_in_progress
         AchievementStatus.Hidden -> AppResource.String.profile_achievement_hidden

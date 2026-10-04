@@ -53,6 +53,7 @@ import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.LifecycleResumeEffect
 import com.alad1nks.oquturbo.core.data.model.AppLanguage
 import com.alad1nks.oquturbo.core.designsystem.theme.OquTurboLayout
 import com.alad1nks.oquturbo.core.designsystem.theme.OquTurboTheme
@@ -303,20 +304,32 @@ internal fun ProfileAchievementsRouteContent(
     onBackClick: () -> Unit,
 ) {
     val uiState by viewModel.uiState.collectAsState()
-    ProfileAchievementsScreen(uiState, onBackClick)
+    LifecycleResumeEffect(viewModel) {
+        viewModel.refreshProfile()
+        onPauseOrDispose {}
+    }
+    ProfileAchievementsScreen(uiState, onBackClick, viewModel::retryPracticeHistory)
 }
 
 @Composable
-private fun ProfileAchievementsScreen(
+internal fun ProfileAchievementsScreen(
     uiState: ProfileUiState,
     onBackClick: () -> Unit,
+    onRetryPracticeHistory: () -> Unit = {},
 ) {
     ProfileDetailScaffold(
         title = AppResource.String.profile_all_achievements,
         onBackClick = onBackClick,
     ) {
         uiState.achievements.forEach { achievement ->
-            item { AchievementCard(achievement = achievement) }
+            item {
+                AchievementCard(
+                    achievement = achievement,
+                    history = uiState.practiceHistory,
+                    onRetryPracticeHistory = onRetryPracticeHistory,
+                    showFutureNote = true,
+                )
+            }
         }
     }
 }

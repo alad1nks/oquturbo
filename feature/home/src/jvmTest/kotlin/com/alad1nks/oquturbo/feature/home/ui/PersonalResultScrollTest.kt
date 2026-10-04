@@ -87,7 +87,7 @@ class PersonalResultScrollTest {
         val originalLocale = Locale.getDefault()
         try {
             Locale.setDefault(Locale.forLanguageTag("kk"))
-            runDesktopComposeUiTest(width = 320, height = 640) {
+            runDesktopComposeUiTest(width = 320, height = if (scrollToEnd) 1000 else 640) {
                 val ready =
                     HomeUiState(
                         dailyTraining = previewDailyTraining(false),
@@ -187,22 +187,21 @@ class PersonalResultScrollTest {
                 runOnIdle { scope.launch { list.scrollToItem(3) } }
                 val action = "Режим статистикасы"
                 onNodeWithText(action).performScrollTo().assertIsDisplayed()
-                // Match the Android capture near the list end, with records visible below the CTA.
+                // Rhythm now sits below the result. End cases use a taller natural viewport
+                // so both the result action and the actual last item remain reachable together.
                 runOnIdle {
                     scope.launch {
-                        if (scrollToEnd) list.scrollToItem(4) else list.scrollBy(additionalScroll)
+                        if (scrollToEnd) {
+                            list.scrollToItem(list.layoutInfo.totalItemsCount - 1)
+                        } else {
+                            list.scrollBy(additionalScroll)
+                        }
                     }
                 }
                 onNodeWithText(action).assertIsDisplayed()
                 val before = runOnIdle { list.firstVisibleItemIndex to list.firstVisibleItemScrollOffset }
                 val buttonTop = onNodeWithText(action).fetchSemanticsNode().boundsInRoot.top
                 println("KK CTA bounds=${onNodeWithText(action).fetchSemanticsNode().boundsInRoot}")
-                println("KK records bounds=${onNodeWithText("Соңғы рекордтар").fetchSemanticsNode().boundsInRoot}")
-                println(
-                    "KK empty bounds=" +
-                        onNodeWithText("Жаңа рекордтар ойыннан кейін осында көрсетіледі")
-                            .fetchSemanticsNode().boundsInRoot,
-                )
                 onNodeWithText(action).performClick()
                 onNodeWithText("Detail").assertIsDisplayed()
                 runOnIdle {

@@ -6,6 +6,8 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -16,6 +18,8 @@ import com.alad1nks.oquturbo.core.data.model.ProgressComparison
 import com.alad1nks.oquturbo.core.designsystem.theme.OquTurboTheme
 import com.alad1nks.oquturbo.core.ui.component.appBackground
 import com.alad1nks.oquturbo.core.ui.preview.ScreenshotPreview
+import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.flow.first
 
 internal fun previewNoRecentResult() = PersonalResultState.Loaded(ProgressComparison.NoRecentSessions(19_973, 20_000))
 
@@ -141,6 +145,18 @@ private fun ResultUnknownMetadataPreview() {
 @ScreenshotPreview
 @Composable
 private fun ResultScrolledHomePreview() {
+    val listState = rememberLazyListState(initialFirstVisibleItemIndex = 3)
+    LaunchedEffect(listState) {
+        val (cardHeight, viewportHeight) =
+            snapshotFlow {
+                val layout = listState.layoutInfo
+                layout.visibleItemsInfo.firstOrNull { it.key == "personal-result" }?.let {
+                    it.size to layout.viewportSize.height
+                }
+            }.filterNotNull().first()
+        // Show the result's lower half, independent of cards inserted after it.
+        listState.scrollToItem(3, (cardHeight - viewportHeight / 2).coerceAtLeast(0))
+    }
     OquTurboTheme {
         HomeScreen(
             uiState =
@@ -149,7 +165,7 @@ private fun ResultScrolledHomePreview() {
                     personalResult = compared(series = customSeries),
                 ),
             onStartTrainingClick = {},
-            listState = rememberLazyListState(initialFirstVisibleItemIndex = 4),
+            listState = listState,
         )
     }
 }
