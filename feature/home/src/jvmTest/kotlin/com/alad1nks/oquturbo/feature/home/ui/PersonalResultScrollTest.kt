@@ -20,6 +20,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveableStateHolder
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.test.ExperimentalTestApi
@@ -65,7 +66,24 @@ class PersonalResultScrollTest {
         )
 
     @Test
-    fun kazakhComparedCardRetainsPositionAcrossDetailScaffoldResize() {
+    fun kazakhComparedCardRetainsPositionAcrossDetailScaffoldResize() = verifyScaffoldPosition(127f)
+
+    @Test
+    fun kazakhComparedCardRetainsNearEndPositionAcrossDetailScaffoldResize() = verifyScaffoldPosition(220f)
+
+    @Test
+    fun kazakhComparedCardRetainsEndPositionThroughFreshRead() =
+        verifyScaffoldPosition(0f, scrollToEnd = true)
+
+    @Test
+    fun kazakhComparedCardRetainsEndPositionOnImmediateReadyReturn() =
+        verifyScaffoldPosition(0f, scrollToEnd = true, freshRead = false)
+
+    private fun verifyScaffoldPosition(
+        additionalScroll: Float,
+        scrollToEnd: Boolean = false,
+        freshRead: Boolean = true,
+    ) {
         val originalLocale = Locale.getDefault()
         try {
             Locale.setDefault(Locale.forLanguageTag("kk"))
@@ -91,18 +109,20 @@ class PersonalResultScrollTest {
                 lateinit var scope: CoroutineScope
                 lateinit var navigation: NavHostController
                 val viewportHeights = mutableListOf<Int>()
+                val layoutTimeline = mutableListOf<String>()
                 setContent {
                     CompositionLocalProvider(LocalDensity provides Density(1f, 1.5f)) {
                         OquTurboTheme {
                             navigation = rememberNavController()
                             val isHome = navigation.currentBackStackEntryAsState().value?.destination?.route == "home"
-                            // Android's captured viewport excludes 24px status and 48px system navigation.
+                            // Status inset stays on Home. The system navigation inset belongs to the
+                            // conditional bottom bar: edge-to-edge content regains it on detail.
                             Scaffold(
-                                modifier = Modifier.fillMaxSize().padding(top = 24.dp, bottom = 48.dp),
+                                modifier = Modifier.fillMaxSize().padding(top = 24.dp),
                                 contentWindowInsets = WindowInsets(0, 0, 0, 0),
                                 bottomBar = {
                                     if (isHome) {
-                                        NavigationBar {
+                                        NavigationBar(windowInsets = WindowInsets(0, 0, 0, 48)) {
                                             listOf(
                                                 AppResource.String.oquturbo_navigation_home,
                                                 AppResource.String.oquturbo_navigation_games,
@@ -137,7 +157,25 @@ class PersonalResultScrollTest {
                                             onStartTrainingClick = {},
                                             onModeStatisticsClick = { navigation.navigate("detail") },
                                             listState = list,
-                                            modifier = Modifier.onSizeChanged { viewportHeights.add(it.height) },
+                                            modifier =
+                                                Modifier.onSizeChanged { viewportHeights.add(it.height) }
+                                                    .onGloballyPositioned {
+                                                        val info = list.layoutInfo
+                                                        val itemSizes =
+                                                            info.visibleItemsInfo.map { item ->
+                                                                "${item.index}:${item.offset}:${item.size}"
+                                                            }
+                                                        val resultState = state.value.personalResult::class.simpleName
+                                                        layoutTimeline.add(
+                                                            "route=${navigation.currentDestination?.route} " +
+                                                                "state=$resultState " +
+                                                                "position=${list.firstVisibleItemIndex}:" +
+                                                                "${list.firstVisibleItemScrollOffset} " +
+                                                                "viewport=${info.viewportStartOffset}.." +
+                                                                "${info.viewportEndOffset} " +
+                                                                "items=$itemSizes",
+                                                        )
+                                                    },
                                         )
                                     }
                                     composable("detail") { Text("Detail") }
@@ -150,18 +188,31 @@ class PersonalResultScrollTest {
                 val action = "Режим статистикасы"
                 onNodeWithText(action).performScrollTo().assertIsDisplayed()
                 // Match the Android capture near the list end, with records visible below the CTA.
-                runOnIdle { scope.launch { list.scrollBy(127f) } }
+                runOnIdle {
+                    scope.launch {
+                        if (scrollToEnd) list.scrollToItem(4) else list.scrollBy(additionalScroll)
+                    }
+                }
                 onNodeWithText(action).assertIsDisplayed()
                 val before = runOnIdle { list.firstVisibleItemIndex to list.firstVisibleItemScrollOffset }
                 val buttonTop = onNodeWithText(action).fetchSemanticsNode().boundsInRoot.top
+                println("KK CTA bounds=${onNodeWithText(action).fetchSemanticsNode().boundsInRoot}")
+                println("KK records bounds=${onNodeWithText("Соңғы рекордтар").fetchSemanticsNode().boundsInRoot}")
+                println(
+                    "KK empty bounds=" +
+                        onNodeWithText("Жаңа рекордтар ойыннан кейін осында көрсетіледі")
+                            .fetchSemanticsNode().boundsInRoot,
+                )
                 onNodeWithText(action).performClick()
                 onNodeWithText("Detail").assertIsDisplayed()
                 runOnIdle {
-                    state.value = ready.copy(personalResult = PersonalResultState.Loading)
+                    if (freshRead) state.value = ready.copy(personalResult = PersonalResultState.Loading)
                     navigation.popBackStack()
                 }
-                onNodeWithText(action).assertDoesNotExist()
-                onNodeWithText("+2").assertDoesNotExist()
+                if (freshRead) {
+                    onNodeWithText(action).assertDoesNotExist()
+                    onNodeWithText("+2").assertDoesNotExist()
+                }
                 val loading = runOnIdle { list.firstVisibleItemIndex to list.firstVisibleItemScrollOffset }
                 runOnIdle { state.value = ready }
                 onNodeWithText(action).assertIsDisplayed()
@@ -170,9 +221,23 @@ class PersonalResultScrollTest {
                 println(
                     "KK scaffold: before=$before loading=$loading after=$after CTA=$buttonTop->$afterTop viewports=$viewportHeights",
                 )
+                println(
+                    layoutTimeline.joinToString("\n"),
+                )
                 assertEquals(before, loading)
                 assertEquals(before, after)
                 assertEquals(buttonTop, afterTop, 1f)
+                // A later user scroll/recomposition must not reapply the already-consumed anchor.
+                runOnIdle { scope.launch { list.scrollBy(-40f) } }
+                val userPosition = runOnIdle { list.firstVisibleItemIndex to list.firstVisibleItemScrollOffset }
+                runOnIdle { state.value = ready.copy(personalResult = PersonalResultState.Loading) }
+                onNodeWithText(action).assertDoesNotExist()
+                runOnIdle { state.value = ready }
+                onNodeWithText(action).assertIsDisplayed()
+                assertEquals(
+                    userPosition,
+                    runOnIdle { list.firstVisibleItemIndex to list.firstVisibleItemScrollOffset },
+                )
             }
         } finally {
             Locale.setDefault(originalLocale)
