@@ -32,6 +32,33 @@ import kotlin.time.TestTimeSource
 @OptIn(ExperimentalCoroutinesApi::class)
 class NumberTrailViewModelTest {
     @Test
+    fun reviewingResultIgnoresLateAnswersAndTimersWithoutAnotherWrite() =
+        exercise { vm, storage, clock ->
+            runCurrent()
+            vm.start()
+            vm.answer(1)
+            val lateTick = vm.timerTickCallback()
+            val board = vm.uiState.value.game.board!!
+            vm.answer(4)
+            runCurrent()
+            val result = vm.uiState.value.game
+            clock += 90_000.milliseconds
+            lateTick()
+            vm.selectAnswer(board.id, board.numbers.indexOf(2))
+            vm.pause()
+            vm.resume()
+            runCurrent()
+            assertEquals(result, vm.uiState.value.game)
+            assertEquals(1, storage.gameSessionWriteCount)
+            vm.start()
+            assertEquals(NumberTrailPhase.Active, vm.uiState.value.game.phase)
+            assertNull(vm.uiState.value.game.failure)
+            assertNull(vm.uiState.value.game.selectedNumber)
+            assertTrue(board.id != vm.uiState.value.game.board!!.id)
+            assertEquals(1, storage.gameSessionWriteCount)
+        }
+
+    @Test
     fun fractionalTickIntervalsCannotExtendTheExclusiveDeadline() =
         exercise { vm, storage, clock ->
             runCurrent()

@@ -944,4 +944,11 @@
     <string name="symbol_count_review_explanation">В рамки обведены клетки с искомой фигурой.</string>
     <string name="symbol_count_review_cell_match">Строка %1$d, столбец %2$d: %3$s. Совпадает с искомой фигурой.</string>
     <string name="symbol_count_review_cell_other">Строка %1$d, столбец %2$d: %3$s. Не совпадает с искомой фигурой.</string>
+    <string name="number_trail_review_title">Разбор поля</string>
+    <string name="number_trail_review_legend_expected">Круг: следующее нужное число</string>
+    <string name="number_trail_review_legend_wrong">Крестик: ваш неверный выбор</string>
+    <string name="number_trail_review_legend_completed">Галочка: уже пройдено</string>
+    <string name="number_trail_review_cell_expected">Число %1$d, следующее нужное число</string>
+    <string name="number_trail_review_cell_wrong">Число %1$d, ваш неверный выбор</string>
+    <string name="number_trail_review_cell_completed">Число %1$d, уже пройдено</string>
 </resources>
