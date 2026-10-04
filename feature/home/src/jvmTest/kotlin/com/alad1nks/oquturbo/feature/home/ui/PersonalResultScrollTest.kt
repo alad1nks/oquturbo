@@ -87,7 +87,7 @@ class PersonalResultScrollTest {
         val originalLocale = Locale.getDefault()
         try {
             Locale.setDefault(Locale.forLanguageTag("kk"))
-            runDesktopComposeUiTest(width = 320, height = if (scrollToEnd) 1000 else 640) {
+            runDesktopComposeUiTest(width = 320, height = if (scrollToEnd) 1200 else 640) {
                 val ready =
                     HomeUiState(
                         dailyTraining = previewDailyTraining(false),
@@ -189,6 +189,7 @@ class PersonalResultScrollTest {
                 onNodeWithText(action).performScrollTo().assertIsDisplayed()
                 // Rhythm now sits below the result. End cases use a taller natural viewport
                 // so both the result action and the actual last item remain reachable together.
+                // The weekly-review entry adds height to Rhythm; 1200 keeps the Mode CTA fully visible.
                 runOnIdle {
                     scope.launch {
                         if (scrollToEnd) {

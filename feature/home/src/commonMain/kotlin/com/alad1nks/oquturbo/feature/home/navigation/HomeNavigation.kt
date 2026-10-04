@@ -35,6 +35,7 @@ fun NavGraphBuilder.homeScreen(
     onStartTrainingClick: (DailyTrainingEntry) -> Unit,
     onViewProgressClick: () -> Unit,
     onModeStatisticsClick: (GameSeriesKey) -> Unit,
+    onWeeklyReviewClick: () -> Unit,
 ) {
     composable<HomeRoute> {
         val viewModel = koinViewModel<HomeViewModel>()
@@ -43,6 +44,7 @@ fun NavGraphBuilder.homeScreen(
             onStartTrainingClick = onStartTrainingClick,
             onViewProgressClick = onViewProgressClick,
             onModeStatisticsClick = onModeStatisticsClick,
+            onWeeklyReviewClick = onWeeklyReviewClick,
         )
     }
 }

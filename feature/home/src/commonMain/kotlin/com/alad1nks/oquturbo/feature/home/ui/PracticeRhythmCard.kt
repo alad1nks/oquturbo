@@ -45,7 +45,11 @@ import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.stringResource
 
 @Composable
-internal fun PracticeRhythmCard(state: PracticeRhythmState, onRetry: () -> Unit) {
+internal fun PracticeRhythmCard(
+    state: PracticeRhythmState,
+    onRetry: () -> Unit,
+    onWeeklyReview: () -> Unit = {},
+) {
     BoxWithConstraints(Modifier.fillMaxWidth()) {
         val density = LocalDensity.current
         var readyHeight by rememberSaveable { mutableIntStateOf(0) }
@@ -82,6 +86,11 @@ internal fun PracticeRhythmCard(state: PracticeRhythmState, onRetry: () -> Unit)
                     }
                     PracticeRhythmState.Error -> {
                         RhythmText(stringResource(AppResource.String.practice_history_error))
+                    }
+                    is PracticeRhythmState.Ready -> ReadyRhythm(state.rhythm)
+                }
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    if (state == PracticeRhythmState.Error) {
                         TextButton(
                             onClick = onRetry,
                             modifier = Modifier.widthIn(max = 360.dp).fillMaxWidth().heightIn(min = 56.dp),
@@ -94,7 +103,18 @@ internal fun PracticeRhythmCard(state: PracticeRhythmState, onRetry: () -> Unit)
                             )
                         }
                     }
-                    is PracticeRhythmState.Ready -> ReadyRhythm(state.rhythm)
+                    TextButton(
+                        onClick = onWeeklyReview,
+                        modifier = Modifier.widthIn(max = 360.dp).fillMaxWidth().heightIn(min = 56.dp),
+                        shape = MaterialTheme.shapes.medium,
+                        contentPadding = PaddingValues(horizontal = 16.dp, vertical = 12.dp),
+                    ) {
+                        Text(
+                            stringResource(AppResource.String.weekly_review_title),
+                            style = MaterialTheme.typography.titleMedium,
+                            textAlign = TextAlign.Center,
+                        )
+                    }
                 }
             }
         }

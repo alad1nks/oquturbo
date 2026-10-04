@@ -1,13 +1,16 @@
 package com.alad1nks.oquturbo.feature.stats.di
 
 import com.alad1nks.oquturbo.feature.stats.data.RepositoryStatsDataSource
+import com.alad1nks.oquturbo.feature.stats.data.RepositoryWeeklyReviewDataSource
 import com.alad1nks.oquturbo.feature.stats.data.StatsDataSource
+import com.alad1nks.oquturbo.feature.stats.data.WeeklyReviewDataSource
 import com.alad1nks.oquturbo.feature.stats.model.StatsGame
 import com.alad1nks.oquturbo.feature.stats.model.StatsMode
 import com.alad1nks.oquturbo.feature.stats.model.StatsPeriod
 import com.alad1nks.oquturbo.feature.stats.ui.StatsGameDetailViewModel
 import com.alad1nks.oquturbo.feature.stats.ui.StatsModeDetailViewModel
 import com.alad1nks.oquturbo.feature.stats.ui.StatsViewModel
+import com.alad1nks.oquturbo.feature.stats.ui.WeeklyReviewViewModel
 import org.koin.core.module.dsl.viewModel
 import org.koin.dsl.module
 
@@ -15,6 +18,8 @@ val StatsModule =
     module {
         single<StatsDataSource> { RepositoryStatsDataSource(repository = get()) }
         viewModel { StatsViewModel(dataSource = get()) }
+        single<WeeklyReviewDataSource> { RepositoryWeeklyReviewDataSource(activity = get(), training = get()) }
+        viewModel { WeeklyReviewViewModel(dataSource = get()) }
         viewModel { (game: StatsGame, period: StatsPeriod) ->
             StatsGameDetailViewModel(game = game, period = period, dataSource = get())
         }

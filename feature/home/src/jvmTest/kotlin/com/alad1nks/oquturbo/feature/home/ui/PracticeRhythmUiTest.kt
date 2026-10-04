@@ -62,10 +62,10 @@ class PracticeRhythmUiTest {
                     CompositionLocalProvider(LocalDensity provides Density(1f, 1.5f)) {
                         OquTurboTheme {
                             Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState())) {
-                                PracticeRhythmCard(state.value) {
+                                PracticeRhythmCard(state.value, onRetry = {
                                     retries++
                                     state.value = PracticeRhythmState.Loading
-                                }
+                                })
                             }
                         }
                     }
@@ -123,6 +123,35 @@ class PracticeRhythmUiTest {
                 onNodeWithText(scopeText).assertIsDisplayed()
                 assertEquals(before, runOnIdle { list.firstVisibleItemIndex to list.firstVisibleItemScrollOffset })
                 assertEquals(top, onNodeWithText(scopeText).fetchSemanticsNode().boundsInRoot.top, 1f)
+            }
+        }
+
+    @Test
+    fun weeklyEntryRemainsEnabledInEveryReadStateAndDoesNotRetryHistory() =
+        inEnglish {
+            runDesktopComposeUiTest(width = 320, height = 640) {
+                val state = mutableStateOf<PracticeRhythmState>(PracticeRhythmState.Error)
+                var entries = 0
+                var retries = 0
+                setContent {
+                    CompositionLocalProvider(LocalDensity provides Density(1f, 1.5f)) {
+                        OquTurboTheme {
+                            Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState())) {
+                                PracticeRhythmCard(state.value, onRetry = { retries++ }, onWeeklyReview = { entries++ })
+                            }
+                        }
+                    }
+                }
+                for (next in listOf(
+                    PracticeRhythmState.Error,
+                    PracticeRhythmState.Loading,
+                    PracticeRhythmState.Ready(calculatePracticeRhythm(DayHistory(0, emptyList()), 0)),
+                )) {
+                    runOnIdle { state.value = next }
+                    onNodeWithText("7-day review").performScrollTo().assertIsDisplayed().performClick()
+                }
+                assertEquals(3, entries)
+                assertEquals(0, retries)
             }
         }
 

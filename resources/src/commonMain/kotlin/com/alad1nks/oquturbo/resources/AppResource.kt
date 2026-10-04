@@ -647,6 +647,24 @@ import oquturbo.resources.generated.resources.symbol_count_title
 import oquturbo.resources.generated.resources.symbol_count_triangle
 import oquturbo.resources.generated.resources.symbol_count_wrong_detail
 import oquturbo.resources.generated.resources.symbol_count_wrong_title
+import oquturbo.resources.generated.resources.weekly_days_count
+import oquturbo.resources.generated.resources.weekly_home
+import oquturbo.resources.generated.resources.weekly_next_goal
+import oquturbo.resources.generated.resources.weekly_next_hint
+import oquturbo.resources.generated.resources.weekly_next_title
+import oquturbo.resources.generated.resources.weekly_practice_days
+import oquturbo.resources.generated.resources.weekly_regularity
+import oquturbo.resources.generated.resources.weekly_result_explanation
+import oquturbo.resources.generated.resources.weekly_result_title
+import oquturbo.resources.generated.resources.weekly_retry_source
+import oquturbo.resources.generated.resources.weekly_review_title
+import oquturbo.resources.generated.resources.weekly_sessions_error
+import oquturbo.resources.generated.resources.weekly_sessions_loading
+import oquturbo.resources.generated.resources.weekly_today_open
+import oquturbo.resources.generated.resources.weekly_training_days
+import oquturbo.resources.generated.resources.weekly_training_definition
+import oquturbo.resources.generated.resources.weekly_training_error
+import oquturbo.resources.generated.resources.weekly_training_loading
 import oquturbo.resources.generated.resources.word_flow_back
 import oquturbo.resources.generated.resources.word_flow_blank
 import oquturbo.resources.generated.resources.word_flow_choice_accessibility
@@ -729,6 +747,24 @@ object AppResource {
     }
 
     object String {
+        val weekly_review_title = Res.string.weekly_review_title
+        val weekly_regularity = Res.string.weekly_regularity
+        val weekly_practice_days = Res.string.weekly_practice_days
+        val weekly_training_days = Res.string.weekly_training_days
+        val weekly_days_count = Res.string.weekly_days_count
+        val weekly_training_definition = Res.string.weekly_training_definition
+        val weekly_today_open = Res.string.weekly_today_open
+        val weekly_training_loading = Res.string.weekly_training_loading
+        val weekly_training_error = Res.string.weekly_training_error
+        val weekly_result_title = Res.string.weekly_result_title
+        val weekly_result_explanation = Res.string.weekly_result_explanation
+        val weekly_sessions_loading = Res.string.weekly_sessions_loading
+        val weekly_sessions_error = Res.string.weekly_sessions_error
+        val weekly_next_title = Res.string.weekly_next_title
+        val weekly_next_goal = Res.string.weekly_next_goal
+        val weekly_next_hint = Res.string.weekly_next_hint
+        val weekly_home = Res.string.weekly_home
+        val weekly_retry_source = Res.string.weekly_retry_source
         val practice_rhythm_title = Res.string.practice_rhythm_title
         val practice_rhythm_goal = Res.string.practice_rhythm_goal
         val practice_rhythm_count = Res.string.practice_rhythm_count
