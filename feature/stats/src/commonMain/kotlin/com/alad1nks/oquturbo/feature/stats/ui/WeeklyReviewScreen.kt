@@ -65,6 +65,10 @@ internal fun WeeklyReviewRouteContent(
         viewModel::retryPractice,
         viewModel::retryTraining,
         viewModel::retrySessions,
+        onSelectFocus = viewModel::selectFocus,
+        onDisableFocus = viewModel::disableFocus,
+        onRetryFocus = viewModel::retryFocus,
+        onResetFocus = viewModel::resetFocus,
     )
 }
 
@@ -79,6 +83,10 @@ internal fun WeeklyReviewScreen(
     onRetrySessions: () -> Unit,
     modifier: Modifier = Modifier,
     listState: LazyListState = rememberLazyListState(),
+    onSelectFocus: () -> Unit = {},
+    onDisableFocus: () -> Unit = {},
+    onRetryFocus: () -> Unit = {},
+    onResetFocus: () -> Unit = {},
 ) {
     val title = stringResource(AppResource.String.weekly_review_title)
     StatsDetailLayout(title, onBackClick, modifier, listState) {
@@ -123,18 +131,36 @@ internal fun WeeklyReviewScreen(
                 WeeklyHeading(AppResource.String.weekly_next_title)
                 Text(stringResource(AppResource.String.weekly_next_goal), style = MaterialTheme.typography.titleMedium)
                 WeeklyText(AppResource.String.weekly_next_hint)
-                Button(
-                    onClick = onHomeClick,
-                    modifier = weeklyActionModifier(),
-                    shape = MaterialTheme.shapes.medium,
-                    contentPadding = PaddingValues(horizontal = 16.dp, vertical = 12.dp),
-                ) {
-                    Text(
-                        stringResource(AppResource.String.weekly_home),
-                        modifier = Modifier.fillMaxWidth(),
-                        style = MaterialTheme.typography.titleMedium,
-                        textAlign = TextAlign.Center,
-                    )
+                Column(Modifier.padding(top = 8.dp), verticalArrangement = Arrangement.spacedBy(24.dp)) {
+                    WeeklySourceBody(
+                        when (val focus = state.focus) {
+                            is WeeklyFocusUiState.Ready -> WeeklySource.Ready(focus.focus)
+                            WeeklyFocusUiState.Error, WeeklyFocusUiState.Unconfirmed -> WeeklySource.Error
+                            else -> WeeklySource.Loading
+                        },
+                    ) {
+                        WeeklyFocusSection(
+                            state.focus,
+                            state.todayEpochDay,
+                            onSelectFocus,
+                            onDisableFocus,
+                            onRetryFocus,
+                            onResetFocus,
+                        )
+                    }
+                    Button(
+                        onClick = onHomeClick,
+                        modifier = weeklyActionModifier(),
+                        shape = MaterialTheme.shapes.medium,
+                        contentPadding = PaddingValues(horizontal = 16.dp, vertical = 12.dp),
+                    ) {
+                        Text(
+                            stringResource(AppResource.String.weekly_home),
+                            modifier = Modifier.fillMaxWidth(),
+                            style = MaterialTheme.typography.titleMedium,
+                            textAlign = TextAlign.Center,
+                        )
+                    }
                 }
             }
         }

@@ -15,6 +15,9 @@ import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollToNode
 import androidx.compose.ui.test.runDesktopComposeUiTest
 import androidx.compose.ui.unit.Density
+import androidx.lifecycle.ViewModelStore
+import androidx.lifecycle.ViewModelStoreOwner
+import androidx.lifecycle.viewmodel.compose.LocalViewModelStoreOwner
 import androidx.navigation.NavDestination.Companion.hasRoute
 import androidx.navigation.toRoute
 import com.alad1nks.oquturbo.core.storage.common.AppPreferences
@@ -29,11 +32,14 @@ import com.alad1nks.oquturbo.shared.ui.rememberOquTurboAppState
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.flowOf
+import org.koin.core.context.stopKoin
 import org.koin.dsl.module
+import org.koin.mp.KoinPlatform
 import java.util.Locale
 import java.util.concurrent.ConcurrentHashMap
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertSame
 import kotlin.test.assertTrue
 
 /** Executes the production App graph, DI assembly, Scaffold and all three real route contents. */
@@ -42,7 +48,14 @@ class WeeklyReviewNavigationTest {
     @Test
     fun realRootGraphReturnsToSameHomeAndReviewAnchorsAndCoalescesDoubleTaps() {
         val original = Locale.getDefault()
+        val owner =
+            object : ViewModelStoreOwner {
+                override val viewModelStore = ViewModelStore()
+            }
         try {
+            // Koin Compose 4.2 keeps its global context on composition disposal. Each test owns
+            // a complete app lifetime, so close the preceding context and its singleton storage.
+            stopKoin()
             Locale.setDefault(Locale.ENGLISH)
             runDesktopComposeUiTest(width = 320, height = 640) {
                 val preferences = ReviewPreferences()
@@ -50,7 +63,10 @@ class WeeklyReviewNavigationTest {
                 val common = getCommonModules()
                 lateinit var appState: OquTurboAppState
                 setContent {
-                    CompositionLocalProvider(LocalDensity provides Density(1f, 1.5f)) {
+                    CompositionLocalProvider(
+                        LocalDensity provides Density(1f, 1.5f),
+                        LocalViewModelStoreOwner provides owner,
+                    ) {
                         appState = rememberOquTurboAppState()
                         App(appState, common, platform)
                     }
@@ -141,6 +157,75 @@ class WeeklyReviewNavigationTest {
                 runOnIdle { assertEquals(homeId, appState.navController.currentBackStackEntry!!.id) }
             }
         } finally {
+            owner.viewModelStore.clear()
+            stopKoin()
+            Locale.setDefault(original)
+        }
+    }
+
+    @Test
+    fun actualReviewSelectCancelAndHomePreserveExistingPlanAndAllOtherKeys() {
+        val original = Locale.getDefault()
+        val owner =
+            object : ViewModelStoreOwner {
+                override val viewModelStore = ViewModelStore()
+            }
+        try {
+            // Koin Compose 4.2 keeps its global context on composition disposal. Each test owns
+            // a complete app lifetime, so close the preceding context and its singleton storage.
+            stopKoin()
+            Locale.setDefault(Locale.ENGLISH)
+            runDesktopComposeUiTest(width = 320, height = 640) {
+                val preferences = ReviewPreferences()
+                val platform = listOf(module { single<AppPreferences> { preferences } })
+                val common = getCommonModules()
+                lateinit var appState: OquTurboAppState
+                setContent {
+                    CompositionLocalProvider(LocalViewModelStoreOwner provides owner) {
+                        appState = rememberOquTurboAppState()
+                        App(appState, common, platform)
+                    }
+                }
+                onNode(hasScrollAction()).performScrollToNode(hasText("7-day review"))
+                runOnIdle { assertSame(preferences, KoinPlatform.getKoin().get<AppPreferences>()) }
+                val before = preferences.snapshot().filterKeys { it != "weekly_focus_v1" }
+                val homeId = runOnIdle { appState.navController.currentBackStackEntry!!.id }
+                onNodeWithText("7-day review").performClick()
+                onNode(hasScrollAction()).performScrollToNode(hasText("Select for 7 days"))
+                val select =
+                    onNodeWithText("Select for 7 days").assertIsDisplayed()
+                        .fetchSemanticsNode().config[SemanticsActions.OnClick].action!!
+                runOnIdle {
+                    select()
+                    select()
+                }
+                waitUntil(
+                    timeoutMillis = 10_000,
+                ) { onAllNodes(hasText("Focus scheduled")).fetchSemanticsNodes().isNotEmpty() }
+                onNode(hasScrollAction()).performScrollToNode(hasText("Focus scheduled"))
+                onNodeWithText("Focus scheduled").assertIsDisplayed()
+                val committed = preferences.snapshot()["weekly_focus_v1"]!!
+                assertTrue(committed.contains("number_sprint_classic"))
+                assertEquals(before, preferences.snapshot().filterKeys { it != "weekly_focus_v1" })
+                onNode(hasScrollAction()).performScrollToNode(hasText("Home"))
+                onNodeWithText("Home").performClick()
+                runOnIdle { assertEquals(homeId, appState.navController.currentBackStackEntry!!.id) }
+                onNode(hasScrollAction()).performScrollToNode(hasText("Focus scheduled"))
+                onNodeWithText("Focus scheduled").assertIsDisplayed()
+                assertEquals(before, preferences.snapshot().filterKeys { it != "weekly_focus_v1" })
+                onNode(hasScrollAction()).performScrollToNode(hasText("7-day review"))
+                onNodeWithText("7-day review").performClick()
+                onNode(hasScrollAction()).performScrollToNode(hasText("Cancel focus"))
+                onNodeWithText("Cancel focus").performClick()
+                waitUntil(
+                    timeoutMillis = 10_000,
+                ) { onAllNodes(hasText("Select for 7 days")).fetchSemanticsNodes().isNotEmpty() }
+                assertTrue(preferences.snapshot()["weekly_focus_v1"]!!.contains("\"selection\":null"))
+                assertEquals(before, preferences.snapshot().filterKeys { it != "weekly_focus_v1" })
+            }
+        } finally {
+            owner.viewModelStore.clear()
+            stopKoin()
             Locale.setDefault(original)
         }
     }

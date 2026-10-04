@@ -209,7 +209,7 @@ class WeeklyReviewRepositoryTest {
             strings.getOrPut(key) { MutableStateFlow(null) }.value = value
         }
 
-        fun snapshot() = strings.mapValues { it.value.value }
+        fun snapshot() = strings.mapValues { it.value.value }.filterValues { it != null }
 
         override fun getString(key: String): Flow<String?> = strings.getOrPut(key) { MutableStateFlow(null) }
 

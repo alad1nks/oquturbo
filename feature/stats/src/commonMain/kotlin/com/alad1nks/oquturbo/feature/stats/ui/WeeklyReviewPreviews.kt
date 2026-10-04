@@ -2,6 +2,8 @@ package com.alad1nks.oquturbo.feature.stats.ui
 
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.tooling.preview.Preview
 import com.alad1nks.oquturbo.core.data.model.DayHistory
 import com.alad1nks.oquturbo.core.data.model.GameId
@@ -11,6 +13,8 @@ import com.alad1nks.oquturbo.core.data.model.ProgressComparison
 import com.alad1nks.oquturbo.core.data.practice.calculatePracticeRhythm
 import com.alad1nks.oquturbo.core.designsystem.theme.OquTurboTheme
 import com.alad1nks.oquturbo.core.ui.preview.ScreenshotPreview
+import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.flow.first
 
 private const val REVIEW_DAY = 20_089L // 2025-01-01: both ranges cross the year boundary.
 private val previewSeries = GameSeriesKey(GameId.NumberSprint, GameModeId.NumberSprintBinary, null)
@@ -28,6 +32,17 @@ private fun previewWeeklyHistory(days: List<Long>, start: Long = 20_000) =
 
 @Composable
 private fun ReviewPreview(state: WeeklyReviewUiState, dark: Boolean = false, footer: Boolean = false) {
+    val listState = rememberLazyListState(initialFirstVisibleItemIndex = if (footer) 3 else 0)
+    if (footer) {
+        LaunchedEffect(listState) {
+            val height =
+                snapshotFlow {
+                    listState.layoutInfo.visibleItemsInfo.firstOrNull { it.key == "weekly-next" }?.size
+                }.filterNotNull().first()
+            // Clamp naturally at the end of the measured final card so its Home footer stays visible.
+            listState.scrollToItem(3, height)
+        }
+    }
     OquTurboTheme(darkTheme = dark) {
         WeeklyReviewScreen(
             state,
@@ -37,7 +52,7 @@ private fun ReviewPreview(state: WeeklyReviewUiState, dark: Boolean = false, foo
             {},
             {},
             {},
-            listState = rememberLazyListState(initialFirstVisibleItemIndex = if (footer) 3 else 0),
+            listState = listState,
         )
     }
 }

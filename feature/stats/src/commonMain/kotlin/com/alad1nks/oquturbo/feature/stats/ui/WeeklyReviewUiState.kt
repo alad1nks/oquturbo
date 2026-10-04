@@ -16,4 +16,5 @@ internal data class WeeklyReviewUiState(
     val practice: WeeklySource<PracticeRhythm> = WeeklySource.Loading,
     val training: WeeklySource<PracticeRhythm> = WeeklySource.Loading,
     val comparison: WeeklySource<ProgressComparison> = WeeklySource.Loading,
+    val focus: WeeklyFocusUiState = WeeklyFocusUiState.Loading,
 )

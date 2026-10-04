@@ -15,6 +15,8 @@ interface Storage {
 
     fun getGameSessionsJson(): Flow<String?>
 
+    fun getWeeklyFocusJson(): Flow<String?>
+
     fun getDailyTrainingJson(): Flow<String?>
 
     fun getDailyTrainingProgressJson(): Flow<String?>
@@ -41,6 +43,8 @@ interface Storage {
     suspend fun setRemindersEnabled(value: Boolean)
 
     suspend fun setGameSessionsJson(value: String)
+
+    suspend fun setWeeklyFocusJson(value: String)
 
     suspend fun setDailyTrainingJson(value: String)
 

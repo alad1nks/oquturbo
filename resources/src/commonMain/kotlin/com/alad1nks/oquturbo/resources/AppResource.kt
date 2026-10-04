@@ -91,6 +91,32 @@ import oquturbo.resources.generated.resources.dual_focus_start
 import oquturbo.resources.generated.resources.dual_focus_title
 import oquturbo.resources.generated.resources.dual_focus_waiting
 import oquturbo.resources.generated.resources.dual_focus_wrong_title
+import oquturbo.resources.generated.resources.focus_active
+import oquturbo.resources.generated.resources.focus_cancel
+import oquturbo.resources.generated.resources.focus_check
+import oquturbo.resources.generated.resources.focus_checking
+import oquturbo.resources.generated.resources.focus_dates_confirmation
+import oquturbo.resources.generated.resources.focus_disable
+import oquturbo.resources.generated.resources.focus_error
+import oquturbo.resources.generated.resources.focus_expired
+import oquturbo.resources.generated.resources.focus_finished_dates
+import oquturbo.resources.generated.resources.focus_home_recovery
+import oquturbo.resources.generated.resources.focus_home_scope
+import oquturbo.resources.generated.resources.focus_loading
+import oquturbo.resources.generated.resources.focus_new_plans
+import oquturbo.resources.generated.resources.focus_optional_title
+import oquturbo.resources.generated.resources.focus_preview_dates
+import oquturbo.resources.generated.resources.focus_reselect
+import oquturbo.resources.generated.resources.focus_reset
+import oquturbo.resources.generated.resources.focus_reset_explanation
+import oquturbo.resources.generated.resources.focus_retry
+import oquturbo.resources.generated.resources.focus_save_unconfirmed
+import oquturbo.resources.generated.resources.focus_saved_dates
+import oquturbo.resources.generated.resources.focus_saving
+import oquturbo.resources.generated.resources.focus_scheduled
+import oquturbo.resources.generated.resources.focus_select
+import oquturbo.resources.generated.resources.focus_setting_title
+import oquturbo.resources.generated.resources.focus_today_preserved
 import oquturbo.resources.generated.resources.games_coming_soon_title
 import oquturbo.resources.generated.resources.games_dont_tap_description
 import oquturbo.resources.generated.resources.games_dual_focus_description
@@ -747,6 +773,33 @@ object AppResource {
     }
 
     object String {
+        val focus_optional_title = Res.string.focus_optional_title
+        val focus_setting_title = Res.string.focus_setting_title
+        val focus_new_plans = Res.string.focus_new_plans
+        val focus_today_preserved = Res.string.focus_today_preserved
+        val focus_home_scope = Res.string.focus_home_scope
+        val focus_preview_dates = Res.string.focus_preview_dates
+        val focus_dates_confirmation = Res.string.focus_dates_confirmation
+        val focus_saved_dates = Res.string.focus_saved_dates
+        val focus_finished_dates = Res.string.focus_finished_dates
+        val focus_select = Res.string.focus_select
+        val focus_scheduled = Res.string.focus_scheduled
+        val focus_active = Res.string.focus_active
+        val focus_expired = Res.string.focus_expired
+        val focus_cancel = Res.string.focus_cancel
+        val focus_disable = Res.string.focus_disable
+        val focus_reselect = Res.string.focus_reselect
+        val focus_loading = Res.string.focus_loading
+        val focus_saving = Res.string.focus_saving
+        val focus_error = Res.string.focus_error
+        val focus_retry = Res.string.focus_retry
+        val focus_save_unconfirmed = Res.string.focus_save_unconfirmed
+        val focus_checking = Res.string.focus_checking
+        val focus_check = Res.string.focus_check
+        val focus_reset_explanation = Res.string.focus_reset_explanation
+        val focus_reset = Res.string.focus_reset
+        val focus_home_recovery = Res.string.focus_home_recovery
+
         val weekly_review_title = Res.string.weekly_review_title
         val weekly_regularity = Res.string.weekly_regularity
         val weekly_practice_days = Res.string.weekly_practice_days

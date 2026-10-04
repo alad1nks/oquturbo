@@ -559,6 +559,10 @@ class KenKozGameViewModelTest {
             kenKozRecordWriteCount = 0
         }
 
+        override fun getWeeklyFocusJson(): Flow<String?> = kotlinx.coroutines.flow.flowOf(null)
+
+        override suspend fun setWeeklyFocusJson(value: String) = Unit
+
         override fun getDarkTheme(): Flow<Boolean?> = darkTheme
 
         override fun getLanguageCode(): Flow<String?> = languageCode

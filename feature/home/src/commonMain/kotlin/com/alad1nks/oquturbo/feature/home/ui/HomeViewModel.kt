@@ -199,7 +199,47 @@ internal class HomeViewModel(
         activityReload.value++
     }
 
+    private var focusJob: Job? = null
+    private val focusReload = MutableStateFlow(0L)
+    private var focusLoading = false
+
+    private fun showFocusLoading() {
+        focusLoading = true
+        mutableUiState.update { it.copy(focus = HomeFocusState.Loading) }
+    }
+
+    private fun observeFocus() {
+        showFocusLoading()
+        focusJob =
+            viewModelScope.launch {
+                focusReload.collectLatest {
+                    showFocusLoading()
+                    dailyTrainingRepository.observeWeeklyFocus().retryWhen { error, _ ->
+                        if (error is CancellationException) return@retryWhen false
+                        focusLoading = false
+                        mutableUiState.update { it.copy(focus = HomeFocusState.Error) }
+                        delay(HOME_STORAGE_RETRY_DELAY_MILLIS)
+                        true
+                    }.collect { value ->
+                        focusLoading = false
+                        mutableUiState.update { it.copy(focus = HomeFocusState.Ready(value, currentEpochDay())) }
+                    }
+                }
+            }
+    }
+
+    private fun refreshFocusDay() {
+        val previous = mutableUiState.value.focus as? HomeFocusState.Ready ?: return
+        val day = currentEpochDay()
+        if (previous.todayEpochDay != day) mutableUiState.update { it.copy(focus = previous.copy(todayEpochDay = day)) }
+    }
+
     fun refreshHome() {
+        if (!focusLoading) {
+            showFocusLoading()
+            focusReload.value++
+        }
+        refreshFocusDay()
         if (!historyLoading) {
             showHistoryLoading()
             historyReload.value++
@@ -239,10 +279,14 @@ internal class HomeViewModel(
         viewModelScope.launch {
             mutableUiState.subscriptionCount.map { it > 0 }.distinctUntilChanged().collectLatest { subscribed ->
                 if (subscribed) {
+                    if (focusJob?.isActive != true) observeFocus()
                     if (activityJob?.isActive != true) observeActivity()
                     if (historyJob?.isActive != true) observeHistory()
                 } else {
                     delay(STOP_TIMEOUT_MILLIS)
+                    showFocusLoading()
+                    focusJob?.cancelAndJoin()
+                    focusJob = null
                     showActivityLoading()
                     activityJob?.cancelAndJoin()
                     activityJob = null
@@ -263,6 +307,7 @@ internal class HomeViewModel(
         }
         viewModelScope.launch {
             while (true) {
+                refreshFocusDay()
                 refreshComparisonDay()
                 refreshPracticeDay()
                 discardStalePlan()

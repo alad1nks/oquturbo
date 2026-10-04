@@ -284,6 +284,17 @@ class WeeklyReviewViewModelTest {
         val sessions = Reader<List<GameSession>>(emptyList())
         val readers: List<Reader<*>> get() = listOf(practice, training, sessions)
 
+        override fun observeFocus() =
+            kotlinx.coroutines.flow.flowOf(
+                com.alad1nks.oquturbo.core.data.model.WeeklyFocus(),
+            )
+
+        override suspend fun selectFocus() = error("Not a focus interaction")
+
+        override suspend fun disableFocus() = error("Not a focus interaction")
+
+        override suspend fun resetFocus() = error("Not a focus interaction")
+
         override fun observePractice() = practice.observe()
 
         override fun observeTraining() = training.observe()

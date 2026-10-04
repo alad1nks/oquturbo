@@ -167,6 +167,7 @@ internal fun HomeScreen(
             item {
                 TrainingCard(
                     training = uiState.dailyTraining,
+                    focus = uiState.focus,
                     failed = uiState.trainingLoadFailed,
                     starting = uiState.isStartingTraining,
                     onViewProgressClick = onViewProgressClick,
@@ -259,6 +260,7 @@ private fun LevelProgress(
 
 @Composable
 private fun TrainingCard(
+    focus: HomeFocusState,
     training: HomeUiState.DailyTraining?,
     failed: Boolean,
     starting: Boolean,
@@ -346,6 +348,7 @@ private fun TrainingCard(
                     }
                 }
             }
+            TrainingFocusStatus(focus)
         }
     }
 }
