@@ -427,6 +427,13 @@ class MemoryGridViewModelTest {
 
         override fun getVibrationEnabled(): Flow<Boolean?> = vibrationEnabled
 
+        override fun getRemindersScheduleJson(): kotlinx.coroutines.flow.Flow<String?> =
+            kotlinx.coroutines.flow.flowOf(
+                null,
+            )
+
+        override suspend fun setRemindersScheduleJson(value: String) = Unit
+
         override fun getRemindersEnabled(): Flow<Boolean?> = remindersEnabled
 
         override fun getGameSessionsJson(): Flow<String?> =

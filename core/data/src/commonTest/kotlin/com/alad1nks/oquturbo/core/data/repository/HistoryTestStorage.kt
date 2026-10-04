@@ -18,6 +18,12 @@ internal class HistoryClock(var day: Long = 100) : Clock {
 }
 
 internal class HistoryTestStorage : Storage {
+    val reminderSchedule = MutableStateFlow<String?>(null)
+    val reminderEnabled = MutableStateFlow<Boolean?>(null)
+    var beforeReminderWrite: suspend () -> Unit = {}
+    var afterReminderWrite: suspend () -> Unit = {}
+    var beforeReminderEnabledWrite: suspend () -> Unit = {}
+    var afterReminderEnabledWrite: suspend () -> Unit = {}
     val focus = MutableStateFlow<String?>(null)
     var focusWrites = 0
     var beforeFocusRead: suspend () -> Unit = {}
@@ -88,7 +94,15 @@ internal class HistoryTestStorage : Storage {
 
     override fun getVibrationEnabled(): Flow<Boolean?> = flowOf(null)
 
-    override fun getRemindersEnabled(): Flow<Boolean?> = flowOf(null)
+    override fun getRemindersScheduleJson(): Flow<String?> = reminderSchedule
+
+    override suspend fun setRemindersScheduleJson(value: String) {
+        beforeReminderWrite()
+        reminderSchedule.value = value
+        afterReminderWrite()
+    }
+
+    override fun getRemindersEnabled(): Flow<Boolean?> = reminderEnabled
 
     override fun getProfilePreferencesJson(): Flow<String?> = flowOf(null)
 
@@ -106,7 +120,11 @@ internal class HistoryTestStorage : Storage {
 
     override suspend fun setVibrationEnabled(value: Boolean) = Unit
 
-    override suspend fun setRemindersEnabled(value: Boolean) = Unit
+    override suspend fun setRemindersEnabled(value: Boolean) {
+        beforeReminderEnabledWrite()
+        reminderEnabled.value = value
+        afterReminderEnabledWrite()
+    }
 
     override suspend fun setProfilePreferencesJson(value: String) = Unit
 

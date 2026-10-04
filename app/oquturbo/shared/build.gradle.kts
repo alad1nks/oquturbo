@@ -55,6 +55,7 @@ kotlin {
 
     sourceSets {
         androidMain.dependencies {
+            implementation(libs.androidx.activity.compose)
             implementation(projects.core.storage.datastore)
         }
         commonMain.dependencies {
@@ -103,6 +104,7 @@ kotlin {
             implementation(libs.kotlinx.coroutines.core)
         }
         commonTest.dependencies {
+            implementation(libs.kotlinx.coroutines.test)
             implementation(libs.kotlin.test)
         }
         iosMain.dependencies {

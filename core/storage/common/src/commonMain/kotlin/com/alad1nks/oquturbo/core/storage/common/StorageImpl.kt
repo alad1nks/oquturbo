@@ -21,6 +21,14 @@ internal class StorageImpl(
         return appPreferences.getBoolean(VIBRATION_ENABLED)
     }
 
+    override fun getRemindersScheduleJson(): Flow<String?> = appPreferences.getString(REMINDERS_SCHEDULE_V1)
+
+    override suspend fun setRemindersScheduleJson(value: String) =
+        appPreferences.setString(
+            REMINDERS_SCHEDULE_V1,
+            value,
+        )
+
     override fun getRemindersEnabled(): Flow<Boolean?> {
         return appPreferences.getBoolean(REMINDERS_ENABLED)
     }
@@ -129,6 +137,7 @@ internal class StorageImpl(
         const val LANGUAGE = "language"
         const val PROFILE_PREFERENCES_V1 = "profile_preferences_v1"
         const val REMEMBER_NUMBER_RECORD = "remember_number_record"
+        const val REMINDERS_SCHEDULE_V1 = "reminders_schedule_v1"
         const val REMINDERS_ENABLED = "reminders_enabled"
         const val SOUND_ENABLED = "sound_enabled"
         const val VIBRATION_ENABLED = "vibration_enabled"

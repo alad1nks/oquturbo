@@ -336,6 +336,13 @@ class RememberNumberViewModelTest {
 
         override fun getVibrationEnabled(): Flow<Boolean?> = nullableBoolean
 
+        override fun getRemindersScheduleJson(): kotlinx.coroutines.flow.Flow<String?> =
+            kotlinx.coroutines.flow.flowOf(
+                null,
+            )
+
+        override suspend fun setRemindersScheduleJson(value: String) = Unit
+
         override fun getRemindersEnabled(): Flow<Boolean?> = nullableBoolean
 
         override fun getGameSessionsJson(): Flow<String?> = gameSessions
