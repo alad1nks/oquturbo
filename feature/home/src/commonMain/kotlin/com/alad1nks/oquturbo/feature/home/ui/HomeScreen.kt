@@ -38,8 +38,13 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -107,6 +112,18 @@ internal fun HomeScreen(
     modifier: Modifier = Modifier,
     listState: LazyListState = rememberLazyListState(),
 ) {
+    var statisticsReturnIndex by rememberSaveable { mutableIntStateOf(-1) }
+    var statisticsReturnOffset by rememberSaveable { mutableIntStateOf(0) }
+    // Removing the bottom bar can enlarge the outgoing Home viewport and clamp its list
+    // before navigation saves it. Restore the user's pre-navigation anchor only on return.
+    val restoredStatisticsPosition = remember { statisticsReturnIndex to statisticsReturnOffset }
+    LaunchedEffect(Unit) {
+        if (restoredStatisticsPosition.first >= 0) {
+            listState.scrollToItem(restoredStatisticsPosition.first, restoredStatisticsPosition.second)
+            statisticsReturnIndex = -1
+            statisticsReturnOffset = 0
+        }
+    }
     Box(modifier = modifier.fillMaxSize().appBackground()) {
         LazyColumn(
             state = listState,
@@ -149,7 +166,13 @@ internal fun HomeScreen(
                 PersonalResultCard(
                     state = uiState.personalResult,
                     onRetryClick = onRetryPersonalResultClick,
-                    onModeStatisticsClick = onModeStatisticsClick,
+                    onModeStatisticsClick = { series ->
+                        if (statisticsReturnIndex < 0) {
+                            statisticsReturnIndex = listState.firstVisibleItemIndex
+                            statisticsReturnOffset = listState.firstVisibleItemScrollOffset
+                        }
+                        onModeStatisticsClick(series)
+                    },
                 )
             }
             item {
