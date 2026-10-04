@@ -85,9 +85,15 @@ fun App() {
 }
 
 @Composable
-internal fun App(appState: OquTurboAppState, commonModules: List<Module>, platformModules: List<Module>) {
+internal fun App(
+    appState: OquTurboAppState,
+    commonModules: List<Module>,
+    platformModules: List<Module>,
+    suppliedApplication: org.koin.core.KoinApplication? = null,
+) {
     MainScreen(
         commonModules = commonModules,
+        suppliedApplication = suppliedApplication,
         platformModules = platformModules,
         startDestination = HomeRoute,
         navController = appState.navController,

@@ -2,13 +2,12 @@ package com.alad1nks.oquturbo
 
 import android.graphics.Color
 import android.os.Bundle
-import androidx.activity.ComponentActivity
 import androidx.activity.SystemBarStyle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import com.alad1nks.oquturbo.shared.App
+import com.alad1nks.oquturbo.shared.reminders.PracticeReminderActivity
 
-class MainActivity : ComponentActivity() {
+class MainActivity : PracticeReminderActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         enableEdgeToEdge(
             statusBarStyle =
@@ -20,7 +19,7 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
 
         setContent {
-            App()
+            ReminderApp()
         }
     }
 }

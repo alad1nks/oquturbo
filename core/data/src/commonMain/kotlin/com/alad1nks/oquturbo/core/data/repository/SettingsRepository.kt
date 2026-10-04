@@ -1,13 +1,44 @@
 package com.alad1nks.oquturbo.core.data.repository
 
 import com.alad1nks.oquturbo.core.data.model.AppLanguage
+import com.alad1nks.oquturbo.core.data.model.ReminderSchedule
 import com.alad1nks.oquturbo.core.storage.common.Storage
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 
 class SettingsRepository(
     private val storage: Storage,
 ) {
+    private val reminderMutex = Mutex()
+
+    fun observeReminderSchedule(): Flow<ReminderSchedule?> =
+        storage.getRemindersScheduleJson().map(
+            ::decodeReminderSchedule,
+        )
+
+    /** Opaque snapshot for an explicit picker replacement, including malformed-but-readable data. */
+    suspend fun readReminderScheduleSnapshot(): String? = storage.getRemindersScheduleJson().first()
+
+    suspend fun readReminderSchedule(): ReminderSchedule? = observeReminderSchedule().first()
+
+    suspend fun readRemindersDesired(): Boolean = storage.getRemindersEnabled().first() ?: false
+
+    suspend fun saveReminderSchedule(schedule: ReminderSchedule, enable: Boolean = false) =
+        reminderMutex.withLock {
+            val payload = schedule.encodeReminder()
+            storage.setRemindersScheduleJson(payload)
+            if (enable) storage.setRemindersEnabled(true)
+        }
+
+    suspend fun enableSavedReminder() =
+        reminderMutex.withLock {
+            check(readReminderSchedule() != null) { "Reminder time is not configured" }
+            storage.setRemindersEnabled(true)
+        }
+
     fun getDarkTheme(): Flow<Boolean?> {
         return storage.getDarkTheme()
     }
@@ -46,9 +77,10 @@ class SettingsRepository(
         storage.setVibrationEnabled(value)
     }
 
-    suspend fun setRemindersEnabled(value: Boolean) {
-        storage.setRemindersEnabled(value)
-    }
+    suspend fun setRemindersEnabled(value: Boolean) =
+        reminderMutex.withLock {
+            storage.setRemindersEnabled(value)
+        }
 
     private companion object {
         const val SYSTEM_LANGUAGE_CODE = "system"

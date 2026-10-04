@@ -477,6 +477,51 @@ import oquturbo.resources.generated.resources.remember_number_menu_subtitle
 import oquturbo.resources.generated.resources.remember_number_menu_title
 import oquturbo.resources.generated.resources.remember_number_result_duration
 import oquturbo.resources.generated.resources.remember_number_title
+import oquturbo.resources.generated.resources.reminder_accepted
+import oquturbo.resources.generated.resources.reminder_after_practice
+import oquturbo.resources.generated.resources.reminder_allow
+import oquturbo.resources.generated.resources.reminder_around_time
+import oquturbo.resources.generated.resources.reminder_blocked
+import oquturbo.resources.generated.resources.reminder_cancel
+import oquturbo.resources.generated.resources.reminder_cancel_incomplete
+import oquturbo.resources.generated.resources.reminder_change_time
+import oquturbo.resources.generated.resources.reminder_channel_description
+import oquturbo.resources.generated.resources.reminder_channel_name
+import oquturbo.resources.generated.resources.reminder_checking
+import oquturbo.resources.generated.resources.reminder_choose_enable
+import oquturbo.resources.generated.resources.reminder_experimental
+import oquturbo.resources.generated.resources.reminder_ios_pending6a
+import oquturbo.resources.generated.resources.reminder_limited
+import oquturbo.resources.generated.resources.reminder_needs_time
+import oquturbo.resources.generated.resources.reminder_not_scheduled
+import oquturbo.resources.generated.resources.reminder_notification_body
+import oquturbo.resources.generated.resources.reminder_notification_title
+import oquturbo.resources.generated.resources.reminder_off
+import oquturbo.resources.generated.resources.reminder_old_pending
+import oquturbo.resources.generated.resources.reminder_open_settings_error
+import oquturbo.resources.generated.resources.reminder_os_caveat
+import oquturbo.resources.generated.resources.reminder_pending_unknown
+import oquturbo.resources.generated.resources.reminder_permission_needed
+import oquturbo.resources.generated.resources.reminder_picker_local
+import oquturbo.resources.generated.resources.reminder_picker_title
+import oquturbo.resources.generated.resources.reminder_purpose
+import oquturbo.resources.generated.resources.reminder_quiet_hint
+import oquturbo.resources.generated.resources.reminder_read_error
+import oquturbo.resources.generated.resources.reminder_replace_time
+import oquturbo.resources.generated.resources.reminder_requesting
+import oquturbo.resources.generated.resources.reminder_retry
+import oquturbo.resources.generated.resources.reminder_retry_cancel
+import oquturbo.resources.generated.resources.reminder_save_enable
+import oquturbo.resources.generated.resources.reminder_save_time
+import oquturbo.resources.generated.resources.reminder_save_unconfirmed
+import oquturbo.resources.generated.resources.reminder_saving
+import oquturbo.resources.generated.resources.reminder_schedule_error
+import oquturbo.resources.generated.resources.reminder_scheduled
+import oquturbo.resources.generated.resources.reminder_scheduling
+import oquturbo.resources.generated.resources.reminder_system_settings
+import oquturbo.resources.generated.resources.reminder_time_label
+import oquturbo.resources.generated.resources.reminder_turn_off
+import oquturbo.resources.generated.resources.reminder_unsupported
 import oquturbo.resources.generated.resources.rotation_match_answer_accessibility
 import oquturbo.resources.generated.resources.rotation_match_back
 import oquturbo.resources.generated.resources.rotation_match_back_to_games
@@ -773,6 +818,52 @@ object AppResource {
     }
 
     object String {
+        val reminder_notification_title = Res.string.reminder_notification_title
+        val reminder_notification_body = Res.string.reminder_notification_body
+        val reminder_channel_name = Res.string.reminder_channel_name
+        val reminder_channel_description = Res.string.reminder_channel_description
+        val reminder_experimental = Res.string.reminder_experimental
+        val reminder_purpose = Res.string.reminder_purpose
+        val reminder_os_caveat = Res.string.reminder_os_caveat
+        val reminder_after_practice = Res.string.reminder_after_practice
+        val reminder_time_label = Res.string.reminder_time_label
+        val reminder_checking = Res.string.reminder_checking
+        val reminder_off = Res.string.reminder_off
+        val reminder_needs_time = Res.string.reminder_needs_time
+        val reminder_not_scheduled = Res.string.reminder_not_scheduled
+        val reminder_choose_enable = Res.string.reminder_choose_enable
+        val reminder_change_time = Res.string.reminder_change_time
+        val reminder_picker_title = Res.string.reminder_picker_title
+        val reminder_picker_local = Res.string.reminder_picker_local
+        val reminder_save_enable = Res.string.reminder_save_enable
+        val reminder_save_time = Res.string.reminder_save_time
+        val reminder_cancel = Res.string.reminder_cancel
+        val reminder_saving = Res.string.reminder_saving
+        val reminder_scheduling = Res.string.reminder_scheduling
+        val reminder_requesting = Res.string.reminder_requesting
+        val reminder_scheduled = Res.string.reminder_scheduled
+        val reminder_around_time = Res.string.reminder_around_time
+        val reminder_accepted = Res.string.reminder_accepted
+        val reminder_limited = Res.string.reminder_limited
+        val reminder_quiet_hint = Res.string.reminder_quiet_hint
+        val reminder_permission_needed = Res.string.reminder_permission_needed
+        val reminder_allow = Res.string.reminder_allow
+        val reminder_blocked = Res.string.reminder_blocked
+        val reminder_system_settings = Res.string.reminder_system_settings
+        val reminder_open_settings_error = Res.string.reminder_open_settings_error
+        val reminder_schedule_error = Res.string.reminder_schedule_error
+        val reminder_read_error = Res.string.reminder_read_error
+        val reminder_replace_time = Res.string.reminder_replace_time
+        val reminder_turn_off = Res.string.reminder_turn_off
+        val reminder_save_unconfirmed = Res.string.reminder_save_unconfirmed
+        val reminder_cancel_incomplete = Res.string.reminder_cancel_incomplete
+        val reminder_retry_cancel = Res.string.reminder_retry_cancel
+        val reminder_retry = Res.string.reminder_retry
+        val reminder_old_pending = Res.string.reminder_old_pending
+        val reminder_pending_unknown = Res.string.reminder_pending_unknown
+        val reminder_unsupported = Res.string.reminder_unsupported
+        val reminder_ios_pending6a = Res.string.reminder_ios_pending6a
+
         val focus_optional_title = Res.string.focus_optional_title
         val focus_setting_title = Res.string.focus_setting_title
         val focus_new_plans = Res.string.focus_new_plans

@@ -8,6 +8,9 @@ import com.alad1nks.oquturbo.core.data.model.DayHistory
 import com.alad1nks.oquturbo.core.data.model.PlayerProgress
 import com.alad1nks.oquturbo.core.data.model.ProfilePreferences
 import com.alad1nks.oquturbo.core.data.practice.calculatePracticeRhythm
+import com.alad1nks.oquturbo.core.data.reminders.ReminderController
+import com.alad1nks.oquturbo.core.data.reminders.ReminderPickerLabels
+import com.alad1nks.oquturbo.core.data.reminders.UnavailableReminderController
 import com.alad1nks.oquturbo.core.data.repository.DailyTrainingRepository
 import com.alad1nks.oquturbo.core.data.repository.GameActivityRepository
 import com.alad1nks.oquturbo.core.data.repository.ProfileRepository
@@ -37,7 +40,20 @@ internal class ProfileViewModel(
     private val profileRepository: ProfileRepository,
     private val settingsRepository: SettingsRepository,
     private val clock: Clock = Clock.System,
+    private val reminders: ReminderController = UnavailableReminderController(),
 ) : ViewModel() {
+    val reminderState = reminders.state
+
+    fun refreshReminders() = reminders.refresh()
+
+    fun chooseReminderTime(labels: ReminderPickerLabels, enable: Boolean) = reminders.chooseTime(labels, enable)
+
+    fun allowReminderPermission() = reminders.allowPermission()
+
+    fun openReminderSettings() = reminders.openSystemSettings()
+
+    fun retryReminder() = reminders.retry()
+
     private var isSavingIdentity = false
 
     private var baseState =
@@ -185,14 +201,12 @@ internal class ProfileViewModel(
             settingsRepository.getDarkTheme(),
             settingsRepository.getSoundEnabled(),
             settingsRepository.getVibrationEnabled(),
-            settingsRepository.getRemindersEnabled(),
             settingsRepository.getLanguage(),
-        ) { darkTheme, sound, vibration, reminders, language ->
+        ) { darkTheme, sound, vibration, language ->
             ProfileSettingsUiState(
                 darkThemeEnabled = darkTheme == true,
                 soundEnabled = sound ?: true,
                 vibrationEnabled = vibration ?: true,
-                remindersEnabled = reminders ?: false,
                 language = language,
             )
         }.stateIn(
@@ -257,7 +271,7 @@ internal class ProfileViewModel(
     }
 
     fun setRemindersEnabled(value: Boolean) {
-        viewModelScope.launch { settingsRepository.setRemindersEnabled(value) }
+        reminders.setEnabled(value)
     }
 
     private companion object {

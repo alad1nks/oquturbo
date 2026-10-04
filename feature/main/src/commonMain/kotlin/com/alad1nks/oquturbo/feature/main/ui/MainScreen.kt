@@ -20,6 +20,7 @@ import androidx.navigation.compose.NavHost
 import com.alad1nks.oquturbo.core.designsystem.theme.OquTurboTheme
 import com.alad1nks.oquturbo.core.ui.component.appBackground
 import org.koin.compose.KoinApplication
+import org.koin.compose.KoinIsolatedContext
 import org.koin.compose.viewmodel.koinViewModel
 import org.koin.core.module.Module
 import org.koin.core.parameter.parametersOf
@@ -32,14 +33,10 @@ fun MainScreen(
     startDestination: Any,
     navController: NavHostController,
     bottomBar: @Composable () -> Unit = {},
+    suppliedApplication: org.koin.core.KoinApplication? = null,
     navGraphBuilder: NavGraphBuilder.() -> Unit,
 ) {
-    KoinApplication(
-        configuration =
-            koinConfiguration {
-                modules(commonModules + platformModules)
-            },
-    ) {
+    val content: @Composable () -> Unit = {
         val viewModel =
             koinViewModel<MainViewModel>(
                 parameters = { parametersOf() },
@@ -70,5 +67,13 @@ fun MainScreen(
                 }
             }
         }
+    }
+    if (suppliedApplication != null) {
+        KoinIsolatedContext(suppliedApplication, content)
+    } else {
+        KoinApplication(
+            configuration = koinConfiguration { modules(commonModules + platformModules) },
+            content = content,
+        )
     }
 }
