@@ -56,6 +56,16 @@ internal fun nextReminderTime(minutes: Int, now: Long, zone: TimeZone = TimeZone
     return calendar.timeInMillis
 }
 
+/** Display a wall-clock choice without resolving it against today's date or DST rules. */
+internal fun formatReminderTime(minutesOfDay: Int, formatter: java.text.DateFormat): String {
+    require(minutesOfDay in 0..1439)
+    val timeOnlyFormatter =
+        (formatter.clone() as java.text.DateFormat).apply {
+            timeZone = TimeZone.getTimeZone("UTC")
+        }
+    return timeOnlyFormatter.format(Date(minutesOfDay * 60_000L))
+}
+
 internal class AndroidReminderPlatform(private val context: Context) : ReminderPlatform {
     override val capability = ReminderCapability.Supported
     private val alarms = context.getSystemService(AlarmManager::class.java)
@@ -97,14 +107,8 @@ internal class AndroidReminderPlatform(private val context: Context) : ReminderP
             it.takeIf { code -> code in setOf("en", "ru", "kk") } ?: "en"
         }
 
-    override fun formatTime(minutesOfDay: Int): String {
-        val calendar =
-            Calendar.getInstance().apply {
-                set(Calendar.HOUR_OF_DAY, minutesOfDay / 60)
-                set(Calendar.MINUTE, minutesOfDay % 60)
-            }
-        return DateFormat.getTimeFormat(activity ?: context).format(Date(calendar.timeInMillis))
-    }
+    override fun formatTime(minutesOfDay: Int): String =
+        formatReminderTime(minutesOfDay, DateFormat.getTimeFormat(activity ?: context))
 
     override suspend fun inspect(): ReminderNativeState {
         val permission =
