@@ -9,6 +9,49 @@ import kotlin.test.assertTrue
 
 class NumberTrailGameTest {
     @Test
+    fun failuresRetainEverySupportedBoardAndIgnoreLateEventsUntilReplay() {
+        for (size in 2..4) {
+            for (timeout in listOf(false, true)) {
+                for (progress in listOf(0, size * size - 2)) {
+                    val game = NumberTrailGame(Random(91))
+                    game.start()
+                    while (game.state.board!!.size < size) {
+                        val board = game.state.board!!
+                        for (number in 1..board.size * board.size) game.answer(board.id, board.numbers.indexOf(number))
+                        game.elapse(600)
+                    }
+                    val original = game.state.board!!
+                    for (number in 1..progress) game.answer(original.id, original.numbers.indexOf(number))
+                    if (timeout) {
+                        game.elapse(
+                            original.totalTimeMillis,
+                        )
+                    } else {
+                        game.answer(original.id, original.numbers.indexOf(size * size))
+                    }
+                    val result = game.state
+                    assertEquals(NumberTrailPhase.Result, result.phase)
+                    assertEquals(original.numbers, result.board!!.numbers)
+                    assertEquals(original.id, result.board!!.id)
+                    assertEquals(size, result.board!!.size)
+                    assertEquals(progress + 1, result.board!!.target)
+                    assertEquals(if (timeout) null else size * size, result.selectedNumber)
+                    game.answer(original.id, original.numbers.indexOf(progress + 1))
+                    game.elapse(90_000)
+                    game.pause()
+                    game.resume()
+                    assertEquals(result, game.state)
+                    game.start()
+                    assertEquals(NumberTrailPhase.Active, game.state.phase)
+                    assertNotEquals(original.id, game.state.board!!.id)
+                    assertNull(game.state.failure)
+                    assertNull(game.state.selectedNumber)
+                }
+            }
+        }
+    }
+
+    @Test
     fun permutationsAndExactCompletedBoardBoundaries() {
         val game = NumberTrailGame(Random(23))
         game.start()

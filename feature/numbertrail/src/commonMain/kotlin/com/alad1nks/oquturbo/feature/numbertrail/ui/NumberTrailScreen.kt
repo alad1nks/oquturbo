@@ -438,6 +438,7 @@ private fun ResultContent(
         },
         textAlign = TextAlign.Center,
     )
+    NumberTrailBoardReview(game)
     GameResultCard(
         primaryText = stringResource(AppResource.String.number_trail_score) + ": " + game.score,
         secondaryText = stringResource(AppResource.String.number_trail_record_value, state.record),
@@ -754,5 +755,46 @@ private fun NumberTrailLargeScoresPreview() {
     val state = previewState(NumberTrailPhase.Active, 4, 10)
     OquTurboTheme {
         NumberTrailScreen(state.copy(game = state.game.copy(score = 12345), record = 23456), {}, { _, _ -> }, {})
+    }
+}
+
+@Preview(name = "Number Trail review first wrong", widthDp = 320, heightDp = 1400, locale = "en")
+@ScreenshotPreview
+@Composable
+private fun NumberTrailReviewFirstPreview() {
+    val state = previewState(NumberTrailPhase.Result, 2, 1, NumberTrailFailure.Wrong, NumberTrailSaveStatus.Saved)
+    OquTurboTheme { NumberTrailScreen(state.copy(game = state.game.copy(selectedNumber = 4)), {}, { _, _ -> }, {}) }
+}
+
+@Preview(name = "Number Trail review partial dark", widthDp = 320, heightDp = 1500, locale = "en")
+@ScreenshotPreview
+@Composable
+private fun NumberTrailReviewDarkPreview() {
+    val state = previewState(NumberTrailPhase.Result, 3, 5, NumberTrailFailure.Wrong, NumberTrailSaveStatus.Saved)
+    OquTurboTheme(darkTheme = true) {
+        NumberTrailScreen(state.copy(game = state.game.copy(selectedNumber = 9)), {}, { _, _ -> }, {})
+    }
+}
+
+@Preview(name = "Number Trail review large en", widthDp = 320, heightDp = 1800, locale = "en", fontScale = 1.5f)
+@Preview(name = "Number Trail review large ru", widthDp = 320, heightDp = 1800, locale = "ru", fontScale = 1.5f)
+@Preview(name = "Number Trail review large kk", widthDp = 320, heightDp = 1800, locale = "kk", fontScale = 1.5f)
+@ScreenshotPreview
+@Composable
+private fun NumberTrailReviewLargePreview() {
+    OquTurboTheme {
+        NumberTrailScreen(
+            previewState(
+                NumberTrailPhase.Result,
+                4,
+                16,
+                NumberTrailFailure.Timeout,
+                NumberTrailSaveStatus.Saved,
+            ),
+            {
+            },
+            { _, _ -> },
+            {},
+        )
     }
 }

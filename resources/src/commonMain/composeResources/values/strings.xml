@@ -897,4 +897,11 @@
     <string name="symbol_count_review_explanation">Outlined cells match the target shape.</string>
     <string name="symbol_count_review_cell_match">Row %1$d, column %2$d: %3$s. Matches the target.</string>
     <string name="symbol_count_review_cell_other">Row %1$d, column %2$d: %3$s. Does not match the target.</string>
+    <string name="number_trail_review_title">Board review</string>
+    <string name="number_trail_review_legend_expected">Circle: next required number</string>
+    <string name="number_trail_review_legend_wrong">Cross: your wrong choice</string>
+    <string name="number_trail_review_legend_completed">Check: already completed</string>
+    <string name="number_trail_review_cell_expected">Number %1$d, next required number</string>
+    <string name="number_trail_review_cell_wrong">Number %1$d, your wrong choice</string>
+    <string name="number_trail_review_cell_completed">Number %1$d, already completed</string>
 </resources>

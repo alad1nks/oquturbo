@@ -243,6 +243,13 @@ import oquturbo.resources.generated.resources.number_trail_record_value
 import oquturbo.resources.generated.resources.number_trail_resume
 import oquturbo.resources.generated.resources.number_trail_retry
 import oquturbo.resources.generated.resources.number_trail_retry_load
+import oquturbo.resources.generated.resources.number_trail_review_cell_completed
+import oquturbo.resources.generated.resources.number_trail_review_cell_expected
+import oquturbo.resources.generated.resources.number_trail_review_cell_wrong
+import oquturbo.resources.generated.resources.number_trail_review_legend_completed
+import oquturbo.resources.generated.resources.number_trail_review_legend_expected
+import oquturbo.resources.generated.resources.number_trail_review_legend_wrong
+import oquturbo.resources.generated.resources.number_trail_review_title
 import oquturbo.resources.generated.resources.number_trail_save_failed
 import oquturbo.resources.generated.resources.number_trail_saving_result
 import oquturbo.resources.generated.resources.number_trail_score
@@ -774,6 +781,13 @@ object AppResource {
         val number_trail_retry_load = Res.string.number_trail_retry_load
         val number_trail_saving_result = Res.string.number_trail_saving_result
         val number_trail_save_failed = Res.string.number_trail_save_failed
+        val number_trail_review_title = Res.string.number_trail_review_title
+        val number_trail_review_legend_expected = Res.string.number_trail_review_legend_expected
+        val number_trail_review_legend_wrong = Res.string.number_trail_review_legend_wrong
+        val number_trail_review_legend_completed = Res.string.number_trail_review_legend_completed
+        val number_trail_review_cell_expected = Res.string.number_trail_review_cell_expected
+        val number_trail_review_cell_wrong = Res.string.number_trail_review_cell_wrong
+        val number_trail_review_cell_completed = Res.string.number_trail_review_cell_completed
         val number_trail_tile_description = Res.string.number_trail_tile_description
         val number_trail_tile_completed = Res.string.number_trail_tile_completed
         val number_trail_ready_title = Res.string.number_trail_ready_title

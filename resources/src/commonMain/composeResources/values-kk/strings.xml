@@ -899,4 +899,11 @@
     <string name="symbol_count_review_explanation">Ізделетін пішіні бар ұяшықтар жиектелген.</string>
     <string name="symbol_count_review_cell_match">%1$d-қатар, %2$d-баған: %3$s. Ізделетін пішінге сәйкес келеді.</string>
     <string name="symbol_count_review_cell_other">%1$d-қатар, %2$d-баған: %3$s. Ізделетін пішінге сәйкес келмейді.</string>
+    <string name="number_trail_review_title">Тақтаны шолу</string>
+    <string name="number_trail_review_legend_expected">Шеңбер: келесі қажетті сан</string>
+    <string name="number_trail_review_legend_wrong">Айқыш: қате таңдауыңыз</string>
+    <string name="number_trail_review_legend_completed">Құсбелгі: өтілген сан</string>
+    <string name="number_trail_review_cell_expected">%1$d саны, келесі қажетті сан</string>
+    <string name="number_trail_review_cell_wrong">%1$d саны, қате таңдауыңыз</string>
+    <string name="number_trail_review_cell_completed">%1$d саны, өтілген сан</string>
 </resources>
