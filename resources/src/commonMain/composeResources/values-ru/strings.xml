@@ -1011,4 +1011,22 @@
         <item quantity="many">Не менее %1$d дней</item>
         <item quantity="other">Не менее %1$d дней</item>
     </plurals>
+    <string name="weekly_review_title">Итог за 7 дней</string>
+    <string name="weekly_regularity">Регулярность</string>
+    <string name="weekly_practice_days">Дни практики</string>
+    <string name="weekly_training_days">Дни с полной тренировкой</string>
+    <string name="weekly_days_count">%1$d из 7 дней</string>
+    <string name="weekly_training_definition">Дни, когда выполнены все упражнения дневного плана.</string>
+    <string name="weekly_today_open">Сегодняшний день ещё продолжается.</string>
+    <string name="weekly_training_loading">Загружаем историю полных тренировок…</string>
+    <string name="weekly_training_error">История полных тренировок недоступна.</string>
+    <string name="weekly_result_title">Последний сопоставимый результат</string>
+    <string name="weekly_result_explanation">Сравниваем последние 5 и предыдущие 5 сохранённых попыток одной игры, режима и настроек в пределах этих 28 дней.</string>
+    <string name="weekly_sessions_loading">Загружаем сохранённые попытки…</string>
+    <string name="weekly_sessions_error">Сохранённые попытки недоступны.</string>
+    <string name="weekly_next_title">Следующий ориентир</string>
+    <string name="weekly_next_goal">Практика в 4 из 7 дней</string>
+    <string name="weekly_next_hint">Выберите сегодняшнюю тренировку или любую игру. Полный план для дня практики не обязателен.</string>
+    <string name="weekly_home">На главную</string>
+    <string name="weekly_retry_source">Повторить загрузку: %1$s</string>
 </resources>

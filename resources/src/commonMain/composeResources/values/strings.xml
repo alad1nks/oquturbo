@@ -962,4 +962,22 @@
         <item quantity="one">At least %1$d day</item>
         <item quantity="other">At least %1$d days</item>
     </plurals>
+    <string name="weekly_review_title">7-day review</string>
+    <string name="weekly_regularity">Regularity</string>
+    <string name="weekly_practice_days">Practice days</string>
+    <string name="weekly_training_days">Days with full training</string>
+    <string name="weekly_days_count">%1$d of 7 days</string>
+    <string name="weekly_training_definition">Days when every exercise in the daily plan was completed.</string>
+    <string name="weekly_today_open">Today is still in progress.</string>
+    <string name="weekly_training_loading">Loading full-training history…</string>
+    <string name="weekly_training_error">Full-training history is unavailable.</string>
+    <string name="weekly_result_title">Latest comparable result</string>
+    <string name="weekly_result_explanation">Comparing the latest 5 and previous 5 saved attempts in the same game, mode and settings within these 28 days.</string>
+    <string name="weekly_sessions_loading">Loading saved attempts…</string>
+    <string name="weekly_sessions_error">Saved attempts are unavailable.</string>
+    <string name="weekly_next_title">Next goal</string>
+    <string name="weekly_next_goal">Practice on 4 of 7 days</string>
+    <string name="weekly_next_hint">Choose today’s training or any game. A full plan is not required for a practice day.</string>
+    <string name="weekly_home">Home</string>
+    <string name="weekly_retry_source">Retry loading: %1$s</string>
 </resources>

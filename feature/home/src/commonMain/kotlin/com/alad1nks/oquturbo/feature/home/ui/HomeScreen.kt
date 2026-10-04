@@ -82,6 +82,7 @@ internal fun HomeRoute(
     onStartTrainingClick: (DailyTrainingEntry) -> Unit,
     onViewProgressClick: () -> Unit,
     onModeStatisticsClick: (GameSeriesKey) -> Unit,
+    onWeeklyReviewClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val uiState by viewModel.uiState.collectAsState()
@@ -98,6 +99,7 @@ internal fun HomeRoute(
         onRetryPersonalResultClick = viewModel::retryPersonalResult,
         onRetryPracticeHistoryClick = viewModel::retryPracticeHistory,
         onModeStatisticsClick = onModeStatisticsClick,
+        onWeeklyReviewClick = onWeeklyReviewClick,
         modifier = modifier,
     )
 }
@@ -111,19 +113,27 @@ internal fun HomeScreen(
     onRetryPersonalResultClick: () -> Unit = {},
     onRetryPracticeHistoryClick: () -> Unit = {},
     onModeStatisticsClick: (GameSeriesKey) -> Unit = {},
+    onWeeklyReviewClick: () -> Unit = {},
     modifier: Modifier = Modifier,
     listState: LazyListState = rememberLazyListState(),
 ) {
-    var statisticsReturnIndex by rememberSaveable { mutableIntStateOf(-1) }
-    var statisticsReturnOffset by rememberSaveable { mutableIntStateOf(0) }
+    var childReturnIndex by rememberSaveable { mutableIntStateOf(-1) }
+    var childReturnOffset by rememberSaveable { mutableIntStateOf(0) }
     // Removing the bottom bar can enlarge the outgoing Home viewport and clamp its list
     // before navigation saves it. Restore the user's pre-navigation anchor only on return.
-    val restoredStatisticsPosition = remember { statisticsReturnIndex to statisticsReturnOffset }
+    val restoredChildPosition = remember { childReturnIndex to childReturnOffset }
     LaunchedEffect(Unit) {
-        if (restoredStatisticsPosition.first >= 0) {
-            listState.scrollToItem(restoredStatisticsPosition.first, restoredStatisticsPosition.second)
-            statisticsReturnIndex = -1
-            statisticsReturnOffset = 0
+        if (restoredChildPosition.first >= 0) {
+            listState.scrollToItem(restoredChildPosition.first, restoredChildPosition.second)
+            childReturnIndex = -1
+            childReturnOffset = 0
+        }
+    }
+
+    fun captureChildReturnPosition() {
+        if (childReturnIndex < 0) {
+            childReturnIndex = listState.firstVisibleItemIndex
+            childReturnOffset = listState.firstVisibleItemScrollOffset
         }
     }
     Box(modifier = modifier.fillMaxSize().appBackground()) {
@@ -169,16 +179,16 @@ internal fun HomeScreen(
                     state = uiState.personalResult,
                     onRetryClick = onRetryPersonalResultClick,
                     onModeStatisticsClick = { series ->
-                        if (statisticsReturnIndex < 0) {
-                            statisticsReturnIndex = listState.firstVisibleItemIndex
-                            statisticsReturnOffset = listState.firstVisibleItemScrollOffset
-                        }
+                        captureChildReturnPosition()
                         onModeStatisticsClick(series)
                     },
                 )
             }
             item(key = "practice-rhythm") {
-                PracticeRhythmCard(uiState.practiceRhythm, onRetryPracticeHistoryClick)
+                PracticeRhythmCard(uiState.practiceRhythm, onRetryPracticeHistoryClick) {
+                    captureChildReturnPosition()
+                    onWeeklyReviewClick()
+                }
             }
             item {
                 RecentRecords(records = uiState.recentRecords)

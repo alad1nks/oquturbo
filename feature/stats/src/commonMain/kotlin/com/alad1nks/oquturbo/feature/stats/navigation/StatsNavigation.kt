@@ -5,6 +5,7 @@ import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavOptionsBuilder
 import androidx.navigation.compose.composable
 import androidx.navigation.toRoute
+import com.alad1nks.oquturbo.core.data.model.GameSeriesKey
 import com.alad1nks.oquturbo.core.ui.navigation.enumNavType
 import com.alad1nks.oquturbo.feature.stats.model.StatsGame
 import com.alad1nks.oquturbo.feature.stats.model.StatsMode
@@ -15,6 +16,8 @@ import com.alad1nks.oquturbo.feature.stats.ui.StatsModeDetailRouteContent
 import com.alad1nks.oquturbo.feature.stats.ui.StatsModeDetailViewModel
 import com.alad1nks.oquturbo.feature.stats.ui.StatsRouteContent
 import com.alad1nks.oquturbo.feature.stats.ui.StatsViewModel
+import com.alad1nks.oquturbo.feature.stats.ui.WeeklyReviewRouteContent
+import com.alad1nks.oquturbo.feature.stats.ui.WeeklyReviewViewModel
 import kotlinx.serialization.Serializable
 import org.koin.compose.viewmodel.koinViewModel
 import org.koin.core.parameter.parametersOf
@@ -108,6 +111,28 @@ fun NavGraphBuilder.statsModeDetailScreen(onBackClick: () -> Unit) {
                     parameters = { parametersOf(route.game, route.mode, route.period) },
                 ),
             onBackClick = onBackClick,
+        )
+    }
+}
+
+@Serializable
+data object WeeklyReviewRoute
+
+fun NavController.navigateToWeeklyReview(navOptions: NavOptionsBuilder.() -> Unit = {}) {
+    navigate(WeeklyReviewRoute, navOptions)
+}
+
+fun NavGraphBuilder.weeklyReviewScreen(
+    onBackClick: () -> Unit,
+    onHomeClick: () -> Unit,
+    onModeStatisticsClick: (GameSeriesKey) -> Unit,
+) {
+    composable<WeeklyReviewRoute> {
+        WeeklyReviewRouteContent(
+            koinViewModel<WeeklyReviewViewModel>(),
+            onBackClick,
+            onHomeClick,
+            onModeStatisticsClick,
         )
     }
 }

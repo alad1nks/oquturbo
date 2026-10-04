@@ -964,4 +964,22 @@
         <item quantity="one">Кемінде %1$d күн</item>
         <item quantity="other">Кемінде %1$d күн</item>
     </plurals>
+    <string name="weekly_review_title">7 күннің қорытындысы</string>
+    <string name="weekly_regularity">Тұрақтылық</string>
+    <string name="weekly_practice_days">Жаттығу күндері</string>
+    <string name="weekly_training_days">Толық жаттығу аяқталған күндер</string>
+    <string name="weekly_days_count">7 күннің %1$d күні</string>
+    <string name="weekly_training_definition">Күндік жоспардағы барлық жаттығу аяқталған күндер.</string>
+    <string name="weekly_today_open">Бүгінгі күн әлі аяқталған жоқ.</string>
+    <string name="weekly_training_loading">Толық жаттығулар тарихы жүктелуде…</string>
+    <string name="weekly_training_error">Толық жаттығулар тарихы қолжетімсіз.</string>
+    <string name="weekly_result_title">Соңғы салыстыруға болатын нәтиже</string>
+    <string name="weekly_result_explanation">Осы 28 күн ішіндегі бір ойын, режим және бірдей баптаулардағы соңғы 5 сақталған әрекет пен олардың алдындағы 5 әрекет салыстырылады.</string>
+    <string name="weekly_sessions_loading">Сақталған әрекеттер жүктелуде…</string>
+    <string name="weekly_sessions_error">Сақталған әрекеттер қолжетімсіз.</string>
+    <string name="weekly_next_title">Келесі бағдар</string>
+    <string name="weekly_next_goal">7 күннің 4 күнінде ойнау</string>
+    <string name="weekly_next_hint">Бүгінгі жаттығуды немесе кез келген ойынды таңдаңыз. Жаттығу күні есептелуі үшін бүкіл жоспарды аяқтау міндетті емес.</string>
+    <string name="weekly_home">Басты бетке</string>
+    <string name="weekly_retry_source">Қайта жүктеу: %1$s</string>
 </resources>

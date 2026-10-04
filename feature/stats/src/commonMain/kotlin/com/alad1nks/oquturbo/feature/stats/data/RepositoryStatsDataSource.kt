@@ -484,7 +484,7 @@ private fun GameId.modeCatalog(): List<GameModeId> =
         GameId.RuleSwitch -> listOf(GameModeId.RuleSwitchSwitch)
     }
 
-private fun GameId.toStatsGame(): StatsGame =
+internal fun GameId.toStatsGame(): StatsGame =
     when (this) {
         GameId.NumberSprint -> StatsGame.NumberSprint
         GameId.WideEye -> StatsGame.WideEye
@@ -498,7 +498,7 @@ private fun GameId.toStatsGame(): StatsGame =
         GameId.RuleSwitch -> StatsGame.RuleSwitch
     }
 
-private fun GameModeId.toStatsMode(): StatsMode =
+internal fun GameModeId.toStatsMode(): StatsMode =
     when (this) {
         GameModeId.NumberSprintClassic -> StatsMode.Classic
         GameModeId.NumberSprintBinary -> StatsMode.Binary
