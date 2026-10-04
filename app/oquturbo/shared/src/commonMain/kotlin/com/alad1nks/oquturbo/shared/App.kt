@@ -93,6 +93,9 @@ fun App() {
     ) {
         homeScreen(
             onStartTrainingClick = appState.navController::navigateToDailyTrainingEntry,
+            onViewProgressClick = {
+                appState.navigateToTopLevelDestination(OquTurboTopLevelDestination.STATS)
+            },
         )
         dailyTrainingCompleteScreen(
             onHomeClick = {

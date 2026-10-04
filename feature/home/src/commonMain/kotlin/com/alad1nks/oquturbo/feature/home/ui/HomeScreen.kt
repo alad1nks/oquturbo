@@ -2,10 +2,10 @@ package com.alad1nks.oquturbo.feature.home.ui
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -43,9 +43,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -70,6 +72,7 @@ import org.jetbrains.compose.resources.stringResource
 internal fun HomeRoute(
     viewModel: HomeViewModel,
     onStartTrainingClick: (DailyTrainingEntry) -> Unit,
+    onViewProgressClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val uiState by viewModel.uiState.collectAsState()
@@ -81,6 +84,8 @@ internal fun HomeRoute(
     HomeScreen(
         uiState = uiState,
         onStartTrainingClick = { viewModel.startTraining(onStartTrainingClick) },
+        onViewProgressClick = onViewProgressClick,
+        onRetryTrainingClick = viewModel::retryDailyTraining,
         modifier = modifier,
     )
 }
@@ -89,6 +94,8 @@ internal fun HomeRoute(
 private fun HomeScreen(
     uiState: HomeUiState,
     onStartTrainingClick: () -> Unit,
+    onViewProgressClick: () -> Unit = {},
+    onRetryTrainingClick: () -> Unit = {},
     modifier: Modifier = Modifier,
 ) {
     Box(modifier = modifier.fillMaxSize().appBackground()) {
@@ -121,6 +128,10 @@ private fun HomeScreen(
             item {
                 TrainingCard(
                     training = uiState.dailyTraining,
+                    failed = uiState.trainingLoadFailed,
+                    starting = uiState.isStartingTraining,
+                    onViewProgressClick = onViewProgressClick,
+                    onRetryTrainingClick = onRetryTrainingClick,
                     onStartTrainingClick = onStartTrainingClick,
                 )
             }
@@ -149,7 +160,7 @@ private fun LevelProgress(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
                     Text(
                         text = stringResource(AppResource.String.home_overall_level, level),
                         style = MaterialTheme.typography.titleLarge,
@@ -194,12 +205,13 @@ private fun LevelProgress(
 @Composable
 private fun TrainingCard(
     training: HomeUiState.DailyTraining?,
+    failed: Boolean,
+    starting: Boolean,
     onStartTrainingClick: () -> Unit,
+    onViewProgressClick: () -> Unit,
+    onRetryTrainingClick: () -> Unit,
 ) {
-    AppCard(
-        modifier = Modifier.fillMaxWidth(),
-        tone = AppCardTone.Primary,
-    ) {
+    AppCard(modifier = Modifier.fillMaxWidth(), tone = AppCardTone.Primary) {
         Column(
             modifier = Modifier.fillMaxWidth().padding(OquTurboLayout.cardInset),
             verticalArrangement = Arrangement.spacedBy(14.dp),
@@ -213,48 +225,90 @@ private fun TrainingCard(
                     color = MaterialTheme.colorScheme.onPrimaryContainer,
                 )
             }
-            if (training == null) {
-                CircularProgressIndicator(
-                    modifier = Modifier.align(Alignment.CenterHorizontally).size(32.dp),
-                    color = MaterialTheme.colorScheme.primary,
-                )
-            } else {
-                training.items.forEach { item -> TrainingItem(item) }
-                if (!training.isCompleted) {
-                    Spacer(modifier = Modifier.height(2.dp))
-                    Button(
-                        onClick = onStartTrainingClick,
-                        modifier =
-                            Modifier
-                                .align(Alignment.CenterHorizontally)
-                                .widthIn(max = 360.dp)
-                                .fillMaxWidth()
-                                .heightIn(min = 52.dp),
-                        shape = MaterialTheme.shapes.medium,
-                        contentPadding = PaddingValues(horizontal = OquTurboLayout.pageGutter, vertical = 12.dp),
-                    ) {
-                        Text(
-                            text =
-                                stringResource(
-                                    if (training.items.any(HomeUiState.TrainingItem::isCompleted)) {
-                                        AppResource.String.home_continue_training
-                                    } else {
-                                        AppResource.String.home_start_training
-                                    },
-                                ),
-                            style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.Bold,
+            when {
+                failed ->
+                    Text(
+                        text = stringResource(AppResource.String.home_training_unavailable),
+                        color = MaterialTheme.colorScheme.onPrimaryContainer,
+                    )
+                training == null -> {
+                    CircularProgressIndicator(
+                        modifier = Modifier.align(Alignment.CenterHorizontally).size(32.dp),
+                        color = MaterialTheme.colorScheme.primary,
+                    )
+                    Text(
+                        text = stringResource(AppResource.String.home_training_loading),
+                        color = MaterialTheme.colorScheme.onPrimaryContainer,
+                    )
+                }
+                else -> {
+                    Text(
+                        text =
+                            stringResource(
+                                AppResource.String.home_training_progress,
+                                training.completedCount,
+                                training.totalCount,
+                            ),
+                        style = MaterialTheme.typography.titleMedium,
+                        color = MaterialTheme.colorScheme.onPrimaryContainer,
+                    )
+                    training.items.forEach { item -> TrainingItem(item) }
+                }
+            }
+            if (failed || training != null) {
+                val completed = training?.isCompleted == true
+                Button(
+                    onClick =
+                        when {
+                            failed -> onRetryTrainingClick
+                            completed -> onViewProgressClick
+                            else -> onStartTrainingClick
+                        },
+                    enabled = !starting,
+                    modifier =
+                        Modifier.align(Alignment.CenterHorizontally).widthIn(max = 360.dp)
+                            .fillMaxWidth().heightIn(min = 52.dp),
+                    shape = MaterialTheme.shapes.medium,
+                    contentPadding = PaddingValues(horizontal = OquTurboLayout.pageGutter, vertical = 12.dp),
+                ) {
+                    val label =
+                        stringResource(
+                            when {
+                                failed -> AppResource.String.home_retry_training
+                                completed -> AppResource.String.home_view_progress
+                                training?.completedCount != 0 -> AppResource.String.home_continue_training
+                                else -> AppResource.String.home_start_training
+                            },
                         )
-                        Icon(
-                            imageVector = Icons.Filled.PlayArrow,
-                            contentDescription = null,
-                            modifier = Modifier.padding(start = 8.dp),
-                        )
+                    if (LocalDensity.current.fontScale > 1.2f) {
+                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                            TrainingActionLabel(label)
+                            if (!failed && !completed) TrainingPlayIcon()
+                        }
+                    } else {
+                        TrainingActionLabel(label, Modifier.weight(1f, fill = false))
+                        if (!failed && !completed) TrainingPlayIcon(Modifier.padding(start = 8.dp))
                     }
                 }
             }
         }
     }
+}
+
+@Composable
+private fun TrainingActionLabel(label: String, modifier: Modifier = Modifier) {
+    Text(
+        text = label,
+        modifier = modifier,
+        style = MaterialTheme.typography.titleMedium,
+        fontWeight = FontWeight.Bold,
+        textAlign = TextAlign.Center,
+    )
+}
+
+@Composable
+private fun TrainingPlayIcon(modifier: Modifier = Modifier) {
+    Icon(imageVector = Icons.Filled.PlayArrow, contentDescription = null, modifier = modifier)
 }
 
 @Composable
@@ -270,7 +324,7 @@ private fun CompletedTrainingHeader() {
             modifier = Modifier.size(40.dp),
             tint = MaterialTheme.colorScheme.success,
         )
-        Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+        Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
             Text(
                 text = stringResource(AppResource.String.home_training_completed),
                 style = MaterialTheme.typography.titleLarge,
@@ -356,69 +410,78 @@ private fun RecentRecords(records: List<HomeUiState.RecentRecord>) {
 @Composable
 private fun TrainingItem(item: HomeUiState.TrainingItem) {
     val completedState = stringResource(AppResource.String.home_training_item_completed)
-    Row(
-        modifier =
-            Modifier
-                .fillMaxWidth()
-                .padding(vertical = 3.dp)
-                .semantics {
-                    if (item.isCompleted) stateDescription = completedState
-                },
-        horizontalArrangement = Arrangement.spacedBy(12.dp),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        Surface(
-            shape = MaterialTheme.shapes.small,
-            color = MaterialTheme.colorScheme.surface.copy(alpha = 0.62f),
-        ) {
-            Box(
-                modifier = Modifier.size(40.dp),
-                contentAlignment = Alignment.Center,
-            ) {
-                Icon(
-                    imageVector = item.game.icon(),
-                    contentDescription = null,
-                    modifier = Modifier.size(21.dp),
-                    tint = MaterialTheme.colorScheme.primary,
-                )
-            }
-        }
-        Column(
-            modifier = Modifier.weight(1f),
-            verticalArrangement = Arrangement.spacedBy(2.dp),
-        ) {
-            Text(
-                text = stringResource(item.game.titleResource()),
-                style = MaterialTheme.typography.titleMedium,
-                color = MaterialTheme.colorScheme.onPrimaryContainer,
-                textDecoration = if (item.isCompleted) TextDecoration.LineThrough else null,
-            )
-            Text(
-                text = stringResource(item.mode.titleResource()),
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.72f),
-                textDecoration = if (item.isCompleted) TextDecoration.LineThrough else null,
-            )
-        }
+    BoxWithConstraints {
+        val compact = maxWidth < 300.dp || LocalDensity.current.fontScale > 1.2f
         Row(
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 3.dp)
+                    .semantics {
+                        if (item.isCompleted) stateDescription = completedState
+                    },
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            Text(
-                text = stringResource(AppResource.String.home_training_score_goal, item.requiredScore),
-                style = MaterialTheme.typography.titleMedium,
-                color = MaterialTheme.colorScheme.primary,
-                textDecoration = if (item.isCompleted) TextDecoration.LineThrough else null,
-            )
-            if (item.isCompleted) {
-                Icon(
-                    imageVector = Icons.Filled.CheckCircle,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.success,
+            Surface(
+                shape = MaterialTheme.shapes.small,
+                color = MaterialTheme.colorScheme.surface.copy(alpha = 0.62f),
+            ) {
+                Box(
+                    modifier = Modifier.size(40.dp),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Icon(
+                        imageVector = item.game.icon(),
+                        contentDescription = null,
+                        modifier = Modifier.size(21.dp),
+                        tint = MaterialTheme.colorScheme.primary,
+                    )
+                }
+            }
+            Column(
+                modifier = Modifier.weight(1f),
+                verticalArrangement = Arrangement.spacedBy(2.dp),
+            ) {
+                Text(
+                    text = stringResource(item.game.titleResource()),
+                    style = MaterialTheme.typography.titleMedium,
+                    color = MaterialTheme.colorScheme.onPrimaryContainer,
+                    textDecoration = if (item.isCompleted) TextDecoration.LineThrough else null,
                 )
+                Text(
+                    text = stringResource(item.mode.titleResource()),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.72f),
+                    textDecoration = if (item.isCompleted) TextDecoration.LineThrough else null,
+                )
+                if (compact) TrainingScore(item)
+            }
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                if (!compact) TrainingScore(item)
+                if (item.isCompleted) {
+                    Icon(
+                        imageVector = Icons.Filled.CheckCircle,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.success,
+                    )
+                }
             }
         }
     }
+}
+
+@Composable
+private fun TrainingScore(item: HomeUiState.TrainingItem) {
+    Text(
+        text = stringResource(AppResource.String.home_training_score_goal, item.requiredScore),
+        style = MaterialTheme.typography.titleMedium,
+        color = MaterialTheme.colorScheme.primary,
+        textDecoration = if (item.isCompleted) TextDecoration.LineThrough else null,
+    )
 }
 
 internal fun HomeUiState.Game.titleResource(): StringResource =
@@ -695,6 +758,90 @@ private fun SymbolCountHomeRecordPreview() {
                                 score = 48,
                             ),
                         ),
+                ),
+            onStartTrainingClick = {},
+        )
+    }
+}
+
+@Preview(name = "Home fresh training", widthDp = 390, heightDp = 1100)
+@ScreenshotPreview
+@Composable
+private fun HomeFreshTrainingPreview() {
+    TrainingStatePreview(completedCount = 0)
+}
+
+@Preview(name = "Home loading training", widthDp = 390, heightDp = 1000)
+@ScreenshotPreview
+@Composable
+private fun HomeLoadingTrainingPreview() {
+    OquTurboTheme { HomeScreen(HomeUiState(), {}) }
+}
+
+@Preview(name = "Home training error", widthDp = 390, heightDp = 1000)
+@ScreenshotPreview
+@Composable
+private fun HomeTrainingErrorPreview() {
+    OquTurboTheme { HomeScreen(HomeUiState(trainingLoadFailed = true), {}) }
+}
+
+@Preview(name = "Home launch pending", widthDp = 390, heightDp = 1100)
+@ScreenshotPreview
+@Composable
+private fun HomeLaunchPendingPreview() {
+    TrainingStatePreview(completedCount = 1, starting = true)
+}
+
+@Preview(name = "Home partial large Russian", widthDp = 320, heightDp = 1800, locale = "ru", fontScale = 1.5f)
+@ScreenshotPreview
+@Composable
+private fun HomePartialLargeRussianPreview() {
+    TrainingStatePreview(completedCount = 1)
+}
+
+@Preview(name = "Home completed Kazakh", widthDp = 320, heightDp = 1400, locale = "kk")
+@ScreenshotPreview
+@Composable
+private fun HomeCompletedKazakhPreview() {
+    TrainingStatePreview(completedCount = 3)
+}
+
+@Preview(name = "Home error Kazakh", widthDp = 320, heightDp = 1100, locale = "kk")
+@ScreenshotPreview
+@Composable
+private fun HomeErrorKazakhPreview() {
+    OquTurboTheme { HomeScreen(HomeUiState(trainingLoadFailed = true), {}) }
+}
+
+@Preview(name = "Home wide training", widthDp = 800, heightDp = 1100)
+@ScreenshotPreview
+@Composable
+private fun HomeWideTrainingPreview() {
+    TrainingStatePreview(completedCount = 1)
+}
+
+@Preview(name = "Home dark error", widthDp = 390, heightDp = 1000)
+@ScreenshotPreview
+@Composable
+private fun HomeDarkErrorPreview() {
+    OquTurboTheme(darkTheme = true) { HomeScreen(HomeUiState(trainingLoadFailed = true), {}) }
+}
+
+@Composable
+private fun TrainingStatePreview(completedCount: Int, starting: Boolean = false) {
+    val training = previewDailyTraining(completed = false)
+    OquTurboTheme {
+        HomeScreen(
+            uiState =
+                HomeUiState(
+                    dailyTraining =
+                        training.copy(
+                            items =
+                                training.items.mapIndexed { index, item ->
+                                    item.copy(isCompleted = index < completedCount)
+                                },
+                        ),
+                    isStartingTraining = starting,
                 ),
             onStartTrainingClick = {},
         )

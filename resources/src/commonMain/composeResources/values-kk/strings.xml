@@ -906,4 +906,9 @@
     <string name="number_trail_review_cell_expected">%1$d саны, келесі қажетті сан</string>
     <string name="number_trail_review_cell_wrong">%1$d саны, қате таңдауыңыз</string>
     <string name="number_trail_review_cell_completed">%1$d саны, өтілген сан</string>
+    <string name="home_training_progress">Орындалды: %1$d / %2$d</string>
+    <string name="home_view_progress">Ілгерілеуді көру</string>
+    <string name="home_training_loading">Жаттығу жүктелуде…</string>
+    <string name="home_training_unavailable">Жаттығу қолжетімсіз. Қайта жүктеп көріңіз.</string>
+    <string name="home_retry_training">Қайталау</string>
 </resources>
