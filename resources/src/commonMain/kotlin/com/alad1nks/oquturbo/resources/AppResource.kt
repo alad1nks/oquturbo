@@ -120,6 +120,7 @@ import oquturbo.resources.generated.resources.home_overall_level
 import oquturbo.resources.generated.resources.home_rank
 import oquturbo.resources.generated.resources.home_rank_master
 import oquturbo.resources.generated.resources.home_recent_records
+import oquturbo.resources.generated.resources.home_retry_training
 import oquturbo.resources.generated.resources.home_start_training
 import oquturbo.resources.generated.resources.home_title
 import oquturbo.resources.generated.resources.home_today_training
@@ -131,8 +132,12 @@ import oquturbo.resources.generated.resources.home_training_goal_not_reached
 import oquturbo.resources.generated.resources.home_training_goal_reached
 import oquturbo.resources.generated.resources.home_training_goal_reached_message
 import oquturbo.resources.generated.resources.home_training_item_completed
+import oquturbo.resources.generated.resources.home_training_loading
+import oquturbo.resources.generated.resources.home_training_progress
 import oquturbo.resources.generated.resources.home_training_return_home
 import oquturbo.resources.generated.resources.home_training_score_goal
+import oquturbo.resources.generated.resources.home_training_unavailable
+import oquturbo.resources.generated.resources.home_view_progress
 import oquturbo.resources.generated.resources.kenkoz_duration_less_than_one_second
 import oquturbo.resources.generated.resources.kenkoz_duration_minutes
 import oquturbo.resources.generated.resources.kenkoz_duration_minutes_seconds
@@ -880,6 +885,11 @@ object AppResource {
         val home_no_recent_records = Res.string.home_no_recent_records
         val home_rank = Res.string.home_rank
         val home_rank_master = Res.string.home_rank_master
+        val home_training_progress = Res.string.home_training_progress
+        val home_view_progress = Res.string.home_view_progress
+        val home_training_loading = Res.string.home_training_loading
+        val home_training_unavailable = Res.string.home_training_unavailable
+        val home_retry_training = Res.string.home_retry_training
         val home_start_training = Res.string.home_start_training
         val home_today_training = Res.string.home_today_training
         val home_training_completed = Res.string.home_training_completed

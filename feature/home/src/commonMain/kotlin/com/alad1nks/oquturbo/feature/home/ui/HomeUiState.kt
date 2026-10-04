@@ -7,6 +7,8 @@ internal data class HomeUiState(
     val rankNumber: Int = 1,
     val levelProgress: Float = 0f,
     val dailyTraining: DailyTraining? = null,
+    val trainingLoadFailed: Boolean = false,
+    val isStartingTraining: Boolean = false,
     val recentRecords: List<RecentRecord> = emptyList(),
 ) {
     enum class Game {
@@ -58,6 +60,12 @@ internal data class HomeUiState(
     data class DailyTraining(
         val items: List<TrainingItem>,
     ) {
+        val completedCount: Int
+            get() = items.count(TrainingItem::isCompleted)
+
+        val totalCount: Int
+            get() = items.size
+
         val isCompleted: Boolean
             get() = items.isNotEmpty() && items.all(TrainingItem::isCompleted)
 

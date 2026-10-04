@@ -904,4 +904,9 @@
     <string name="number_trail_review_cell_expected">Number %1$d, next required number</string>
     <string name="number_trail_review_cell_wrong">Number %1$d, your wrong choice</string>
     <string name="number_trail_review_cell_completed">Number %1$d, already completed</string>
+    <string name="home_training_progress">Completed: %1$d / %2$d</string>
+    <string name="home_view_progress">View progress</string>
+    <string name="home_training_loading">Loading training…</string>
+    <string name="home_training_unavailable">Training is unavailable. Try loading again.</string>
+    <string name="home_retry_training">Retry</string>
 </resources>

@@ -30,12 +30,16 @@ fun NavController.navigateToDailyTrainingComplete(
     navigate(route = DailyTrainingCompleteRoute, builder = navOptions)
 }
 
-fun NavGraphBuilder.homeScreen(onStartTrainingClick: (DailyTrainingEntry) -> Unit) {
+fun NavGraphBuilder.homeScreen(
+    onStartTrainingClick: (DailyTrainingEntry) -> Unit,
+    onViewProgressClick: () -> Unit,
+) {
     composable<HomeRoute> {
         val viewModel = koinViewModel<HomeViewModel>()
         HomeRoute(
             viewModel = viewModel,
             onStartTrainingClick = onStartTrainingClick,
+            onViewProgressClick = onViewProgressClick,
         )
     }
 }

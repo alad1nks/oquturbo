@@ -21,8 +21,10 @@ import kotlin.time.Clock
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.ExperimentalTime
 
+@OptIn(ExperimentalTime::class)
 class DailyTrainingRepository(
     private val storage: Storage,
+    private val clock: Clock = Clock.System,
 ) {
     private val writeMutex = Mutex()
     private val json =
@@ -261,7 +263,7 @@ class DailyTrainingRepository(
         }
 
     @OptIn(ExperimentalTime::class)
-    private fun currentEpochDay(): Long = Clock.System.now().toEpochMilliseconds() / MILLIS_PER_DAY
+    private fun currentEpochDay(): Long = clock.now().toEpochMilliseconds() / MILLIS_PER_DAY
 
     private companion object {
         const val DAILY_TRAINING_RANDOM_SEED_SALT = 0x4F515554

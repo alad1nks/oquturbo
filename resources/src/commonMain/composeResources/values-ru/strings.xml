@@ -951,4 +951,9 @@
     <string name="number_trail_review_cell_expected">Число %1$d, следующее нужное число</string>
     <string name="number_trail_review_cell_wrong">Число %1$d, ваш неверный выбор</string>
     <string name="number_trail_review_cell_completed">Число %1$d, уже пройдено</string>
+    <string name="home_training_progress">Выполнено: %1$d / %2$d</string>
+    <string name="home_view_progress">Посмотреть прогресс</string>
+    <string name="home_training_loading">Загрузка тренировки…</string>
+    <string name="home_training_unavailable">Тренировка недоступна. Попробуйте загрузить снова.</string>
+    <string name="home_retry_training">Повторить</string>
 </resources>
