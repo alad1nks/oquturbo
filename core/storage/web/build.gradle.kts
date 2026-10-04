@@ -18,6 +18,10 @@ kotlin {
     }
 
     sourceSets {
+        jsTest.dependencies {
+            implementation(libs.kotlinx.serialization.json)
+            implementation(projects.core.data)
+        }
         commonTest.dependencies {
             implementation(libs.kotlin.test)
             implementation(libs.kotlinx.coroutines.test)

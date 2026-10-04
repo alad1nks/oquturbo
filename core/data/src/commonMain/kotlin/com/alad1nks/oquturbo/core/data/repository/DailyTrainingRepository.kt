@@ -3,6 +3,7 @@ package com.alad1nks.oquturbo.core.data.repository
 import com.alad1nks.oquturbo.core.data.model.DailyTrainingEntry
 import com.alad1nks.oquturbo.core.data.model.DailyTrainingPlan
 import com.alad1nks.oquturbo.core.data.model.DailyTrainingProgress
+import com.alad1nks.oquturbo.core.data.model.DayHistory
 import com.alad1nks.oquturbo.core.data.model.GameId
 import com.alad1nks.oquturbo.core.data.model.GameModeId
 import com.alad1nks.oquturbo.core.storage.common.Storage
@@ -12,10 +13,15 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.retryWhen
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonElement
+import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.encodeToJsonElement
+import kotlinx.serialization.json.jsonObject
 import kotlin.random.Random
 import kotlin.time.Clock
 import kotlin.time.Duration.Companion.milliseconds
@@ -56,15 +62,36 @@ class DailyTrainingRepository(
             .map(::decodeProgress)
             .distinctUntilChanged()
 
+    fun observeCompletionHistory(): Flow<DayHistory> =
+        storage.getDailyTrainingProgressJson()
+            .onStart { initializeCompletionHistory() }
+            .map { requireNotNull(decodeDayHistory(decodeStoredProgress(it).completionHistory)) }
+            .distinctUntilChanged()
+
+    private suspend fun initializeCompletionHistory() {
+        writeMutex.withLock {
+            val stored = readStoredProgress()
+            if (decodeDayHistory(stored.completionHistory) == null) {
+                val history = stored.initialHistory()
+                storage.setDailyTrainingProgressJson(
+                    encodeProgress(stored.copy(completionHistory = history.encodeHistory())),
+                )
+            }
+        }
+    }
+
     suspend fun ensureTodayTraining(): DailyTrainingPlan =
         writeMutex.withLock {
             var result: DailyTrainingPlan? = null
             while (result == null) {
                 val currentDay = currentEpochDay()
                 val storedPlan = readPlan()?.takeIf { it.epochDay == currentDay }
+                val progress = readStoredProgress()
                 if (currentEpochDay() != currentDay) continue
                 if (storedPlan != null) {
-                    result = storedPlan
+                    val reconciled = reconcileReceipt(storedPlan, progress)
+                    if (reconciled != storedPlan) writePlan(reconciled)
+                    if (currentEpochDay() == currentDay) result = reconciled
                     continue
                 }
 
@@ -84,8 +111,10 @@ class DailyTrainingRepository(
             var result: DailyTrainingPlan? = null
             while (result == null) {
                 val currentDay = currentEpochDay()
-                val plan = readPlan()?.takeIf { it.epochDay == currentDay } ?: createPlan(currentDay)
+                val storedPlan = readPlan()?.takeIf { it.epochDay == currentDay }
+                val progress = readStoredProgress()
                 if (currentEpochDay() != currentDay) continue
+                val plan = storedPlan?.let { reconcileReceipt(it, progress) } ?: createPlan(currentDay)
 
                 val currentEntry = plan.nextEntry
                 val updatedPlan =
@@ -102,7 +131,7 @@ class DailyTrainingRepository(
 
                 if (currentEpochDay() != currentDay) continue
                 if (!plan.isCompleted && updatedPlan.isCompleted) {
-                    incrementCompletedTrainings(currentDay)
+                    incrementCompletedTrainings(currentDay, progress)
                 }
                 writePlan(updatedPlan)
                 if (currentEpochDay() == currentDay) result = updatedPlan
@@ -115,18 +144,38 @@ class DailyTrainingRepository(
             storage.getDailyTrainingJson().first()?.let(::decodePlan)
         }
 
-    private suspend fun readProgress(): DailyTrainingProgress =
-        withStorageRetry {
-            decodeProgress(storage.getDailyTrainingProgressJson().first())
+    private suspend fun readStoredProgress(): StoredProgress {
+        val value = withStorageRetry { storage.getDailyTrainingProgressJson().first() }
+        return decodeStoredProgress(value).also { decodeDayHistory(it.completionHistory) }
+    }
+
+    private fun reconcileReceipt(plan: DailyTrainingPlan, stored: StoredProgress): DailyTrainingPlan =
+        if (!plan.isCompleted && stored.hasReceipt(plan.epochDay)) {
+            plan.copy(entries = plan.entries.map { it.copy(isCompleted = true) })
+        } else {
+            plan
         }
 
-    private suspend fun incrementCompletedTrainings(epochDay: Long) {
-        val progress = readProgress()
-        if (progress.lastCompletedEpochDay == epochDay) return
+    private fun StoredProgress.hasReceipt(epochDay: Long): Boolean =
+        progress.lastCompletedEpochDay == epochDay ||
+            epochDay in decodeDayHistory(completionHistory)?.completedEpochDays.orEmpty()
+
+    private fun StoredProgress.initialHistory(): DayHistory {
+        val start = currentEpochDay()
+        return DayHistory(start, listOfNotNull(progress.lastCompletedEpochDay?.takeIf { it == start }))
+    }
+
+    private suspend fun incrementCompletedTrainings(epochDay: Long, stored: StoredProgress) {
+        if (stored.hasReceipt(epochDay)) return
+        val history = (decodeDayHistory(stored.completionHistory) ?: stored.initialHistory()).withCompletedDay(epochDay)
         writeProgress(
-            progress.copy(
-                totalCompletedTrainings = progress.totalCompletedTrainings + 1,
-                lastCompletedEpochDay = epochDay,
+            stored.copy(
+                progress =
+                    stored.progress.copy(
+                        totalCompletedTrainings = stored.progress.totalCompletedTrainings + 1,
+                        lastCompletedEpochDay = epochDay,
+                    ),
+                completionHistory = history.encodeHistory(),
             ),
         )
     }
@@ -137,9 +186,9 @@ class DailyTrainingRepository(
         }
     }
 
-    private suspend fun writeProgress(progress: DailyTrainingProgress) {
+    private suspend fun writeProgress(progress: StoredProgress) {
         withStorageRetry {
-            storage.setDailyTrainingProgressJson(json.encodeToString(progress))
+            storage.setDailyTrainingProgressJson(encodeProgress(progress))
         }
     }
 
@@ -172,6 +221,29 @@ class DailyTrainingRepository(
             ?.let { runCatching { json.decodeFromString<DailyTrainingProgress>(it) }.getOrNull() }
             ?.takeIf { it.isValid() }
             ?: DailyTrainingProgress()
+
+    private data class StoredProgress(
+        val progress: DailyTrainingProgress = DailyTrainingProgress(),
+        val completionHistory: JsonElement? = null,
+    )
+
+    private fun decodeStoredProgress(value: String?): StoredProgress {
+        if (value.isNullOrBlank()) return StoredProgress()
+        val progress = json.decodeFromString<DailyTrainingProgress>(value)
+        check(progress.isValid()) { "Stored training progress is malformed or unsupported" }
+        return StoredProgress(progress, json.parseToJsonElement(value).jsonObject["completionHistory"])
+    }
+
+    private fun encodeProgress(stored: StoredProgress): String {
+        val fields = json.encodeToJsonElement(stored.progress).jsonObject
+        return JsonObject(
+            fields + (
+                stored.completionHistory?.let {
+                    mapOf("completionHistory" to it)
+                } ?: emptyMap()
+            ),
+        ).toString()
+    }
 
     private fun createPlan(epochDay: Long): DailyTrainingPlan {
         val random = Random(epochDay.toRandomSeed())
