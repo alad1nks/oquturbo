@@ -353,5 +353,75 @@ class EvidenceTest(unittest.TestCase):
                 evidence.validate_summary(summary)
 
 
+class PreparationTest(unittest.TestCase):
+    def prepare_fixture(self, failure=None):
+        """Host command simulation; never an Xcode compilation or native runtime claim."""
+        runner_spec = importlib.util.spec_from_file_location("ios_runner", Path(__file__).with_name("qa-ios-reminders.py"))
+        module = importlib.util.module_from_spec(runner_spec); runner_spec.loader.exec_module(module)
+        with tempfile.TemporaryDirectory() as directory:
+            runner = module.Runner(Path(directory) / "evidence")
+            udid = "BB08EE32-EE61-42F5-9673-5776EAC0D14C"
+            runtime = "com.apple.CoreSimulator.SimRuntime.iOS-18-2"
+            inventory = {"runtimes": [{"isAvailable": True, "identifier": runtime, "version": "18.2"}],
+                         "devices": {runtime: [{"isAvailable": True, "deviceTypeIdentifier": "com.apple.CoreSimulator.SimDeviceType.iPhone-SE-3rd-generation"}]}}
+            calls, installed = [], []
+            def run(*args, **kwargs):
+                calls.append(args)
+                if args[:3] == ("xcrun", "simctl", "list"): return json.dumps(inventory)
+                if args[:3] == ("xcrun", "simctl", "create"): return udid
+                if "build-for-testing" in args:
+                    context = json.loads((runner.output / "build-invocation.json").read_text())
+                    self.assertEqual(list(args), context["args"])
+                    self.assertEqual(2700, kwargs["timeout"])
+                    self.assertEqual(2700, context["timeoutSeconds"])
+                    self.assertEqual(runner.deadline, context["wholeRunDeadlineMonotonic"])
+                    if failure == "build": raise RuntimeError("Actual build failed")
+                    app = runner.derived / "Build/Products/Debug-iphonesimulator/OquTurbo.app"
+                    app.mkdir(parents=True)
+                    (app / "Info.plist").write_bytes(module.plistlib.dumps({"CFBundleIdentifier": "wrong.bundle" if failure == "identity" else module.PACKAGE,
+                                                                        "CFBundleExecutable": "OquTurbo"}))
+                    (app / "OquTurbo").write_bytes(b"simulated arm64 executable fixture")
+                if args[:2] == ("lipo", "-archs"): return "x86_64" if failure == "arch" else "arm64"
+                if args[:3] == ("git", "rev-parse", "HEAD"): return "fixture-source-head"
+                return ""
+            runner.run = run
+            def install():
+                identity = json.loads((runner.output / "app-identity.json").read_text())
+                self.assertEqual(module.PACKAGE, identity["bundle"])
+                self.assertEqual(module.hashlib.sha256((runner.app / "OquTurbo").read_bytes()).hexdigest(), identity["sha256"])
+                self.assertEqual("fixture-source-head", identity["source"])
+                installed.append(True)
+            runner.install_fixture = install
+            with patch.object(module.platform, "system", return_value="Darwin"), \
+                    patch.object(module.platform, "machine", return_value="arm64"), \
+                    patch.dict(module.os.environ, {"OVERRIDE_KOTLIN_BUILD_IDE_SUPPORTED": "NO"}):
+                if failure:
+                    with self.assertRaisesRegex(RuntimeError, {"build": "Actual build failed", "identity": "bundle identity mismatch", "arch": "not arm64"}[failure]):
+                        runner.prepare()
+                else: runner.prepare()
+            builds = [call for call in calls if "build-for-testing" in call]
+            self.assertEqual(1, len(builds))
+            build = builds[0]
+            self.assertEqual("OquTurboRuntime", build[build.index("-scheme") + 1])
+            self.assertEqual("Debug", build[build.index("-configuration") + 1])
+            self.assertEqual("platform=iOS Simulator,id=" + udid, build[build.index("-destination") + 1])
+            self.assertEqual(str(runner.derived), build[build.index("-derivedDataPath") + 1])
+            self.assertEqual(str(runner.output / "build.xcresult"), build[build.index("-resultBundlePath") + 1])
+            self.assertFalse(any("-showBuildSettings" in call for call in calls))
+            self.assertEqual([] if failure else [True], installed)
+
+    def test_actual_build_and_output_identity_are_required_before_install(self):
+        self.prepare_fixture()
+
+    def test_build_failure_never_installs_fixture(self):
+        self.prepare_fixture("build")
+
+    def test_wrong_actual_bundle_never_installs_fixture(self):
+        self.prepare_fixture("identity")
+
+    def test_wrong_actual_architecture_never_installs_fixture(self):
+        self.prepare_fixture("arch")
+
+
 if __name__ == "__main__":
     unittest.main()
