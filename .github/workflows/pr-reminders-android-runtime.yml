@@ -19,6 +19,8 @@ jobs:
           distribution: temurin
           java-version: '21'
       - uses: android-actions/setup-android@v3
+        with:
+          packages: 'platform-tools'
       - name: Build the production debug application
         run: ./gradlew :app:oquturbo:androidApp:assembleDebug --max-workers=2
       - name: Install the official API33 image and require KVM
