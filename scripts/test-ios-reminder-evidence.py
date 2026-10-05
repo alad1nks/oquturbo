@@ -1,0 +1,183 @@
+import copy
+import json
+import importlib.util
+from pathlib import Path
+import unittest
+import tempfile
+from unittest.mock import patch
+
+spec = importlib.util.spec_from_file_location("evidence", Path(__file__).with_name("ios-reminder-evidence.py"))
+evidence = importlib.util.module_from_spec(spec)
+spec.loader.exec_module(evidence)
+
+
+class EvidenceTest(unittest.TestCase):
+    def fixture(self, phase="cold"):
+        schedule = {"version": 1, "minutesOfDay": 150, "content": {"languageCode": "kk", "title": "Жаттығу", "body": "Уақыт"}}
+        snapshots = [{"enabled": True, "schedule": schedule, "values": {"unchanged": "0102"}}]
+        launch = "cold-new" if phase == "cold" else "existing"
+        events = [
+            {"event": "accepted", "time": "100", "launch": "existing"},
+            {"event": "pending", "time": "100", "count": "1", "launch": "existing"},
+            {"event": "request", "time": "100", "launch": "existing", "id": evidence.OWNED, "calendar": "true",
+             "repeats": "true", "timezone": "null", "next": "200", "hour": "2", "minute": "30", "language": "kk",
+             "title": "Жаттығу", "body": "Уақыт"},
+            {"event": "response", "time": "202", "launch": launch, "id": evidence.OWNED,
+             "action": "com.apple.UNNotificationDefaultActionIdentifier", "delivered": "200", "eventId": "1"},
+            {"event": "home-consumed", "time": "203", "launch": launch, "eventId": "1", "destination": "Home"},
+        ]
+        return events, snapshots, {"unchanged": "0102"}
+
+    def test_cold_and_warm_require_actual_different_or_same_process(self):
+        for phase in ("cold", "warm"):
+            events, snapshots, baseline = self.fixture(phase)
+            self.assertEqual("PASS", evidence.validate_phase(phase, events, snapshots, baseline)["status"])
+            with self.assertRaises(ValueError):
+                evidence.validate_phase("warm" if phase == "cold" else "cold", events, snapshots, baseline)
+
+    def test_no_actual_card_or_no_actual_home_is_not_evidence(self):
+        for removed in ("response", "home-consumed"):
+            events, snapshots, baseline = self.fixture()
+            with self.assertRaises(ValueError):
+                evidence.validate_phase("cold", [e for e in events if e["event"] != removed], snapshots, baseline)
+
+    def test_content_shape_and_timing_must_match_native_and_durable(self):
+        for key, value in (("timezone", "UTC"), ("minute", "31"), ("body", "Old content"), ("next", "1"), ("repeats", "false")):
+            events, snapshots, baseline = self.fixture()
+            events[2][key] = value
+            with self.assertRaises(ValueError):
+                evidence.validate_phase("cold", events, snapshots, baseline)
+
+    def test_duplicate_consumption_or_pending_is_not_allowed(self):
+        events, snapshots, baseline = self.fixture()
+        with self.assertRaises(ValueError):
+            evidence.validate_phase("cold", events + [events[-1]], snapshots, baseline)
+        events[1]["count"] = "2"
+        with self.assertRaises(ValueError):
+            evidence.validate_phase("cold", events, snapshots, baseline)
+
+    def test_non_reminder_preferences_cannot_change(self):
+        events, snapshots, baseline = self.fixture()
+        snapshots[-1]["values"]["progress"] = "abcd"
+        with self.assertRaises(ValueError):
+            evidence.validate_phase("cold", events, snapshots, baseline)
+
+    def test_no_banner_without_real_foreground_callback_is_not_pass(self):
+        events, snapshots, baseline = self.fixture("warm")
+        events = events[:3]
+        with self.assertRaises(ValueError):
+            evidence.validate_phase("foreground", events, snapshots, baseline)
+        events.append({"event": "foreground-delivery", "time": "200", "launch": "existing", "presentation": "none", "delivered": "200"})
+        self.assertEqual("PASS", evidence.validate_phase("foreground", events, snapshots, baseline)["status"])
+
+    def test_off_requires_retained_time_and_both_real_empty_inventories(self):
+        events, snapshots, baseline = self.fixture()
+        events = events[:3] + [
+            {"event": "delivered-record", "id": evidence.OWNED, "time": "200"},
+            {"event": "cancelled", "time": "210"},
+            {"event": "pending", "time": "211", "count": "0"},
+            {"event": "delivered", "time": "211", "count": "0"},
+        ]
+        snapshots.append(copy.deepcopy(snapshots[-1]))
+        snapshots[-1]["enabled"] = False
+        self.assertEqual("PASS", evidence.validate_phase("off", events, snapshots, baseline)["status"])
+        events[-1]["count"] = "1"
+        with self.assertRaises(ValueError):
+            evidence.validate_phase("off", events, snapshots, baseline)
+        events[-1]["count"] = "0"
+        snapshots[-1]["schedule"] = None
+        with self.assertRaises(ValueError):
+            evidence.validate_phase("off", events, snapshots, baseline)
+
+    def test_clock_probe_cannot_pass_without_actual_app_zone_and_clock_change(self):
+        events, snapshots, baseline = self.fixture()
+        events = events[:3]
+        snapshots.append(copy.deepcopy(snapshots[-1]))
+        snapshots[-1]["enabled"] = False
+        with self.assertRaises(ValueError):
+            evidence.validate_phase("dst", events, snapshots, baseline)
+        events[2]["time"] = "1772949605"
+        events[2]["next"] = "1772953200"
+        events.append({"event": "system-clock", "time": "1772949605", "zone": "America/New_York"})
+        evidence.validate_phase("dst", events, snapshots, baseline)
+        events[-1]["zone"] = "UTC"
+        with self.assertRaises(ValueError):
+            evidence.validate_phase("dst", events, snapshots, baseline)
+
+    def test_all_app_languages_require_native_pending_refresh(self):
+        events, snapshots, baseline = self.fixture()
+        events = events[:3]
+        with self.assertRaises(ValueError):
+            evidence.validate_phase("locales", events, snapshots, baseline)
+        for code in ("ru", "en"):
+            item = copy.deepcopy(snapshots[-1])
+            item["schedule"]["content"]["languageCode"] = code
+            snapshots.append(item)
+            request = copy.deepcopy(events[2])
+            request["language"] = code
+            events.append(request)
+        evidence.validate_phase("locales", events, snapshots, baseline)
+
+    def test_failed_clock_phase_restores_clock_zone_and_network_time(self):
+        runner_spec = importlib.util.spec_from_file_location("runner", Path(__file__).with_name("qa-ios-reminders.py"))
+        module = importlib.util.module_from_spec(runner_spec)
+        runner_spec.loader.exec_module(module)
+        with tempfile.TemporaryDirectory() as directory:
+            runner = module.Runner(Path(directory) / "evidence", clock_probe=True)
+            def command(*args, **kwargs):
+                if args[-1] == "-gettimezone": return "Time Zone: UTC" if not changed else "Time Zone: Asia/Almaty"
+                if args[-1] == "-getusingnetworktime": return "Network Time: On"
+                if "-settimezone" in args: changed.append(True)
+                return ""
+            changed = []
+            runner.run = command
+            runner.phase = lambda *args: (_ for _ in ()).throw(RuntimeError("XCTest failed"))
+            restored = []
+            def restore(args, **kwargs):
+                restored.append(args)
+                return type("Result", (), {"returncode": 0, "stdout": "", "stderr": ""})()
+            with patch.dict(module.os.environ, {"CI": "true"}), patch.object(module.subprocess, "run", restore):
+                with self.assertRaisesRegex(RuntimeError, "XCTest failed"):
+                    runner.clock_phases()
+            self.assertEqual(3, len(restored))
+            self.assertEqual(["sudo", "-n", "date", "-u"], restored[0][:4])
+            self.assertEqual(["sudo", "-n", "systemsetup", "-settimezone", "UTC"], restored[1])
+            self.assertEqual("on", restored[2][-1])
+
+    def test_backward_clock_phase_uses_append_boundary_not_prior_future_timestamps(self):
+        old = {"event": "system-clock", "time": "1791150000", "zone": "Asia/Almaty"}
+        new = {"event": "system-clock", "time": "1772949605", "zone": "America/New_York"}
+        boundary = (json.dumps(old) + "\n").encode()
+        raw = boundary + (json.dumps(new) + "\n").encode()
+        self.assertEqual([new], evidence.events_since(raw, boundary))
+        self.assertEqual([], evidence.events_since(boundary, boundary))
+        with self.assertRaises(ValueError):
+            evidence.events_since((json.dumps(new) + "\n").encode(), boundary)
+        with self.assertRaises(ValueError):
+            evidence.events_since(raw[:-1], boundary)
+
+    def test_travel_rejects_future_utc_time_that_is_wrong_in_actual_local_zone(self):
+        events, snapshots, baseline = self.fixture()
+        events = events[:3]
+        # 2026-10-05 12:00Z, 17:00 in Almaty; next local02:30 is October05 21:30Z.
+        now = 1791201600
+        events[2]["time"] = str(now)
+        events[2]["next"] = str(evidence.next_local_minute(now, 150, "UTC"))
+        events.append({"event": "system-clock", "time": str(now), "zone": "Asia/Almaty"})
+        snapshots.append(copy.deepcopy(snapshots[-1]))
+        snapshots[-1]["enabled"] = False
+        with self.assertRaisesRegex(ValueError, "next local 02:30"):
+            evidence.validate_phase("travel", events, snapshots, baseline)
+        events[2]["next"] = str(evidence.next_local_minute(now, 150, "Asia/Almaty"))
+        evidence.validate_phase("travel", events, snapshots, baseline)
+
+    def test_empty_skipped_or_unknown_xctest_schema_is_not_pass(self):
+        evidence.validate_summary({"passedTests": 1, "failedTests": 0, "skippedTests": 0})
+        for summary in ({}, {"passedTests": 0, "failedTests": 0, "skippedTests": 0},
+                        {"passedTests": 1, "failedTests": 0, "skippedTests": 1}):
+            with self.assertRaises(ValueError):
+                evidence.validate_summary(summary)
+
+
+if __name__ == "__main__":
+    unittest.main()

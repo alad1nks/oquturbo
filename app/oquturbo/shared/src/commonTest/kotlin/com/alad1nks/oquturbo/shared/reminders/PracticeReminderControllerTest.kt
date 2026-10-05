@@ -482,6 +482,45 @@ class PracticeReminderControllerTest {
             assertEquals(0, platform.prompts)
         }
 
+    @Test
+    fun settingsResultWaitsForActualCallbackAndFailureDoesNotChangePreferencesOrSchedule() =
+        scenario {
+            seed()
+            controller.refresh()
+            tick()
+            val before = prefs.writes.toList()
+            val pending = platform.pending
+            val result = CompletableDeferred<Unit>()
+            platform.openSettings = { result.await() }
+            controller.openSystemSettings()
+            tick()
+            assertFalse(controller.state.value.settingsOpenFailed)
+            result.completeExceptionally(IllegalStateException("open returned false"))
+            tick()
+            assertTrue(controller.state.value.settingsOpenFailed)
+            assertEquals(before, prefs.writes)
+            assertEquals(pending, platform.pending)
+            platform.openSettings = {}
+            controller.openSystemSettings()
+            tick()
+            assertFalse(controller.state.value.settingsOpenFailed)
+            assertEquals(0, platform.prompts)
+        }
+
+    @Test
+    fun cancelledSettingsOpenDoesNotBecomeSuccessOrOverwriteExistingFailure() =
+        scenario {
+            platform.openSettings = { error("not opened") }
+            controller.openSystemSettings()
+            tick()
+            assertTrue(controller.state.value.settingsOpenFailed)
+            platform.openSettings = { throw kotlinx.coroutines.CancellationException("host cancelled") }
+            controller.openSystemSettings()
+            tick()
+            assertTrue(controller.state.value.settingsOpenFailed)
+            assertTrue(prefs.writes.isEmpty())
+        }
+
     private class Fixture(val scope: TestScope) {
         val prefs = Preferences()
         val app = koinApplication { modules(StorageCommonModule, module { single<AppPreferences> { prefs } }) }
@@ -541,7 +580,9 @@ class PracticeReminderControllerTest {
 
         override suspend fun chooseTime(initialMinutes: Int?, labels: ReminderPickerLabels) = picker?.invoke() ?: chosen
 
-        override fun openSystemSettings() = Unit
+        var openSettings: suspend () -> Unit = {}
+
+        override suspend fun openSystemSettings() = openSettings()
     }
 
     private class Preferences : AppPreferences {

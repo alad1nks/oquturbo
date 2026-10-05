@@ -269,7 +269,7 @@ internal class AndroidReminderPlatform(private val context: Context) : ReminderP
             }
         }
 
-    override fun openSystemSettings() {
+    override suspend fun openSystemSettings() {
         val intent =
             if (Build.VERSION.SDK_INT >= 26) {
                 Intent(
