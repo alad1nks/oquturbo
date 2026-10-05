@@ -112,10 +112,19 @@ class Driver:
             raise AssertionError(f"Ambiguous UI control: {text or resource or description}")
         return matches[0] if matches else None
 
-    def tap(self, text=None, resource=None, description=None, scroll=False):
+    def tap(self, text=None, resource=None, description=None, scroll=False, native_time_picker=False):
         for attempt in range(9 if scroll else 3):
             root = self.snapshot("find-control")
+            if native_time_picker:
+                assert resource in {"android:id/button1", "android:id/button2"}
+                picker = self.find(root, resource="android:id/timePicker")
+                if picker is None or picker.get("class") != "android.widget.TimePicker" or picker.get("package") != PACKAGE:
+                    time.sleep(1)
+                    continue
             node = self.find(root, text, resource, description)
+            if native_time_picker and node is not None:
+                assert node.get("package") == PACKAGE and node.get("class") == "android.widget.Button"
+                assert node.get("enabled") == "true" and node.get("clickable") == "true"
             if node is not None:
                 coords = list(map(int, re.findall(r"\d+", node.get("bounds", ""))))
                 if len(coords) == 4 and coords[2] > coords[0] and coords[3] > coords[1]:
@@ -160,7 +169,7 @@ class Driver:
     def future_picker(self, first=False, cancel=False):
         self.tap(text="Choose time and enable" if first else "Change time", scroll=True)
         if cancel:
-            self.tap(text="Cancel")
+            self.tap(resource="android:id/button2", native_time_picker=True)
             return None
         now = int(self.text("shell", "date", "+%s"))
         target = ((now // 60) + 3) * 60
@@ -174,9 +183,9 @@ class Driver:
             self.adb("shell", "input", "keyevent", "KEYCODE_MOVE_END", "KEYCODE_DEL", "KEYCODE_DEL")
             self.adb("shell", "input", "text", str(value))
         if int(self.text("shell", "date", "+%s")) >= target - 30:
-            self.tap(text="Cancel")
+            self.tap(resource="android:id/button2", native_time_picker=True)
             return self.future_picker(first=first)
-        self.tap(text="Save and enable" if first else "Save time")
+        self.tap(resource="android:id/button1", native_time_picker=True)
         (self.output / f"chosen-{self.step}.json").write_text(json.dumps({"device_now": now, "due": target, "minutes": chosen.hour*60+chosen.minute}))
         return target
 
@@ -378,7 +387,7 @@ def main():
         driver.adb("shell", "cmd", "alarm", "set-timezone", "UTC")
         assert driver.text("shell", "getprop", "persist.sys.timezone") == "UTC"
         driver.reset_fixture("A")
-        driver.tap(text="Choose time and enable", scroll=True); driver.tap(text="Cancel")
+        driver.tap(text="Choose time and enable", scroll=True); driver.tap(resource="android:id/button2", native_time_picker=True)
         driver.assert_text("Off"); driver.assert_alarm(0)
         due = driver.future_picker(first=True)
         driver.tap(resource="com.android.permissioncontroller:id/permission_allow_button")
