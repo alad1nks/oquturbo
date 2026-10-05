@@ -9,8 +9,8 @@ import platform.Foundation.NSCalendarUnitHour
 import platform.Foundation.NSCalendarUnitMinute
 import platform.Foundation.NSDate
 import platform.Foundation.NSSelectorFromString
+import platform.Foundation.setValue
 import platform.UIKit.NSLayoutConstraint
-import platform.UIKit.UIAccessibilityIdentificationProtocol
 import platform.UIKit.UIAdaptivePresentationControllerDelegateProtocol
 import platform.UIKit.UIButton
 import platform.UIKit.UIButtonTypeSystem
@@ -49,7 +49,9 @@ internal class IosReminderPicker(
     override fun viewDidLoad() {
         super.viewDidLoad()
         view.backgroundColor = UIColor.systemBackgroundColor
-        (view as UIAccessibilityIdentificationProtocol).accessibilityIdentifier = "reminder-native-picker"
+        // UIKit exposes this public property, but the Kotlin protocol cast fails for UIView.
+        // NSObject KVC invokes its public setter without a protocol cast.
+        view.setValue("reminder-native-picker", forKey = "accessibilityIdentifier")
         val scroll = UIScrollView().apply { translatesAutoresizingMaskIntoConstraints = false }
         val stack =
             UIStackView().apply {
@@ -74,7 +76,7 @@ internal class IosReminderPicker(
         time.datePickerMode = UIDatePickerMode.UIDatePickerModeTime
         time.preferredDatePickerStyle = UIDatePickerStyle.UIDatePickerStyleWheels
         time.minuteInterval = 1
-        (time as UIAccessibilityIdentificationProtocol).accessibilityIdentifier = "reminder-time-wheel"
+        time.setValue("reminder-time-wheel", forKey = "accessibilityIdentifier")
         val localNow = NSCalendar.currentCalendar.components(NSCalendarUnitHour or NSCalendarUnitMinute, NSDate())
         val draft = initialMinutes ?: (localNow.hour * 60 + localNow.minute).toInt()
         time.calendar = iosReminderTimeCalendar()
@@ -113,7 +115,7 @@ internal class IosReminderPicker(
             titleLabel?.numberOfLines = 0
             titleLabel?.adjustsFontForContentSizeCategory = true
             titleLabel?.font = UIFont.preferredFontForTextStyle(UIFontTextStyleBody!!)
-            (this as UIAccessibilityIdentificationProtocol).accessibilityIdentifier = identifier
+            setValue(identifier, forKey = "accessibilityIdentifier")
             addTarget(this@IosReminderPicker, NSSelectorFromString(selector), UIControlEventTouchUpInside)
         }
 

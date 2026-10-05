@@ -3,8 +3,9 @@
 package com.alad1nks.oquturbo.shared.reminders
 
 import com.alad1nks.oquturbo.core.data.reminders.ReminderPickerLabels
+import platform.Foundation.NSSelectorFromString
 import platform.Foundation.NSThread
-import platform.UIKit.UIAccessibilityIdentificationProtocol
+import platform.Foundation.valueForKey
 import platform.UIKit.UIButton
 import platform.UIKit.UIControlEventTouchUpInside
 import platform.UIKit.UIDatePicker
@@ -20,18 +21,19 @@ class IosReminderPickerTest {
         val results = mutableListOf<Int?>()
         val sheet = IosReminderPicker(150, labels, results::add)
         sheet.loadViewIfNeeded()
+        assertEquals("reminder-native-picker", identifier(sheet.view))
         val views = descendants(sheet.view)
         val picker = views.filterIsInstance<UIDatePicker>().single()
-        assertEquals("reminder-time-wheel", (picker as UIAccessibilityIdentificationProtocol).accessibilityIdentifier)
+        assertEquals("reminder-time-wheel", identifier(picker))
         assertEquals(150, iosReminderTimeMinutes(picker.date))
         val buttons = views.filterIsInstance<UIButton>()
         val cancel =
             buttons.single {
-                (it as UIAccessibilityIdentificationProtocol).accessibilityIdentifier == "reminder-time-cancel"
+                identifier(it) == "reminder-time-cancel"
             }
         assertTrue(
             buttons.any {
-                (it as UIAccessibilityIdentificationProtocol).accessibilityIdentifier == "reminder-time-confirm"
+                identifier(it) == "reminder-time-confirm"
             },
         )
         cancel.sendActionsForControlEvents(UIControlEventTouchUpInside)
@@ -49,13 +51,19 @@ class IosReminderPickerTest {
         sheet.loadViewIfNeeded()
         val confirm =
             descendants(sheet.view).filterIsInstance<UIButton>().single {
-                (it as UIAccessibilityIdentificationProtocol).accessibilityIdentifier == "reminder-time-confirm"
+                identifier(it) == "reminder-time-confirm"
             }
         confirm.sendActionsForControlEvents(UIControlEventTouchUpInside)
         assertEquals(listOf<Int?>(150), results)
         sheet.confirm()
         sheet.cancel()
         assertEquals(listOf<Int?>(150), results)
+    }
+
+    private fun identifier(view: UIView): Any? {
+        assertTrue(view.respondsToSelector(NSSelectorFromString("accessibilityIdentifier")))
+        assertTrue(view.respondsToSelector(NSSelectorFromString("setAccessibilityIdentifier:")))
+        return view.valueForKey("accessibilityIdentifier")
     }
 
     private fun descendants(view: UIView): List<UIView> =
