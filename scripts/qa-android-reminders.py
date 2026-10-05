@@ -91,6 +91,27 @@ def alarm_epoch(alarm):
     return int(match[1])
 
 
+def display_override(output, kind):
+    matches = re.findall(r"^Override " + kind + r": (.+)$", output, re.M)
+    assert len(matches) <= 1, "Ambiguous display override"
+    assert re.search(r"^Physical " + kind + r": .+$", output, re.M), "Missing physical display inventory"
+    return matches[0] if matches else "reset"
+
+
+def visible_bounds(node, width=320, height=640):
+    assert node is not None and node.get("package") == PACKAGE, "Missing owned visible element"
+    values = list(map(int, re.findall(r"-?\d+", node.get("bounds", ""))))
+    assert len(values) == 4 and 0 <= values[0] < values[2] <= width and 0 <= values[1] < values[3] <= height, "Clipped or missing compact bounds"
+    assert node.get("enabled") == "true", "Disabled compact element"
+    return values
+
+
+def twelve_hour_minutes(value):
+    match = re.fullmatch(r"(1[0-2]|[1-9]):([0-5][0-9])\s*([AP]M)", value.strip())
+    assert match, "Saved card does not expose a complete 12h time"
+    return (int(match[1]) % 12 + (12 if match[3] == "PM" else 0)) * 60 + int(match[2])
+
+
 class Driver:
     def __init__(self, serial, output):
         self.serial, self.output = serial, output
@@ -458,6 +479,128 @@ class Driver:
         self.tap(text="Язык"); self.tap(text="English"); time.sleep(2)
         self.assert_alarm(1)
 
+    def compact_picker_check(self, root, minute):
+        picker = self.find(root, resource="android:id/timePicker")
+        assert picker is not None and picker.get("package") == PACKAGE, "Native time picker unavailable"
+        expected = {"android:id/message": "Құрылғының ағымдағы жергілікті уақыты бойынша.",
+                    "android:id/button1": "УАҚЫТТЫ САҚТАУ", "android:id/button2": "БАС ТАРТУ"}
+        for resource, caption in expected.items():
+            node = self.find(root, resource=resource)
+            visible_bounds(node)
+            assert node.get("text") == caption, "Incomplete localized native label: " + resource
+            if resource != "android:id/message":
+                assert node.get("clickable") == "true", "Native action is not actionable"
+        hour = self.find(root, resource="android:id/hours")
+        minutes = self.find(root, resource="android:id/minutes")
+        am = self.find(root, resource="android:id/am_label")
+        pm = self.find(root, resource="android:id/pm_label")
+        for node in (hour, minutes, am, pm): visible_bounds(node)
+        assert am.get("text") == "AM" and pm.get("text") == "PM", "12h native period controls unavailable"
+        assert am.get("checked") in {"true", "false"} and pm.get("checked") in {"true", "false"} and am.get("checked") != pm.get("checked"), "Ambiguous native AM/PM selection"
+        actual = (int(hour.get("text")) % 12 + (12 if pm.get("checked") == "true" else 0)) * 60 + int(minutes.get("text"))
+        assert 1 <= int(hour.get("text")) <= 12 and 0 <= int(minutes.get("text")) < 60 and actual == minute, "Native picker changed saved minutes"
+
+    def restore_compact_settings(self, original):
+        errors = []
+        # Each independent setting is attempted even when another restoration fails.
+        for kind in ("size", "density"):
+            try:
+                self.adb("shell", "wm", kind, display_override(original[kind], kind))
+                assert self.text("shell", "wm", kind) == original[kind], "Display restoration mismatch"
+            except Exception as error: errors.append(f"{kind}: {error}")
+        for key in ("font_scale", "time_12_24"):
+            try:
+                value = original[key]
+                command = ("delete", "system", key) if value == "null" else ("put", "system", key, value)
+                self.adb("shell", "settings", *command)
+                assert self.text("shell", "settings", "get", "system", key) == value, "System setting restoration mismatch"
+            except Exception as error: errors.append(f"{key}: {error}")
+        return errors
+
+    def reopen_kazakh_settings(self, root):
+        if self.find(root, text="Баптаулар") is not None:
+            self.back()  # Settings -> existing Profile; Privacy is only static Settings content.
+        else:
+            assert self.find(root, description="Баптаулар") is not None, "Expected actual Settings or Profile for restoration"
+        self.tap(description="Баптаулар")
+        self.assert_text("Баптаулар")
+
+    def compact_privacy_and_back(self):
+        # SettingsInfoRow has no navigation callback. Scroll to its real informational content.
+        description = "Құпиялық саясаты туралы ақпарат осында қолжетімді болады"
+        self.tap(text=description, scroll=True)
+        root = self.snapshot("N12-ordinary-privacy-content")
+        visible_bounds(self.find(root, text="Құпиялық саясаты"))
+        visible_bounds(self.find(root, text=description))
+        self.reopen_kazakh_settings(root)
+        self.snapshot("N12-back-to-settings")
+
+    def compact_kazakh_picker(self):
+        original = {kind: self.text("shell", "wm", kind) for kind in ("size", "density")}
+        original.update({key: self.text("shell", "settings", "get", "system", key) for key in ("font_scale", "time_12_24")})
+        before = self.prefs("N12-before-configuration")
+        assert preference_string(before, "language") == "en", "N12 expects the preceding restored English fixture"
+        assert before.get("reminders_enabled") == "0800", "N12 starts only after verified D Off"
+        minute = json.loads(preference_string(before, "reminders_schedule_v1"))["minutesOfDay"]
+        self.output.joinpath("N12-original-settings.json").write_text(json.dumps(original, indent=2))
+        language_changed = False
+        try:
+            self.ensure_settings_top(); self.tap(text="Language"); self.tap(text="Қазақ тілі")
+            language_changed = True
+            self.tap(text="Тіл")  # Real dialog verifies settled KK; dismiss without changing preference.
+            self.back()
+            self.adb("shell", "wm", "size", "320x640")
+            self.adb("shell", "wm", "density", "160")
+            self.adb("shell", "settings", "put", "system", "font_scale", "1.5")
+            self.adb("shell", "settings", "put", "system", "time_12_24", "12")
+            assert display_override(self.text("shell", "wm", "size"), "size") == "320x640"
+            assert display_override(self.text("shell", "wm", "density"), "density") == "160"
+            assert self.text("shell", "settings", "get", "system", "font_scale") == "1.5"
+            assert self.text("shell", "settings", "get", "system", "time_12_24") == "12"
+            # Ordinary background/resume applies native time-format/configuration; no process kill.
+            self.adb("shell", "input", "keyevent", "KEYCODE_HOME"); self.launch()
+            self.output.joinpath("N12-configuration.txt").write_text(self.text("shell", "dumpsys", "activity", "activities"))
+            self.tap(text="Өшірулі", scroll=True)
+            root = self.snapshot("N12-kk-12h-saved-card")
+            cards = [node for node in root.iter("node") if node.get("text", "").startswith("Таңдалған уақыт: ")]
+            assert len(cards) == 1, "Saved time summary missing or ambiguous"
+            visible_bounds(cards[0])
+            assert twelve_hour_minutes(cards[0].get("text").split(": ", 1)[1]) == minute, "Saved card changed stored minutes"
+            self.tap(text="Уақытты өзгерту", scroll=True)
+            self.compact_picker_check(self.snapshot("N12-kk-12h-native-picker"), minute)
+            cancel_before = self.adb("exec-out", "run-as", PACKAGE, "cat", PREFS)
+            self.output.joinpath("N12-before-cancel.preferences_pb").write_bytes(cancel_before)
+            self.tap(resource="android:id/button2", native_time_picker=True)
+            self.tap(text="Өшірулі", scroll=True)
+            cancel_after = self.adb("exec-out", "run-as", PACKAGE, "cat", PREFS)
+            self.output.joinpath("N12-after-cancel.preferences_pb").write_bytes(cancel_after)
+            assert cancel_after == cancel_before, "Native Cancel changed persisted bytes"
+            self.assert_alarm(0)
+            self.compact_privacy_and_back()
+        finally:
+            errors = self.restore_compact_settings(original)
+            if language_changed:
+                try:
+                    root = self.snapshot("N12-before-language-restore")
+                    if self.find(root, resource="android:id/timePicker") is not None:
+                        self.tap(resource="android:id/button2", native_time_picker=True)
+                    root = self.snapshot("N12-language-restore-route")
+                    if self.find(root, text="English") is not None:
+                        self.tap(text="English")  # Interrupted while the actual language dialog was open.
+                    else:
+                        self.reopen_kazakh_settings(root)  # Reset normal Settings scroll from the observed real route.
+                        self.tap(text="Тіл"); self.tap(text="English")
+                    self.tap(text="Language")
+                    self.back()
+                    restored = self.prefs("N12-restored")
+                    assert preference_string(restored, "language") == preference_string(before, "language")
+                    assert restored.get("reminders_enabled") == before.get("reminders_enabled")
+                    assert json.loads(preference_string(restored, "reminders_schedule_v1"))["minutesOfDay"] == minute
+                    assert {k: v for k, v in restored.items() if k not in MUTABLE_KEYS} == {k: v for k, v in before.items() if k not in MUTABLE_KEYS}
+                except Exception as error: errors.append(f"language/data: {error}")
+            self.output.joinpath("N12-restoration.json").write_text(json.dumps({"errors": errors}, indent=2))
+            if errors: raise RuntimeError("N12 restoration failed: " + "; ".join(errors))
+
     def zone_and_time_hooks(self):
         help_text = self.text("shell", "cmd", "alarm", "help", alarm_help=True)
         assert "set-timezone" in help_text and "set-time" in help_text, "OS clock controls unavailable"
@@ -503,7 +646,7 @@ def main():
     parser.add_argument("--output", type=Path, required=True)
     args = parser.parse_args()
     driver = Driver(args.serial, args.output)
-    result = {name: "NOT_RUN" for name in ["A_cold", "B_warm_permissions", "C_foreground", "D_reboot_cancel"]}
+    result = {name: "NOT_RUN" for name in ["A_cold", "B_warm_permissions", "C_foreground", "D_reboot_cancel", "N12_compact_kk_12h"]}
     args.output.joinpath("apk-sha256.txt").write_text(hashlib.sha256(args.apk.read_bytes()).hexdigest())
     try:
         assert driver.text("shell", "getprop", "ro.build.version.sdk") == "33"
@@ -571,6 +714,8 @@ def main():
         after_off = driver.invariant("D-after-off")
         assert before_off["reminders_schedule_v1"] == after_off["reminders_schedule_v1"]
         result["D_reboot_cancel"] = "PASS"
+        driver.compact_kazakh_picker()
+        result["N12_compact_kk_12h"] = "PASS"
     except Exception as error:
         result["error"] = f"{type(error).__name__}: {error}"
         try: driver.native("failure"); driver.snapshot("failure")

@@ -324,6 +324,106 @@ class EditedScheduleTest(unittest.TestCase):
             self.assertEqual([(due, self.MINUTE)], calls)
 
 
+class CompactPickerTest(unittest.TestCase):
+    def picker(self, minute):
+        # Synthetic KK/compact variant of public native clock IDs, observed in the API28
+        # en-picker-cancel tree; this does not claim API33/KK native rendering passed.
+        root = ET.Element("hierarchy")
+        values = {"timePicker": "", "message": "Құрылғының ағымдағы жергілікті уақыты бойынша.",
+                  "button1": "УАҚЫТТЫ САҚТАУ", "button2": "БАС ТАРТУ",
+                  "hours": str(minute // 60 % 12 or 12), "minutes": f"{minute % 60:02d}",
+                  "am_label": "AM", "pm_label": "PM"}
+        for key, value in values.items():
+            ET.SubElement(root, "node", {"resource-id": "android:id/" + key, "text": value,
+                         "bounds": "[10,20][300,80]", "package": qa.PACKAGE, "enabled": "true", "clickable": "true",
+                         "checked": str((key == "am_label" and minute < 720) or (key == "pm_label" and minute >= 720)).lower()})
+        return root
+
+    def test_card_and_native_period_preserve_midnight_noon_and_nonzero_minutes(self):
+        with tempfile.TemporaryDirectory() as output:
+            driver = qa.Driver("owned-test-serial", Path(output))
+            for value, minute in [("12:00 AM", 0), ("12:00 PM", 720), ("2:23\u202fPM", 863), ("2:30 AM", 150)]:
+                self.assertEqual(minute, qa.twelve_hour_minutes(value))
+                driver.compact_picker_check(self.picker(minute), minute)
+            for value in ["00:00 AM", "14:23", "2:60 PM", "2:23", "2:23 PM extra"]:
+                with self.assertRaises(AssertionError): qa.twelve_hour_minutes(value)
+
+    def test_wrong_period_clipped_or_missing_localized_actions_fail_closed(self):
+        with tempfile.TemporaryDirectory() as output:
+            driver = qa.Driver("owned-test-serial", Path(output))
+            variants = [("pm_label", "checked", "false"), ("button1", "text", "УАҚЫТТЫ…"),
+                        ("button2", "bounds", "[10,610][300,670]"), ("button2", "clickable", "false"),
+                        ("message", "package", "other.package"), ("hours", "text", "3")]
+            for key, attribute, value in variants:
+                root = self.picker(863)
+                driver.find(root, resource="android:id/" + key).set(attribute, value)
+                with self.subTest(key=key, attribute=attribute), self.assertRaises(AssertionError):
+                    driver.compact_picker_check(root, 863)
+            root = self.picker(863)
+            root.append(copy.deepcopy(driver.find(root, resource="android:id/button1")))
+            with self.assertRaisesRegex(AssertionError, "Ambiguous"):
+                driver.compact_picker_check(root, 863)
+
+    def test_static_privacy_content_requires_one_back_then_existing_settings_reopen(self):
+        with tempfile.TemporaryDirectory() as output:
+            driver = qa.Driver("owned-test-serial", Path(output))
+            state, calls = ["Settings"], []
+            description = "Құпиялық саясаты туралы ақпарат осында қолжетімді болады"
+            def snapshot(label):
+                root = ET.Element("hierarchy")
+                if state[0] == "Settings":
+                    for caption in ("Баптаулар", "Құпиялық саясаты", description):
+                        ET.SubElement(root, "node", {"text": caption, "package": qa.PACKAGE,
+                                      "enabled": "true", "bounds": "[10,20][310,90]"})
+                elif state[0] == "Profile":
+                    ET.SubElement(root, "node", {"content-desc": "Баптаулар"})
+                return root
+            def tap(**kwargs):
+                calls.append(kwargs)
+                if kwargs.get("text") == description:
+                    self.assertEqual("Settings", state[0])  # Static content remains in Settings.
+                else:
+                    self.assertEqual({"description": "Баптаулар"}, kwargs)
+                    self.assertEqual("Profile", state[0])
+                    state[0] = "Settings"
+            def back():
+                calls.append("Back")
+                state[0] = "Profile" if state[0] == "Settings" else "Home"
+            driver.tap, driver.back, driver.snapshot = tap, back, snapshot
+            driver.compact_privacy_and_back()
+            self.assertEqual([{"text": description, "scroll": True}, "Back", {"description": "Баптаулар"}], calls)
+            self.assertEqual("Settings", state[0])
+            calls.clear(); state[0] = "Profile"
+            driver.reopen_kazakh_settings(snapshot("restore"))
+            self.assertEqual([{"description": "Баптаулар"}], calls)
+            calls.clear(); state[0] = "Unknown"
+            with self.assertRaisesRegex(AssertionError, "actual Settings or Profile"):
+                driver.reopen_kazakh_settings(snapshot("restore"))
+            self.assertEqual([], calls)
+
+    def test_exact_override_or_reset_restoration_attempts_all_even_after_error(self):
+        original = {"size": "Physical size: 1080x1920\nOverride size: 800x1200",
+                    "density": "Physical density: 420", "font_scale": "1.0", "time_12_24": "null"}
+        self.assertEqual("800x1200", qa.display_override(original["size"], "size"))
+        self.assertEqual("reset", qa.display_override(original["density"], "density"))
+        with self.assertRaises(AssertionError): qa.display_override("device offline", "size")
+        with tempfile.TemporaryDirectory() as output:
+            driver = qa.Driver("owned-test-serial", Path(output))
+            for fail_size in (False, True):
+                calls = []
+                def adb(*args):
+                    calls.append(args)
+                    if fail_size and args == ("shell", "wm", "size", "800x1200"):
+                        raise RuntimeError("size restore unavailable")
+                driver.adb = adb
+                driver.text = lambda *args: original[args[-1]]
+                errors = driver.restore_compact_settings(original)
+                self.assertEqual(1 if fail_size else 0, len(errors))
+                self.assertEqual([("shell", "wm", "size", "800x1200"), ("shell", "wm", "density", "reset"),
+                                  ("shell", "settings", "put", "system", "font_scale", "1.0"),
+                                  ("shell", "settings", "delete", "system", "time_12_24")], calls)
+
+
 class AlarmHelpTest(unittest.TestCase):
     # Exact required lines from API33 AlarmManagerService.onHelp. Status -1 is returned
     # by BasicShellCommandHandler.handleDefaultCommands for help and arrives as255.
