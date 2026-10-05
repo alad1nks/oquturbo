@@ -4,6 +4,7 @@ from pathlib import Path
 import unittest
 from unittest.mock import patch
 import copy
+import os
 import tempfile
 import xml.etree.ElementTree as ET
 
@@ -39,6 +40,77 @@ class EvidenceParserTest(unittest.TestCase):
         self.assertEqual([], qa.pending_alarms('Recent history: ' + qa.ACTION))
         self.assertEqual([], qa.pending_alarms(alarm.replace('com.alad1nks.oquturbo}', 'another.package}')))
         self.assertEqual(2, len(qa.pending_alarms(alarm + alarm.replace('#0', '#1'))))
+
+
+class BackgroundProcessTest(unittest.TestCase):
+    def run_stop(self, pids, due=None, device_times=None, command_error=False):
+        with tempfile.TemporaryDirectory() as output:
+            driver = qa.Driver("owned-test-serial", Path(output))
+            clock = [0.0]
+            driver.deadline = 1000
+            calls = []
+            observed = iter(pids)
+            dates = iter(device_times or [])
+
+            def adb(*args, **kwargs):
+                calls.append(args)
+                self.assertEqual(("shell", "am", "kill", qa.PACKAGE), args)
+
+            def text(*args, **kwargs):
+                self.assertNotIn("check", kwargs)  # errors cannot become false absence
+                if args == ("shell", "date", "+%s"):
+                    return str(next(dates))
+                self.assertEqual(("shell", qa.PIDOF_COMMAND), args)
+                if command_error:
+                    raise RuntimeError("device disconnected")
+                value = next(observed)
+                return qa.PROCESS_ABSENT if value == "" else value
+
+            def sleep(seconds):
+                clock[0] += seconds
+
+            driver.adb, driver.text = adb, text
+            with patch.object(qa.time, "monotonic", side_effect=lambda: clock[0]), patch.object(qa.time, "sleep", side_effect=sleep):
+                driver.stop_background_process("test", before_due=due)
+            return calls, (Path(output) / "test-process-stop.jsonl").read_text(), clock[0]
+
+    def test_remote_pidof_protocol_distinguishes_absent_present_and_errors(self):
+        with tempfile.TemporaryDirectory() as directory:
+            fake = Path(directory) / "pidof"
+            for body, code, output in [
+                ("exit 1", 0, qa.PROCESS_ABSENT),
+                ("echo '2407 2408'", 0, "2407 2408"),
+                ("echo 'permission denied' >&2; exit 1", 1, ""),
+                ("exit 127", 1, ""),
+                ("exit 0", 1, ""),
+            ]:
+                fake.write_text("#!/bin/sh\n" + body + "\n")
+                fake.chmod(0o755)
+                result = qa.subprocess.run(["/bin/sh", "-c", qa.PIDOF_COMMAND],
+                                           env={**os.environ, "PATH": directory}, capture_output=True, text=True)
+                self.assertEqual(code, result.returncode, body)
+                self.assertEqual(output, result.stdout.strip(), body)
+
+    def test_home_transition_noop_retries_until_actual_absence_before_due(self):
+        # Actual run37270962350 had only68ms between HOME and pidof; ordinary kill can be a no-op.
+        calls, journal, elapsed = self.run_stop(["2407", "2407", ""], due=1791181320,
+                                              device_times=[1791181232, 1791181232, 1791181233, 1791181233, 1791181234, 1791181234])
+        self.assertEqual(3, len(calls))
+        self.assertEqual(2, elapsed)
+        self.assertEqual(["2407", "2407", ""], [qa.json.loads(line)["pids"] for line in journal.splitlines()])
+
+    def test_persistent_process_fails_at_bounded_deadline(self):
+        with self.assertRaisesRegex(TimeoutError, "within 30s"):
+            self.run_stop(["2407"] * 31)
+
+    def test_due_reached_before_or_after_kill_and_transport_failure_never_pass(self):
+        for times, pids in [([100], []), ([99, 100], [""])]:
+            with self.assertRaisesRegex(AssertionError, "missed the chosen due"):
+                self.run_stop(pids, due=100, device_times=times)
+        with self.assertRaisesRegex(RuntimeError, "device disconnected"):
+            self.run_stop([], command_error=True)
+        with self.assertRaisesRegex(AssertionError, "Unknown process inventory"):
+            self.run_stop(["garbled output"])
 
 
 class EvidenceRetentionTest(unittest.TestCase):

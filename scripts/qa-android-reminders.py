@@ -16,6 +16,16 @@ from zoneinfo import ZoneInfo
 from pathlib import Path
 
 PACKAGE = "com.alad1nks.oquturbo"
+PROCESS_ABSENT = "OQUTURBO_PROCESS_ABSENT"
+PIDOF_COMMAND = f"""reminder_pids=$(pidof {PACKAGE} 2>&1); reminder_status=$?
+if [ "$reminder_status" -eq 1 ] && [ -z "$reminder_pids" ]; then
+    printf '%s\\n' '{PROCESS_ABSENT}'
+elif [ "$reminder_status" -eq 0 ] && [ -n "$reminder_pids" ]; then
+    printf '%s\\n' "$reminder_pids"
+else
+    printf '%s\\n' "$reminder_pids" >&2
+    exit 1
+fi"""
 CHANNEL = "oquturbo_practice_reminder"
 ACTION = PACKAGE + ".PRACTICE_REMINDER"
 PREFS = "files/oquturbo.preferences_pb"
@@ -93,6 +103,37 @@ class Driver:
 
     def text(self, *args, **kwargs):
         return self.adb(*args, **kwargs).decode(errors="replace").strip()
+
+    def stop_background_process(self, label, before_due=None):
+        # am kill only kills background processes; HOME/receiver completion is asynchronous.
+        deadline = min(self.deadline, time.monotonic() + 30)
+        while time.monotonic() < deadline:
+            def remaining():
+                seconds = deadline - time.monotonic()
+                if seconds <= 0:
+                    raise TimeoutError("Normal background kill did not remove the process within 30s")
+                return min(5, seconds)
+
+            def require_before_due():
+                if before_due is not None:
+                    now = int(self.text("shell", "date", "+%s", timeout=remaining()))
+                    if now >= before_due:
+                        raise AssertionError("Cold-process setup missed the chosen due time")
+
+            require_before_due()
+            self.adb("shell", "am", "kill", PACKAGE, timeout=remaining())
+            # pidof exit1 means absent; transport/other command failures must not look like absence.
+            observation = self.text("shell", PIDOF_COMMAND, timeout=remaining())
+            assert observation == PROCESS_ABSENT or re.fullmatch(r"[0-9]+(?: [0-9]+)*", observation), "Unknown process inventory"
+            pids = "" if observation == PROCESS_ABSENT else observation
+            with (self.output / f"{label}-process-stop.jsonl").open("a") as log:
+                log.write(json.dumps({"monotonic": time.monotonic(), "pids": pids, "before_due": before_due}) + "\n")
+            require_before_due()
+            if not pids:
+                remaining()
+                return
+            time.sleep(min(1, remaining()))
+        raise TimeoutError("Normal background kill did not remove the process within 30s")
 
     def snapshot(self, label):
         self.step += 1
@@ -393,11 +434,9 @@ def main():
         driver.tap(resource="com.android.permissioncontroller:id/permission_allow_button")
         driver.tap(text="Scheduled", scroll=True); driver.assert_alarm(1); driver.native("A-accepted")
         driver.adb("shell", "input", "keyevent", "KEYCODE_HOME")
-        driver.adb("shell", "am", "kill", PACKAGE)
-        assert not driver.text("shell", "pidof", PACKAGE, check=False), "Normal background kill failed"
+        driver.stop_background_process("A-before-delivery", before_due=due)
         driver.wait_delivery(due)
-        driver.adb("shell", "am", "kill", PACKAGE)
-        assert not driver.text("shell", "pidof", PACKAGE, check=False)
+        driver.stop_background_process("A-before-cold-tap")
         driver.tap_notification(); result["A_cold"] = "PASS"
 
         # New permission fixture, not continuity evidence for A. No permission is shell-granted.
