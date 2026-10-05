@@ -588,6 +588,129 @@ class EvidenceRetentionTest(unittest.TestCase):
             self.assertEqual([b'first', b'second'], [p.read_bytes() for p in alarms])
             self.assertEqual(2, len(list(Path(output).glob('*-delivered-events.txt'))))
 
+class CompactTransitionTest(unittest.TestCase):
+    fixture = Path(__file__).with_name("fixtures") / "reminders-api33-compact-launcher-activity.txt"
+
+    def inventory(self, package="com.android.launcher3", font="1.5"):
+        # Captured failure inventory; variants model later observed transitions, not native proof.
+        dump = self.fixture.read_text()
+        if package == qa.PACKAGE:
+            dump = dump.replace("com.android.launcher3", qa.PACKAGE + ".fixture")
+            dump = dump.replace(qa.PACKAGE + ".fixture/.uioverrides.QuickstepLauncher", qa.PACKAGE + "/.MainActivity")
+        return dump.replace("CurrentConfiguration={1.5 ", "CurrentConfiguration={" + font + " ")
+
+    def test_captured_launcher_is_not_mistaken_for_stopped_background_app(self):
+        self.assertEqual(("com.android.launcher3/.uioverrides.QuickstepLauncher", 1.5), qa.resumed_activity(self.fixture.read_text()))
+        self.assertEqual((qa.PACKAGE + "/.MainActivity", 1.0), qa.resumed_activity(self.inventory(qa.PACKAGE, "1.0")))
+        for dump in ["error: device offline", self.inventory().replace("state=RESUMED", "state=STOPPED"),
+                     self.inventory().replace("topResumedActivity=", "topResumedActivity=ActivityRecord{unknown}\n topResumedActivity=")]:
+            with self.assertRaises(AssertionError): qa.resumed_activity(dump)
+
+    def test_home_must_really_resume_before_app_launch_then_app_before_ui(self):
+        with tempfile.TemporaryDirectory() as output:
+            driver = qa.Driver("owned-test-serial", Path(output))
+            events, now = [], [0.0]
+            driver.deadline = 100
+            observations = iter([self.inventory(qa.PACKAGE), self.inventory(), self.inventory(), self.inventory(qa.PACKAGE)])
+            def text(*args, **kwargs):
+                dump = next(observations)
+                events.append(qa.resumed_activity(dump)[0].split("/")[0])
+                return dump
+            driver.text = text
+            driver.adb = lambda *args, **kwargs: events.append("HOME")
+            def launch():
+                self.assertEqual("com.android.launcher3", events[-1])
+                events.append("launch")
+            driver.launch = launch
+            with patch.object(qa.time, "monotonic", side_effect=lambda: now[0]), \
+                    patch.object(qa.time, "sleep", side_effect=lambda seconds: now.__setitem__(0, now[0]+seconds)):
+                driver.resume_compact_app()
+            self.assertEqual(["HOME", qa.PACKAGE, "com.android.launcher3", "launch", "com.android.launcher3", qa.PACKAGE], events)
+            self.assertEqual(4, len(list(Path(output).glob("*-activity.txt"))))
+
+    def test_launcher_timeout_or_transport_failure_never_launches_app(self):
+        for offline in (False, True):
+            with tempfile.TemporaryDirectory() as output:
+                driver = qa.Driver("owned-test-serial", Path(output))
+                now, launches = [0.0], []
+                driver.deadline = 100
+                driver.adb = lambda *args, **kwargs: None
+                def text(*args, **kwargs):
+                    if offline: raise RuntimeError("device offline")
+                    return self.inventory(qa.PACKAGE)
+                driver.text, driver.launch = text, lambda: launches.append(True)
+                with patch.object(qa.time, "monotonic", side_effect=lambda: now[0]), \
+                        patch.object(qa.time, "sleep", side_effect=lambda seconds: now.__setitem__(0, now[0]+seconds)), \
+                        self.assertRaises(RuntimeError if offline else TimeoutError):
+                    driver.resume_compact_app()
+                self.assertEqual([], launches)
+
+    def test_absent_font_waits_effective_default_and_redeletes_late_os_write(self):
+        with tempfile.TemporaryDirectory() as output:
+            driver = qa.Driver("owned-test-serial", Path(output))
+            now, calls = [0.0], []
+            driver.deadline = 100
+            configs = iter([self.inventory(), self.inventory(font="1.0")])
+            values = iter(["null", "1.0", "null", "null", "null"])
+            def text(*args, **kwargs):
+                if args[1] == "dumpsys":
+                    dump = next(configs); calls.append(qa.resumed_activity(dump)[1]); return dump
+                return next(values)
+            driver.text = text
+            driver.adb = lambda *args, **kwargs: calls.append(args)
+            with patch.object(qa.time, "monotonic", side_effect=lambda: now[0]), \
+                    patch.object(qa.time, "sleep", side_effect=lambda seconds: now.__setitem__(0, now[0]+seconds)):
+                driver.restore_absent_font_scale()
+            self.assertEqual([("shell", "settings", "put", "system", "font_scale", "1.0"), 1.5, 1.0,
+                              ("shell", "settings", "delete", "system", "font_scale"),
+                              ("shell", "settings", "delete", "system", "font_scale")], calls)
+            evidence = [qa.json.loads(line)["value"] for line in Path(output, "N12-font-restoration.jsonl").read_text().splitlines()]
+            self.assertEqual(["null", "1.0", "null", "null", "null"], evidence)
+
+    def test_absent_font_never_accepts_persistent_default_unknown_or_transport_error(self):
+        for value in ("1.0", "1.5", "device offline"):
+            with self.subTest(value=value), tempfile.TemporaryDirectory() as output:
+                driver = qa.Driver("owned-test-serial", Path(output))
+                now = [0.0]; driver.deadline = 100
+                driver.adb = lambda *args, **kwargs: None
+                driver.wait_compact_activity = lambda *args, **kwargs: None
+                def text(*args, **kwargs):
+                    if value == "device offline": raise RuntimeError(value)
+                    return value
+                driver.text = text
+                with patch.object(qa.time, "monotonic", side_effect=lambda: now[0]), \
+                        patch.object(qa.time, "sleep", side_effect=lambda seconds: now.__setitem__(0, now[0]+seconds)), \
+                        self.assertRaises((TimeoutError, AssertionError, RuntimeError)):
+                    driver.restore_absent_font_scale()
+
+    def test_primary_failure_is_retained_separately_when_cleanup_also_fails(self):
+        with tempfile.TemporaryDirectory() as output:
+            driver = qa.Driver("owned-test-serial", Path(output))
+            driver.text = lambda *args, **kwargs: "null"
+            driver.prefs = lambda label: {"language": string_field(5, b"en").hex(),
+                "reminders_enabled": "0800", "reminders_schedule_v1": string_field(5, b'{"minutesOfDay":998}').hex()}
+            def fail(): raise AssertionError("actual Settings unavailable")
+            driver.ensure_settings_top = fail
+            driver.restore_compact_settings = lambda original: ["font_scale: restore unavailable"]
+            with self.assertRaisesRegex(RuntimeError, "N12 restoration failed"):
+                driver.compact_kazakh_picker()
+            self.assertEqual({"type": "AssertionError", "error": "actual Settings unavailable"},
+                             qa.json.loads(Path(output, "N12-primary-error.json").read_text()))
+            self.assertEqual({"errors": ["font_scale: restore unavailable"]},
+                             qa.json.loads(Path(output, "N12-restoration.json").read_text()))
+
+    def test_absent_font_failure_does_not_prevent_time_format_restore(self):
+        original = {"size": "Physical size: 1080x1920", "density": "Physical density: 420", "font_scale": "null", "time_12_24": "24"}
+        with tempfile.TemporaryDirectory() as output:
+            driver = qa.Driver("owned-test-serial", Path(output))
+            calls = []
+            driver.adb = lambda *args, **kwargs: calls.append(args)
+            driver.text = lambda *args, **kwargs: original[args[-1]]
+            def fail(): raise TimeoutError("OS did not restore absence")
+            driver.restore_absent_font_scale = fail
+            self.assertEqual(["font_scale: OS did not restore absence"], driver.restore_compact_settings(original))
+            self.assertEqual(("shell", "settings", "put", "system", "time_12_24", "24"), calls[-1])
+
 
 if __name__ == '__main__':
     unittest.main()
