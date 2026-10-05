@@ -324,6 +324,34 @@ class Driver:
     def back(self):
         self.adb("shell", "input", "keyevent", "KEYCODE_BACK"); time.sleep(1)
 
+    def dismiss_notification_prompt(self):
+        # Saving the picker and showing the OS prompt are asynchronous; Back must target the prompt.
+        permission_package = "com.android.permissioncontroller"
+        for _ in range(10):
+            root = self.snapshot("await-notification-prompt")
+            message = self.find(root, resource=permission_package + ":id/permission_message")
+            buttons = [self.find(root, resource=permission_package + ":id/" + name)
+                       for name in ("permission_allow_button", "permission_deny_button")]
+            if message is not None and message.get("package") == permission_package and message.get("text") == "Allow OquTurbo to send you notifications?" and all(
+                node is not None and node.get("package") == permission_package and
+                node.get("enabled") == "true" and node.get("clickable") == "true" and
+                len(coords := list(map(int, re.findall(r"\d+", node.get("bounds", ""))))) == 4 and
+                coords[2] > coords[0] and coords[3] > coords[1] for node in buttons
+            ):
+                self.back()  # Exactly one real dismissal, only after the actual prompt is visible.
+                break
+            time.sleep(1)
+        else:
+            raise AssertionError("Actual notification permission prompt did not appear; Back not sent")
+        for _ in range(10):
+            root = self.snapshot("notification-prompt-dismissed")
+            settings = self.find(root, text="Settings")
+            if not any(node.get("package") == permission_package for node in root.iter("node")) and \
+                    settings is not None and settings.get("package") == PACKAGE:
+                return
+            time.sleep(1)
+        raise AssertionError("Permission dismissal did not return to Settings")
+
     def ensure_settings_top(self):
         # Reopen the real existing profile child; no synthetic product route.
         self.back(); self.tap(description="Settings")
@@ -442,7 +470,7 @@ def main():
         # New permission fixture, not continuity evidence for A. No permission is shell-granted.
         driver.reset_fixture("B")
         driver.future_picker(first=True)
-        driver.back()  # Real permission dismissal; no preference rollback.
+        driver.dismiss_notification_prompt()  # Real permission dismissal; no preference rollback.
         driver.tap(text="Allow notifications", scroll=True)
         driver.tap(resource="com.android.permissioncontroller:id/permission_deny_button")
         driver.tap(text="Notifications are blocked by the system.", scroll=True); driver.assert_alarm(0)
