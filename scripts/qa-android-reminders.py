@@ -362,22 +362,32 @@ class Driver:
         if channel: args += ["--es", "android.provider.extra.CHANNEL_ID", CHANNEL]
         self.adb(*args); time.sleep(1)
 
-    def toggle_system(self, enabled):
-        root = self.snapshot("system-notification-control")
-        nodes = [n for n in root.iter("node") if n.get("checkable") == "true" and n.get("enabled") == "true"]
-        if len(nodes) != 1: raise AssertionError("Expected one unambiguous native notification switch")
-        node = nodes[0]
+    def notification_switch(self, root, channel=False):
+        # API33 also exposes independent badge/channel switches after the master is enabled.
+        bar = self.find(root, resource="com.android.settings:id/main_switch_bar")
+        assert bar is not None and bar.get("package") == "com.android.settings", "Missing native notification main switch bar"
+        label = self.find(bar, resource="com.android.settings:id/switch_text")
+        expected = "Show notifications" if channel else "All OquTurbo notifications"
+        assert label is not None and label.get("text") == expected, "Wrong app/channel notification control"
+        node = self.find(bar, resource="android:id/switch_widget")
+        assert node is not None and node.get("package") == "com.android.settings" and \
+            node.get("class") == "android.widget.Switch" and node.get("checkable") == "true" and \
+            node.get("enabled") == "true" and node.get("checked") in {"true", "false"}, "Unreadable native notification switch"
+        return node
+
+    def toggle_system(self, enabled, channel=False):
+        node = self.notification_switch(self.snapshot("system-notification-control"), channel)
         if (node.get("checked") == "true") != enabled:
             bounds = list(map(int, re.findall(r"\d+", node.get("bounds", ""))))
+            assert len(bounds) == 4 and bounds[2] > bounds[0] and bounds[3] > bounds[1], "Notification switch has no visible bounds"
             self.adb("shell", "input", "tap", str((bounds[0]+bounds[2])//2), str((bounds[1]+bounds[3])//2))
             time.sleep(1)
-        root = self.snapshot("system-notification-changed")
-        current = [n for n in root.iter("node") if n.get("checkable") == "true" and n.get("enabled") == "true"]
-        assert len(current) == 1 and (current[0].get("checked") == "true") == enabled
+        current = self.notification_switch(self.snapshot("system-notification-changed"), channel)
+        assert (current.get("checked") == "true") == enabled, "Native notification switch did not reach requested state"
 
     def verify_block_and_recover(self, channel=False):
         before = self.prefs("before-block")
-        self.notification_settings(channel); self.toggle_system(False); self.back()
+        self.notification_settings(channel); self.toggle_system(False, channel); self.back()
         self.tap(text="Notifications are blocked by the system.", scroll=True)
         self.assert_alarm(0)
         self.snapshot("no-automatic-permission-prompt")
@@ -385,7 +395,7 @@ class Driver:
         if channel:
             # App settings opened by the product; use the actual channel row.
             self.tap(text="Practice reminders")
-        self.toggle_system(True); self.back()
+        self.toggle_system(True, channel); self.back()
         if channel: self.back()
         self.tap(text="Scheduled", scroll=True); self.assert_alarm(1)
         after = self.prefs("after-block-recovery")
