@@ -44,8 +44,17 @@ class Runner:
         remaining = self.deadline - time.monotonic()
         if remaining <= 0:
             raise TimeoutError("Whole native run deadline exceeded")
-        result = subprocess.run(args, cwd=self.root, capture_output=True, text=True,
-                                timeout=min(timeout, remaining))
+        try:
+            result = subprocess.run(args, cwd=self.root, capture_output=True, text=True,
+                                    timeout=min(timeout, remaining))
+        except subprocess.TimeoutExpired as error:
+            def output(value):
+                return value.decode(errors="replace") if isinstance(value, bytes) else value
+            with (self.output / "commands.jsonl").open("a") as log:
+                log.write(json.dumps({"time": time.time(), "args": list(args), "code": None,
+                    "error": "TimeoutExpired", "timeout": error.timeout,
+                    "stdout": output(error.stdout), "stderr": output(error.stderr)}) + "\n")
+            raise
         with (self.output / "commands.jsonl").open("a") as log:
             log.write(json.dumps({"time": time.time(), "args": list(args), "code": result.returncode,
                                   "stdout": result.stdout, "stderr": result.stderr}) + "\n")
@@ -115,18 +124,29 @@ class Runner:
         # Debug-only read-only probe switch; survives a real SpringBoard cold launch without launchEnvironment.
         (self.documents / "reminder-diagnostics-enabled").touch(exist_ok=False)
 
-    def sample(self, directory, snapshots):
+    def sample(self, directory, snapshots, cutoff=None):
         # XCTest may reinstall the app and migrate its data to a new container UUID.
         # Resolve the installed app again; never recreate a probe marker or substitute stale data.
-        raw = self.simctl("get_app_container", self.udid, PACKAGE, "data", check=False, timeout=10)
+        remaining = min(self.deadline, cutoff if cutoff is not None else self.deadline) - time.monotonic()
+        if remaining <= 0:
+            raise TimeoutError("Native observation deadline exceeded")
+        self.documents = None  # A missing observation cannot reuse a previous container UUID.
+        raw, error = "", None
+        try:
+            raw = self.simctl("get_app_container", self.udid, PACKAGE, "data", timeout=min(10, remaining))
+        except (subprocess.TimeoutExpired, RuntimeError) as failure:
+            # Read-only observation can be unavailable while XCTest reinstalls/starts the app.
+            # Keep the same live test and retry only within its existing monotonic deadline.
+            error = f"{type(failure).__name__}: {failure}"
         container = Path(raw) if raw else None
         available = container is not None and container.is_absolute() and container.is_dir()
         documents = container / "Documents" if available else None
         with (directory / "container-inventory.jsonl").open("a") as log:
             log.write(json.dumps({"time": time.time(), "container": raw, "available": available,
-                                  "probeEnabled": available and (documents / "reminder-diagnostics-enabled").exists()}) + "\n")
+                                  "probeEnabled": available and (documents / "reminder-diagnostics-enabled").exists(),
+                                  "error": error}) + "\n")
         if not available:
-            return
+            return False
         self.documents = documents
         preferences = self.documents / "oquturbo.preferences_pb"
         if preferences.exists():
@@ -138,12 +158,21 @@ class Runner:
         probe = self.documents / "reminder-diagnostics.jsonl"
         if probe.exists():
             shutil.copyfile(probe, directory / "app-native.jsonl")
+        return True
+
+    def await_sample(self, directory, snapshots, cutoff):
+        while time.monotonic() < min(self.deadline, cutoff):
+            if self.sample(directory, snapshots, cutoff):
+                return
+            time.sleep(min(2, max(0, min(self.deadline, cutoff) - time.monotonic())))
+        raise TimeoutError("No current container observation before native phase deadline")
 
     def phase(self, name, method):
         directory = self.output / name
         directory.mkdir()
         snapshots = []
-        self.sample(directory, snapshots)
+        cutoff = min(self.deadline, time.monotonic() + 12 * 60)
+        self.await_sample(directory, snapshots, cutoff)
         baseline = {k: v for k, v in (snapshots[-1]["values"] if snapshots else {}).items() if k not in evidence.mutable_keys(name)}
         probe = self.documents / "reminder-diagnostics.jsonl"
         boundary = probe.read_bytes() if probe.exists() else b""
@@ -157,17 +186,16 @@ class Runner:
                                       "-resultBundlePath", str(result)]
         with (directory / "xcodebuild.log").open("w") as log:
             self.process = subprocess.Popen(command, cwd=self.root, stdout=log, stderr=subprocess.STDOUT)
-            cutoff = min(self.deadline, time.monotonic() + 12 * 60)
             while self.process.poll() is None:
                 if time.monotonic() >= cutoff:
                     self.process.terminate()
                     raise TimeoutError("Bounded XCTest episode timed out")
-                self.sample(directory, snapshots)
-                time.sleep(2)
+                self.sample(directory, snapshots, cutoff)
+                time.sleep(min(2, max(0, cutoff - time.monotonic())))
             code = self.process.returncode
             self.process = None
         # Preserve partial native evidence even when the app/test bundle fails.
-        self.sample(directory, snapshots)
+        self.await_sample(directory, snapshots, cutoff)
         (directory / "snapshots.json").write_text(json.dumps(snapshots, indent=2))
         (directory / "phase.json").write_text(json.dumps({"start": started, "end": time.time(), "method": method, "code": code}))
         self.simctl("io", self.udid, "screenshot", str(directory / "final.png"), check=False)

@@ -201,6 +201,97 @@ class EvidenceTest(unittest.TestCase):
             self.assertEqual([True, False], [row["available"] for row in inventory])
             self.assertFalse(inventory[0]["probeEnabled"])
 
+    def test_observer_timeout_discards_stale_container_and_resamples_actual_identity(self):
+        runner_spec = importlib.util.spec_from_file_location("ios_runner", Path(__file__).with_name("qa-ios-reminders.py"))
+        module = importlib.util.module_from_spec(runner_spec); runner_spec.loader.exec_module(module)
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            runner = module.Runner(root / "evidence"); runner.udid = "owned"
+            stale, actual = root / "stale/Documents", root / "actual/Documents"
+            stale.mkdir(parents=True); actual.mkdir(parents=True)
+            runner.documents = stale
+            (stale / "oquturbo.preferences_pb").write_bytes(b"do not read")
+            (actual / "oquturbo.preferences_pb").write_bytes(b"current")
+            failure = module.subprocess.TimeoutExpired("get_app_container", 10, output=str(stale.parent).encode())
+            with patch.object(runner, "simctl", side_effect=[failure, str(actual.parent)]) as command, \
+                    patch.object(module.evidence, "snapshot", side_effect=lambda data: {"raw": data.decode()}):
+                snapshots = []
+                self.assertFalse(runner.sample(runner.output, snapshots))
+                self.assertIsNone(runner.documents)
+                self.assertEqual([], snapshots)
+                self.assertTrue(runner.sample(runner.output, snapshots))
+                self.assertEqual([{"raw": "current"}], snapshots)
+                self.assertEqual(2, command.call_count)
+            inventory = [json.loads(row) for row in (runner.output / "container-inventory.jsonl").read_text().splitlines()]
+            self.assertFalse(inventory[0]["available"])
+            self.assertIn("TimeoutExpired", inventory[0]["error"])
+            self.assertEqual("", inventory[0]["container"])
+            self.assertTrue(inventory[1]["available"])
+
+    def test_unavailable_observation_remains_bounded_and_never_accepts_cached_baseline(self):
+        runner_spec = importlib.util.spec_from_file_location("ios_runner", Path(__file__).with_name("qa-ios-reminders.py"))
+        module = importlib.util.module_from_spec(runner_spec); runner_spec.loader.exec_module(module)
+        with tempfile.TemporaryDirectory() as directory:
+            runner = module.Runner(Path(directory) / "evidence")
+            clock = [0.0]; runner.deadline = 100
+            def sleep(seconds): clock[0] += seconds
+            with patch.object(module.time, "monotonic", side_effect=lambda: clock[0]), \
+                    patch.object(module.time, "sleep", side_effect=sleep), \
+                    patch.object(runner, "simctl", side_effect=RuntimeError("simulator unavailable")) as command:
+                with self.assertRaisesRegex(TimeoutError, "No current container"):
+                    runner.await_sample(runner.output, [], 5)
+                self.assertEqual(5, clock[0])
+                self.assertEqual(3, command.call_count)
+                self.assertIsNone(runner.documents)
+                with self.assertRaisesRegex(TimeoutError, "deadline"):
+                    runner.sample(runner.output, [], 5)
+                self.assertEqual(3, command.call_count)
+
+    def test_live_xctest_survives_sampler_timeout_but_still_requires_validated_native_evidence(self):
+        from unittest.mock import Mock
+        runner_spec = importlib.util.spec_from_file_location("ios_runner", Path(__file__).with_name("qa-ios-reminders.py"))
+        module = importlib.util.module_from_spec(runner_spec); runner_spec.loader.exec_module(module)
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            runner = module.Runner(root / "evidence"); runner.udid = "owned"
+            documents = root / "actual/Documents"; documents.mkdir(parents=True)
+            (documents / "reminder-diagnostics.jsonl").write_text("")
+            replies = iter([str(documents.parent), module.subprocess.TimeoutExpired("get_app_container", 10),
+                            str(documents.parent), str(documents.parent)])
+            def simctl(*args, **kwargs):
+                if args[0] != "get_app_container": return ""
+                reply = next(replies)
+                if isinstance(reply, Exception): raise reply
+                return reply
+            runner.simctl = simctl
+            runner.run = lambda *args, **kwargs: json.dumps({"passedTests": 1, "failedTests": 0, "skippedTests": 0})
+            process = Mock(returncode=0); process.poll.side_effect = [None, None, 0]
+            with patch.object(module.subprocess, "Popen", return_value=process) as start, \
+                    patch.object(module.time, "sleep"), \
+                    patch.object(module.evidence, "validate_phase", side_effect=ValueError("missing actual native delivery")) as validate:
+                with self.assertRaisesRegex(ValueError, "missing actual native delivery"):
+                    runner.phase("cold", "testColdDeliveryAndNativeOptIn")
+                self.assertEqual(1, start.call_count)
+                process.terminate.assert_not_called(); process.kill.assert_not_called()
+                validate.assert_called_once()
+            rows = [json.loads(row) for row in (runner.output / "cold/container-inventory.jsonl").read_text().splitlines()]
+            self.assertEqual([True, False, True, True], [row["available"] for row in rows])
+            self.assertEqual(0, json.loads((runner.output / "cold/phase.json").read_text())["code"])
+
+    def test_command_timeout_retains_exit_unknown_and_partial_output_without_success(self):
+        runner_spec = importlib.util.spec_from_file_location("ios_runner", Path(__file__).with_name("qa-ios-reminders.py"))
+        module = importlib.util.module_from_spec(runner_spec); runner_spec.loader.exec_module(module)
+        with tempfile.TemporaryDirectory() as directory:
+            runner = module.Runner(Path(directory) / "evidence")
+            failure = module.subprocess.TimeoutExpired(["xcrun"], 10, output=b"partial", stderr=b"busy")
+            with patch.object(module.subprocess, "run", side_effect=failure), self.assertRaises(module.subprocess.TimeoutExpired):
+                runner.run("xcrun", timeout=10)
+            record = json.loads((runner.output / "commands.jsonl").read_text())
+            self.assertIsNone(record["code"])
+            self.assertEqual("TimeoutExpired", record["error"])
+            self.assertEqual("partial", record["stdout"])
+            self.assertEqual("busy", record["stderr"])
+
     def test_empty_skipped_or_unknown_xctest_schema_is_not_pass(self):
         evidence.validate_summary({"passedTests": 1, "failedTests": 0, "skippedTests": 0})
         for summary in ({}, {"passedTests": 0, "failedTests": 0, "skippedTests": 0},
