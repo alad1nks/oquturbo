@@ -2,6 +2,8 @@
 import importlib.util
 from pathlib import Path
 import unittest
+from unittest.mock import patch
+import copy
 import tempfile
 import xml.etree.ElementTree as ET
 
@@ -47,6 +49,42 @@ class EvidenceRetentionTest(unittest.TestCase):
             with self.assertRaisesRegex(AssertionError, "Ambiguous"):
                 driver.find(root, text="Allow")
             self.assertIsNone(driver.find(root, text="Missing"))
+
+    def test_captured_native_picker_uses_unique_resource_ids_despite_uppercase_captions(self):
+        root = ET.parse(Path(__file__).with_name("fixtures") / "reminders-api33-native-time-picker.xml").getroot()
+        with tempfile.TemporaryDirectory() as output:
+            driver = qa.Driver("owned-test-serial", Path(output))
+            self.assertIsNone(driver.find(root, text="Cancel"))
+            self.assertIsNone(driver.find(root, text="Save and enable"))
+            calls = []
+            driver.snapshot = lambda label: root
+            driver.adb = lambda *args, **kwargs: calls.append(args)
+            with patch.object(qa.time, "sleep"):
+                driver.tap(resource="android:id/button2", native_time_picker=True)
+                driver.tap(resource="android:id/button1", native_time_picker=True)
+            self.assertEqual([
+                ("shell", "input", "tap", "463", "1438"),
+                ("shell", "input", "tap", "755", "1438"),
+            ], calls)
+
+    def test_native_dialog_button_is_not_used_without_our_picker_or_when_ambiguous(self):
+        fixture = ET.parse(Path(__file__).with_name("fixtures") / "reminders-api33-native-time-picker.xml").getroot()
+        with tempfile.TemporaryDirectory() as output:
+            driver = qa.Driver("owned-test-serial", Path(output))
+            calls = []
+            driver.adb = lambda *args, **kwargs: calls.append(args)
+            root = copy.deepcopy(fixture)
+            picker = driver.find(root, resource="android:id/timePicker")
+            picker.set("resource-id", "unrelated:id/dialog")
+            driver.snapshot = lambda label: root
+            with patch.object(qa.time, "sleep"), self.assertRaisesRegex(AssertionError, "Control unavailable"):
+                driver.tap(resource="android:id/button2", native_time_picker=True)
+            root = copy.deepcopy(fixture)
+            button = driver.find(root, resource="android:id/button2")
+            root.append(copy.deepcopy(button))
+            with patch.object(qa.time, "sleep"), self.assertRaisesRegex(AssertionError, "Ambiguous"):
+                driver.tap(resource="android:id/button2", native_time_picker=True)
+            self.assertEqual([], calls)
 
     def test_repeated_episode_labels_keep_both_native_captures(self):
         with tempfile.TemporaryDirectory() as output:
