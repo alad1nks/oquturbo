@@ -134,12 +134,61 @@ final class ReminderRuntimeEvidence {
 
     func assertHomeAfterCard(_ card: XCUIElement) {
         XCTAssertEqual(card.elementType, .button)
-        XCTAssertTrue(card.isHittable); card.tap()  // Exactly one genuine system-card action.
+        XCTAssertTrue(card.isHittable)
+        // One card tap; some observed SpringBoard states expose a separate native Open action.
+        // Both gestures share the existing foreground budget, without a launch/activate fallback.
+        let deadline = ProcessInfo.processInfo.systemUptime + 30
+        var gestures: [String] = []
+        func recordGesture(_ name: String) {
+            gestures.append("\(ProcessInfo.processInfo.systemUptime): \(name)")
+            let ledger = XCTAttachment(string: gestures.joined(separator: "\n"))
+            ledger.name = "notification-gesture-ledger-\(gestures.count)"
+            ledger.lifetime = .keepAlways; test.add(ledger)
+        }
+        card.tap()
+        recordGesture("owned-card-tap")
         capture("immediately-after-real-card-tap")
-        let opened = app.wait(for: .runningForeground, timeout: 30)
+        var usedNativeOpen = false
+        while app.state != .runningForeground && ProcessInfo.processInfo.systemUptime < deadline {
+            if !usedNativeOpen {
+                let cells = springboard.buttons.matching(NSPredicate(
+                    format: "identifier == %@ AND label CONTAINS %@ AND label CONTAINS %@",
+                    "ListCell", "Practice in OquTurbo", "Open OquTurbo to practice when it suits you."))
+                guard cells.count <= 1 else {
+                    capture("ambiguous-owned-open-cell")
+                    XCTFail("Multiple owned notification cells for native Open")
+                    return
+                }
+                if cells.count == 1 {
+                    let actions = cells.element(boundBy: 0).buttons.matching(NSPredicate(
+                        format: "identifier == %@ AND label == %@", "swipe-action-button-identifier", "Open"))
+                    guard actions.count <= 1 else {
+                        capture("ambiguous-owned-open-action")
+                        XCTFail("Multiple native Open actions in owned notification cell")
+                        return
+                    }
+                    if actions.count == 1 && actions.element(boundBy: 0).isHittable {
+                        capture("before-owned-native-open")
+                        // Recheck after evidence capture: do not tap a stale/disappeared action.
+                        if app.state != .runningForeground && ProcessInfo.processInfo.systemUptime < deadline &&
+                            cells.count == 1 && actions.count == 1 && actions.element(boundBy: 0).isHittable {
+                            // XCTest queries above can block; recheck the budget immediately before dispatch.
+                            guard ProcessInfo.processInfo.systemUptime < deadline else { break }
+                            usedNativeOpen = true
+                            actions.element(boundBy: 0).tap()
+                            recordGesture("owned-native-open-tap")
+                            capture("after-owned-native-open")
+                        }
+                    }
+                }
+            }
+            let remaining = deadline - ProcessInfo.processInfo.systemUptime
+            if remaining > 0 { _ = app.wait(for: .runningForeground, timeout: min(0.5, remaining)) }
+        }
+        let opened = app.state == .runningForeground && ProcessInfo.processInfo.systemUptime <= deadline
         if !opened { capture("real-card-did-not-open-app") }
         XCTAssertTrue(opened)
-        // Do not app.launch/activate here: the real response must open it.
+        // The host still requires one real default response and matching cold/warm launch identity.
         XCTAssertTrue(app.staticTexts["Today’s training"].waitForExistence(timeout: 15))
         capture("home-after-real-card")
     }
