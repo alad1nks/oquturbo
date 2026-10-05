@@ -113,6 +113,49 @@ class BackgroundProcessTest(unittest.TestCase):
             self.run_stop(["garbled output"])
 
 
+class PermissionDismissalTest(unittest.TestCase):
+    def test_back_waits_for_actual_prompt_then_requires_return_to_settings(self):
+        prompt = ET.parse(Path(__file__).with_name("fixtures") / "reminders-api33-notification-permission.xml").getroot()
+        settings = ET.fromstring(f'<hierarchy><node text="Settings" package="{qa.PACKAGE}"/></hierarchy>')
+        with tempfile.TemporaryDirectory() as output:
+            driver = qa.Driver("owned-test-serial", Path(output))
+            frames = iter([settings, prompt, prompt, settings])
+            timeline = []
+            def snapshot(label):
+                timeline.append(label)
+                return next(frames)
+            driver.snapshot = snapshot
+            driver.adb = lambda *args, **kwargs: timeline.append(args)
+            with patch.object(qa.time, "sleep"):
+                driver.dismiss_notification_prompt()
+            self.assertEqual([
+                "await-notification-prompt", "await-notification-prompt",
+                ("shell", "input", "keyevent", "KEYCODE_BACK"),
+                "notification-prompt-dismissed", "notification-prompt-dismissed",
+            ], timeline)
+
+    def test_missing_ambiguous_prompt_or_wrong_return_never_claims_dismissal(self):
+        prompt = ET.parse(Path(__file__).with_name("fixtures") / "reminders-api33-notification-permission.xml").getroot()
+        with tempfile.TemporaryDirectory() as output:
+            driver = qa.Driver("owned-test-serial", Path(output))
+            calls = []
+            driver.adb = lambda *args, **kwargs: calls.append(args)
+            driver.snapshot = lambda label: ET.fromstring('<hierarchy/>')
+            with patch.object(qa.time, "sleep"), self.assertRaisesRegex(AssertionError, "Back not sent"):
+                driver.dismiss_notification_prompt()
+            self.assertEqual([], calls)
+            duplicate = copy.deepcopy(prompt)
+            duplicate.append(copy.deepcopy(driver.find(duplicate, resource="com.android.permissioncontroller:id/permission_allow_button")))
+            driver.snapshot = lambda label: duplicate
+            with self.assertRaisesRegex(AssertionError, "Ambiguous"):
+                driver.dismiss_notification_prompt()
+            self.assertEqual([], calls)
+            driver.snapshot = lambda label: prompt
+            with patch.object(qa.time, "sleep"), self.assertRaisesRegex(AssertionError, "return to Settings"):
+                driver.dismiss_notification_prompt()
+            self.assertEqual([("shell", "input", "keyevent", "KEYCODE_BACK")], calls)
+
+
 class EvidenceRetentionTest(unittest.TestCase):
     def test_duplicate_control_fails_instead_of_tapping_arbitrary_match(self):
         with tempfile.TemporaryDirectory() as output:
