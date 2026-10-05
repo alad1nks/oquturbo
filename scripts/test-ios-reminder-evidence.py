@@ -256,6 +256,7 @@ class EvidenceTest(unittest.TestCase):
             runner = module.Runner(root / "evidence"); runner.udid = "owned"
             documents = root / "actual/Documents"; documents.mkdir(parents=True)
             (documents / "reminder-diagnostics.jsonl").write_text("")
+            (documents / "oquturbo.preferences_pb").write_bytes(b"")
             replies = iter([str(documents.parent), module.subprocess.TimeoutExpired("get_app_container", 10),
                             str(documents.parent), str(documents.parent)])
             def simctl(*args, **kwargs):
@@ -270,13 +271,13 @@ class EvidenceTest(unittest.TestCase):
                     patch.object(module.time, "sleep"), \
                     patch.object(module.evidence, "validate_phase", side_effect=ValueError("missing actual native delivery")) as validate:
                 with self.assertRaisesRegex(ValueError, "missing actual native delivery"):
-                    runner.phase("cold", "testColdDeliveryAndNativeOptIn")
+                    runner.phase("warm", "testWarmDeliveryFromSettings")
                 self.assertEqual(1, start.call_count)
                 process.terminate.assert_not_called(); process.kill.assert_not_called()
                 validate.assert_called_once()
-            rows = [json.loads(row) for row in (runner.output / "cold/container-inventory.jsonl").read_text().splitlines()]
+            rows = [json.loads(row) for row in (runner.output / "warm/container-inventory.jsonl").read_text().splitlines()]
             self.assertEqual([True, False, True, True], [row["available"] for row in rows])
-            self.assertEqual(0, json.loads((runner.output / "cold/phase.json").read_text())["code"])
+            self.assertEqual(0, json.loads((runner.output / "warm/phase.json").read_text())["code"])
 
     def test_command_timeout_retains_exit_unknown_and_partial_output_without_success(self):
         runner_spec = importlib.util.spec_from_file_location("ios_runner", Path(__file__).with_name("qa-ios-reminders.py"))
@@ -421,6 +422,106 @@ class PreparationTest(unittest.TestCase):
 
     def test_wrong_actual_architecture_never_installs_fixture(self):
         self.prepare_fixture("arch")
+
+class BootstrapTest(unittest.TestCase):
+    def fixture(self):
+        # Deliberately synthetic ordinary first-launch data, not copied user/CI preferences.
+        snapshots = [{"enabled": False, "schedule": None, "values": {
+            "game_sessions_v1": "synthetic-empty-history", "daily_training_v1": "synthetic-unplayed-plan"}}]
+        events = [{"event": event, "launch": "setup-process", **fields} for event, fields in [
+            ("runtime-created", {}), ("authorization", {"status": "0"}),
+            ("pending", {"count": "0"}), ("delivered", {"count": "0"})]]
+        return events, snapshots
+
+    def test_real_persisted_preinteraction_state_is_required_not_empty_container(self):
+        events, snapshots = self.fixture()
+        result = evidence.validate_bootstrap(events, snapshots)
+        self.assertEqual("SETUP_ONLY_PASS", result["status"])
+        self.assertEqual(snapshots[-1], result["snapshot"])
+        for bad in ([], [{"enabled": False, "schedule": None, "values": {}}]):
+            with self.assertRaises(ValueError): evidence.validate_bootstrap(events, bad)
+        for missing in ("game_sessions_v1", "daily_training_v1"):
+            bad = copy.deepcopy(snapshots); del bad[0]["values"][missing]
+            with self.assertRaises(ValueError): evidence.validate_bootstrap(events, bad)
+
+    def test_bootstrap_rejects_permissions_requests_mixed_identity_or_reminder_intent(self):
+        events, snapshots = self.fixture()
+        for extra in ["accepted", "request", "response", "home-consumed", "picker-host", "foreground-delivery"]:
+            with self.subTest(event=extra), self.assertRaisesRegex(ValueError, "interacted"):
+                evidence.validate_bootstrap(events + [{"event": extra, "launch": "setup-process"}], snapshots)
+        for index, key, value in [(0, "launch", ""), (1, "status", "2"), (1, "launch", "other"),
+                                  (2, "count", "1"), (3, "count", "1")]:
+            bad = copy.deepcopy(events); bad[index][key] = value
+            with self.assertRaises(ValueError): evidence.validate_bootstrap(bad, snapshots)
+        bad = copy.deepcopy(snapshots); bad[0]["enabled"] = True
+        with self.assertRaises(ValueError): evidence.validate_bootstrap(events, bad)
+        with self.assertRaises(ValueError): evidence.validate_bootstrap([], snapshots)
+
+    def test_bootstrap_baseline_keeps_history_protected_in_following_cold_phase(self):
+        events, snapshots, _ = EvidenceTest().fixture()
+        _, first = self.fixture()
+        snapshots[0]["values"] = dict(first[0]["values"])
+        all_snapshots = first + snapshots
+        with self.assertRaisesRegex(ValueError, "Unrelated product preferences"):
+            evidence.validate_phase("cold", events, all_snapshots, {})  # The actual old empty baseline bug.
+        baseline = {k: v for k, v in first[0]["values"].items() if k not in evidence.mutable_keys("cold")}
+        self.assertEqual("PASS", evidence.validate_phase("cold", events, all_snapshots, baseline)["status"])
+        snapshots[0]["values"]["game_sessions_v1"] = "forbidden changed sessions/totals/XP"
+        with self.assertRaisesRegex(ValueError, "Unrelated product preferences"):
+            evidence.validate_phase("cold", events, all_snapshots, baseline)
+
+    def test_setup_baseline_mismatch_aborts_before_any_acceptance_xctest(self):
+        runner_spec = importlib.util.spec_from_file_location("ios_runner", Path(__file__).with_name("qa-ios-reminders.py"))
+        module = importlib.util.module_from_spec(runner_spec); runner_spec.loader.exec_module(module)
+        for phase in ("cold", "permission"):
+            with self.subTest(phase=phase), tempfile.TemporaryDirectory() as directory:
+                runner = module.Runner(Path(directory) / "evidence")
+                snapshot = self.fixture()[1][0]
+                runner.bootstrap_fixture = lambda name: {"snapshot": snapshot}
+                def observe(directory, snapshots, cutoff):
+                    changed = copy.deepcopy(snapshot)
+                    changed["values"]["game_sessions_v1"] = "changed before interaction"
+                    snapshots.append(changed)
+                runner.await_preferences = observe
+                with patch.object(module.subprocess, "Popen") as start, \
+                        self.assertRaisesRegex(ValueError, "changed after bootstrap"):
+                    runner.phase(phase, "irrelevant-unstarted-method")
+                start.assert_not_called()
+
+    def test_existing_container_without_preferences_never_reuses_cached_snapshot(self):
+        runner_spec = importlib.util.spec_from_file_location("ios_runner", Path(__file__).with_name("qa-ios-reminders.py"))
+        module = importlib.util.module_from_spec(runner_spec); runner_spec.loader.exec_module(module)
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory); documents = root / "fresh/Documents"; documents.mkdir(parents=True)
+            runner = module.Runner(root / "evidence"); runner.udid = "fresh-fixture"; runner.deadline = 100
+            runner.simctl = lambda *args, **kwargs: str(documents.parent)
+            clock = [0.0]
+            stale = self.fixture()[1]
+            with patch.object(module.time, "monotonic", side_effect=lambda: clock[0]), \
+                    patch.object(module.time, "sleep", side_effect=lambda s: clock.__setitem__(0, clock[0]+s)):
+                with self.assertRaisesRegex(TimeoutError, "No current persisted preferences"):
+                    runner.await_preferences(runner.output, stale, 5)
+            self.assertEqual(5, clock[0])
+            self.assertFalse((documents / "oquturbo.preferences_pb").exists())
+
+    def test_missing_preferences_waits_for_current_file_before_sampling_baseline(self):
+        runner_spec = importlib.util.spec_from_file_location("ios_runner", Path(__file__).with_name("qa-ios-reminders.py"))
+        module = importlib.util.module_from_spec(runner_spec); runner_spec.loader.exec_module(module)
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory); documents = root / "fresh/Documents"; documents.mkdir(parents=True)
+            runner = module.Runner(root / "evidence"); runner.udid = "fresh-fixture"; runner.deadline = 100
+            runner.simctl = lambda *args, **kwargs: str(documents.parent)
+            clock = [0.0]; snapshots = []
+            def sleep(seconds):
+                clock[0] += seconds
+                (documents / "oquturbo.preferences_pb").write_bytes(b"synthetic bytes")
+            with patch.object(module.time, "monotonic", side_effect=lambda: clock[0]), \
+                    patch.object(module.time, "sleep", side_effect=sleep), \
+                    patch.object(module.evidence, "snapshot", return_value=self.fixture()[1][0]) as decode:
+                runner.await_preferences(runner.output, snapshots, 5)
+            decode.assert_called_once_with(b"synthetic bytes")
+            self.assertEqual(self.fixture()[1], snapshots)
+            self.assertEqual(2, clock[0])
 
 
 if __name__ == "__main__":

@@ -3,6 +3,23 @@ import XCTest
 final class LocalReminderRuntimeTests: XCTestCase {
     override func setUpWithError() throws { continueAfterFailure = false }
 
+    // Setup only: exercise ordinary first launch before the host freezes product preferences.
+    // No picker, reminder enable, permission request or delivery belongs to this method.
+    func testInitializeFreshFixture() {
+        let ui = ReminderRuntimeEvidence(self)
+        ui.start()
+        let off = ui.app.staticTexts["Off"]
+        for _ in 0..<10 {
+            if off.waitForExistence(timeout: 2) && off.isHittable { break }
+            ui.app.swipeUp()
+        }
+        XCTAssertTrue(off.exists && off.isHittable)
+        ui.capture("bootstrap-settings-off")
+        ui.app.terminate()
+        XCTAssertTrue(ui.app.wait(for: .notRunning, timeout: 10))
+        ui.capture("bootstrap-terminated")
+    }
+
     func testColdDeliveryAndNativeOptIn() {
         let ui = ReminderRuntimeEvidence(self)
         ui.start()
