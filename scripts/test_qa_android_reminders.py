@@ -156,6 +156,67 @@ class PermissionDismissalTest(unittest.TestCase):
             self.assertEqual([("shell", "input", "keyevent", "KEYCODE_BACK")], calls)
 
 
+class NativeNotificationSwitchTest(unittest.TestCase):
+    def fixture(self, enabled):
+        name = "reminders-api33-settings-notifications-" + ("on" if enabled else "off") + ".xml"
+        return ET.parse(Path(__file__).with_name("fixtures") / name).getroot()
+
+    def test_actual_master_off_on_ignores_new_badge_switch_and_verifies_selected_state(self):
+        with tempfile.TemporaryDirectory() as output:
+            driver = qa.Driver("owned-test-serial", Path(output))
+            for enabled in (True, False):
+                frames = iter([self.fixture(not enabled), self.fixture(enabled)])
+                calls = []
+                driver.snapshot = lambda label: next(frames)
+                driver.adb = lambda *args, **kwargs: calls.append(args)
+                with patch.object(qa.time, "sleep"):
+                    driver.toggle_system(enabled)
+                self.assertEqual([("shell", "input", "tap", "912", "996")], calls)
+            frames = iter([self.fixture(False), self.fixture(False)])
+            driver.snapshot = lambda label: next(frames)
+            with patch.object(qa.time, "sleep"), self.assertRaisesRegex(AssertionError, "did not reach requested"):
+                driver.toggle_system(True)
+
+    def test_main_bar_and_its_switch_must_be_unique_and_from_correct_settings_page(self):
+        with tempfile.TemporaryDirectory() as output:
+            driver = qa.Driver("owned-test-serial", Path(output))
+            root = self.fixture(True)
+            bar = driver.find(root, resource="com.android.settings:id/main_switch_bar")
+            root.append(copy.deepcopy(bar))
+            with self.assertRaisesRegex(AssertionError, "Ambiguous"):
+                driver.notification_switch(root)
+            root = self.fixture(True)
+            bar = driver.find(root, resource="com.android.settings:id/main_switch_bar")
+            bar.append(copy.deepcopy(driver.find(bar, resource="android:id/switch_widget")))
+            with self.assertRaisesRegex(AssertionError, "Ambiguous"):
+                driver.notification_switch(root)
+            with self.assertRaisesRegex(AssertionError, "Wrong app/channel"):
+                driver.notification_switch(self.fixture(True), channel=True)
+            root = self.fixture(True)
+            driver.find(root, resource="com.android.settings:id/main_switch_bar").set("package", "unrelated")
+            with self.assertRaisesRegex(AssertionError, "Missing native"):
+                driver.notification_switch(root)
+
+    def test_source_backed_channel_main_bar_is_distinct_from_app_master(self):
+        # Synthetic channel variant of actual app fixture: AOSP13 BlockPreferenceController
+        # uses the same MainSwitchPreference with "Show notifications" for a channel.
+        with tempfile.TemporaryDirectory() as output:
+            driver = qa.Driver("owned-test-serial", Path(output))
+            frames = [self.fixture(False), self.fixture(True)]
+            for root in frames:
+                bar = driver.find(root, resource="com.android.settings:id/main_switch_bar")
+                driver.find(bar, resource="com.android.settings:id/switch_text").set("text", "Show notifications")
+            iterator = iter(frames)
+            driver.snapshot = lambda label: next(iterator)
+            calls = []
+            driver.adb = lambda *args, **kwargs: calls.append(args)
+            with patch.object(qa.time, "sleep"):
+                driver.toggle_system(True, channel=True)
+            self.assertEqual([("shell", "input", "tap", "912", "996")], calls)
+            with self.assertRaisesRegex(AssertionError, "Wrong app/channel"):
+                driver.notification_switch(frames[-1], channel=False)
+
+
 class EvidenceRetentionTest(unittest.TestCase):
     def test_duplicate_control_fails_instead_of_tapping_arbitrary_match(self):
         with tempfile.TemporaryDirectory() as output:
