@@ -10,6 +10,7 @@ import platform.Foundation.NSCalendarUnitMinute
 import platform.Foundation.NSDate
 import platform.Foundation.NSSelectorFromString
 import platform.UIKit.NSLayoutConstraint
+import platform.UIKit.UIAccessibilityIdentificationProtocol
 import platform.UIKit.UIAdaptivePresentationControllerDelegateProtocol
 import platform.UIKit.UIButton
 import platform.UIKit.UIButtonTypeSystem
@@ -48,7 +49,7 @@ internal class IosReminderPicker(
     override fun viewDidLoad() {
         super.viewDidLoad()
         view.backgroundColor = UIColor.systemBackgroundColor
-        view.accessibilityIdentifier = "reminder-native-picker"
+        (view as UIAccessibilityIdentificationProtocol).accessibilityIdentifier = "reminder-native-picker"
         val scroll = UIScrollView().apply { translatesAutoresizingMaskIntoConstraints = false }
         val stack =
             UIStackView().apply {
@@ -73,7 +74,7 @@ internal class IosReminderPicker(
         time.datePickerMode = UIDatePickerMode.UIDatePickerModeTime
         time.preferredDatePickerStyle = UIDatePickerStyle.UIDatePickerStyleWheels
         time.minuteInterval = 1
-        time.accessibilityIdentifier = "reminder-time-wheel"
+        (time as UIAccessibilityIdentificationProtocol).accessibilityIdentifier = "reminder-time-wheel"
         val localNow = NSCalendar.currentCalendar.components(NSCalendarUnitHour or NSCalendarUnitMinute, NSDate())
         val draft = initialMinutes ?: (localNow.hour * 60 + localNow.minute).toInt()
         time.calendar = iosReminderTimeCalendar()
@@ -112,7 +113,7 @@ internal class IosReminderPicker(
             titleLabel?.numberOfLines = 0
             titleLabel?.adjustsFontForContentSizeCategory = true
             titleLabel?.font = UIFont.preferredFontForTextStyle(UIFontTextStyleBody!!)
-            accessibilityIdentifier = identifier
+            (this as UIAccessibilityIdentificationProtocol).accessibilityIdentifier = identifier
             addTarget(this@IosReminderPicker, NSSelectorFromString(selector), UIControlEventTouchUpInside)
         }
 
