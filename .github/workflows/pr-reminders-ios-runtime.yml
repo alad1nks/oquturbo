@@ -12,6 +12,8 @@ jobs:
   ios-reminder-runtime:
     runs-on: macos-15
     timeout-minutes: 120
+    env:
+      DEVELOPER_DIR: /Applications/Xcode_26.3.app/Contents/Developer
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-java@v4
@@ -19,12 +21,22 @@ jobs:
           distribution: temurin
           java-version: '21'
       - name: Require native Apple silicon and record Xcode inventory
+        shell: bash
         run: |
+          mkdir -p build/qa/reminders-ios-preflight
+          exec > >(tee build/qa/reminders-ios-preflight/inventory.log) 2>&1
+          uname -m
           test "$(uname -m)" = arm64
+          printf 'DEVELOPER_DIR=%s\n' "$DEVELOPER_DIR"
+          test -d "$DEVELOPER_DIR"
           xcodebuild -version
-          xcrun simctl list --json
+          xcodebuild -showsdks
+          xcrun simctl list --json > build/qa/reminders-ios-preflight/simulators.json
       - name: Native calendar and time-only regression tests
-        run: ./gradlew :app:oquturbo:shared:iosSimulatorArm64Test --max-workers=2
+        shell: bash
+        run: |
+          set -o pipefail
+          ./gradlew :app:oquturbo:shared:iosSimulatorArm64Test --max-workers=2 2>&1 | tee build/qa/reminders-ios-preflight/native-tests.log
       - name: Actual app build and bounded native reminder episodes
         env:
           PYTHONUNBUFFERED: '1'
@@ -35,6 +47,7 @@ jobs:
         with:
           name: reminders-ios-runtime
           path: |
+            build/qa/reminders-ios-preflight
             build/qa/reminders-ios
             app/oquturbo/shared/build/test-results/iosSimulatorArm64Test
             app/oquturbo/shared/build/reports/tests/iosSimulatorArm64Test
