@@ -98,10 +98,13 @@ class Runner:
         (self.output / "owned-simulator.json").write_text(json.dumps({"udid": self.udid, "runtime": runtime}))
         self.simctl("boot", self.udid)
         self.simctl("bootstatus", self.udid, "-b", timeout=240)
-        self.run("xcodebuild", "-project", str(self.project), "-scheme", "OquTurboRuntime", "-showBuildSettings",
-                 "-destination", f"platform=iOS Simulator,id={self.udid}")
+        # The real build resolves settings. A separate, unused showBuildSettings query
+        # can stall destination discovery without providing any input to this build.
+        build = self.xcode_args() + ["build-for-testing", "-resultBundlePath", str(self.output / "build.xcresult")]
+        (self.output / "build-invocation.json").write_text(json.dumps({"args": build, "timeoutSeconds": 2700,
+            "wholeRunDeadlineMonotonic": self.deadline}, indent=2))
         # Both existing Kotlin embed phases execute; errors are not replaced by a placeholder framework.
-        self.run(*self.xcode_args(), "build-for-testing", "-resultBundlePath", str(self.output / "build.xcresult"), timeout=2700)
+        self.run(*build, timeout=2700)
         self.app = self.derived / "Build/Products/Debug-iphonesimulator/OquTurbo.app"
         with (self.app / "Info.plist").open("rb") as stream:
             info = plistlib.load(stream)
