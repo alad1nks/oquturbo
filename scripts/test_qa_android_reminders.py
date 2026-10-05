@@ -324,6 +324,74 @@ class EditedScheduleTest(unittest.TestCase):
             self.assertEqual([(due, self.MINUTE)], calls)
 
 
+class BootRestoreTest(unittest.TestCase):
+    DUE = 1791214500
+    # Exact last114-before-real-reboot event from run37330307301; alarm was sampled
+    # at15:33:03.004, before receiver process startup03.799/application init04.553.
+    BEFORE = "1791214350265 scheduled target=1791214500000 minutes=935"
+    # Hypothetical subsequent callback for deterministic polling tests; not captured native evidence.
+    FRESH = BEFORE + "\n1791214384804 scheduled target=1791214500000 minutes=935"
+
+    def run_wait(self, samples, dates=None, changed=False, offline=False):
+        with tempfile.TemporaryDirectory() as output:
+            driver = qa.Driver("owned-test-serial", Path(output))
+            driver.deadline = 1000
+            clock, current, observed = [0.0], [None], []
+            samples = iter(samples); dates = iter(dates) if dates else None
+            saved = {"reminders_enabled": "0801", "reminders_schedule_v1": string_field(
+                5, b'{"version":1,"minutesOfDay":935}').hex(), "unrelated": "0102"}
+            def prefs(label, **kwargs):
+                driver.step += 1
+                current[0] = next(samples)
+                observed.append(current[0])
+                return {**saved, "unrelated": "changed"} if changed else saved
+            def text(*args, **kwargs):
+                self.assertNotIn("check", kwargs)
+                self.assertGreater(kwargs["timeout"], 0)
+                if offline: raise RuntimeError("adb offline")
+                if args == ("shell", "date", "+%s"):
+                    return str(next(dates) if dates else self.DUE - 116)
+                if args == ("exec-out", "run-as", qa.PACKAGE, "cat", "files/reminder-diagnostics.log"):
+                    return current[0][0]
+                self.assertEqual(("shell", "dumpsys", "alarm"), args)
+                if not current[0][1]: return ""
+                captured = (Path(__file__).with_name("fixtures") / "reminders-api33-owned-alarm.txt").read_text()
+                return captured.replace("origWhen 1791296400000", f"origWhen {self.DUE * 1000}")
+            def mutate(*args, **kwargs): self.fail("Observation must not launch an app or inject a receiver")
+            def sleep(seconds): clock[0] += seconds
+            driver.prefs, driver.text, driver.adb = prefs, text, mutate
+            with patch.object(qa.time, "monotonic", side_effect=lambda: clock[0]), patch.object(qa.time, "sleep", side_effect=sleep):
+                driver.wait_reboot_restore(self.DUE, self.BEFORE, saved)
+            return observed, clock[0], len(list(Path(output).glob("*-boot-*.txt")))
+
+    def test_empty_inventory_before_receiver_start_then_fresh_event_and_alarm(self):
+        sequence = [(self.BEFORE, False), (self.BEFORE, False), (self.FRESH, False), (self.FRESH, True)]
+        seen, elapsed, artifacts = self.run_wait(sequence)
+        self.assertEqual(sequence, seen)
+        self.assertEqual(3, elapsed)
+        self.assertEqual(8, artifacts)
+
+    def test_stale_preboot_event_or_missing_alarm_never_passes_and_wait_is_bounded(self):
+        for sample in [(self.BEFORE, True), (self.FRESH, False)]:
+            with self.assertRaisesRegex(TimeoutError, "within 30s"):
+                self.run_wait([sample] * 31)
+
+    def test_changed_prefs_lost_journal_receiver_failure_and_transport_fail_closed(self):
+        with self.assertRaisesRegex(AssertionError, "persisted preferences"):
+            self.run_wait([(self.FRESH, True)], changed=True)
+        with self.assertRaisesRegex(AssertionError, "captured prefix"):
+            self.run_wait([("replacement journal", True)])
+        with self.assertRaisesRegex(AssertionError, "receiver reported"):
+            self.run_wait([(self.BEFORE + "\n1791214384000 receiver-failed TimeoutCancellationException", False)])
+        with self.assertRaisesRegex(RuntimeError, "adb offline"):
+            self.run_wait([], offline=True)
+
+    def test_due_guard_before_and_after_reads_prevents_claiming_missed_restoration(self):
+        for dates in [[self.DUE], [self.DUE - 1, self.DUE]]:
+            with self.assertRaisesRegex(AssertionError, "missed the chosen occurrence"):
+                self.run_wait([(self.FRESH, True)], dates=dates)
+
+
 class CompactPickerTest(unittest.TestCase):
     def picker(self, minute):
         # Synthetic KK/compact variant of public native clock IDs, observed in the API28

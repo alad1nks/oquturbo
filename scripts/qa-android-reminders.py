@@ -624,8 +624,42 @@ class Driver:
         assert abs(int(self.text("shell", "date", "+%s")) - int(time.time())) < 10
         self.native("ordinary-clock-restored")
 
-    def reboot(self):
+    def wait_reboot_restore(self, due, before_events, before_preferences):
+        deadline = min(self.deadline, time.monotonic() + 30)
+        minute = json.loads(preference_string(before_preferences, "reminders_schedule_v1"))["minutesOfDay"]
+        assert before_preferences.get("reminders_enabled") == "0801", "Boot restoration requires saved enabled intent"
+        def remaining():
+            seconds = deadline - time.monotonic()
+            if seconds <= 0:
+                raise TimeoutError("No verified boot restoration within 30s after unlock")
+            return seconds
+        while time.monotonic() < deadline:
+            assert int(self.text("shell", "date", "+%s", timeout=remaining())) < due, "Reboot missed the chosen occurrence"
+            current = self.prefs("await-boot-restore", timeout=remaining())
+            assert current == before_preferences, "Reboot reconciliation changed persisted preferences"
+            events = self.text("exec-out", "run-as", PACKAGE, "cat", "files/reminder-diagnostics.log", timeout=remaining())
+            dump = self.text("shell", "dumpsys", "alarm", timeout=remaining())
+            self.output.joinpath(f"{self.step:03d}-boot-events.txt").write_text(events)
+            self.output.joinpath(f"{self.step:03d}-boot-alarm.txt").write_text(dump)
+            assert events.startswith(before_events), "Boot event journal lost its captured prefix"
+            fresh = events[len(before_events):]
+            assert "receiver-failed" not in fresh, "Boot receiver reported a failure"
+            accepted = re.findall(r"(?m)^\d+ scheduled target=(\d+) minutes=(\d+)$", fresh)
+            alarms = pending_alarms(dump)
+            assert len(alarms) <= 1, "Boot restoration left duplicate owned alarms"
+            assert not alarms or "window=0 " not in alarms[0], "Boot restoration created an exact alarm"
+            assert int(self.text("shell", "date", "+%s", timeout=remaining())) < due, "Reboot missed the chosen occurrence"
+            if accepted and tuple(map(int, accepted[-1])) == (due * 1000, minute) and \
+                    len(alarms) == 1 and alarm_epoch(alarms[0]) == due * 1000:
+                return
+            time.sleep(min(1, remaining()))
+        raise TimeoutError("No verified boot restoration within 30s after unlock")
+
+    def reboot(self, due):
         self.native("before-real-reboot")
+        before_preferences = self.prefs("before-real-reboot")
+        before_events = self.text("exec-out", "run-as", PACKAGE, "cat", "files/reminder-diagnostics.log")
+        self.output.joinpath("reboot-event-boundary.txt").write_text(before_events)
         self.adb("reboot")
         self.adb("wait-for-device", timeout=180)
         end = time.monotonic() + 180
@@ -635,8 +669,8 @@ class Driver:
         else: raise TimeoutError("Reboot did not complete")
         self.adb("shell", "input", "keyevent", "KEYCODE_WAKEUP")
         self.adb("shell", "wm", "dismiss-keyguard")
-        time.sleep(5)
-        self.assert_alarm(1); self.native("restored-before-app-launch")
+        self.wait_reboot_restore(due, before_events, before_preferences)
+        self.native("restored-before-app-launch")
 
 
 def main():
@@ -701,7 +735,7 @@ def main():
         # Clock/zone hook evidence is separate; only this final native picker chooses the timed occurrence.
         due = driver.future_picker()
         driver.adb("shell", "input", "keyevent", "KEYCODE_HOME")
-        driver.reboot()
+        driver.reboot(due)
         assert driver.next_schedule()[0] == due * 1000, "Reboot missed the chosen occurrence; timed episode BLOCKED"
         driver.wait_delivery(due)
         driver.adb("shell", "cmd", "statusbar", "collapse")
