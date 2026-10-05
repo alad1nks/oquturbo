@@ -45,6 +45,24 @@ def validate_summary(summary):
             summary.get("skippedTests") == 0, "Expected exactly one actual passed XCTest, no skipped/failed tests")
 
 
+def validate_bootstrap(events, snapshots):
+    require(events and snapshots, "Missing actual bootstrap journal/preferences")
+    latest = snapshots[-1]
+    require({"game_sessions_v1", "daily_training_v1"}.issubset(latest["values"]), "First-launch repositories are not persisted")
+    require(all(not item["enabled"] and item["schedule"] is None for item in snapshots), "Bootstrap changed reminder intent")
+    require(not any(e["event"] in {"accepted", "request", "response", "home-consumed", "picker-host", "foreground-delivery"} for e in events),
+            "Bootstrap interacted with reminders")
+    launches = [e for e in events if e["event"] == "runtime-created"]
+    require(len(launches) == 1 and launches[0].get("launch"), "Unknown bootstrap runtime identity")
+    require(all(e.get("launch") == launches[0]["launch"] for e in events), "Mixed bootstrap process identities")
+    auth = [e for e in events if e["event"] == "authorization"]
+    require(auth and all(e.get("status") == "0" for e in auth), "Bootstrap permission is not fresh/unrequested")
+    for name in ("pending", "delivered"):
+        records = [e for e in events if e["event"] == name]
+        require(records and all(e.get("count") == "0" for e in records), "Bootstrap has owned native work: " + name)
+    return {"status": "SETUP_ONLY_PASS", "launch": launches[0]["launch"], "snapshot": latest}
+
+
 def mutable_keys(phase):
     return MUTABLE | ({"language"} if phase == "locales" else set())
 

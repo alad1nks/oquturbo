@@ -170,6 +170,38 @@ class Runner:
             time.sleep(min(2, max(0, min(self.deadline, cutoff) - time.monotonic())))
         raise TimeoutError("No current container observation before native phase deadline")
 
+    def await_preferences(self, directory, snapshots, cutoff):
+        # An installed container alone is not a persisted preinteraction baseline.
+        while time.monotonic() < min(self.deadline, cutoff):
+            if self.sample(directory, snapshots, cutoff) and snapshots and \
+                    (self.documents / "oquturbo.preferences_pb").is_file():
+                return
+            time.sleep(min(2, max(0, min(self.deadline, cutoff) - time.monotonic())))
+        raise TimeoutError("No current persisted preferences before native phase deadline")
+
+    def bootstrap_fixture(self, name):
+        directory = self.output / (name + "-bootstrap")
+        directory.mkdir()
+        result = directory / "setup.xcresult"
+        command = self.xcode_args() + ["test-without-building",
+            "-only-testing:OquTurboUITests/LocalReminderRuntimeTests/testInitializeFreshFixture",
+            "-resultBundlePath", str(result)]
+        # This setup has the existing 12min XCTest bound and shares the 100min global cap.
+        self.run(*command, timeout=12 * 60)
+        summary = json.loads(self.run("xcrun", "xcresulttool", "get", "test-results", "summary", "--path", str(result)))
+        (directory / "summary.json").write_text(json.dumps(summary, indent=2))
+        evidence.validate_summary(summary)
+        self.run("xcrun", "xcresulttool", "export", "attachments", "--path", str(result), "--output-path", str(directory / "attachments"))
+        snapshots = []  # Never reuse the previous (erased permission) fixture's baseline.
+        self.await_preferences(directory, snapshots, min(self.deadline, time.monotonic() + 30))
+        (directory / "snapshots.json").write_text(json.dumps(snapshots, indent=2))
+        raw = (directory / "app-native.jsonl").read_bytes()
+        events = evidence.events_since(raw, b"")
+        report = evidence.validate_bootstrap(events, snapshots)
+        report.update(container=str(self.documents.parent), journalBytes=len(raw), journalSha256=hashlib.sha256(raw).hexdigest())
+        (directory / "setup.json").write_text(json.dumps(report, indent=2))
+        return report
+
     def failure_diagnostics(self, directory, since, reports=None):
         # Read-only, owned-simulator/app-scoped triage. It never changes the failed test outcome.
         cutoff = min(self.deadline, time.monotonic() + 30)
@@ -209,12 +241,17 @@ class Runner:
         (directory / "failure-diagnostics.json").write_text(json.dumps({"commands": results, "appCrashes": crashes}, indent=2))
 
     def phase(self, name, method):
+        setup = self.bootstrap_fixture(name) if name in {"cold", "permission"} else None
         directory = self.output / name
         directory.mkdir()
         snapshots = []
         cutoff = min(self.deadline, time.monotonic() + 12 * 60)
-        self.await_sample(directory, snapshots, cutoff)
-        baseline = {k: v for k, v in (snapshots[-1]["values"] if snapshots else {}).items() if k not in evidence.mutable_keys(name)}
+        self.await_preferences(directory, snapshots, cutoff)
+        if setup is not None and snapshots[-1] != setup["snapshot"]:
+            raise ValueError("Fresh fixture changed after bootstrap and before reminder interaction")
+        baseline = {k: v for k, v in snapshots[-1]["values"].items() if k not in evidence.mutable_keys(name)}
+        (directory / "preinteraction-baseline.json").write_text(json.dumps({"values": baseline,
+            "container": str(self.documents.parent), "setup": name + "-bootstrap" if setup is not None else None}, indent=2))
         probe = self.documents / "reminder-diagnostics.jsonl"
         boundary = probe.read_bytes() if probe.exists() else b""
         # A phase owns the journal suffix, not timestamps that intentionally move during DST probes.
