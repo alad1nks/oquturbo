@@ -83,6 +83,13 @@ def pending_alarms(dump):
     return found
 
 
+def alarm_epoch(alarm):
+    # API33 header stores epoch after a space; the detail origWhen= is a formatted date.
+    header = alarm.lstrip().splitlines()[0]
+    match = re.fullmatch(r"RTC_WAKEUP #\d+: Alarm\{[^\n]*\borigWhen (\d+)\b[^\n]* " + re.escape(PACKAGE) + r"\}", header)
+    assert match, "Unrecognized owned RTC alarm header"
+    return int(match[1])
+
 
 class Driver:
     def __init__(self, serial, output):
@@ -92,12 +99,23 @@ class Driver:
         self.deadline = time.monotonic() + 305 * 60
         self.baseline = None
 
-    def adb(self, *args, timeout=40, check=True):
+    def adb(self, *args, timeout=40, check=True, alarm_help=False):
+        if alarm_help:
+            assert check and args == ("shell", "cmd", "alarm", "help"), "Help status policy is limited to cmd alarm help"
         if time.monotonic() >= self.deadline: raise TimeoutError("Whole native acceptance deadline exceeded")
         result = subprocess.run(["adb", "-s", self.serial, *args], capture_output=True, timeout=timeout)
         with (self.output / "commands.log").open("a") as log:
             log.write(json.dumps({"time": time.time(), "argv": list(args), "code": result.returncode}) + "\n")
-        if check and result.returncode:
+        if alarm_help:
+            stdout, stderr = result.stdout.decode(errors="replace"), result.stderr.decode(errors="replace")
+            (self.output / "alarm-help.json").write_text(json.dumps({"code": result.returncode, "stdout": stdout, "stderr": stderr}, indent=2))
+            lines = [line.strip() for line in stdout.splitlines()]
+            # API33 BasicShellCommandHandler prints help then returns -1 (ADB reports255).
+            if result.returncode not in (0, 255) or stderr.strip() or not lines or \
+                    lines[0] != "Alarm manager service (alarm) commands:" or \
+                    not {"set-time TIME", "set-timezone TZ"}.issubset(lines):
+                raise RuntimeError(f"Unverified alarm help response (exit {result.returncode}); see alarm-help.json")
+        elif check and result.returncode:
             raise RuntimeError(result.stderr.decode(errors="replace"))
         return result.stdout
 
@@ -228,7 +246,37 @@ class Driver:
             return self.future_picker(first=first)
         self.tap(resource="android:id/button1", native_time_picker=True)
         (self.output / f"chosen-{self.step}.json").write_text(json.dumps({"device_now": now, "due": target, "minutes": chosen.hour*60+chosen.minute}))
+        if not first:
+            self.wait_edited_schedule(target, chosen.hour * 60 + chosen.minute)
         return target
+
+    def wait_edited_schedule(self, due, minute):
+        # Existing enabled edits are asynchronous. Initial enable must first allow the OS prompt.
+        deadline = min(self.deadline, time.monotonic() + 30)
+        def remaining():
+            seconds = deadline - time.monotonic()
+            if seconds <= 0:
+                raise TimeoutError("Edited reminder did not persist and replace its alarm within 30s")
+            return seconds
+        while time.monotonic() < deadline:
+            assert int(self.text("shell", "date", "+%s", timeout=remaining())) < due, "Edit confirmation missed the chosen due"
+            saved = self.prefs("await-edited-schedule", timeout=remaining())
+            schedule = json.loads(preference_string(saved, "reminders_schedule_v1"))
+            events = self.text("exec-out", "run-as", PACKAGE, "cat", "files/reminder-diagnostics.log", timeout=remaining())
+            dump = self.text("shell", "dumpsys", "alarm", timeout=remaining())
+            self.output.joinpath(f"{self.step:03d}-edited-events.txt").write_text(events)
+            self.output.joinpath(f"{self.step:03d}-edited-alarm.txt").write_text(dump)
+            alarms = pending_alarms(dump)
+            assert len(alarms) <= 1, "Edited reminder left duplicate owned alarms"
+            assert not alarms or "window=0 " not in alarms[0], "Exact alarm unexpectedly present"
+            accepted = re.findall(r"scheduled target=(\d+) minutes=(\d+)", events)
+            assert int(self.text("shell", "date", "+%s", timeout=remaining())) < due, "Edit confirmation missed the chosen due"
+            if saved.get("reminders_enabled") == "0801" and schedule.get("version") == 1 and schedule.get("minutesOfDay") == minute and \
+                    accepted and tuple(map(int, accepted[-1])) == (due * 1000, minute) and len(alarms) == 1 and \
+                    alarm_epoch(alarms[0]) == due * 1000:
+                return
+            time.sleep(min(1, remaining()))
+        raise TimeoutError("Edited reminder did not persist and replace its alarm within 30s")
 
     def wait_delivery(self, due, foreground=False):
         end = min(self.deadline, time.monotonic() + max(0, due-int(self.text("shell", "date", "+%s"))) + 65*60)
@@ -279,10 +327,10 @@ class Driver:
         self.launch(); self.settings()
         self.baseline = self.prefs(label + "-new-baseline")
 
-    def prefs(self, label):
+    def prefs(self, label, timeout=40):
         self.step += 1
         label = f"{self.step:03d}-{label}"
-        data = self.adb("exec-out", "run-as", PACKAGE, "cat", PREFS)
+        data = self.adb("exec-out", "run-as", PACKAGE, "cat", PREFS, timeout=timeout)
         self.output.joinpath(label + ".preferences_pb").write_bytes(data)
         decoded = preferences(data)
         self.output.joinpath(label + "-preferences.json").write_text(json.dumps(decoded, indent=2))
@@ -318,7 +366,7 @@ class Driver:
         local = dt.datetime.fromtimestamp(target / 1000, zone)
         assert local.hour * 60 + local.minute == minute
         alarms = self.assert_alarm(1)
-        assert f"origWhen={target}" in alarms[0], "OS inventory does not match the accepted epoch"
+        assert alarm_epoch(alarms[0]) == target, "OS inventory does not match the accepted epoch"
         return target, minute
 
     def back(self):
@@ -411,7 +459,7 @@ class Driver:
         self.assert_alarm(1)
 
     def zone_and_time_hooks(self):
-        help_text = self.text("shell", "cmd", "alarm", "help")
+        help_text = self.text("shell", "cmd", "alarm", "help", alarm_help=True)
         assert "set-timezone" in help_text and "set-time" in help_text, "OS clock controls unavailable"
         self.adb("shell", "settings", "put", "global", "auto_time_zone", "0")
         self.adb("shell", "settings", "put", "global", "auto_time", "0")

@@ -1,0 +1,6 @@
+    RTC_WAKEUP #19: Alarm{ac87599 type 0 origWhen 1791296400000 whenElapsed 86905555 com.alad1nks.oquturbo}
+      tag=*walarm*:com.alad1nks.oquturbo.PRACTICE_REMINDER
+      type=RTC_WAKEUP origWhen=2026-10-06 14:20:00.000 window=+1h0m0s0ms repeatInterval=0 count=0 flags=0x0
+      policyWhenElapsed: requester=+23h58m54s848ms app_standby=-37s876ms device_idle=-- battery_saver=-37s876ms tare=-37s876ms
+      whenElapsed=+23h58m54s848ms maxWhenElapsed=+1d0h58m54s848ms
+      operation=PendingIntent{884e05e: PendingIntentRecord{bd70563 com.alad1nks.oquturbo broadcastIntent}}
