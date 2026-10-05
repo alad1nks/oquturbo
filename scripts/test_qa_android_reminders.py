@@ -217,6 +217,153 @@ class NativeNotificationSwitchTest(unittest.TestCase):
                 driver.notification_switch(frames[-1], channel=False)
 
 
+class EditedScheduleTest(unittest.TestCase):
+    DUE, MINUTE = 1791210180, 863
+
+    def run_wait(self, samples, read_error=False, times=None):
+        with tempfile.TemporaryDirectory() as output:
+            driver = qa.Driver("owned-test-serial", Path(output))
+            clock = [0.0]
+            driver.deadline = 1000
+            samples = iter(samples)
+            current = [None]
+            seen = []
+            dates = iter(times) if times is not None else None
+
+            def prefs(label, **kwargs):
+                if read_error:
+                    raise RuntimeError("device offline")
+                current[0] = next(samples)
+                seen.append(current[0])
+                driver.step += 1
+                minute, _, _, enabled = current[0]
+                payload = qa.json.dumps({"version": 1, "minutesOfDay": minute}).encode()
+                return {"reminders_enabled": enabled, "reminders_schedule_v1": string_field(5, payload).hex()}
+
+            def text(*args, **kwargs):
+                self.assertNotIn("check", kwargs)
+                self.assertGreater(kwargs["timeout"], 0)
+                if args == ("shell", "date", "+%s"):
+                    return str(next(dates) if dates is not None else self.DUE - 60)
+                minute, event, alarm, _ = current[0]
+                if args[0] == "exec-out":
+                    return f"1791210065681 scheduled target={event} minutes={self.MINUTE}"
+                self.assertEqual(("shell", "dumpsys", "alarm"), args)
+                captured = (Path(__file__).with_name("fixtures") / "reminders-api33-owned-alarm.txt").read_text()
+                return captured.replace("origWhen 1791296400000", f"origWhen {alarm}")
+
+            driver.prefs, driver.text = prefs, text
+            def sleep(seconds):
+                clock[0] += seconds
+            with patch.object(qa.time, "monotonic", side_effect=lambda: clock[0]), patch.object(qa.time, "sleep", side_effect=sleep):
+                driver.wait_edited_schedule(self.DUE, self.MINUTE)
+            return seen, clock[0], list(Path(output).glob("*-edited-*.txt"))
+
+    def test_actual_old_snapshot_does_not_pass_until_write_event_and_alarm_all_agree(self):
+        # Run37321566592: chosen-76=863/due1791210180, 077 prefs still860,
+        # 076 OS alarm origWhen1791296400000; later082 prefs and dispatch confirm863.
+        old = (860, 1791296400000, 1791296400000, "0801")
+        persisted_only = (863, 1791296400000, 1791296400000, "0801")
+        event_only = (863, self.DUE * 1000, 1791296400000, "0801")
+        ready = (863, self.DUE * 1000, self.DUE * 1000, "0801")
+        seen, elapsed, artifacts = self.run_wait([old, persisted_only, event_only, ready])
+        self.assertEqual([old, persisted_only, event_only, ready], seen)
+        self.assertEqual(3, elapsed)
+        self.assertEqual(8, len(artifacts))
+
+    def test_stale_or_disabled_state_times_out_and_read_errors_do_not_pass(self):
+        for state in [(860, self.DUE * 1000, self.DUE * 1000, "0801"),
+                      (863, self.DUE * 1000, self.DUE * 1000, "0800")]:
+            with self.assertRaisesRegex(TimeoutError, "within 30s"):
+                self.run_wait([state] * 31)
+        with self.assertRaisesRegex(RuntimeError, "device offline"):
+            self.run_wait([], read_error=True)
+
+    def test_real_api33_epoch_header_and_next_schedule_agree_not_formatted_detail(self):
+        dump = (Path(__file__).with_name("fixtures") / "reminders-api33-owned-alarm.txt").read_text()
+        alarm = qa.pending_alarms(dump)[0]
+        self.assertEqual(1791296400000, qa.alarm_epoch(alarm))
+        self.assertIn("origWhen=2026-10-06 14:20:00.000", alarm)
+        for invalid in [alarm.replace("origWhen 1791296400000", "origWhen=1791296400000"),
+                        alarm.replace("com.alad1nks.oquturbo}", "another.package}")]:
+            with self.assertRaisesRegex(AssertionError, "Unrecognized"):
+                qa.alarm_epoch(invalid)
+        with tempfile.TemporaryDirectory() as output:
+            driver = qa.Driver("owned-test-serial", Path(output))
+            driver.read_diagnostics = lambda: "scheduled target=1791296400000 minutes=860"
+            def text(*args):
+                if args == ("shell", "date", "+%s"): return "1791210000"
+                if args == ("shell", "getprop", "persist.sys.timezone"): return "UTC"
+                self.assertEqual(("shell", "dumpsys", "alarm"), args)
+                return dump
+            driver.text = text
+            self.assertEqual((1791296400000, 860), driver.next_schedule())
+            driver.read_diagnostics = lambda: "scheduled target=1791296460000 minutes=861"
+            with self.assertRaisesRegex(AssertionError, "does not match"):
+                driver.next_schedule()
+
+    def test_due_reached_before_or_during_observation_fails(self):
+        ready = (863, self.DUE * 1000, self.DUE * 1000, "0801")
+        for times in [[self.DUE], [self.DUE - 1, self.DUE]]:
+            with self.assertRaisesRegex(AssertionError, "missed the chosen due"):
+                self.run_wait([ready], times=times)
+
+    def test_picker_waits_only_for_enabled_edit_not_initial_permission_or_cancel(self):
+        with tempfile.TemporaryDirectory() as output:
+            driver = qa.Driver("owned-test-serial", Path(output))
+            driver.tap = lambda **kwargs: None
+            driver.text = lambda *args: str(self.DUE - 150)
+            driver.snapshot = lambda label: ET.fromstring('<hierarchy><node resource-id="android:id/input_hour"/></hierarchy>')
+            driver.adb = lambda *args: None
+            calls = []
+            driver.wait_edited_schedule = lambda *args: calls.append(args)
+            driver.future_picker(first=True)
+            driver.future_picker(cancel=True)
+            self.assertEqual([], calls)
+            due = driver.future_picker()
+            self.assertEqual([(due, self.MINUTE)], calls)
+
+
+class AlarmHelpTest(unittest.TestCase):
+    # Exact required lines from API33 AlarmManagerService.onHelp. Status -1 is returned
+    # by BasicShellCommandHandler.handleDefaultCommands for help and arrives as255.
+    help_output = b"Alarm manager service (alarm) commands:\n  help\n    Print this help text.\n  set-time TIME\n  set-timezone TZ\n"
+
+    def test_api33_help_exit255_preserves_raw_evidence_and_exact_content(self):
+        with tempfile.TemporaryDirectory() as output:
+            driver = qa.Driver("owned-test-serial", Path(output))
+            for code in (255, 0):
+                response = qa.subprocess.CompletedProcess([], code, self.help_output, b"")
+                with patch.object(qa.subprocess, "run", return_value=response) as command:
+                    self.assertEqual(self.help_output.decode().strip(), driver.text("shell", "cmd", "alarm", "help", alarm_help=True))
+                self.assertEqual(["adb", "-s", "owned-test-serial", "shell", "cmd", "alarm", "help"], command.call_args.args[0])
+                saved = qa.json.loads((Path(output) / "alarm-help.json").read_text())
+                self.assertEqual({"code": code, "stdout": self.help_output.decode(), "stderr": ""}, saved)
+
+    def test_missing_help_or_transport_or_unknown_status_fails_closed(self):
+        cases = [(1, self.help_output, b""), (255, self.help_output, b"error: device offline"),
+                 (255, b"", b""), (255, b"Unknown command: help", b""),
+                 (255, self.help_output.replace(b"set-time TIME", b"set-time unavailable"), b"")]
+        with tempfile.TemporaryDirectory() as output:
+            driver = qa.Driver("owned-test-serial", Path(output))
+            for code, stdout, stderr in cases:
+                response = qa.subprocess.CompletedProcess([], code, stdout, stderr)
+                with patch.object(qa.subprocess, "run", return_value=response), self.assertRaisesRegex(RuntimeError, "Unverified alarm help"):
+                    driver.text("shell", "cmd", "alarm", "help", alarm_help=True)
+                self.assertEqual(code, qa.json.loads((Path(output) / "alarm-help.json").read_text())["code"])
+
+    def test_clock_mutations_do_not_inherit_help_exit_allowance(self):
+        with tempfile.TemporaryDirectory() as output:
+            driver = qa.Driver("owned-test-serial", Path(output))
+            response = qa.subprocess.CompletedProcess([], 255, self.help_output, b"")
+            for arguments in [("shell", "cmd", "alarm", "set-time", "123"),
+                              ("shell", "cmd", "alarm", "set-timezone", "UTC")]:
+                with patch.object(qa.subprocess, "run", return_value=response), self.assertRaises(RuntimeError):
+                    driver.adb(*arguments)
+                with patch.object(qa.subprocess, "run", return_value=response), self.assertRaisesRegex(AssertionError, "limited to"):
+                    driver.adb(*arguments, alarm_help=True)
+
+
 class EvidenceRetentionTest(unittest.TestCase):
     def test_duplicate_control_fails_instead_of_tapping_arbitrary_match(self):
         with tempfile.TemporaryDirectory() as output:
