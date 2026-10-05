@@ -16,7 +16,8 @@ final class LocalReminderRuntimeTests: XCTestCase {
         ui.app.terminate()
         XCTAssertTrue(ui.app.wait(for: .notRunning, timeout: 10))
         XCTAssertGreaterThan(due.timeIntervalSinceNow, 0)
-        ui.assertHomeAfterCard(ui.notification(until: due))
+        guard let card = ui.notification(until: due) else { return }
+        ui.assertHomeAfterCard(card)
     }
 
     func testWarmDeliveryFromSettings() {
@@ -26,7 +27,7 @@ final class LocalReminderRuntimeTests: XCTestCase {
         ui.assertScheduled()
         XCUIDevice.shared.press(.home)
         XCTAssertTrue(ui.app.state == .runningBackground || ui.app.state == .runningBackgroundSuspended)
-        let card = ui.notification(until: due)
+        guard let card = ui.notification(until: due) else { return }
         XCTAssertTrue(ui.app.state == .runningBackground || ui.app.state == .runningBackgroundSuspended)
         ui.assertHomeAfterCard(card)
     }
@@ -50,7 +51,7 @@ final class LocalReminderRuntimeTests: XCTestCase {
         ui.start()
         let due = ui.selectFutureTime()
         ui.assertScheduled()
-        _ = ui.notification(until: due) // Deliberately do not tap/remove this notification.
+        guard ui.notification(until: due) != nil else { return } // Deliberately leave the actual card untapped.
         ui.app.activate()
         // Existing Settings should resume; return to its top before locating the named switch.
         for _ in 0..<10 { ui.app.swipeDown() }

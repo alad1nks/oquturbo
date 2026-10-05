@@ -292,6 +292,59 @@ class EvidenceTest(unittest.TestCase):
             self.assertEqual("partial", record["stdout"])
             self.assertEqual("busy", record["stderr"])
 
+    def test_failure_diagnostics_export_only_owned_process_log_predicate_and_recent_app_crash(self):
+        import os
+        runner_spec = importlib.util.spec_from_file_location("ios_runner", Path(__file__).with_name("qa-ios-reminders.py"))
+        module = importlib.util.module_from_spec(runner_spec); runner_spec.loader.exec_module(module)
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory); runner = module.Runner(root / "evidence"); runner.udid = "owned-simulator"
+            reports = root / "reports"; reports.mkdir()
+            owned = reports / "OquTurbo-new.ips"
+            owned.write_text(json.dumps({"app_name": "OquTurbo"}) + "\n" + json.dumps({"bundleID": module.PACKAGE}))
+            other = reports / "OquTurbo-unrelated.ips"
+            other.write_text(json.dumps({"app_name": "AnotherApp"}) + "\n" + module.PACKAGE)
+            old = reports / "OquTurbo-old.ips"; old.write_bytes(owned.read_bytes()); os.utime(old, (1, 1))
+            calls = []
+            def command(args, **kwargs):
+                calls.append(args)
+                self.assertEqual(["xcrun", "simctl", "spawn", "owned-simulator"], args[:4])
+                self.assertLessEqual(kwargs["timeout"], 15)
+                if args[4] == "launchctl":
+                    text = "12 0 unrelated.private.service\n34 0 UIKitApplication:" + module.PACKAGE
+                else:
+                    self.assertEqual(["log", "show", "--last", "10m", "--style", "json", "--predicate"], args[4:-1])
+                    self.assertEqual(f'process == "OquTurbo" OR eventMessage CONTAINS "{module.PACKAGE}"', args[-1])
+                    text = "[]"
+                return type("Result", (), {"returncode": 0, "stdout": text, "stderr": ""})()
+            with patch.object(module.subprocess, "run", side_effect=command):
+                runner.failure_diagnostics(runner.output, 2, reports)
+            self.assertEqual(2, len(calls))
+            self.assertNotIn("unrelated", (runner.output / "processes.txt").read_text())
+            self.assertEqual(owned.read_bytes(), (runner.output / owned.name).read_bytes())
+            self.assertFalse((runner.output / old.name).exists())
+            self.assertFalse((runner.output / other.name).exists())
+            self.assertEqual([owned.name], json.loads((runner.output / "failure-diagnostics.json").read_text())["appCrashes"])
+
+    def test_diagnostics_timeout_respects_remaining_budget_and_records_unknown_not_success(self):
+        runner_spec = importlib.util.spec_from_file_location("ios_runner", Path(__file__).with_name("qa-ios-reminders.py"))
+        module = importlib.util.module_from_spec(runner_spec); runner_spec.loader.exec_module(module)
+        with tempfile.TemporaryDirectory() as directory:
+            runner = module.Runner(Path(directory) / "evidence"); runner.udid = "owned"
+            clock = [0.0]; runner.deadline = 7
+            def command(args, **kwargs):
+                self.assertEqual(7, kwargs["timeout"])
+                clock[0] = 7
+                raise module.subprocess.TimeoutExpired(args, 7)
+            with patch.object(module.time, "monotonic", side_effect=lambda: clock[0]), \
+                    patch.object(module.subprocess, "run", side_effect=command) as run:
+                runner.failure_diagnostics(runner.output, 0, Path(directory) / "no-reports")
+            self.assertEqual(1, run.call_count)
+            result = json.loads((runner.output / "failure-diagnostics.json").read_text())
+            self.assertEqual([], result["appCrashes"])
+            self.assertTrue(all(item["code"] is None for item in result["commands"]))
+            self.assertIn("TimeoutExpired", result["commands"][0]["error"])
+            self.assertIn("budget exhausted", result["commands"][1]["error"])
+
     def test_empty_skipped_or_unknown_xctest_schema_is_not_pass(self):
         evidence.validate_summary({"passedTests": 1, "failedTests": 0, "skippedTests": 0})
         for summary in ({}, {"passedTests": 0, "failedTests": 0, "skippedTests": 0},

@@ -167,6 +167,44 @@ class Runner:
             time.sleep(min(2, max(0, min(self.deadline, cutoff) - time.monotonic())))
         raise TimeoutError("No current container observation before native phase deadline")
 
+    def failure_diagnostics(self, directory, since, reports=None):
+        # Read-only, owned-simulator/app-scoped triage. It never changes the failed test outcome.
+        cutoff = min(self.deadline, time.monotonic() + 30)
+        results = []
+        predicate = f'process == "OquTurbo" OR eventMessage CONTAINS "{PACKAGE}"'
+        commands = [("processes", ["xcrun", "simctl", "spawn", self.udid, "launchctl", "list"]),
+                    ("app-log", ["xcrun", "simctl", "spawn", self.udid, "log", "show", "--last", "10m",
+                                 "--style", "json", "--predicate", predicate])]
+        for name, args in commands:
+            record = {"name": name, "args": args, "code": None}
+            try:
+                remaining = cutoff - time.monotonic()
+                if remaining <= 0: raise TimeoutError("Diagnostic collection budget exhausted")
+                result = subprocess.run(args, capture_output=True, text=True, timeout=min(15, remaining))
+                output = result.stdout
+                if name == "processes":
+                    # Do not export unrelated simulator processes/services or their environment.
+                    output = "\n".join(row for row in output.splitlines() if PACKAGE in row)
+                record.update(code=result.returncode, stderr=result.stderr[:10000], truncated=len(output) > 2_000_000)
+                (directory / (name + ".txt")).write_text(output[:2_000_000])
+            except Exception as error:
+                record["error"] = f"{type(error).__name__}: {error}"
+            results.append(record)
+        reports = reports if reports is not None else Path.home() / "Library/Logs/DiagnosticReports"
+        crashes = []
+        for path in sorted(reports.glob("OquTurbo-*.ips"), reverse=True)[:5]:
+            try:
+                if time.monotonic() >= cutoff: raise TimeoutError("Diagnostic collection budget exhausted")
+                if path.stat().st_mtime < since or path.stat().st_size > 2_000_000: continue
+                raw = path.read_bytes()
+                header = json.loads(raw.splitlines()[0])
+                if header.get("app_name") != "OquTurbo" or PACKAGE.encode() not in raw: continue
+                shutil.copyfile(path, directory / path.name)
+                crashes.append(path.name)
+            except Exception as error:
+                results.append({"name": "app-crash", "file": path.name, "error": f"{type(error).__name__}: {error}"})
+        (directory / "failure-diagnostics.json").write_text(json.dumps({"commands": results, "appCrashes": crashes}, indent=2))
+
     def phase(self, name, method):
         directory = self.output / name
         directory.mkdir()
@@ -202,6 +240,10 @@ class Runner:
         if result.exists():
             self.run("xcrun", "xcresulttool", "export", "attachments", "--path", str(result), "--output-path", str(directory / "attachments"))
         if code != 0:
+            try:
+                self.failure_diagnostics(directory, started)
+            except Exception as error:
+                (directory / "failure-diagnostics-error.txt").write_text(str(error))
             raise RuntimeError(f"Actual XCTest failed in {name}")
         summary = json.loads(self.run("xcrun", "xcresulttool", "get", "test-results", "summary", "--path", str(result)))
         (directory / "summary.json").write_text(json.dumps(summary, indent=2))

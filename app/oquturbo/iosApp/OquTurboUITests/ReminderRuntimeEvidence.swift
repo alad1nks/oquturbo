@@ -13,6 +13,8 @@ final class ReminderRuntimeEvidence {
         image.name = name; image.lifetime = .keepAlways; test.add(image)
         let tree = XCTAttachment(string: app.debugDescription + "\nSPRINGBOARD\n" + springboard.debugDescription)
         tree.name = name + "-tree"; tree.lifetime = .keepAlways; test.add(tree)
+        let state = XCTAttachment(string: "appState=\(app.state.rawValue) springboardState=\(springboard.state.rawValue)")
+        state.name = name + "-process-state"; state.lifetime = .keepAlways; test.add(state)
     }
 
     func start() {
@@ -102,23 +104,41 @@ final class ReminderRuntimeEvidence {
         capture("not-scheduled"); XCTFail("No actual Scheduled state")
     }
 
-    func notification(until due: Date) -> XCUIElement {
+    func notification(until due: Date) -> XCUIElement? {
         XCUIDevice.shared.press(.home)
-        let card = springboard.staticTexts["Practice in OquTurbo"].firstMatch
+        // Actual SpringBoard tree exposes an actionable platter button around the title/body.
+        // A static title's computed hit point did not open the app in the captured cold run.
+        let cards = springboard.buttons.matching(NSPredicate(
+            format: "identifier == %@ AND label CONTAINS %@ AND label CONTAINS %@",
+            "ShortLook.Platter.Content.Seamless", "Practice in OquTurbo",
+            "Open OquTurbo to practice when it suits you."))
         let deadline = due.addingTimeInterval(180)
         while Date() < deadline {
-            if card.waitForExistence(timeout: 5) && card.isHittable { capture("real-card"); return card }
+            if cards.count > 1 {
+                capture("ambiguous-owned-notification")
+                XCTFail("Multiple matching owned notification buttons")
+                return nil
+            }
+            if cards.count == 1 {
+                let card = cards.element(boundBy: 0)
+                if card.isHittable { capture("real-card"); return card }
+            }
+            RunLoop.current.run(until: min(deadline, Date().addingTimeInterval(5)))
             // Open the real Notification Center; do not launch the application to substitute for its card.
             let top = springboard.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.01))
             top.press(forDuration: 0.1, thenDragTo: springboard.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.75)))
         }
         capture("delivery-timeout"); XCTFail("No actual local notification by due+180s")
-        return card
+        return nil
     }
 
     func assertHomeAfterCard(_ card: XCUIElement) {
-        XCTAssertTrue(card.isHittable); card.tap()
-        XCTAssertTrue(app.wait(for: .runningForeground, timeout: 30))
+        XCTAssertEqual(card.elementType, .button)
+        XCTAssertTrue(card.isHittable); card.tap()  // Exactly one genuine system-card action.
+        capture("immediately-after-real-card-tap")
+        let opened = app.wait(for: .runningForeground, timeout: 30)
+        if !opened { capture("real-card-did-not-open-app") }
+        XCTAssertTrue(opened)
         // Do not app.launch/activate here: the real response must open it.
         XCTAssertTrue(app.staticTexts["Today’s training"].waitForExistence(timeout: 15))
         capture("home-after-real-card")
