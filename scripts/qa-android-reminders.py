@@ -98,6 +98,24 @@ def display_override(output, kind):
     return matches[0] if matches else "reset"
 
 
+def resumed_activity(dump):
+    """API33 activity inventory, scoped to the actual unique top resumed record."""
+    assert dump.startswith("ACTIVITY MANAGER ACTIVITIES"), "Unknown activity inventory"
+    records = re.findall(r"(?m)^\s*topResumedActivity=(ActivityRecord\{[^\n]+)", dump)
+    assert len(records) <= 1, "Ambiguous resumed activity"
+    if not records: return None, None
+    component = re.search(r" u0 ([\w.]+/[\w.]+)[ } ]", records[0])
+    assert component, "Unknown resumed component"
+    sections = re.split(r"(?m)^\s*\* Hist  #\d+: ", dump)[1:]
+    matches = [section for section in sections if section.splitlines()[0] == records[0]]
+    assert len(matches) == 1, "Resumed activity detail missing or ambiguous"
+    block = matches[0]
+    assert re.search(r"(?m)^\s*state=RESUMED\b", block), "Top record is not resumed"
+    font = re.search(r"(?m)^\s*CurrentConfiguration=\{([0-9.]+) ", block)
+    assert font, "Resumed activity configuration unavailable"
+    return component[1], float(font[1])
+
+
 def visible_bounds(node, width=320, height=640):
     assert node is not None and node.get("package") == PACKAGE, "Missing owned visible element"
     values = list(map(int, re.findall(r"-?\d+", node.get("bounds", ""))))
@@ -500,6 +518,49 @@ class Driver:
         actual = (int(hour.get("text")) % 12 + (12 if pm.get("checked") == "true" else 0)) * 60 + int(minutes.get("text"))
         assert 1 <= int(hour.get("text")) <= 12 and 0 <= int(minutes.get("text")) < 60 and actual == minute, "Native picker changed saved minutes"
 
+    def wait_compact_activity(self, label, package=None, font_scale=None):
+        deadline = min(self.deadline, time.monotonic() + 30)
+        while time.monotonic() < deadline:
+            dump = self.text("shell", "dumpsys", "activity", "activities", timeout=min(5, deadline-time.monotonic()))
+            self.step += 1
+            self.output.joinpath(f"{self.step:03d}-{label}-activity.txt").write_text(dump)
+            component, font = resumed_activity(dump)
+            if component is not None and (package is None or component.split("/")[0] == package) and \
+                    (font_scale is None or font == font_scale):
+                if time.monotonic() < deadline: return dump
+            time.sleep(max(0, min(0.5, deadline-time.monotonic())))
+        raise TimeoutError("N12 activity/configuration did not settle: " + label)
+
+    def resume_compact_app(self):
+        # input keyevent completion does not mean HOME has finished launching.
+        self.adb("shell", "input", "keyevent", "KEYCODE_HOME")
+        self.wait_compact_activity("N12-home-settled", "com.android.launcher3")
+        self.launch()
+        self.wait_compact_activity("N12-app-settled", PACKAGE, 1.5)
+
+    def restore_absent_font_scale(self):
+        # API33 ATMS persists a changed effective font scale. Settle default first,
+        # then delete the key; a late queued default write must not count as absence.
+        self.adb("shell", "settings", "put", "system", "font_scale", "1.0")
+        self.wait_compact_activity("N12-default-font-settled", font_scale=1.0)
+        deadline = min(self.deadline, time.monotonic() + 10)
+        absent_since = None
+        self.adb("shell", "settings", "delete", "system", "font_scale")
+        while time.monotonic() < deadline:
+            value = self.text("shell", "settings", "get", "system", "font_scale", timeout=min(5, deadline-time.monotonic()))
+            now = time.monotonic()
+            with self.output.joinpath("N12-font-restoration.jsonl").open("a") as log:
+                log.write(json.dumps({"monotonic": now, "value": value}) + "\n")
+            assert value in {"null", "1.0"}, "Unexpected font restoration readback"
+            if value == "null":
+                if absent_since is None: absent_since = now
+                if now - absent_since >= 1 and now < deadline: return
+            else:
+                absent_since = None
+                self.adb("shell", "settings", "delete", "system", "font_scale", timeout=min(5, max(0.001, deadline-now)))
+            time.sleep(max(0, min(0.5, deadline-time.monotonic())))
+        raise TimeoutError("Original absent font_scale was not restored")
+
     def restore_compact_settings(self, original):
         errors = []
         # Each independent setting is attempted even when another restoration fails.
@@ -511,8 +572,11 @@ class Driver:
         for key in ("font_scale", "time_12_24"):
             try:
                 value = original[key]
-                command = ("delete", "system", key) if value == "null" else ("put", "system", key, value)
-                self.adb("shell", "settings", *command)
+                if key == "font_scale" and value == "null":
+                    self.restore_absent_font_scale()
+                else:
+                    command = ("delete", "system", key) if value == "null" else ("put", "system", key, value)
+                    self.adb("shell", "settings", *command)
                 assert self.text("shell", "settings", "get", "system", key) == value, "System setting restoration mismatch"
             except Exception as error: errors.append(f"{key}: {error}")
         return errors
@@ -558,7 +622,8 @@ class Driver:
             assert self.text("shell", "settings", "get", "system", "font_scale") == "1.5"
             assert self.text("shell", "settings", "get", "system", "time_12_24") == "12"
             # Ordinary background/resume applies native time-format/configuration; no process kill.
-            self.adb("shell", "input", "keyevent", "KEYCODE_HOME"); self.launch()
+            self.resume_compact_app()
+            self.assert_text("Баптаулар")  # Configuration recreation must preserve the real Settings route.
             self.output.joinpath("N12-configuration.txt").write_text(self.text("shell", "dumpsys", "activity", "activities"))
             self.tap(text="Өшірулі", scroll=True)
             root = self.snapshot("N12-kk-12h-saved-card")
@@ -577,10 +642,17 @@ class Driver:
             assert cancel_after == cancel_before, "Native Cancel changed persisted bytes"
             self.assert_alarm(0)
             self.compact_privacy_and_back()
+        except Exception as error:
+            self.output.joinpath("N12-primary-error.json").write_text(json.dumps({"type": type(error).__name__, "error": str(error)}, indent=2))
+            raise
         finally:
             errors = self.restore_compact_settings(original)
             if language_changed:
                 try:
+                    # Cleanup may follow a failed foreground transition; ordinary owned launch
+                    # is permitted here, never as a notification-tap acceptance fallback.
+                    self.launch()
+                    self.wait_compact_activity("N12-cleanup-app-settled", PACKAGE)
                     root = self.snapshot("N12-before-language-restore")
                     if self.find(root, resource="android:id/timePicker") is not None:
                         self.tap(resource="android:id/button2", native_time_picker=True)
