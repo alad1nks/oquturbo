@@ -116,6 +116,18 @@ class Runner:
         (self.documents / "reminder-diagnostics-enabled").touch(exist_ok=False)
 
     def sample(self, directory, snapshots):
+        # XCTest may reinstall the app and migrate its data to a new container UUID.
+        # Resolve the installed app again; never recreate a probe marker or substitute stale data.
+        raw = self.simctl("get_app_container", self.udid, PACKAGE, "data", check=False, timeout=10)
+        container = Path(raw) if raw else None
+        available = container is not None and container.is_absolute() and container.is_dir()
+        documents = container / "Documents" if available else None
+        with (directory / "container-inventory.jsonl").open("a") as log:
+            log.write(json.dumps({"time": time.time(), "container": raw, "available": available,
+                                  "probeEnabled": available and (documents / "reminder-diagnostics-enabled").exists()}) + "\n")
+        if not available:
+            return
+        self.documents = documents
         preferences = self.documents / "oquturbo.preferences_pb"
         if preferences.exists():
             data = preferences.read_bytes()

@@ -10,6 +10,7 @@ import com.alad1nks.oquturbo.core.data.reminders.ReminderNativeState
 import com.alad1nks.oquturbo.core.data.reminders.ReminderPending
 import com.alad1nks.oquturbo.core.data.reminders.ReminderPickerLabels
 import com.alad1nks.oquturbo.core.data.reminders.ReminderPlatform
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withContext
@@ -240,20 +241,41 @@ internal class IosReminderPlatform : ReminderPlatform {
 
     override suspend fun chooseTime(initialMinutes: Int?, labels: ReminderPickerLabels): Int? =
         withContext(Dispatchers.Main.immediate) {
-            val presenter = requireNotNull(host) { "No picker host" }
-            check(
-                presenter.view.window != null && presenter.presentedViewController == null,
-            ) { "Picker host unavailable" }
-            suspendCancellableCoroutine { continuation ->
-                val sheet =
-                    IosReminderPicker(initialMinutes, labels) { result ->
-                        picker = null
-                        if (continuation.isActive) continuation.resume(result)
-                    }
-                picker = sheet
-                continuation.invokeOnCancellation { sheet.cancelOnMain() }
-                presenter.presentViewController(sheet, animated = true, completion = null)
-                sheet.presentationController?.delegate = sheet
+            var stage = "host"
+            try {
+                val presenter = requireNotNull(host) { "No picker host" }
+                IosReminderDiagnostics.record(
+                    "picker-host",
+                    "attached" to (presenter.view.window != null).toString(),
+                    "presenting" to (presenter.presentedViewController != null).toString(),
+                )
+                check(
+                    presenter.view.window != null && presenter.presentedViewController == null,
+                ) { "Picker host unavailable" }
+                suspendCancellableCoroutine { continuation ->
+                    stage = "construction"
+                    val sheet =
+                        IosReminderPicker(initialMinutes, labels) { result ->
+                            picker = null
+                            if (continuation.isActive) continuation.resume(result)
+                        }
+                    picker = sheet
+                    continuation.invokeOnCancellation { sheet.cancelOnMain() }
+                    stage = "presentation"
+                    presenter.presentViewController(sheet, animated = true, completion = null)
+                    stage = "delegate"
+                    sheet.presentationController?.delegate = sheet
+                }
+            } catch (cancelled: CancellationException) {
+                throw cancelled
+            } catch (error: Exception) {
+                IosReminderDiagnostics.record(
+                    "picker-failed",
+                    "stage" to stage,
+                    "type" to error::class.simpleName.orEmpty(),
+                    "message" to error.message.orEmpty(),
+                )
+                throw error
             }
         }
 

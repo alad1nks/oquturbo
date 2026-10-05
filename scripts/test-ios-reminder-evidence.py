@@ -171,6 +171,36 @@ class EvidenceTest(unittest.TestCase):
         events[2]["next"] = str(evidence.next_local_minute(now, 150, "Asia/Almaty"))
         evidence.validate_phase("travel", events, snapshots, baseline)
 
+    def test_sampling_follows_actual_container_migration_and_never_injects_marker(self):
+        runner_spec = importlib.util.spec_from_file_location("ios_runner", Path(__file__).with_name("qa-ios-reminders.py"))
+        module = importlib.util.module_from_spec(runner_spec)
+        runner_spec.loader.exec_module(module)
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            runner = module.Runner(root / "evidence")
+            runner.udid = "owned-simulator"
+            old, current = root / "old/Documents", root / "current/Documents"
+            old.mkdir(parents=True); current.mkdir(parents=True)
+            runner.documents = old
+            (old / "oquturbo.preferences_pb").write_bytes(b"stale")
+            (current / "oquturbo.preferences_pb").write_bytes(b"actual")
+            (current / "reminder-diagnostics.jsonl").write_text('{"event":"picker-failed"}\n')
+            paths = iter([str(current.parent), ""])
+            def simctl(*args, **kwargs):
+                self.assertEqual(("get_app_container", runner.udid, module.PACKAGE, "data"), args)
+                return next(paths)
+            runner.simctl = simctl
+            snapshots = []
+            with patch.object(module.evidence, "snapshot", side_effect=lambda data: {"raw": data.decode()}):
+                runner.sample(runner.output, snapshots)
+                runner.sample(runner.output, snapshots)
+            self.assertEqual([{"raw": "actual"}], snapshots)
+            self.assertEqual('{"event":"picker-failed"}\n', (runner.output / "app-native.jsonl").read_text())
+            self.assertFalse((current / "reminder-diagnostics-enabled").exists())
+            inventory = [json.loads(line) for line in (runner.output / "container-inventory.jsonl").read_text().splitlines()]
+            self.assertEqual([True, False], [row["available"] for row in inventory])
+            self.assertFalse(inventory[0]["probeEnabled"])
+
     def test_empty_skipped_or_unknown_xctest_schema_is_not_pass(self):
         evidence.validate_summary({"passedTests": 1, "failedTests": 0, "skippedTests": 0})
         for summary in ({}, {"passedTests": 0, "failedTests": 0, "skippedTests": 0},
