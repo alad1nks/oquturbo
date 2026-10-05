@@ -108,5 +108,5 @@ interface ReminderPlatform {
 
     suspend fun chooseTime(initialMinutes: Int?, labels: ReminderPickerLabels): Int?
 
-    fun openSystemSettings()
+    suspend fun openSystemSettings()
 }

@@ -8,6 +8,10 @@ struct ComposeView: UIViewControllerRepresentable {
     }
 
     func updateUIViewController(_ uiViewController: UIViewController, context: Context) {}
+
+    static func dismantleUIViewController(_ uiViewController: UIViewController, coordinator: ()) {
+        IosReminderBridge.shared.detachHost(controller: uiViewController)
+    }
 }
 
 struct ContentView: View {

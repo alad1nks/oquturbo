@@ -121,10 +121,15 @@ internal class PracticeReminderController(
     }
 
     override fun openSystemSettings() {
-        try {
-            platform.openSystemSettings()
-        } catch (_: Exception) {
-            mutableState.value = mutableState.value.copy(settingsOpenFailed = true)
+        scope.launch {
+            try {
+                platform.openSystemSettings()
+                mutableState.value = mutableState.value.copy(settingsOpenFailed = false)
+            } catch (cancelled: CancellationException) {
+                throw cancelled
+            } catch (_: Exception) {
+                mutableState.value = mutableState.value.copy(settingsOpenFailed = true)
+            }
         }
     }
 
