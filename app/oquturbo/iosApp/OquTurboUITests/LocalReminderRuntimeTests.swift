@@ -125,7 +125,7 @@ final class LocalReminderRuntimeTests: XCTestCase {
 
     func testLocalizedPendingAndLargeTextPicker() {
         let ui = ReminderRuntimeEvidence(self)
-        ui.start()
+        ui.start(allowLanguageChanges: true)
         XCTAssertLessThanOrEqual(ui.app.frame.width, 390, "Use a genuinely narrow supported iPhone")
         // Keep this interval free of preference changes; the host brackets raw bytes and native events.
         ui.assertScheduled()
