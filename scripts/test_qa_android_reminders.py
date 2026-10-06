@@ -42,6 +42,54 @@ class EvidenceParserTest(unittest.TestCase):
         self.assertEqual(2, len(qa.pending_alarms(alarm + alarm.replace('#0', '#1'))))
 
 
+class AlarmKindTest(unittest.TestCase):
+    def fixture(self, near_due=False):
+        name = "reminders-api33-" + ("near-due-owned-alarm.txt" if near_due else "owned-alarm.txt")
+        return (Path(__file__).with_name("fixtures") / name).read_text()
+
+    def test_actual_normal_and_near_due_inexact_alarms_pass_owned_inventory(self):
+        for near_due in (False, True):
+            dump = self.fixture(near_due)
+            qa.assert_inexact_alarm(qa.pending_alarms(dump)[0])
+            with tempfile.TemporaryDirectory() as output:
+                driver = qa.Driver("owned-test-serial", Path(output))
+                driver.text = lambda *args: dump
+                self.assertEqual(1, len(driver.assert_alarm(1)))
+                self.assertEqual(dump, Path(output, "000-alarm-inventory.txt").read_text())
+                with self.assertRaisesRegex(AssertionError, "Owned pending alarms"):
+                    driver.assert_alarm(0)
+
+    def test_exact_special_or_unknown_details_fail_for_both_window_shapes(self):
+        for near_due in (False, True):
+            dump = self.fixture(near_due)
+            for invalid in [
+                *(dump.replace("flags=0x0", "flags=" + flag) for flag in ("0x1", "0x9", "0x4", "0x8")),
+                dump.replace("repeatInterval=0", "exactAllowReason=permission repeatInterval=0"),
+                dump.replace("flags=0x0", "flags=unknown"),
+                dump.replace("flags=0x0", ""),
+                dump.replace("repeatInterval=0", "repeatInterval=86400000"),
+                dump.replace("window=", "unknownWindow="),
+                dump.replace("com.alad1nks.oquturbo}", "another.package}"),
+                dump + dump,
+            ]:
+                with self.subTest(near_due=near_due, invalid=invalid), self.assertRaises(AssertionError):
+                    qa.assert_inexact_alarm(invalid)
+
+    def test_exact_permissions_and_unrecognized_package_inventory_fail_closed(self):
+        # Synthetic package inventory, not a copy of raw application preferences.
+        dump = (f"Packages:\n  Package [{qa.PACKAGE}] (abc):\n"
+                "    requested permissions:\n      android.permission.POST_NOTIFICATIONS\n")
+        qa.assert_no_exact_alarm_permissions(dump)
+        for invalid in [
+            *(dump + "      android.permission." + name + "\n" for name in ("SCHEDULE_EXACT_ALARM", "USE_EXACT_ALARM")),
+            dump.replace(qa.PACKAGE, "another.package"),
+            dump.replace("requested permissions:", "unknown permissions:"),
+            dump + dump,
+            "device offline",
+        ]:
+            with self.assertRaises(AssertionError): qa.assert_no_exact_alarm_permissions(invalid)
+
+
 class BackgroundProcessTest(unittest.TestCase):
     def run_stop(self, pids, due=None, device_times=None, command_error=False):
         with tempfile.TemporaryDirectory() as output:

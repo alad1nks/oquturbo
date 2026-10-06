@@ -36,6 +36,16 @@ are preserved. `results.json` starts every episode NOT_RUN and marks PASS only a
 leave later cases NOT_RUN and return nonzero. A human separates environment BLOCKED from a validated product
 FAIL using the artifacts; no `continue-on-error`, skipped-runtime green or promised delivery latency.
 
+The API33 alarm oracle requires the owned RTC_WAKEUP record, non-repeating interval, known window format,
+zero special flags and no `exactAllowReason`. Installed package evidence must exclude both exact-alarm
+permissions. A zero derived window alone is not an exact-API indicator: Android13 computes a zero heuristic
+window for `AlarmManager.set` with less than ten seconds of futurity, whereas caller-requested exact alarms
+receive `FLAG_STANDALONE` before that calculation. See
+[Android13 AlarmManagerService](https://raw.githubusercontent.com/aosp-mirror/platform_frameworks_base/android-13.0.0_r1/apex/jobscheduler/service/java/com/android/server/alarm/AlarmManagerService.java)
+(`maxTriggerTime`, `setImpl`, and the binder `set` method). The near-due alarm fixture is the owned block from
+run37357914200 `062-alarm-inventory.txt`; permission test fixtures are synthetic. These checks preserve the
+no-exact-API/access requirement without changing production scheduling or native observation deadlines.
+
 Read-only debug diagnostics require both a debuggable app and an app-private opt-in marker. They observe
 production adapter/receiver/Home operations, never schedule/post/navigate/grant or change product preferences;
 diagnostic I/O cannot fail product operations. Host-side protobuf decoding compares every unrelated stored

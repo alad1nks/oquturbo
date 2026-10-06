@@ -42,10 +42,32 @@ final class LocalReminderRuntimeTests: XCTestCase {
         ui.start()
         let due = ui.selectFutureTime()
         ui.assertScheduled()
+        let backgroundDeadline = ProcessInfo.processInfo.systemUptime + min(10, due.timeIntervalSinceNow)
         XCUIDevice.shared.press(.home)
-        XCTAssertTrue(ui.app.state == .runningBackground || ui.app.state == .runningBackgroundSuspended)
+        var backgroundStates: [String] = []
+        var backgroundObserved = false
+        while ProcessInfo.processInfo.systemUptime < backgroundDeadline && Date() < due {
+            // Read once: the app can move from background to suspended between two state queries.
+            let state = ui.app.state
+            backgroundStates.append("\(ProcessInfo.processInfo.systemUptime): state=\(state.rawValue)")
+            if state == .notRunning || state == .unknown { break }
+            if state == .runningBackground || state == .runningBackgroundSuspended {
+                backgroundObserved = ProcessInfo.processInfo.systemUptime < backgroundDeadline && Date() < due
+                break
+            }
+            let remaining = min(backgroundDeadline - ProcessInfo.processInfo.systemUptime, due.timeIntervalSinceNow)
+            if remaining > 0 { RunLoop.current.run(until: Date().addingTimeInterval(min(0.1, remaining))) }
+        }
+        let transition = XCTAttachment(string: backgroundStates.joined(separator: "\n"))
+        transition.name = "warm-background-transition"; transition.lifetime = .keepAlways; add(transition)
+        guard backgroundObserved else {
+            ui.capture("warm-did-not-background-before-due")
+            XCTFail("App did not remain running and reach background within 10s and before the chosen due time")
+            return
+        }
         guard let card = ui.notification(until: due) else { return }
-        XCTAssertTrue(ui.app.state == .runningBackground || ui.app.state == .runningBackgroundSuspended)
+        let stateAtCard = ui.app.state
+        XCTAssertTrue(stateAtCard == .runningBackground || stateAtCard == .runningBackgroundSuspended)
         ui.assertHomeAfterCard(card)
     }
 
