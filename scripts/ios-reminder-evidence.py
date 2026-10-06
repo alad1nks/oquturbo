@@ -3,6 +3,7 @@ import importlib.util
 import datetime as dt
 from zoneinfo import ZoneInfo
 import json
+import hashlib
 from pathlib import Path
 
 _spec = importlib.util.spec_from_file_location("android_reminder_wire", Path(__file__).with_name("qa-android-reminders.py"))
@@ -168,3 +169,35 @@ def validate_phase(phase, events, snapshots, baseline):
     else:
         raise ValueError("Unknown phase")
     return {"phase": phase, "status": "PASS", "requests": len(requests), "observations": len(events)}
+
+
+def dismissal_observation(before_read, after_read, raw_preferences):
+    before_count = sum(e["event"] == "picker-host" for e in before_read)
+    after_count = sum(e["event"] == "picker-host" for e in after_read)
+    if before_count != after_count:
+        return None  # The byte read crossed a real UI boundary; it cannot prove either interval.
+    return {"pickerHosts": after_count, "sha256": hashlib.sha256(raw_preferences).hexdigest()}
+
+
+def validate_dismissal(events, observations):
+    """The first two locale pickers bracket the real swipe and restored-draft assertion in XCTest."""
+    hosts = [i for i, event in enumerate(events) if event["event"] == "picker-host"]
+    require(len(hosts) >= 3, "Missing dismissal/reopen and closing English picker evidence")
+    first, reopened, closed = hosts[:3]
+    require(not any(e["event"] in {"accepted", "cancelled"} for e in events[first:reopened + 1]),
+            "Dismissal replaced or cancelled native work")
+    before = [o["sha256"] for o in observations if o["pickerHosts"] == 0]
+    after = [o["sha256"] for o in observations if o["pickerHosts"] == 2]
+    require(before and after, "Missing actual preference observations bracketing dismissal")
+    require(all(value == before[-1] for value in after), "Dismissal changed raw persisted preference bytes")
+    prior = [e for e in events[:first] if e["event"] == "request"]
+    # Foreground refresh may re-add the same request; it is outside the dismissal-only interval.
+    following = [e for e in events[reopened + 1:closed] if e["event"] == "request"]
+    require(prior and following, "Missing real native inventories before dismissal and after foreground refresh")
+    for request in [prior[-1]] + following:
+        require(request.get("capture") and any(e["event"] == "pending" and e.get("count") == "1" and
+                e.get("capture") == request["capture"] for e in events), "Missing single-request native inventory")
+    fields = ("id", "calendar", "repeats", "timezone", "hour", "minute", "language", "title", "body")
+    expected = {key: prior[-1][key] for key in fields}
+    require(all({key: request[key] for key in fields} == expected for request in following),
+            "Native request configuration changed after dismissal")
