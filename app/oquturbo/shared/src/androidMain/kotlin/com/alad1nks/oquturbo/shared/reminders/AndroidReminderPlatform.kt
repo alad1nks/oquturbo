@@ -25,7 +25,11 @@ import com.alad1nks.oquturbo.core.data.reminders.ReminderPlatform
 import com.alad1nks.oquturbo.resources.reminderResourceContent
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.withTimeoutOrNull
 import java.util.Calendar
 import java.util.Date
 import java.util.TimeZone
@@ -36,6 +40,31 @@ private const val CHANNEL = "oquturbo_practice_reminder"
 private const val NOTIFICATION_ID = 6001
 private const val ALARM_REQUEST = 6001
 private const val OPEN_REQUEST = 6002
+
+internal suspend fun cancelReminderNotification(
+    cancel: () -> Unit,
+    activeNotifications: () -> List<Pair<Int, String?>>,
+    monotonicNanos: () -> Long = System::nanoTime,
+) {
+    cancel()
+    // Android queues notification cancellation on its service handler. Observe completion without
+    // repeating the mutation; a timeout remains an ordinary incomplete-cancellation failure.
+    val started = monotonicNanos()
+    val removed =
+        withTimeoutOrNull(2_000) {
+            while (true) {
+                val owned = activeNotifications().any { (id, tag) -> id == NOTIFICATION_ID && tag == CHANNEL }
+                currentCoroutineContext().ensureActive()
+                // A Binder read cannot be preempted; never accept a late result as within budget.
+                check(monotonicNanos() - started < 2_000_000_000L) {
+                    "Notification inventory exceeded cancellation budget"
+                }
+                if (!owned) return@withTimeoutOrNull true
+                delay(50)
+            }
+        }
+    check(removed == true) { "Owned reminder notification cancellation was not confirmed" }
+}
 
 /** Floating wall-clock resolution belongs to the platform calendar, including DST gaps/folds. */
 internal fun nextReminderTime(minutes: Int, now: Long, zone: TimeZone = TimeZone.getDefault()): Long {
@@ -165,8 +194,10 @@ internal class AndroidReminderPlatform(private val context: Context) : ReminderP
             alarms.cancel(it)
             it.cancel()
         }
-        notifications.cancel(CHANNEL, NOTIFICATION_ID)
-        check(notifications.activeNotifications.none { it.id == NOTIFICATION_ID && it.tag == CHANNEL })
+        cancelReminderNotification(
+            cancel = { notifications.cancel(CHANNEL, NOTIFICATION_ID) },
+            activeNotifications = { notifications.activeNotifications.map { it.id to it.tag } },
+        )
         ReminderDiagnostics.record(context, "cancelled", "owned")
     }
 
