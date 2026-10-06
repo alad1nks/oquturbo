@@ -10,6 +10,7 @@ plugins {
     alias(libs.plugins.kotlinxSerialization)
 }
 
+@OptIn(org.jetbrains.compose.ExperimentalComposeLibrary::class)
 kotlin {
     android {
         namespace = "com.alad1nks.oquturbo.shared"
@@ -54,6 +55,7 @@ kotlin {
 
     sourceSets {
         androidMain.dependencies {
+            implementation(libs.androidx.activity.compose)
             implementation(projects.core.storage.datastore)
         }
         commonMain.dependencies {
@@ -96,7 +98,13 @@ kotlin {
             implementation(projects.feature.ruleswitch)
             implementation(projects.resources)
         }
+        jvmTest.dependencies {
+            implementation(compose.uiTest)
+            runtimeOnly(compose.desktop.currentOs)
+            implementation(libs.kotlinx.coroutines.core)
+        }
         commonTest.dependencies {
+            implementation(libs.kotlinx.coroutines.test)
             implementation(libs.kotlin.test)
         }
         iosMain.dependencies {

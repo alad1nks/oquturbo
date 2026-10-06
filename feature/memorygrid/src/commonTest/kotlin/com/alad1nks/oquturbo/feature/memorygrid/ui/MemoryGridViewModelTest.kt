@@ -415,6 +415,10 @@ class MemoryGridViewModelTest {
             private set
         val sessionWriteStarted = CompletableDeferred<Unit>()
 
+        override fun getWeeklyFocusJson(): Flow<String?> = kotlinx.coroutines.flow.flowOf(null)
+
+        override suspend fun setWeeklyFocusJson(value: String) = Unit
+
         override fun getDarkTheme(): Flow<Boolean?> = darkTheme
 
         override fun getLanguageCode(): Flow<String?> = languageCode
@@ -422,6 +426,13 @@ class MemoryGridViewModelTest {
         override fun getSoundEnabled(): Flow<Boolean?> = soundEnabled
 
         override fun getVibrationEnabled(): Flow<Boolean?> = vibrationEnabled
+
+        override fun getRemindersScheduleJson(): kotlinx.coroutines.flow.Flow<String?> =
+            kotlinx.coroutines.flow.flowOf(
+                null,
+            )
+
+        override suspend fun setRemindersScheduleJson(value: String) = Unit
 
         override fun getRemindersEnabled(): Flow<Boolean?> = remindersEnabled
 

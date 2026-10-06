@@ -91,6 +91,32 @@ import oquturbo.resources.generated.resources.dual_focus_start
 import oquturbo.resources.generated.resources.dual_focus_title
 import oquturbo.resources.generated.resources.dual_focus_waiting
 import oquturbo.resources.generated.resources.dual_focus_wrong_title
+import oquturbo.resources.generated.resources.focus_active
+import oquturbo.resources.generated.resources.focus_cancel
+import oquturbo.resources.generated.resources.focus_check
+import oquturbo.resources.generated.resources.focus_checking
+import oquturbo.resources.generated.resources.focus_dates_confirmation
+import oquturbo.resources.generated.resources.focus_disable
+import oquturbo.resources.generated.resources.focus_error
+import oquturbo.resources.generated.resources.focus_expired
+import oquturbo.resources.generated.resources.focus_finished_dates
+import oquturbo.resources.generated.resources.focus_home_recovery
+import oquturbo.resources.generated.resources.focus_home_scope
+import oquturbo.resources.generated.resources.focus_loading
+import oquturbo.resources.generated.resources.focus_new_plans
+import oquturbo.resources.generated.resources.focus_optional_title
+import oquturbo.resources.generated.resources.focus_preview_dates
+import oquturbo.resources.generated.resources.focus_reselect
+import oquturbo.resources.generated.resources.focus_reset
+import oquturbo.resources.generated.resources.focus_reset_explanation
+import oquturbo.resources.generated.resources.focus_retry
+import oquturbo.resources.generated.resources.focus_save_unconfirmed
+import oquturbo.resources.generated.resources.focus_saved_dates
+import oquturbo.resources.generated.resources.focus_saving
+import oquturbo.resources.generated.resources.focus_scheduled
+import oquturbo.resources.generated.resources.focus_select
+import oquturbo.resources.generated.resources.focus_setting_title
+import oquturbo.resources.generated.resources.focus_today_preserved
 import oquturbo.resources.generated.resources.games_coming_soon_title
 import oquturbo.resources.generated.resources.games_dont_tap_description
 import oquturbo.resources.generated.resources.games_dual_focus_description
@@ -117,9 +143,28 @@ import oquturbo.resources.generated.resources.games_word_flow_title
 import oquturbo.resources.generated.resources.home_continue_training
 import oquturbo.resources.generated.resources.home_no_recent_records
 import oquturbo.resources.generated.resources.home_overall_level
+import oquturbo.resources.generated.resources.home_personal_result_change
+import oquturbo.resources.generated.resources.home_personal_result_count
+import oquturbo.resources.generated.resources.home_personal_result_current
+import oquturbo.resources.generated.resources.home_personal_result_empty
+import oquturbo.resources.generated.resources.home_personal_result_empty_hint
+import oquturbo.resources.generated.resources.home_personal_result_error
+import oquturbo.resources.generated.resources.home_personal_result_insufficient_hint
+import oquturbo.resources.generated.resources.home_personal_result_loading
+import oquturbo.resources.generated.resources.home_personal_result_median
+import oquturbo.resources.generated.resources.home_personal_result_previous
+import oquturbo.resources.generated.resources.home_personal_result_retry
+import oquturbo.resources.generated.resources.home_personal_result_source
+import oquturbo.resources.generated.resources.home_personal_result_statistics
+import oquturbo.resources.generated.resources.home_personal_result_title
+import oquturbo.resources.generated.resources.home_personal_result_unknown_language
+import oquturbo.resources.generated.resources.home_personal_result_unknown_settings
+import oquturbo.resources.generated.resources.home_personal_result_unknown_variant
+import oquturbo.resources.generated.resources.home_personal_result_window
 import oquturbo.resources.generated.resources.home_rank
 import oquturbo.resources.generated.resources.home_rank_master
 import oquturbo.resources.generated.resources.home_recent_records
+import oquturbo.resources.generated.resources.home_retry_training
 import oquturbo.resources.generated.resources.home_start_training
 import oquturbo.resources.generated.resources.home_title
 import oquturbo.resources.generated.resources.home_today_training
@@ -131,8 +176,12 @@ import oquturbo.resources.generated.resources.home_training_goal_not_reached
 import oquturbo.resources.generated.resources.home_training_goal_reached
 import oquturbo.resources.generated.resources.home_training_goal_reached_message
 import oquturbo.resources.generated.resources.home_training_item_completed
+import oquturbo.resources.generated.resources.home_training_loading
+import oquturbo.resources.generated.resources.home_training_progress
 import oquturbo.resources.generated.resources.home_training_return_home
 import oquturbo.resources.generated.resources.home_training_score_goal
+import oquturbo.resources.generated.resources.home_training_unavailable
+import oquturbo.resources.generated.resources.home_view_progress
 import oquturbo.resources.generated.resources.kenkoz_duration_less_than_one_second
 import oquturbo.resources.generated.resources.kenkoz_duration_minutes
 import oquturbo.resources.generated.resources.kenkoz_duration_minutes_seconds
@@ -269,6 +318,38 @@ import oquturbo.resources.generated.resources.oquturbo_navigation_profile
 import oquturbo.resources.generated.resources.oquturbo_navigation_stats
 import oquturbo.resources.generated.resources.oquturbo_profile_subtitle
 import oquturbo.resources.generated.resources.oquturbo_stats_subtitle
+import oquturbo.resources.generated.resources.practice_achievements_partial
+import oquturbo.resources.generated.resources.practice_at_least_count
+import oquturbo.resources.generated.resources.practice_at_least_days
+import oquturbo.resources.generated.resources.practice_best_progress
+import oquturbo.resources.generated.resources.practice_date_format
+import oquturbo.resources.generated.resources.practice_date_range
+import oquturbo.resources.generated.resources.practice_day_complete
+import oquturbo.resources.generated.resources.practice_day_none
+import oquturbo.resources.generated.resources.practice_day_semantics
+import oquturbo.resources.generated.resources.practice_day_today_none
+import oquturbo.resources.generated.resources.practice_day_unknown
+import oquturbo.resources.generated.resources.practice_definition
+import oquturbo.resources.generated.resources.practice_earned_evidence
+import oquturbo.resources.generated.resources.practice_future_dates
+import oquturbo.resources.generated.resources.practice_history_error
+import oquturbo.resources.generated.resources.practice_history_loading
+import oquturbo.resources.generated.resources.practice_history_retry
+import oquturbo.resources.generated.resources.practice_insufficient_history
+import oquturbo.resources.generated.resources.practice_loading_short
+import oquturbo.resources.generated.resources.practice_no_confirmed_streak
+import oquturbo.resources.generated.resources.practice_profile_scope
+import oquturbo.resources.generated.resources.practice_rhythm_continue
+import oquturbo.resources.generated.resources.practice_rhythm_count
+import oquturbo.resources.generated.resources.practice_rhythm_count_partial
+import oquturbo.resources.generated.resources.practice_rhythm_goal
+import oquturbo.resources.generated.resources.practice_rhythm_reached
+import oquturbo.resources.generated.resources.practice_rhythm_title
+import oquturbo.resources.generated.resources.practice_saved_scope
+import oquturbo.resources.generated.resources.practice_today
+import oquturbo.resources.generated.resources.practice_today_semantics
+import oquturbo.resources.generated.resources.practice_tracking_start
+import oquturbo.resources.generated.resources.practice_unavailable_short
 import oquturbo.resources.generated.resources.profile_about_description
 import oquturbo.resources.generated.resources.profile_achievement_correct_answers_condition
 import oquturbo.resources.generated.resources.profile_achievement_correct_answers_title
@@ -396,6 +477,51 @@ import oquturbo.resources.generated.resources.remember_number_menu_subtitle
 import oquturbo.resources.generated.resources.remember_number_menu_title
 import oquturbo.resources.generated.resources.remember_number_result_duration
 import oquturbo.resources.generated.resources.remember_number_title
+import oquturbo.resources.generated.resources.reminder_accepted
+import oquturbo.resources.generated.resources.reminder_after_practice
+import oquturbo.resources.generated.resources.reminder_allow
+import oquturbo.resources.generated.resources.reminder_around_time
+import oquturbo.resources.generated.resources.reminder_blocked
+import oquturbo.resources.generated.resources.reminder_cancel
+import oquturbo.resources.generated.resources.reminder_cancel_incomplete
+import oquturbo.resources.generated.resources.reminder_change_time
+import oquturbo.resources.generated.resources.reminder_channel_description
+import oquturbo.resources.generated.resources.reminder_channel_name
+import oquturbo.resources.generated.resources.reminder_checking
+import oquturbo.resources.generated.resources.reminder_choose_enable
+import oquturbo.resources.generated.resources.reminder_experimental
+import oquturbo.resources.generated.resources.reminder_ios_pending6a
+import oquturbo.resources.generated.resources.reminder_limited
+import oquturbo.resources.generated.resources.reminder_needs_time
+import oquturbo.resources.generated.resources.reminder_not_scheduled
+import oquturbo.resources.generated.resources.reminder_notification_body
+import oquturbo.resources.generated.resources.reminder_notification_title
+import oquturbo.resources.generated.resources.reminder_off
+import oquturbo.resources.generated.resources.reminder_old_pending
+import oquturbo.resources.generated.resources.reminder_open_settings_error
+import oquturbo.resources.generated.resources.reminder_os_caveat
+import oquturbo.resources.generated.resources.reminder_pending_unknown
+import oquturbo.resources.generated.resources.reminder_permission_needed
+import oquturbo.resources.generated.resources.reminder_picker_local
+import oquturbo.resources.generated.resources.reminder_picker_title
+import oquturbo.resources.generated.resources.reminder_purpose
+import oquturbo.resources.generated.resources.reminder_quiet_hint
+import oquturbo.resources.generated.resources.reminder_read_error
+import oquturbo.resources.generated.resources.reminder_replace_time
+import oquturbo.resources.generated.resources.reminder_requesting
+import oquturbo.resources.generated.resources.reminder_retry
+import oquturbo.resources.generated.resources.reminder_retry_cancel
+import oquturbo.resources.generated.resources.reminder_save_enable
+import oquturbo.resources.generated.resources.reminder_save_time
+import oquturbo.resources.generated.resources.reminder_save_unconfirmed
+import oquturbo.resources.generated.resources.reminder_saving
+import oquturbo.resources.generated.resources.reminder_schedule_error
+import oquturbo.resources.generated.resources.reminder_scheduled
+import oquturbo.resources.generated.resources.reminder_scheduling
+import oquturbo.resources.generated.resources.reminder_system_settings
+import oquturbo.resources.generated.resources.reminder_time_label
+import oquturbo.resources.generated.resources.reminder_turn_off
+import oquturbo.resources.generated.resources.reminder_unsupported
 import oquturbo.resources.generated.resources.rotation_match_answer_accessibility
 import oquturbo.resources.generated.resources.rotation_match_back
 import oquturbo.resources.generated.resources.rotation_match_back_to_games
@@ -592,6 +718,24 @@ import oquturbo.resources.generated.resources.symbol_count_title
 import oquturbo.resources.generated.resources.symbol_count_triangle
 import oquturbo.resources.generated.resources.symbol_count_wrong_detail
 import oquturbo.resources.generated.resources.symbol_count_wrong_title
+import oquturbo.resources.generated.resources.weekly_days_count
+import oquturbo.resources.generated.resources.weekly_home
+import oquturbo.resources.generated.resources.weekly_next_goal
+import oquturbo.resources.generated.resources.weekly_next_hint
+import oquturbo.resources.generated.resources.weekly_next_title
+import oquturbo.resources.generated.resources.weekly_practice_days
+import oquturbo.resources.generated.resources.weekly_regularity
+import oquturbo.resources.generated.resources.weekly_result_explanation
+import oquturbo.resources.generated.resources.weekly_result_title
+import oquturbo.resources.generated.resources.weekly_retry_source
+import oquturbo.resources.generated.resources.weekly_review_title
+import oquturbo.resources.generated.resources.weekly_sessions_error
+import oquturbo.resources.generated.resources.weekly_sessions_loading
+import oquturbo.resources.generated.resources.weekly_today_open
+import oquturbo.resources.generated.resources.weekly_training_days
+import oquturbo.resources.generated.resources.weekly_training_definition
+import oquturbo.resources.generated.resources.weekly_training_error
+import oquturbo.resources.generated.resources.weekly_training_loading
 import oquturbo.resources.generated.resources.word_flow_back
 import oquturbo.resources.generated.resources.word_flow_blank
 import oquturbo.resources.generated.resources.word_flow_choice_accessibility
@@ -647,6 +791,7 @@ object AppResource {
     }
 
     object Plural {
+        val practice_at_least_days = Res.plurals.practice_at_least_days
         val dual_focus_duration_minutes = Res.plurals.dual_focus_duration_minutes
         val dual_focus_duration_seconds = Res.plurals.dual_focus_duration_seconds
         val memory_grid_duration_minutes = Res.plurals.memory_grid_duration_minutes
@@ -673,6 +818,129 @@ object AppResource {
     }
 
     object String {
+        val reminder_notification_title = Res.string.reminder_notification_title
+        val reminder_notification_body = Res.string.reminder_notification_body
+        val reminder_channel_name = Res.string.reminder_channel_name
+        val reminder_channel_description = Res.string.reminder_channel_description
+        val reminder_experimental = Res.string.reminder_experimental
+        val reminder_purpose = Res.string.reminder_purpose
+        val reminder_os_caveat = Res.string.reminder_os_caveat
+        val reminder_after_practice = Res.string.reminder_after_practice
+        val reminder_time_label = Res.string.reminder_time_label
+        val reminder_checking = Res.string.reminder_checking
+        val reminder_off = Res.string.reminder_off
+        val reminder_needs_time = Res.string.reminder_needs_time
+        val reminder_not_scheduled = Res.string.reminder_not_scheduled
+        val reminder_choose_enable = Res.string.reminder_choose_enable
+        val reminder_change_time = Res.string.reminder_change_time
+        val reminder_picker_title = Res.string.reminder_picker_title
+        val reminder_picker_local = Res.string.reminder_picker_local
+        val reminder_save_enable = Res.string.reminder_save_enable
+        val reminder_save_time = Res.string.reminder_save_time
+        val reminder_cancel = Res.string.reminder_cancel
+        val reminder_saving = Res.string.reminder_saving
+        val reminder_scheduling = Res.string.reminder_scheduling
+        val reminder_requesting = Res.string.reminder_requesting
+        val reminder_scheduled = Res.string.reminder_scheduled
+        val reminder_around_time = Res.string.reminder_around_time
+        val reminder_accepted = Res.string.reminder_accepted
+        val reminder_limited = Res.string.reminder_limited
+        val reminder_quiet_hint = Res.string.reminder_quiet_hint
+        val reminder_permission_needed = Res.string.reminder_permission_needed
+        val reminder_allow = Res.string.reminder_allow
+        val reminder_blocked = Res.string.reminder_blocked
+        val reminder_system_settings = Res.string.reminder_system_settings
+        val reminder_open_settings_error = Res.string.reminder_open_settings_error
+        val reminder_schedule_error = Res.string.reminder_schedule_error
+        val reminder_read_error = Res.string.reminder_read_error
+        val reminder_replace_time = Res.string.reminder_replace_time
+        val reminder_turn_off = Res.string.reminder_turn_off
+        val reminder_save_unconfirmed = Res.string.reminder_save_unconfirmed
+        val reminder_cancel_incomplete = Res.string.reminder_cancel_incomplete
+        val reminder_retry_cancel = Res.string.reminder_retry_cancel
+        val reminder_retry = Res.string.reminder_retry
+        val reminder_old_pending = Res.string.reminder_old_pending
+        val reminder_pending_unknown = Res.string.reminder_pending_unknown
+        val reminder_unsupported = Res.string.reminder_unsupported
+        val reminder_ios_pending6a = Res.string.reminder_ios_pending6a
+
+        val focus_optional_title = Res.string.focus_optional_title
+        val focus_setting_title = Res.string.focus_setting_title
+        val focus_new_plans = Res.string.focus_new_plans
+        val focus_today_preserved = Res.string.focus_today_preserved
+        val focus_home_scope = Res.string.focus_home_scope
+        val focus_preview_dates = Res.string.focus_preview_dates
+        val focus_dates_confirmation = Res.string.focus_dates_confirmation
+        val focus_saved_dates = Res.string.focus_saved_dates
+        val focus_finished_dates = Res.string.focus_finished_dates
+        val focus_select = Res.string.focus_select
+        val focus_scheduled = Res.string.focus_scheduled
+        val focus_active = Res.string.focus_active
+        val focus_expired = Res.string.focus_expired
+        val focus_cancel = Res.string.focus_cancel
+        val focus_disable = Res.string.focus_disable
+        val focus_reselect = Res.string.focus_reselect
+        val focus_loading = Res.string.focus_loading
+        val focus_saving = Res.string.focus_saving
+        val focus_error = Res.string.focus_error
+        val focus_retry = Res.string.focus_retry
+        val focus_save_unconfirmed = Res.string.focus_save_unconfirmed
+        val focus_checking = Res.string.focus_checking
+        val focus_check = Res.string.focus_check
+        val focus_reset_explanation = Res.string.focus_reset_explanation
+        val focus_reset = Res.string.focus_reset
+        val focus_home_recovery = Res.string.focus_home_recovery
+
+        val weekly_review_title = Res.string.weekly_review_title
+        val weekly_regularity = Res.string.weekly_regularity
+        val weekly_practice_days = Res.string.weekly_practice_days
+        val weekly_training_days = Res.string.weekly_training_days
+        val weekly_days_count = Res.string.weekly_days_count
+        val weekly_training_definition = Res.string.weekly_training_definition
+        val weekly_today_open = Res.string.weekly_today_open
+        val weekly_training_loading = Res.string.weekly_training_loading
+        val weekly_training_error = Res.string.weekly_training_error
+        val weekly_result_title = Res.string.weekly_result_title
+        val weekly_result_explanation = Res.string.weekly_result_explanation
+        val weekly_sessions_loading = Res.string.weekly_sessions_loading
+        val weekly_sessions_error = Res.string.weekly_sessions_error
+        val weekly_next_title = Res.string.weekly_next_title
+        val weekly_next_goal = Res.string.weekly_next_goal
+        val weekly_next_hint = Res.string.weekly_next_hint
+        val weekly_home = Res.string.weekly_home
+        val weekly_retry_source = Res.string.weekly_retry_source
+        val practice_rhythm_title = Res.string.practice_rhythm_title
+        val practice_rhythm_goal = Res.string.practice_rhythm_goal
+        val practice_rhythm_count = Res.string.practice_rhythm_count
+        val practice_rhythm_count_partial = Res.string.practice_rhythm_count_partial
+        val practice_rhythm_reached = Res.string.practice_rhythm_reached
+        val practice_rhythm_continue = Res.string.practice_rhythm_continue
+        val practice_definition = Res.string.practice_definition
+        val practice_date_range = Res.string.practice_date_range
+        val practice_today = Res.string.practice_today
+        val practice_day_complete = Res.string.practice_day_complete
+        val practice_day_none = Res.string.practice_day_none
+        val practice_day_today_none = Res.string.practice_day_today_none
+        val practice_day_unknown = Res.string.practice_day_unknown
+        val practice_tracking_start = Res.string.practice_tracking_start
+        val practice_history_loading = Res.string.practice_history_loading
+        val practice_history_error = Res.string.practice_history_error
+        val practice_history_retry = Res.string.practice_history_retry
+        val practice_future_dates = Res.string.practice_future_dates
+        val practice_insufficient_history = Res.string.practice_insufficient_history
+        val practice_no_confirmed_streak = Res.string.practice_no_confirmed_streak
+        val practice_profile_scope = Res.string.practice_profile_scope
+        val practice_loading_short = Res.string.practice_loading_short
+        val practice_unavailable_short = Res.string.practice_unavailable_short
+        val practice_at_least_count = Res.string.practice_at_least_count
+        val practice_achievements_partial = Res.string.practice_achievements_partial
+        val practice_best_progress = Res.string.practice_best_progress
+        val practice_earned_evidence = Res.string.practice_earned_evidence
+        val practice_saved_scope = Res.string.practice_saved_scope
+        val practice_day_semantics = Res.string.practice_day_semantics
+        val practice_today_semantics = Res.string.practice_today_semantics
+        val practice_date_format = Res.string.practice_date_format
+
         val rule_switch_title = Res.string.rule_switch_title
         val rule_switch_description = Res.string.rule_switch_description
         val rule_switch_mode = Res.string.rule_switch_mode
@@ -880,6 +1148,29 @@ object AppResource {
         val home_no_recent_records = Res.string.home_no_recent_records
         val home_rank = Res.string.home_rank
         val home_rank_master = Res.string.home_rank_master
+        val home_training_progress = Res.string.home_training_progress
+        val home_view_progress = Res.string.home_view_progress
+        val home_training_loading = Res.string.home_training_loading
+        val home_training_unavailable = Res.string.home_training_unavailable
+        val home_retry_training = Res.string.home_retry_training
+        val home_personal_result_title = Res.string.home_personal_result_title
+        val home_personal_result_loading = Res.string.home_personal_result_loading
+        val home_personal_result_error = Res.string.home_personal_result_error
+        val home_personal_result_retry = Res.string.home_personal_result_retry
+        val home_personal_result_empty = Res.string.home_personal_result_empty
+        val home_personal_result_empty_hint = Res.string.home_personal_result_empty_hint
+        val home_personal_result_window = Res.string.home_personal_result_window
+        val home_personal_result_source = Res.string.home_personal_result_source
+        val home_personal_result_count = Res.string.home_personal_result_count
+        val home_personal_result_insufficient_hint = Res.string.home_personal_result_insufficient_hint
+        val home_personal_result_median = Res.string.home_personal_result_median
+        val home_personal_result_previous = Res.string.home_personal_result_previous
+        val home_personal_result_current = Res.string.home_personal_result_current
+        val home_personal_result_change = Res.string.home_personal_result_change
+        val home_personal_result_statistics = Res.string.home_personal_result_statistics
+        val home_personal_result_unknown_settings = Res.string.home_personal_result_unknown_settings
+        val home_personal_result_unknown_language = Res.string.home_personal_result_unknown_language
+        val home_personal_result_unknown_variant = Res.string.home_personal_result_unknown_variant
         val home_start_training = Res.string.home_start_training
         val home_today_training = Res.string.home_today_training
         val home_training_completed = Res.string.home_training_completed

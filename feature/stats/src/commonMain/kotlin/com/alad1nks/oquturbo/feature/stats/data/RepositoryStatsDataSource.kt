@@ -4,6 +4,7 @@ import com.alad1nks.oquturbo.core.data.model.GameActivityTotals
 import com.alad1nks.oquturbo.core.data.model.GameId
 import com.alad1nks.oquturbo.core.data.model.GameModeId
 import com.alad1nks.oquturbo.core.data.model.GameRecord
+import com.alad1nks.oquturbo.core.data.model.GameSeriesKey
 import com.alad1nks.oquturbo.core.data.model.GameSeriesTotals
 import com.alad1nks.oquturbo.core.data.model.GameSession
 import com.alad1nks.oquturbo.core.data.repository.GameActivityRepository
@@ -439,7 +440,7 @@ private fun GameSeriesTotals.averageScore(): Int? =
     sessionCount.takeIf { it > 0 }?.let { (scoreTotal.toDouble() / it).roundToInt() }
 
 private fun GameSession.seriesKey() =
-    SeriesKey(
+    GameSeriesKey(
         game = game,
         mode = mode,
         variantId = variantId.takeIf { mode.hasVariants() },
@@ -483,7 +484,7 @@ private fun GameId.modeCatalog(): List<GameModeId> =
         GameId.RuleSwitch -> listOf(GameModeId.RuleSwitchSwitch)
     }
 
-private fun GameId.toStatsGame(): StatsGame =
+internal fun GameId.toStatsGame(): StatsGame =
     when (this) {
         GameId.NumberSprint -> StatsGame.NumberSprint
         GameId.WideEye -> StatsGame.WideEye
@@ -497,7 +498,7 @@ private fun GameId.toStatsGame(): StatsGame =
         GameId.RuleSwitch -> StatsGame.RuleSwitch
     }
 
-private fun GameModeId.toStatsMode(): StatsMode =
+internal fun GameModeId.toStatsMode(): StatsMode =
     when (this) {
         GameModeId.NumberSprintClassic -> StatsMode.Classic
         GameModeId.NumberSprintBinary -> StatsMode.Binary
@@ -573,12 +574,6 @@ private data class PeriodWindow(
     val current: LongRange?,
     val previous: LongRange?,
     val activity: LongRange,
-)
-
-private data class SeriesKey(
-    val game: GameId,
-    val mode: GameModeId,
-    val variantId: String?,
 )
 
 private data class WeightedChange(

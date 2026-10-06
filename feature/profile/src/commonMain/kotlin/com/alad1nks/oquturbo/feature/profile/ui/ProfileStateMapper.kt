@@ -17,6 +17,7 @@ internal fun createProfileUiState(
     sessions: List<GameSession>,
     todayTraining: DailyTrainingPlan?,
     trainingProgress: DailyTrainingProgress,
+    practiceHistory: ProfilePracticeState = ProfilePracticeState.Loading,
 ): ProfileUiState {
     val memoryModes =
         records
@@ -60,7 +61,7 @@ internal fun createProfileUiState(
         personalization = personalization(progress.level, preferences),
         recentUnlocks = recentProgress.unlocks,
         showNewRankBanner = recentProgress.rankChanged,
-    )
+    ).withPracticeHistory(practiceHistory)
 }
 
 private fun achievements(

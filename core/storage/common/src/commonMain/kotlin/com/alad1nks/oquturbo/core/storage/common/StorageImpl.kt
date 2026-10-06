@@ -21,6 +21,14 @@ internal class StorageImpl(
         return appPreferences.getBoolean(VIBRATION_ENABLED)
     }
 
+    override fun getRemindersScheduleJson(): Flow<String?> = appPreferences.getString(REMINDERS_SCHEDULE_V1)
+
+    override suspend fun setRemindersScheduleJson(value: String) =
+        appPreferences.setString(
+            REMINDERS_SCHEDULE_V1,
+            value,
+        )
+
     override fun getRemindersEnabled(): Flow<Boolean?> {
         return appPreferences.getBoolean(REMINDERS_ENABLED)
     }
@@ -28,6 +36,10 @@ internal class StorageImpl(
     override fun getGameSessionsJson(): Flow<String?> {
         return appPreferences.getString(GAME_SESSIONS_V1)
     }
+
+    override fun getWeeklyFocusJson(): Flow<String?> = appPreferences.getString(WEEKLY_FOCUS_V1)
+
+    override suspend fun setWeeklyFocusJson(value: String) = appPreferences.setString(WEEKLY_FOCUS_V1, value)
 
     override fun getDailyTrainingJson(): Flow<String?> {
         return appPreferences.getString(DAILY_TRAINING_V1)
@@ -121,9 +133,11 @@ internal class StorageImpl(
         const val DARK_THEME = "dark_theme"
         const val GAME_SESSIONS_V1 = "game_sessions_v1"
         const val KENKOZ_GAME_RECORD = "kenkoz_game_record"
+        const val WEEKLY_FOCUS_V1 = "weekly_focus_v1"
         const val LANGUAGE = "language"
         const val PROFILE_PREFERENCES_V1 = "profile_preferences_v1"
         const val REMEMBER_NUMBER_RECORD = "remember_number_record"
+        const val REMINDERS_SCHEDULE_V1 = "reminders_schedule_v1"
         const val REMINDERS_ENABLED = "reminders_enabled"
         const val SOUND_ENABLED = "sound_enabled"
         const val VIBRATION_ENABLED = "vibration_enabled"

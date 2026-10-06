@@ -22,6 +22,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.LifecycleResumeEffect
 import com.alad1nks.oquturbo.core.designsystem.theme.OquTurboLayout
 import com.alad1nks.oquturbo.core.designsystem.theme.OquTurboTheme
 import com.alad1nks.oquturbo.core.ui.component.PageHeader
@@ -43,6 +44,10 @@ internal fun ProfileRouteContent(
     modifier: Modifier = Modifier,
 ) {
     val uiState by viewModel.uiState.collectAsState()
+    LifecycleResumeEffect(viewModel) {
+        viewModel.refreshProfile()
+        onPauseOrDispose {}
+    }
 
     ProfileScreen(
         uiState = uiState,
@@ -53,6 +58,7 @@ internal fun ProfileRouteContent(
         onPersonalizationClick = onPersonalizationClick,
         onSettingsClick = onSettingsClick,
         onStatsClick = onStatsClick,
+        onRetryPracticeHistory = viewModel::retryPracticeHistory,
         modifier = modifier,
     )
 }
@@ -68,6 +74,7 @@ internal fun ProfileScreen(
     onSettingsClick: () -> Unit,
     onStatsClick: () -> Unit,
     modifier: Modifier = Modifier,
+    onRetryPracticeHistory: () -> Unit = {},
 ) {
     Box(modifier = modifier.fillMaxSize().appBackground()) {
         LazyColumn(
@@ -107,12 +114,15 @@ internal fun ProfileScreen(
                     uiState = uiState,
                     onStatsClick = onStatsClick,
                     onAchievementsClick = onAchievementsClick,
+                    onRetryPracticeHistory = onRetryPracticeHistory,
                 )
             }
             item {
                 ProfileAchievementsSection(
                     achievements = uiState.achievements,
                     onAllAchievementsClick = onAchievementsClick,
+                    practiceHistory = uiState.practiceHistory,
+                    onRetryPracticeHistory = onRetryPracticeHistory,
                 )
             }
             item {

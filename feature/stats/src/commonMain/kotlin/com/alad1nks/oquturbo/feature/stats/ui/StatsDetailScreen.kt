@@ -10,6 +10,8 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListState
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material3.Icon
@@ -187,10 +189,11 @@ private fun ModeDetailCard(
 }
 
 @Composable
-private fun StatsDetailLayout(
+internal fun StatsDetailLayout(
     title: String,
     onBackClick: () -> Unit,
     modifier: Modifier = Modifier,
+    listState: LazyListState = rememberLazyListState(),
     content: androidx.compose.foundation.lazy.LazyListScope.() -> Unit,
 ) {
     Box(modifier = modifier.fillMaxSize().appBackground()) {
@@ -201,6 +204,7 @@ private fun StatsDetailLayout(
                 contentAlignment = Alignment.TopCenter,
             ) {
                 LazyColumn(
+                    state = listState,
                     modifier = Modifier.widthIn(max = OquTurboLayout.pageMaxWidth).fillMaxSize(),
                     contentPadding =
                         PaddingValues(

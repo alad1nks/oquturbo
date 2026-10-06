@@ -11,9 +11,13 @@ interface Storage {
 
     fun getVibrationEnabled(): Flow<Boolean?>
 
+    fun getRemindersScheduleJson(): Flow<String?>
+
     fun getRemindersEnabled(): Flow<Boolean?>
 
     fun getGameSessionsJson(): Flow<String?>
+
+    fun getWeeklyFocusJson(): Flow<String?>
 
     fun getDailyTrainingJson(): Flow<String?>
 
@@ -38,9 +42,13 @@ interface Storage {
 
     suspend fun setVibrationEnabled(value: Boolean)
 
+    suspend fun setRemindersScheduleJson(value: String)
+
     suspend fun setRemindersEnabled(value: Boolean)
 
     suspend fun setGameSessionsJson(value: String)
+
+    suspend fun setWeeklyFocusJson(value: String)
 
     suspend fun setDailyTrainingJson(value: String)
 

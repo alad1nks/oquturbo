@@ -13,6 +13,8 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListScope
+import androidx.compose.foundation.lazy.LazyListState
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.material.icons.Icons
@@ -24,7 +26,6 @@ import androidx.compose.material.icons.filled.EmojiEvents
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Language
 import androidx.compose.material.icons.filled.Lock
-import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.PrivacyTip
 import androidx.compose.material.icons.filled.Save
 import androidx.compose.material.icons.filled.Smartphone
@@ -41,6 +42,7 @@ import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -53,7 +55,10 @@ import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.LifecycleResumeEffect
 import com.alad1nks.oquturbo.core.data.model.AppLanguage
+import com.alad1nks.oquturbo.core.data.reminders.ReminderPickerLabels
+import com.alad1nks.oquturbo.core.data.reminders.ReminderState
 import com.alad1nks.oquturbo.core.designsystem.theme.OquTurboLayout
 import com.alad1nks.oquturbo.core.designsystem.theme.OquTurboTheme
 import com.alad1nks.oquturbo.core.ui.component.AppCard
@@ -303,20 +308,32 @@ internal fun ProfileAchievementsRouteContent(
     onBackClick: () -> Unit,
 ) {
     val uiState by viewModel.uiState.collectAsState()
-    ProfileAchievementsScreen(uiState, onBackClick)
+    LifecycleResumeEffect(viewModel) {
+        viewModel.refreshProfile()
+        onPauseOrDispose {}
+    }
+    ProfileAchievementsScreen(uiState, onBackClick, viewModel::retryPracticeHistory)
 }
 
 @Composable
-private fun ProfileAchievementsScreen(
+internal fun ProfileAchievementsScreen(
     uiState: ProfileUiState,
     onBackClick: () -> Unit,
+    onRetryPracticeHistory: () -> Unit = {},
 ) {
     ProfileDetailScaffold(
         title = AppResource.String.profile_all_achievements,
         onBackClick = onBackClick,
     ) {
         uiState.achievements.forEach { achievement ->
-            item { AchievementCard(achievement = achievement) }
+            item {
+                AchievementCard(
+                    achievement = achievement,
+                    history = uiState.practiceHistory,
+                    onRetryPracticeHistory = onRetryPracticeHistory,
+                    showFutureNote = true,
+                )
+            }
         }
     }
 }
@@ -549,6 +566,8 @@ internal fun ProfileSettingsRouteContent(
     onBackClick: () -> Unit,
 ) {
     val settings by viewModel.settingsUiState.collectAsState()
+    val reminder by viewModel.reminderState.collectAsState()
+    LaunchedEffect(viewModel) { viewModel.refreshReminders() }
     ProfileSettingsScreen(
         settings,
         viewModel::setLanguage,
@@ -557,11 +576,16 @@ internal fun ProfileSettingsRouteContent(
         viewModel::setVibrationEnabled,
         viewModel::setRemindersEnabled,
         onBackClick,
+        reminder,
+        viewModel::chooseReminderTime,
+        viewModel::allowReminderPermission,
+        viewModel::openReminderSettings,
+        viewModel::retryReminder,
     )
 }
 
 @Composable
-private fun ProfileSettingsScreen(
+internal fun ProfileSettingsScreen(
     settings: ProfileSettingsUiState,
     onLanguageChange: (AppLanguage) -> Unit,
     onDarkThemeChange: (Boolean) -> Unit,
@@ -569,6 +593,12 @@ private fun ProfileSettingsScreen(
     onVibrationChange: (Boolean) -> Unit,
     onRemindersChange: (Boolean) -> Unit,
     onBackClick: () -> Unit,
+    reminder: ReminderState = ReminderState(),
+    onChooseTime: (ReminderPickerLabels, Boolean) -> Unit = { _, _ -> },
+    onAllowPermission: () -> Unit = {},
+    onSystemSettings: () -> Unit = {},
+    onRetryReminder: () -> Unit = {},
+    listState: LazyListState = rememberLazyListState(),
 ) {
     var showLanguageDialog by remember { mutableStateOf(false) }
 
@@ -586,6 +616,7 @@ private fun ProfileSettingsScreen(
     ProfileDetailScaffold(
         title = AppResource.String.profile_settings_title,
         onBackClick = onBackClick,
+        listState = listState,
     ) {
         item {
             SettingsValueRow(
@@ -620,11 +651,13 @@ private fun ProfileSettingsScreen(
             )
         }
         item {
-            SettingsSwitchRow(
-                icon = Icons.Filled.Notifications,
-                title = AppResource.String.profile_settings_reminders,
-                checked = settings.remindersEnabled,
-                onCheckedChange = onRemindersChange,
+            ReminderSettingsCard(
+                reminder,
+                onRemindersChange,
+                onChooseTime,
+                onAllowPermission,
+                onSystemSettings,
+                onRetryReminder,
             )
         }
         item {
@@ -797,6 +830,7 @@ private fun SettingsCard(
 private fun ProfileDetailScaffold(
     title: StringResource,
     onBackClick: () -> Unit,
+    listState: LazyListState = rememberLazyListState(),
     content: LazyListScope.() -> Unit,
 ) {
     Box(modifier = Modifier.fillMaxSize().appBackground()) {
@@ -806,6 +840,7 @@ private fun ProfileDetailScaffold(
                 onBackClick = onBackClick,
             )
             LazyColumn(
+                state = listState,
                 modifier =
                     Modifier.align(
                         Alignment.CenterHorizontally,

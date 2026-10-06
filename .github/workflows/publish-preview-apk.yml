@@ -1,0 +1,64 @@
+name: Publish preview APK manually
+
+on:
+  workflow_dispatch:
+    inputs:
+      product:
+        description: Product from the source PR build
+        type: choice
+        required: true
+        options: [oquturbo, sansprint, kenkoz, baspa]
+      source_run_id:
+        description: Completed PR workflow run ID with a successful Android build
+        type: string
+        required: true
+
+permissions:
+  actions: read
+  contents: read
+
+# All four products publish to the same repository; serialize target pushes.
+concurrency:
+  group: manual-preview-apk-publication
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Require default-branch publisher
+        env:
+          DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
+        run: |
+          if [[ "$GITHUB_REF" != "refs/heads/$DEFAULT_BRANCH" ]]; then
+            echo 'Dispatch this workflow from the default branch.' >&2
+            exit 1
+          fi
+
+      # Never check out or execute code from the selected source PR run.
+      - name: Checkout publisher
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+          path: publisher
+
+      - name: Validate source build and APK
+        id: source
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PRODUCT: ${{ inputs.product }}
+          SOURCE_RUN_ID: ${{ inputs.source_run_id }}
+        run: python3 publisher/.github/scripts/manual_apk_publish.py prepare
+
+      - name: Checkout publication repository
+        uses: actions/checkout@v4
+        with:
+          repository: alad1nks/alad1nks.github.io
+          token: ${{ secrets.ACCESS_TOKEN }}
+          path: publication
+
+      - name: Publish validated APK
+        env:
+          PRODUCT: ${{ inputs.product }}
+          SOURCE_BRANCH: ${{ steps.source.outputs.branch }}
+        run: python3 publisher/.github/scripts/manual_apk_publish.py publish
