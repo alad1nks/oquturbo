@@ -35,7 +35,18 @@ internal object IosReminderRuntime {
                 getCommonModules() + getPlatformModules() +
                     module {
                         single {
-                            PracticeReminderController(get(), platform, scope) { code ->
+                            PracticeReminderController(
+                                get(),
+                                platform,
+                                scope,
+                                diagnostics = { event, generation, phase ->
+                                    IosReminderDiagnostics.record(
+                                        event,
+                                        "generation" to generation.toString(),
+                                        "phase" to phase.name,
+                                    )
+                                },
+                            ) { code ->
                                 reminderResourceContent(code).let { ReminderContent(code, it.title, it.body) }
                             }
                         }

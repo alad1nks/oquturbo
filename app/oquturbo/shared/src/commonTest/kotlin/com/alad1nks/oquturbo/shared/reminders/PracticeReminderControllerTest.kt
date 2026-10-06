@@ -182,6 +182,50 @@ class PracticeReminderControllerTest {
             assertEquals(writes, prefs.writes)
         }
 
+    @Test fun pickerObservationDistinguishesIgnoredDuplicateAndDispatchWithoutChangingCancellation() =
+        scenario {
+            seed()
+            controller.refresh()
+            tick()
+            val picker = CompletableDeferred<Int?>()
+            platform.picker = { picker.await() }
+            val writes = prefs.writes.toList()
+            val replaces = platform.replaces
+            controller.chooseTime(labels, false)
+            tick()
+            assertEquals(
+                listOf(
+                    "picker-controller-entry",
+                    "picker-action-start",
+                    "picker-state-read-start",
+                    "picker-state-read-complete",
+                    "picker-native-dispatch",
+                ),
+                pickerEvents,
+            )
+            controller.chooseTime(labels, false)
+            assertEquals(listOf("picker-controller-entry", "picker-ignored-active-action"), pickerEvents.takeLast(2))
+            picker.complete(null)
+            tick()
+            assertEquals(listOf("picker-native-result", "picker-action-finished"), pickerEvents.takeLast(2))
+            assertEquals(writes, prefs.writes)
+            assertEquals(replaces, platform.replaces)
+            assertEquals(ReminderPhase.Scheduled, controller.state.value.phase)
+        }
+
+    @Test fun failingPickerObserverDoesNotChangeConfirmedActionOrPermission() =
+        scenario {
+            diagnosticFailure = true
+            platform.chosen = 123
+            controller.chooseTime(labels, true)
+            tick()
+            assertTrue(repo.readRemindersDesired())
+            assertEquals(123, repo.readReminderSchedule()!!.minutesOfDay)
+            assertEquals(123, platform.pending!!.minutesOfDay)
+            assertEquals(ReminderPhase.Scheduled, controller.state.value.phase)
+            assertEquals(0, platform.prompts)
+        }
+
     @Test fun confirmedSchedulePrecedesDesiredAndGesturePermissionThenOneAcceptedRequest() =
         scenario {
             platform.authorization = ReminderAuthorization.Requestable
@@ -635,8 +679,18 @@ class PracticeReminderControllerTest {
         val repo = SettingsRepository(app.koin.get<Storage>())
         val platform = Platform()
         var failContent = false
+        var diagnosticFailure = false
+        val pickerEvents = mutableListOf<String>()
         val controller =
-            PracticeReminderController(repo, platform, scope.backgroundScope) {
+            PracticeReminderController(
+                repo,
+                platform,
+                scope.backgroundScope,
+                diagnostics = { event, _, _ ->
+                    if (diagnosticFailure) error("observer")
+                    pickerEvents += event
+                },
+            ) {
                 if (failContent) error("resources")
                 ReminderContent(it, "Title $it", "Body $it")
             }
