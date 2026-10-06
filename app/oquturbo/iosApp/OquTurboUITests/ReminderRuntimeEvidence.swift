@@ -204,8 +204,17 @@ final class ReminderRuntimeEvidence {
         // This simulator exposes Language & Region, but no Date & Time page.
         tapSettingsRow("Language & Region")
         let regionCells = settings.cells.containing(.staticText, identifier: "Region")
+        let regionSelection = settings.navigationBars["Select Region"]
+        let languageConfirmation = settings.sheets["Would you like to change the iPhone language to English (UK)?"]
         func readRegion() -> String? {
-            guard regionCells.element(boundBy: 0).waitForExistence(timeout: 5), regionCells.count == 1 else { return nil }
+            // Underlying Region cells remain accessible while native selection/confirmation is pending.
+            let committed = XCTNSPredicateExpectation(predicate: NSPredicate { _, _ in
+                !regionSelection.exists && settings.sheets.count == 0 && settings.alerts.count == 0 &&
+                    regionCells.count == 1 && regionCells.element(boundBy: 0).exists
+            }, object: settings)
+            guard XCTWaiter.wait(for: [committed], timeout: 5) == .completed else {
+                captureSettings("system-region-readback-pending"); return nil
+            }
             let values = regionCells.element(boundBy: 0).staticTexts.allElementsBoundByIndex
                 .map { $0.label }.filter { $0 != "Region" && !$0.isEmpty }
             return values.count == 1 ? values[0] : nil
@@ -220,25 +229,76 @@ final class ReminderRuntimeEvidence {
             let result = settings.staticTexts[region]
             XCTAssertTrue(result.waitForExistence(timeout: 5) && result.isHittable)
             result.tap()
-            if settings.alerts.element(boundBy: 0).waitForExistence(timeout: 2) {
+            if languageConfirmation.waitForExistence(timeout: 2) {
                 captureSettings("system-region-confirmation")
-                let confirm = settings.alerts.buttons["Change to " + region]
-                XCTAssertTrue(confirm.exists && confirm.isHittable)
-                confirm.tap()
+                let keepLanguage = languageConfirmation.buttons["Keep English (US)"]
+                XCTAssertTrue(keepLanguage.exists && keepLanguage.isHittable)
+                keepLanguage.tap()
             }
             captureSettings("system-region-selected-" + region)
             XCTAssertEqual(readRegion(), region)
+            XCTAssertTrue(settings.staticTexts["en-US"].exists, "Preserve the observed system language")
         }
         captureSettings("system-region-original")
+        XCTAssertTrue(settings.staticTexts["en-US"].exists, "Expected the observed English (US) system baseline")
         guard let originalRegion = readRegion(), originalRegion != "Germany" else {
             XCTFail("Expected an observed original region distinct from the documented 24-hour region"); return
         }
         // Register before the first region mutation, including its native confirmation.
         test.addTeardownBlock {
             settings.activate()
-            // A failure may leave the country picker open; return through actual back navigation.
+            let cleanupDeadline = ProcessInfo.processInfo.systemUptime + 5
+            // Cancel pending choices before reading the underlying original value.
+            if languageConfirmation.exists {
+                let cancel = languageConfirmation.buttons["Cancel"]
+                guard cancel.isHittable else {
+                    captureSettings("system-region-restoration-confirmation-blocked")
+                    XCTFail("Cannot cancel pending language confirmation"); return
+                }
+                guard ProcessInfo.processInfo.systemUptime < cleanupDeadline else {
+                    captureSettings("system-region-restoration-cleanup-timeout")
+                    XCTFail("System region cleanup deadline expired before Cancel"); return
+                }
+                cancel.tap()
+                let gone = XCTNSPredicateExpectation(predicate: NSPredicate(format: "exists == false"),
+                                                     object: languageConfirmation)
+                guard XCTWaiter.wait(for: [gone], timeout: max(0, cleanupDeadline - ProcessInfo.processInfo.systemUptime)) == .completed &&
+                    ProcessInfo.processInfo.systemUptime <= cleanupDeadline else {
+                    captureSettings("system-region-restoration-confirmation-pending")
+                    XCTFail("Language confirmation remains pending"); return
+                }
+            }
+            if regionSelection.exists {
+                let cancel = regionSelection.buttons["Cancel"]
+                guard cancel.isHittable else {
+                    captureSettings("system-region-restoration-selection-blocked")
+                    XCTFail("Cannot cancel pending region selection"); return
+                }
+                guard ProcessInfo.processInfo.systemUptime < cleanupDeadline else {
+                    captureSettings("system-region-restoration-cleanup-timeout")
+                    XCTFail("System region cleanup deadline expired before Cancel"); return
+                }
+                cancel.tap()
+                let gone = XCTNSPredicateExpectation(predicate: NSPredicate(format: "exists == false"),
+                                                     object: regionSelection)
+                guard XCTWaiter.wait(for: [gone], timeout: max(0, cleanupDeadline - ProcessInfo.processInfo.systemUptime)) == .completed &&
+                    ProcessInfo.processInfo.systemUptime <= cleanupDeadline else {
+                    captureSettings("system-region-restoration-selection-pending")
+                    XCTFail("Region selection remains pending"); return
+                }
+            }
+            guard ProcessInfo.processInfo.systemUptime <= cleanupDeadline else {
+                captureSettings("system-region-restoration-cleanup-timeout")
+                XCTFail("System region cleanup exceeded its deadline"); return
+            }
+            // A still-open selection must never count as restored by exposing its underlying page.
             for _ in 0..<5 {
-                if settings.navigationBars["Language & Region"].exists { break }
+                if !regionSelection.exists && settings.sheets.count == 0 &&
+                    settings.navigationBars["Language & Region"].exists { break }
+                guard !regionSelection.exists && settings.sheets.count == 0 && settings.alerts.count == 0 else {
+                    captureSettings("system-region-restoration-overlay-pending")
+                    XCTFail("System region selection remains pending"); return
+                }
                 let back = settings.navigationBars.buttons.element(boundBy: 0)
                 guard back.exists && back.isHittable else {
                     captureSettings("system-region-restoration-navigation-missing")
@@ -253,6 +313,7 @@ final class ReminderRuntimeEvidence {
             if current != originalRegion { selectRegion(originalRegion) }
             captureSettings("system-region-teardown-restored")
             XCTAssertEqual(readRegion(), originalRegion)
+            XCTAssertTrue(settings.staticTexts["en-US"].exists)
         }
         selectRegion("Germany")
         app.activate()
