@@ -26,6 +26,7 @@ internal class PracticeReminderController(
     private val settings: SettingsRepository,
     private val platform: ReminderPlatform,
     private val scope: CoroutineScope,
+    private val diagnostics: ((String, Long, ReminderPhase) -> Unit)? = null,
     private val content: (String) -> ReminderContent,
 ) : ReminderController {
     private val mutableState = MutableStateFlow(ReminderState(capability = platform.capability))
@@ -46,19 +47,24 @@ internal class PracticeReminderController(
     }
 
     override fun chooseTime(labels: ReminderPickerLabels, enable: Boolean) =
-        act { token ->
+        act(tracePicker = true) { token ->
             val (previous, originalSnapshot) =
                 mutex.withLock {
+                    observePicker("picker-state-read-start")
                     val priorPhase = state.value.phase
                     readState(ReminderPhase.Saving)
                     val previous =
                         state.value.let {
                             if (it.phase == ReminderPhase.Saving) it.copy(phase = priorPhase) else it
                         }
-                    previous to settings.readReminderScheduleSnapshot()
+                    val snapshot = settings.readReminderScheduleSnapshot()
+                    observePicker("picker-state-read-complete")
+                    previous to snapshot
                 }
             // Native UI can remain open while this Activity is stopped. Never lock the receiver behind it.
+            observePicker("picker-native-dispatch")
             val minutes = platform.chooseTime(previous.schedule?.minutesOfDay, labels)
+            observePicker("picker-native-result")
             val saved =
                 mutex.withLock {
                     if (token != generation) return@withLock false
@@ -151,18 +157,39 @@ internal class PracticeReminderController(
         }
     }
 
-    private fun act(block: suspend (Long) -> Unit) {
-        if (action?.isActive == true || disableQueued || platform.capability != ReminderCapability.Supported) return
+    private fun observePicker(event: String) {
+        // Opt-in observation must never change an action's outcome, including when its sink fails.
+        runCatching { diagnostics?.invoke(event, generation, state.value.phase) }
+    }
+
+    private fun act(tracePicker: Boolean = false, block: suspend (Long) -> Unit) {
+        if (tracePicker) observePicker("picker-controller-entry")
+        val ignored =
+            when {
+                action?.isActive == true -> "picker-ignored-active-action"
+                disableQueued -> "picker-ignored-disable-queued"
+                platform.capability != ReminderCapability.Supported -> "picker-ignored-unsupported"
+                else -> null
+            }
+        if (ignored != null) {
+            if (tracePicker) observePicker(ignored)
+            return
+        }
         val token = generation
         action =
             scope.launch {
                 try {
+                    if (tracePicker) observePicker("picker-action-start")
                     block(token)
                 } catch (cancelled: CancellationException) {
+                    if (tracePicker) observePicker("picker-action-cancelled")
                     if (token == generation) mutableState.value = ReminderState(platform.capability)
                     throw cancelled
                 } catch (_: Exception) {
+                    if (tracePicker) observePicker("picker-action-error")
                     mutex.withLock { if (token == generation) readState(ReminderPhase.ScheduleError) }
+                } finally {
+                    if (tracePicker) observePicker("picker-action-finished")
                 }
             }
     }
