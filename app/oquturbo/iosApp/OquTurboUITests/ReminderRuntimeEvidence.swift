@@ -118,15 +118,26 @@ final class ReminderRuntimeEvidence {
         let button = app.buttons["reminder-time-confirm"]
         XCTAssertEqual(button.label, confirm)
         // Actual scrollable sheet must expose both complete actions at the configured large text size.
-        for _ in 0..<5 { if button.isHittable { break }; scrollPickerContentUp() }
-        XCTAssertTrue(button.isHittable)
+        for _ in 0..<5 { if pickerActionFullyVisible(button) { break }; scrollPickerContentUp() }
+        XCTAssertTrue(pickerActionFullyVisible(button))
         let dismiss = app.buttons["reminder-time-cancel"]
         XCTAssertEqual(dismiss.label, cancel)
-        for _ in 0..<5 { if dismiss.isHittable { break }; scrollPickerContentUp() }
-        XCTAssertTrue(dismiss.isHittable)
+        for _ in 0..<5 { if pickerActionFullyVisible(dismiss) { break }; scrollPickerContentUp() }
+        XCTAssertTrue(pickerActionFullyVisible(dismiss))
+        XCTAssertTrue(pickerActionFullyVisible(button))
         capture("localized-picker-actions-" + title)
         dismiss.tap()
         capture("localized-picker-cancelled-" + title)
+    }
+
+    private func pickerActionFullyVisible(_ button: XCUIElement) -> Bool {
+        let scrolls = app.otherElements["reminder-native-picker"].scrollViews
+        guard scrolls.count == 1 && button.isHittable else { return false }
+        let viewport = scrolls.element(boundBy: 0).frame.intersection(app.frame)
+        guard !button.frame.isEmpty && viewport.contains(button.frame) else { return false }
+        return button.staticTexts.allElementsBoundByIndex.allSatisfy {
+            !$0.frame.isEmpty && viewport.contains($0.frame)
+        }
     }
 
     private func scrollPickerContentUp() {
@@ -190,27 +201,60 @@ final class ReminderRuntimeEvidence {
         }
         XCTAssertTrue(settings.navigationBars["Settings"].exists)
         tapSettingsRow("General")
-        tapSettingsRow("Date & Time")
-        let toggle = settings.switches["24-Hour Time"]
-        XCTAssertTrue(toggle.waitForExistence(timeout: 5))
-        guard let originalSetting = toggle.value as? String, ["0", "1"].contains(originalSetting) else {
-            captureSettings("system-hour-cycle-unknown-value"); XCTFail("Unknown system hour-cycle value"); return
+        // This simulator exposes Language & Region, but no Date & Time page.
+        tapSettingsRow("Language & Region")
+        let regionCells = settings.cells.containing(.staticText, identifier: "Region")
+        func readRegion() -> String? {
+            guard regionCells.element(boundBy: 0).waitForExistence(timeout: 5), regionCells.count == 1 else { return nil }
+            let values = regionCells.element(boundBy: 0).staticTexts.allElementsBoundByIndex
+                .map { $0.label }.filter { $0 != "Region" && !$0.isEmpty }
+            return values.count == 1 ? values[0] : nil
         }
-        captureSettings("system-hour-cycle-original-" + originalSetting)
-        // Register before the first mutation: XCTest failures must also restore the real system preference.
+        func selectRegion(_ region: String) {
+            tapSettingsRow("Region")
+            captureSettings("system-region-selection")
+            guard settings.searchFields.count == 1 else { XCTFail("Expected one real region search field"); return }
+            let search = settings.searchFields.element(boundBy: 0)
+            XCTAssertTrue(search.isHittable)
+            search.tap(); search.typeText(region)
+            let result = settings.staticTexts[region]
+            XCTAssertTrue(result.waitForExistence(timeout: 5) && result.isHittable)
+            result.tap()
+            if settings.alerts.element(boundBy: 0).waitForExistence(timeout: 2) {
+                captureSettings("system-region-confirmation")
+                let confirm = settings.alerts.buttons["Change to " + region]
+                XCTAssertTrue(confirm.exists && confirm.isHittable)
+                confirm.tap()
+            }
+            captureSettings("system-region-selected-" + region)
+            XCTAssertEqual(readRegion(), region)
+        }
+        captureSettings("system-region-original")
+        guard let originalRegion = readRegion(), originalRegion != "Germany" else {
+            XCTFail("Expected an observed original region distinct from the documented 24-hour region"); return
+        }
+        // Register before the first region mutation, including its native confirmation.
         test.addTeardownBlock {
             settings.activate()
-            let available = toggle.waitForExistence(timeout: 5)
-            if available, let current = toggle.value as? String, ["0", "1"].contains(current),
-               current != originalSetting && toggle.isHittable { toggle.tap() }
-            captureSettings("system-hour-cycle-teardown-restored")
-            XCTAssertTrue(available)
-            XCTAssertEqual(toggle.value as? String, originalSetting)
+            // A failure may leave the country picker open; return through actual back navigation.
+            for _ in 0..<5 {
+                if settings.navigationBars["Language & Region"].exists { break }
+                let back = settings.navigationBars.buttons.element(boundBy: 0)
+                guard back.exists && back.isHittable else {
+                    captureSettings("system-region-restoration-navigation-missing")
+                    XCTFail("Cannot return to original system region"); return
+                }
+                back.tap()
+            }
+            guard let current = readRegion() else {
+                captureSettings("system-region-restoration-value-missing")
+                XCTFail("Cannot read system region for restoration"); return
+            }
+            if current != originalRegion { selectRegion(originalRegion) }
+            captureSettings("system-region-teardown-restored")
+            XCTAssertEqual(readRegion(), originalRegion)
         }
-        XCTAssertEqual(originalSetting, "0", "The baseline must exercise the actual 12-hour system setting")
-        toggle.tap()
-        XCTAssertEqual(toggle.value as? String, "1")
-        captureSettings("system-hour-cycle-enabled-24")
+        selectRegion("Germany")
         app.activate()
         assertScheduled()
         let summaries = app.staticTexts.matching(NSPredicate(format: "label BEGINSWITH %@", "Chosen time:"))
@@ -228,15 +272,14 @@ final class ReminderRuntimeEvidence {
         capture("system-24-hour-unchanged-draft")
         let cancel = app.buttons["reminder-time-cancel"]
         XCTAssertEqual(cancel.label, "Cancel")
-        for _ in 0..<5 { if cancel.isHittable { break }; scrollPickerContentUp() }
-        XCTAssertTrue(cancel.isHittable)
+        for _ in 0..<5 { if pickerActionFullyVisible(cancel) { break }; scrollPickerContentUp() }
+        XCTAssertTrue(pickerActionFullyVisible(cancel))
         cancel.tap()
         assertScheduled()
         settings.activate()
-        XCTAssertTrue(toggle.waitForExistence(timeout: 5))
-        if toggle.value as? String != originalSetting { toggle.tap() }
-        captureSettings("system-hour-cycle-restored")
-        XCTAssertEqual(toggle.value as? String, originalSetting)
+        selectRegion(originalRegion)
+        captureSettings("system-region-restored")
+        XCTAssertEqual(readRegion(), originalRegion)
         app.activate()
         assertScheduled()
         capture("system-hour-cycle-restored-app")
