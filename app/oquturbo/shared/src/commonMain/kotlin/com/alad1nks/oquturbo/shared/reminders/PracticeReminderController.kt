@@ -49,8 +49,13 @@ internal class PracticeReminderController(
         act { token ->
             val (previous, originalSnapshot) =
                 mutex.withLock {
+                    val priorPhase = state.value.phase
                     readState(ReminderPhase.Saving)
-                    state.value to settings.readReminderScheduleSnapshot()
+                    val previous =
+                        state.value.let {
+                            if (it.phase == ReminderPhase.Saving) it.copy(phase = priorPhase) else it
+                        }
+                    previous to settings.readReminderScheduleSnapshot()
                 }
             // Native UI can remain open while this Activity is stopped. Never lock the receiver behind it.
             val minutes = platform.chooseTime(previous.schedule?.minutesOfDay, labels)
@@ -59,10 +64,14 @@ internal class PracticeReminderController(
                     if (token != generation) return@withLock false
                     val desired = settings.readRemindersDesired()
                     val currentSnapshot = settings.readReminderScheduleSnapshot()
-                    if (minutes == null || desired != previous.desired ||
-                        currentSnapshot != originalSnapshot
-                    ) {
+                    if (desired != previous.desired || currentSnapshot != originalSnapshot) {
                         reconcile()
+                        return@withLock false
+                    }
+                    if (minutes == null) {
+                        // Discarding a draft must not replace/cancel native work or refresh persisted content.
+                        // A concurrent refresh already published newer truth; do not overwrite it.
+                        if (state.value.phase == ReminderPhase.Saving) mutableState.value = previous
                         return@withLock false
                     }
                     val schedule = ReminderSchedule(minutes, resolvedContent())

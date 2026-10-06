@@ -74,6 +74,114 @@ class PracticeReminderControllerTest {
             assertTrue(prefs.writes.isEmpty())
         }
 
+    @Test fun cancelledUnchangedDraftPreservesScheduledOffAndNeedsTimeWithoutEffects() =
+        scenario {
+            val phases =
+                listOf(ReminderPhase.Scheduled, ReminderPhase.Off, ReminderPhase.NeedsTime, ReminderPhase.ScheduleError)
+            for (phase in phases) {
+                seed()
+                if (phase == ReminderPhase.Off) repo.setRemindersEnabled(false)
+                if (phase == ReminderPhase.NeedsTime) prefs.values["reminders_schedule_v1"]!!.value = null
+                platform.failReplace = phase == ReminderPhase.ScheduleError
+                controller.refresh()
+                tick()
+                assertEquals(phase, controller.state.value.phase)
+                val before = controller.state.value
+                val writes = prefs.writes.toList()
+                val replacements = platform.replaces
+                val cancellations = platform.cancels
+                val pending = platform.pending
+                controller.chooseTime(labels, phase == ReminderPhase.NeedsTime)
+                tick()
+                assertEquals(before.phase, controller.state.value.phase)
+                assertEquals(before.desired, controller.state.value.desired)
+                assertEquals(before.schedule, controller.state.value.schedule)
+                assertEquals(ReminderPending.Known(pending), controller.state.value.native!!.pending)
+                assertEquals(writes, prefs.writes)
+                assertEquals(replacements, platform.replaces)
+                assertEquals(cancellations, platform.cancels)
+                assertEquals(pending, platform.pending)
+                assertEquals(0, platform.prompts)
+                if (phase == ReminderPhase.ScheduleError) {
+                    platform.failReplace = false
+                    controller.retry()
+                    tick()
+                    assertEquals(ReminderPhase.Scheduled, controller.state.value.phase)
+                }
+            }
+        }
+
+    @Test fun cancelledDraftDoesNotOverwriteConcurrentRefreshOrLateOff() =
+        scenario {
+            seed()
+            controller.refresh()
+            tick()
+            val picker = CompletableDeferred<Int?>()
+            platform.picker = { picker.await() }
+            controller.chooseTime(labels, false)
+            tick()
+            platform.authorization = ReminderAuthorization.Blocked
+            controller.refresh()
+            tick()
+            val refreshed = controller.state.value
+            val cancellations = platform.cancels
+            picker.complete(null)
+            tick()
+            assertEquals(ReminderPhase.SystemBlocked, refreshed.phase)
+            assertEquals(refreshed, controller.state.value)
+            assertEquals(cancellations, platform.cancels)
+            val latePicker = CompletableDeferred<Int?>()
+            platform.picker = { latePicker.await() }
+            controller.chooseTime(labels, false)
+            tick()
+            controller.setEnabled(false)
+            tick()
+            val off = controller.state.value
+            val writes = prefs.writes.toList()
+            val afterOffCancels = platform.cancels
+            latePicker.complete(null)
+            tick()
+            assertEquals(ReminderPhase.Off, off.phase)
+            assertEquals(off, controller.state.value)
+            assertEquals(writes, prefs.writes)
+            assertEquals(afterOffCancels, platform.cancels)
+        }
+
+    @Test fun cancelledDraftKeepsFailedOffRecoveryAndReconcilesExternalIntentChange() =
+        scenario {
+            seed()
+            controller.refresh()
+            tick()
+            prefs.beforeBoolean = { error("off write") }
+            controller.setEnabled(false)
+            tick()
+            val failed = controller.state.value
+            val cancels = platform.cancels
+            controller.chooseTime(labels, false)
+            tick()
+            assertEquals(ReminderPhase.CancellationIncomplete, failed.phase)
+            assertEquals(failed, controller.state.value)
+            assertEquals(cancels, platform.cancels)
+            prefs.beforeBoolean = {}
+            controller.retry()
+            tick()
+            assertEquals(ReminderPhase.Off, controller.state.value.phase)
+            seed()
+            controller.refresh()
+            tick()
+            val picker = CompletableDeferred<Int?>()
+            platform.picker = { picker.await() }
+            controller.chooseTime(labels, false)
+            tick()
+            repo.setRemindersEnabled(false)
+            val writes = prefs.writes.toList()
+            picker.complete(null)
+            tick()
+            assertEquals(ReminderPhase.Off, controller.state.value.phase)
+            assertNull(platform.pending)
+            assertEquals(writes, prefs.writes)
+        }
+
     @Test fun confirmedSchedulePrecedesDesiredAndGesturePermissionThenOneAcceptedRequest() =
         scenario {
             platform.authorization = ReminderAuthorization.Requestable
