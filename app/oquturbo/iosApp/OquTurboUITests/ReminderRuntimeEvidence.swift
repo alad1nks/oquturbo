@@ -29,7 +29,11 @@ final class ReminderRuntimeEvidence {
 
     func tap(_ element: XCUIElement, scrolling: Bool = false, evidenceName: String? = nil) {
         for _ in 0..<(scrolling ? 10 : 1) {
+            let deadline = ProcessInfo.processInfo.systemUptime + 2
             if element.waitForExistence(timeout: 2) && element.isHittable {
+                // Hittable can become true while the preceding swipe is still decelerating.
+                // A moving visible target needs observation, not another swipe or a speculative tap.
+                if scrolling && !waitUntilStill(element, deadline: deadline) { continue }
                 if let name = evidenceName {
                     capture(name)
                     let state = XCTAttachment(string: "enabled=\(element.isEnabled) frame=\(element.frame) appState=\(app.state.rawValue)")
@@ -41,6 +45,30 @@ final class ReminderRuntimeEvidence {
         }
         capture("missing-control")
         XCTFail("Required control is not hittable: \(element)")
+    }
+
+    private func waitUntilStill(_ element: XCUIElement, deadline: TimeInterval) -> Bool {
+        var lastFrame: CGRect?
+        var stableSince = ProcessInfo.processInfo.systemUptime
+        var observations: [String] = []
+        defer {
+            let trace = XCTAttachment(string: observations.joined(separator: "\n"))
+            trace.name = "tap-frame-readiness"; trace.lifetime = .keepAlways; test.add(trace)
+        }
+        while ProcessInfo.processInfo.systemUptime < deadline {
+            let frame = element.frame
+            let usable = element.isEnabled && element.isHittable
+            let now = ProcessInfo.processInfo.systemUptime
+            observations.append("\(now): frame=\(frame) usable=\(usable) deadline=\(deadline)")
+            // XCTest queries can block. Never treat a late result as readiness within this budget.
+            guard now < deadline else { return false }
+            if !usable || frame.isEmpty { return false }
+            if frame != lastFrame { stableSince = now }
+            lastFrame = frame
+            if now - stableSince >= 0.2 { return true }
+            RunLoop.current.run(until: Date().addingTimeInterval(min(0.1, deadline - now)))
+        }
+        return false
     }
 
     func selectFutureTime(first: Bool = false) -> Date {
