@@ -118,6 +118,58 @@ class EvidenceTest(unittest.TestCase):
             events.append(request)
         evidence.validate_phase("locales", events, snapshots, baseline)
 
+    def dismissal_fixture(self):
+        events, _, _ = self.fixture()
+        request = dict(events[2], language="en", capture="before")
+        events = [request, {"event": "picker-host"}, {"event": "picker-host"},
+                  {"event": "accepted"}, dict(request, capture="after"), {"event": "picker-host"},
+                  {"event": "pending", "capture": "before", "count": "1"},
+                  {"event": "pending", "capture": "after", "count": "1"}]
+        observations = [{"pickerHosts": count, "sha256": "same-raw-bytes", "language": "en"} for count in (0, 2)]
+        return events, observations
+
+    def test_dismissal_requires_bracketed_bytes_and_actual_native_inventories(self):
+        events, observations = self.dismissal_fixture()
+        evidence.validate_dismissal(events, observations)
+        for missing in (0, 1):
+            with self.assertRaisesRegex(ValueError, "bracketing dismissal"):
+                evidence.validate_dismissal(events, observations[:missing] + observations[missing + 1:])
+        for missing in (0, 4):
+            with self.assertRaisesRegex(ValueError, "native inventories"):
+                evidence.validate_dismissal(events[:missing] + events[missing + 1:], observations)
+        with self.assertRaisesRegex(ValueError, "single-request native inventory"):
+            evidence.validate_dismissal(events[:-1], observations)
+        observations[-1]["sha256"] = "changed-raw-bytes"
+        with self.assertRaisesRegex(ValueError, "raw persisted"):
+            evidence.validate_dismissal(events, observations)
+
+    def test_dismissal_rejects_effects_and_native_changes_but_allows_later_locale_edit(self):
+        for effect in ("accepted", "cancelled"):
+            events, observations = self.dismissal_fixture()
+            events.insert(2, {"event": effect})
+            with self.assertRaisesRegex(ValueError, "replaced or cancelled"):
+                evidence.validate_dismissal(events, observations)
+        events, observations = self.dismissal_fixture()
+        events[4]["minute"] = "31"
+        with self.assertRaisesRegex(ValueError, "configuration changed"):
+            evidence.validate_dismissal(events, observations)
+        events, observations = self.dismissal_fixture()
+        observations.append({"pickerHosts": 3, "sha256": "new-language-key-ru-with-old-english-schedule", "language": "en"})
+        events[4]["next"] = "300"  # Native occurrence timestamps are not persisted configuration.
+        evidence.validate_dismissal(events, observations)
+
+    def test_dismissal_observation_rejects_a_byte_read_crossing_the_closing_picker(self):
+        hosts = [{"event": "picker-host"}] * 2
+        self.assertIsNone(evidence.dismissal_observation(hosts, hosts + [hosts[0]], b"language changed"))
+        events, observations = self.dismissal_fixture()
+        stable = evidence.dismissal_observation(hosts, hosts, b"changed even if language also changed")
+        observations.append(stable)
+        with self.assertRaisesRegex(ValueError, "raw persisted"):
+            evidence.validate_dismissal(events, observations)
+        # Dropping an ambiguous sample never substitutes for a real after observation.
+        with self.assertRaisesRegex(ValueError, "bracketing dismissal"):
+            evidence.validate_dismissal(events, observations[:1])
+
     def test_failed_clock_phase_restores_clock_zone_and_network_time(self):
         runner_spec = importlib.util.spec_from_file_location("runner", Path(__file__).with_name("qa-ios-reminders.py"))
         module = importlib.util.module_from_spec(runner_spec)

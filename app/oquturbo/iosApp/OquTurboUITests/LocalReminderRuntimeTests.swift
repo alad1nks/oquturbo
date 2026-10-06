@@ -127,6 +127,46 @@ final class LocalReminderRuntimeTests: XCTestCase {
         let ui = ReminderRuntimeEvidence(self)
         ui.start()
         XCTAssertLessThanOrEqual(ui.app.frame.width, 390, "Use a genuinely narrow supported iPhone")
+        // Keep this interval free of preference changes; the host brackets raw bytes and native events.
+        ui.assertScheduled()
+        RunLoop.current.run(until: Date().addingTimeInterval(3))
+        ui.tap(ui.app.buttons["Change time"], scrolling: true)
+        let picker = ui.app.datePickers["reminder-time-wheel"]
+        XCTAssertTrue(picker.waitForExistence(timeout: 5))
+        let original = picker.pickerWheels.allElementsBoundByIndex.map { $0.value as? String }
+        XCTAssertFalse(original.isEmpty)
+        ui.capture("dismissal-original-draft")
+        ui.setWheels(picker, minutes: 150)
+        if picker.pickerWheels.allElementsBoundByIndex.map({ $0.value as? String }) == original {
+            ui.setWheels(picker, minutes: 151)
+        }
+        XCTAssertNotEqual(picker.pickerWheels.allElementsBoundByIndex.map { $0.value as? String }, original)
+        ui.capture("dismissal-edited-draft")
+        let sheet = ui.app.otherElements["reminder-native-picker"]
+        XCTAssertTrue(sheet.exists)
+        // Drag the sheet's top edge, outside the wheels and scrollable content.
+        sheet.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.01)).press(
+            forDuration: 0.1, thenDragTo: ui.app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.95)))
+        let gone = XCTNSPredicateExpectation(predicate: NSPredicate(format: "exists == false"), object: picker)
+        XCTAssertEqual(XCTWaiter.wait(for: [gone], timeout: 5), .completed)
+        ui.capture("dismissal-sheet-closed")
+        // Reopening proves the real dismissal callback released the pending picker operation.
+        ui.tap(ui.app.buttons["Change time"], scrolling: true)
+        XCTAssertTrue(picker.waitForExistence(timeout: 5))
+        XCTAssertEqual(picker.pickerWheels.allElementsBoundByIndex.map { $0.value as? String }, original)
+        ui.capture("dismissal-original-draft-restored")
+        RunLoop.current.run(until: Date().addingTimeInterval(3))
+        ui.tap(ui.app.buttons["reminder-time-cancel"])
+        // Ordinary foreground refresh supplies a separate actual native inventory observation.
+        XCUIDevice.shared.press(.home)
+        ui.app.activate()
+        ui.assertScheduled()
+        RunLoop.current.run(until: Date().addingTimeInterval(3))
+        ui.capture("dismissal-after-foreground-inventory")
+        // A real picker-host event closes host byte sampling before any language preference write.
+        ui.tap(ui.app.buttons["Change time"], scrolling: true)
+        XCTAssertTrue(picker.waitForExistence(timeout: 5))
+        ui.tap(ui.app.buttons["reminder-time-cancel"])
         ui.language("Language", option: "Русский")
         ui.inspectLocalizedPicker(change: "Изменить время", title: "Время напоминания",
                                   helper: "По текущему времени устройства.", confirm: "Сохранить время", cancel: "Отмена")

@@ -258,6 +258,7 @@ class Runner:
         evidence.events_since(boundary, boundary)
         (directory / "event-boundary.json").write_text(json.dumps({"bytes": len(boundary),
             "prefixSha256": hashlib.sha256(boundary).hexdigest()}))
+        observations = []
         started = time.time()
         result = directory / "runtime.xcresult"
         command = self.xcode_args() + ["test-without-building", "-only-testing:OquTurboUITests/LocalReminderRuntimeTests/" + method,
@@ -268,7 +269,18 @@ class Runner:
                 if time.monotonic() >= cutoff:
                     self.process.terminate()
                     raise TimeoutError("Bounded XCTest episode timed out")
-                self.sample(directory, snapshots, cutoff)
+                if self.sample(directory, snapshots, cutoff) and name == "locales":
+                    probe = self.documents / "reminder-diagnostics.jsonl"
+                    before_read = evidence.events_since(probe.read_bytes(), boundary)
+                    raw_preferences = (self.documents / "oquturbo.preferences_pb").read_bytes()
+                    after_read = evidence.events_since(probe.read_bytes(), boundary)
+                    observation = evidence.dismissal_observation(before_read, after_read, raw_preferences)
+                    if observation is not None:
+                        observations.append(observation)
+                        if observation["pickerHosts"] in (0, 2):
+                            observation["file"] = f"dismissal-prefs-{len(observations):04d}.preferences_pb"
+                            (directory / observation["file"]).write_bytes(raw_preferences)
+                        (directory / "dismissal-observations.json").write_text(json.dumps(observations, indent=2))
                 time.sleep(min(2, max(0, cutoff - time.monotonic())))
             code = self.process.returncode
             self.process = None
@@ -290,6 +302,8 @@ class Runner:
         evidence.validate_summary(summary)
         events = evidence.events_since((directory / "app-native.jsonl").read_bytes(), boundary)
         (directory / "phase-native.json").write_text(json.dumps(events, indent=2))
+        if name == "locales":
+            evidence.validate_dismissal(events, observations)
         report = evidence.validate_phase(name, events, snapshots, baseline)
         (directory / "validation.json").write_text(json.dumps(report, indent=2))
         return report
