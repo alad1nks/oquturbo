@@ -91,6 +91,26 @@ def alarm_epoch(alarm):
     return int(match[1])
 
 
+def assert_inexact_alarm(alarm):
+    alarm_epoch(alarm)  # Require the owned RTC_WAKEUP header, not history or another package.
+    details = re.findall(r"(?m)^\s*type=RTC_WAKEUP origWhen=[^\n]+$", alarm)
+    assert len(details) == 1, "Missing or ambiguous owned alarm details"
+    detail = details[0]
+    window = re.search(r"\bwindow=(0|\+(?:\d+(?:ms|d|h|m|s))+) ", detail)
+    flags = re.search(r"\bflags=0x([0-9a-fA-F]+)$", detail)
+    assert window and flags and " repeatInterval=0 " in detail, "Unrecognized owned alarm details"
+    # Android13 AlarmManagerService marks caller-requested exact alarms FLAG_STANDALONE
+    # before setImpl derives the heuristic window. AlarmManager.set near due (<10s)
+    # can therefore have window=0 without exact access/reason or any special flags.
+    assert int(flags[1], 16) == 0 and "exactAllowReason=" not in detail, "Exact or special alarm unexpectedly present"
+
+
+def assert_no_exact_alarm_permissions(dump):
+    packages = re.findall(r"(?m)^  Package \[([^\]]+)\] .*:$", dump)
+    assert packages == [PACKAGE] and "    requested permissions:\n" in dump, "Unrecognized package permission inventory"
+    assert not re.search(r"android\.permission\.(?:SCHEDULE_EXACT_ALARM|USE_EXACT_ALARM)\b", dump), "Exact alarm permission unexpectedly present"
+
+
 def display_override(output, kind):
     matches = re.findall(r"^Override " + kind + r": (.+)$", output, re.M)
     assert len(matches) <= 1, "Ambiguous display override"
@@ -307,7 +327,7 @@ class Driver:
             self.output.joinpath(f"{self.step:03d}-edited-alarm.txt").write_text(dump)
             alarms = pending_alarms(dump)
             assert len(alarms) <= 1, "Edited reminder left duplicate owned alarms"
-            assert not alarms or "window=0 " not in alarms[0], "Exact alarm unexpectedly present"
+            if alarms: assert_inexact_alarm(alarms[0])
             accepted = re.findall(r"scheduled target=(\d+) minutes=(\d+)", events)
             assert int(self.text("shell", "date", "+%s", timeout=remaining())) < due, "Edit confirmation missed the chosen due"
             if saved.get("reminders_enabled") == "0801" and schedule.get("version") == 1 and schedule.get("minutesOfDay") == minute and \
@@ -393,7 +413,7 @@ class Driver:
         self.output.joinpath(f"{self.step:03d}-alarm-inventory.txt").write_text(dump)
         assert len(alarms) == count, f"Owned pending alarms: {len(alarms)}, expected {count}"
         if count:
-            assert "window=0 " not in alarms[0], "Exact alarm unexpectedly present"
+            assert_inexact_alarm(alarms[0])
         return alarms
 
     def next_schedule(self):
@@ -719,7 +739,7 @@ class Driver:
             accepted = re.findall(r"(?m)^\d+ scheduled target=(\d+) minutes=(\d+)$", fresh)
             alarms = pending_alarms(dump)
             assert len(alarms) <= 1, "Boot restoration left duplicate owned alarms"
-            assert not alarms or "window=0 " not in alarms[0], "Boot restoration created an exact alarm"
+            if alarms: assert_inexact_alarm(alarms[0])
             assert int(self.text("shell", "date", "+%s", timeout=remaining())) < due, "Reboot missed the chosen occurrence"
             if accepted and tuple(map(int, accepted[-1])) == (due * 1000, minute) and \
                     len(alarms) == 1 and alarm_epoch(alarms[0]) == due * 1000:
@@ -757,6 +777,9 @@ def main():
     try:
         assert driver.text("shell", "getprop", "ro.build.version.sdk") == "33"
         driver.adb("install", "-r", str(args.apk), timeout=120)
+        installed_package = driver.text("shell", "dumpsys", "package", PACKAGE)
+        args.output.joinpath("installed-package.txt").write_text(installed_package)
+        assert_no_exact_alarm_permissions(installed_package)
         driver.adb("shell", "settings", "put", "system", "time_12_24", "24")
         driver.adb("shell", "settings", "put", "system", "screen_off_timeout", "7200000")
         driver.adb("shell", "settings", "put", "global", "stay_on_while_plugged_in", "7")
