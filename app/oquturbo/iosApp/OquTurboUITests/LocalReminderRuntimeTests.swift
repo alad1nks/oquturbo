@@ -180,6 +180,7 @@ final class LocalReminderRuntimeTests: XCTestCase {
         ui.assertScheduled()
         ui.inspectLocalizedPicker(change: "Change time", title: "Reminder time",
                                   helper: "Uses the device’s current local time.", confirm: "Save time", cancel: "Cancel")
+        ui.inspectSystem24HourTime(original: original)
     }
 
     func testCalendarControlProbe() {

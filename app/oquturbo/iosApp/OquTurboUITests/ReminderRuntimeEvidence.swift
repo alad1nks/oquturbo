@@ -149,6 +149,99 @@ final class ReminderRuntimeEvidence {
         start.press(forDuration: 0.1, thenDragTo: end)
     }
 
+    // Original N12: one actual alternate system hour cycle, without saving a new reminder time.
+    func inspectSystem24HourTime(original: [String?]) {
+        func numbers(_ text: String) -> [Int] {
+            text.components(separatedBy: CharacterSet.decimalDigits.inverted).compactMap(Int.init)
+        }
+        guard original.count == 3, let hourText = original[0], let minuteText = original[1],
+              let period = original[2], numbers(hourText).count == 1, numbers(minuteText).count == 1,
+              let hour = numbers(hourText).first, let minute = numbers(minuteText).first,
+              (1...12).contains(hour), (0...59).contains(minute), ["AM", "PM"].contains(period) else {
+            XCTFail("Expected an observed English 12-hour baseline"); return
+        }
+        let expectedHour = hour % 12 + (period == "PM" ? 12 : 0)
+        let settings = XCUIApplication(bundleIdentifier: "com.apple.Preferences")
+        func captureSettings(_ name: String) {
+            let image = XCTAttachment(screenshot: XCUIScreen.main.screenshot())
+            image.name = name; image.lifetime = .keepAlways; test.add(image)
+            let tree = XCTAttachment(string: settings.debugDescription)
+            tree.name = name + "-tree"; tree.lifetime = .keepAlways; test.add(tree)
+        }
+        func tapSettingsRow(_ label: String) {
+            let row = settings.staticTexts[label]
+            for _ in 0..<10 {
+                if row.waitForExistence(timeout: 2) && row.isHittable { row.tap(); return }
+                settings.swipeUp()
+            }
+            captureSettings("system-hour-cycle-missing-" + label)
+            XCTFail("Required real Settings row is not hittable: " + label)
+        }
+        settings.launch()
+        XCTAssertTrue(settings.wait(for: .runningForeground, timeout: 15))
+        // Settings may resume the notification page visited earlier in this same simulator.
+        for _ in 0..<5 {
+            if settings.navigationBars["Settings"].exists { break }
+            let back = settings.navigationBars.buttons.element(boundBy: 0)
+            guard back.exists && back.isHittable else {
+                captureSettings("system-hour-cycle-missing-back"); XCTFail("No Settings back navigation"); return
+            }
+            back.tap()
+        }
+        XCTAssertTrue(settings.navigationBars["Settings"].exists)
+        tapSettingsRow("General")
+        tapSettingsRow("Date & Time")
+        let toggle = settings.switches["24-Hour Time"]
+        XCTAssertTrue(toggle.waitForExistence(timeout: 5))
+        guard let originalSetting = toggle.value as? String, ["0", "1"].contains(originalSetting) else {
+            captureSettings("system-hour-cycle-unknown-value"); XCTFail("Unknown system hour-cycle value"); return
+        }
+        captureSettings("system-hour-cycle-original-" + originalSetting)
+        // Register before the first mutation: XCTest failures must also restore the real system preference.
+        test.addTeardownBlock {
+            settings.activate()
+            let available = toggle.waitForExistence(timeout: 5)
+            if available, let current = toggle.value as? String, ["0", "1"].contains(current),
+               current != originalSetting && toggle.isHittable { toggle.tap() }
+            captureSettings("system-hour-cycle-teardown-restored")
+            XCTAssertTrue(available)
+            XCTAssertEqual(toggle.value as? String, originalSetting)
+        }
+        XCTAssertEqual(originalSetting, "0", "The baseline must exercise the actual 12-hour system setting")
+        toggle.tap()
+        XCTAssertEqual(toggle.value as? String, "1")
+        captureSettings("system-hour-cycle-enabled-24")
+        app.activate()
+        assertScheduled()
+        let summaries = app.staticTexts.matching(NSPredicate(format: "label BEGINSWITH %@", "Chosen time:"))
+        XCTAssertEqual(summaries.count, 1)
+        let summary = summaries.element(boundBy: 0).label
+        XCTAssertEqual(numbers(summary), [expectedHour, minute])
+        XCTAssertFalse(summary.contains("AM") || summary.contains("PM"))
+        capture("system-24-hour-summary")
+        tap(app.buttons["Change time"], scrolling: true)
+        let picker = app.datePickers["reminder-time-wheel"]
+        XCTAssertTrue(picker.waitForExistence(timeout: 5))
+        XCTAssertEqual(picker.pickerWheels.count, 2)
+        let values = picker.pickerWheels.allElementsBoundByIndex.map { numbers($0.value as? String ?? "") }
+        XCTAssertEqual(values, [[expectedHour], [minute]])
+        capture("system-24-hour-unchanged-draft")
+        let cancel = app.buttons["reminder-time-cancel"]
+        XCTAssertEqual(cancel.label, "Cancel")
+        for _ in 0..<5 { if cancel.isHittable { break }; scrollPickerContentUp() }
+        XCTAssertTrue(cancel.isHittable)
+        cancel.tap()
+        assertScheduled()
+        settings.activate()
+        XCTAssertTrue(toggle.waitForExistence(timeout: 5))
+        if toggle.value as? String != originalSetting { toggle.tap() }
+        captureSettings("system-hour-cycle-restored")
+        XCTAssertEqual(toggle.value as? String, originalSetting)
+        app.activate()
+        assertScheduled()
+        capture("system-hour-cycle-restored-app")
+    }
+
     func allowIfPrompted() {
         let allow = springboard.alerts.buttons["Allow"]
         if allow.waitForExistence(timeout: 5) { allow.tap() }
