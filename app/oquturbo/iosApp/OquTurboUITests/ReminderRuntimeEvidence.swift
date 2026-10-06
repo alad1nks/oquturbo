@@ -17,8 +17,9 @@ final class ReminderRuntimeEvidence {
         state.name = name + "-process-state"; state.lifetime = .keepAlways; test.add(state)
     }
 
-    func start() {
-        app.launchArguments = ["-AppleLanguages", "(en)", "-AppleLocale", "en_US"]
+    func start(allowLanguageChanges: Bool = false) {
+        // Argument-domain locale overrides would mask the app's own language preference changes.
+        app.launchArguments = allowLanguageChanges ? [] : ["-AppleLanguages", "(en)", "-AppleLocale", "en_US"]
         app.launch()
         XCTAssertTrue(app.wait(for: .runningForeground, timeout: 30))
         tap(app.buttons["Profile"])
