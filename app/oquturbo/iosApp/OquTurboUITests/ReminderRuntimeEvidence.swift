@@ -26,9 +26,16 @@ final class ReminderRuntimeEvidence {
         capture("settings")
     }
 
-    func tap(_ element: XCUIElement, scrolling: Bool = false) {
+    func tap(_ element: XCUIElement, scrolling: Bool = false, evidenceName: String? = nil) {
         for _ in 0..<(scrolling ? 10 : 1) {
-            if element.waitForExistence(timeout: 2) && element.isHittable { element.tap(); return }
+            if element.waitForExistence(timeout: 2) && element.isHittable {
+                if let name = evidenceName {
+                    capture(name)
+                    let state = XCTAttachment(string: "enabled=\(element.isEnabled) frame=\(element.frame) appState=\(app.state.rawValue)")
+                    state.name = name + "-control-state"; state.lifetime = .keepAlways; test.add(state)
+                }
+                element.tap(); return
+            }
             if scrolling { app.swipeUp() }
         }
         capture("missing-control")
@@ -36,9 +43,12 @@ final class ReminderRuntimeEvidence {
     }
 
     func selectFutureTime(first: Bool = false) -> Date {
-        tap(app.buttons[first ? "Choose time and enable" : "Change time"], scrolling: true)
+        tap(app.buttons[first ? "Choose time and enable" : "Change time"], scrolling: true,
+            evidenceName: "before-native-picker-open")
         let picker = app.datePickers["reminder-time-wheel"]
-        XCTAssertTrue(picker.waitForExistence(timeout: 5))
+        let appeared = picker.waitForExistence(timeout: 5)
+        if !appeared { capture("native-picker-missing-after-tap") }
+        XCTAssertTrue(appeared)
         let target = Calendar.current.date(byAdding: .minute, value: 3, to: Date())!
         let fields = Calendar.current.dateComponents([.hour, .minute], from: target)
         setWheels(picker, minutes: fields.hour! * 60 + fields.minute!)
