@@ -118,15 +118,35 @@ final class ReminderRuntimeEvidence {
         let button = app.buttons["reminder-time-confirm"]
         XCTAssertEqual(button.label, confirm)
         // Actual scrollable sheet must expose both complete actions at the configured large text size.
-        for _ in 0..<5 { if button.isHittable { break }; app.swipeUp() }
+        for _ in 0..<5 { if button.isHittable { break }; scrollPickerContentUp() }
         XCTAssertTrue(button.isHittable)
         let dismiss = app.buttons["reminder-time-cancel"]
         XCTAssertEqual(dismiss.label, cancel)
-        for _ in 0..<5 { if dismiss.isHittable { break }; app.swipeUp() }
+        for _ in 0..<5 { if dismiss.isHittable { break }; scrollPickerContentUp() }
         XCTAssertTrue(dismiss.isHittable)
         capture("localized-picker-actions-" + title)
         dismiss.tap()
         capture("localized-picker-cancelled-" + title)
+    }
+
+    private func scrollPickerContentUp() {
+        let sheet = app.otherElements["reminder-native-picker"]
+        let scrolls = sheet.scrollViews
+        guard scrolls.count == 1 else { XCTFail("Expected one native picker content scroll view"); return }
+        let scroll = scrolls.element(boundBy: 0)
+        let picker = sheet.datePickers["reminder-time-wheel"]
+        let viewport = scroll.frame.intersection(app.frame)
+        let wheel = picker.frame
+        // The actual sheet has a content gutter to the left of the picker. Center swipes edit its minute wheel.
+        guard !viewport.isEmpty && wheel.minX > viewport.minX && wheel.minX < viewport.maxX else {
+            capture("native-picker-scroll-gutter-missing")
+            XCTFail("No visible outer scroll gutter beside the native picker"); return
+        }
+        let x = (viewport.minX + wheel.minX) / 2
+        let origin = app.coordinate(withNormalizedOffset: .zero)
+        let start = origin.withOffset(CGVector(dx: x - app.frame.minX, dy: viewport.minY + viewport.height * 0.75 - app.frame.minY))
+        let end = origin.withOffset(CGVector(dx: x - app.frame.minX, dy: viewport.minY + viewport.height * 0.25 - app.frame.minY))
+        start.press(forDuration: 0.1, thenDragTo: end)
     }
 
     func allowIfPrompted() {
