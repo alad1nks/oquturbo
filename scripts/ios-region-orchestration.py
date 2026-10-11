@@ -1,5 +1,6 @@
 """One locale episode with host-owned real Settings transitions and fail-closed readbacks."""
 import json
+import datetime as dt
 import plistlib
 import re
 import sqlite3
@@ -39,30 +40,141 @@ def validate_baseline(request, observation, saved_minutes):
     return observation
 
 
-def classify_interruption(request, observation, issues, build_issues, diagnostic_text, crash_files):
-    validate_observation(request, observation, {"before-confirmation", "before-region-choice"})
-    if issues != ["Test crashed with signal kill."] or build_issues or crash_files:
+def scoped_clock(clock, created):
+    day = dt.datetime.fromtimestamp(created, dt.timezone.utc).date()
+    candidates = [dt.datetime.fromisoformat(str(day + dt.timedelta(days=offset)) + "T" + clock + "+00:00").timestamp()
+                  for offset in (-1, 0, 1)]
+    matching = [value for value in candidates if created <= value <= created + 720]
+    if len(matching) != 1:
+        raise ValueError("Ambiguous or out-of-operation diagnostic time")
+    return matching[0]
+
+
+def completed_dispatch(request, observation, text, tap):
+    # Runner event timestamps include the actual date/zone; host receipt order is buffered.
+    pattern = re.compile(r'^(\d\d:\d\d:\d\d\.\d+) OquTurboUITests-Runner\[(\d+):(\d+)\] '
+                         r'<XCTContext: (0x[0-9a-f]+)> (started|finished) activity '
+                         r'<XCActivityRecord: (0x[0-9a-f]+)> (\d{4}-\d\d-\d\d) \d\d:\d\d:\d\d \+0000: (.+)$', re.M)
+    activities = []
+    for match in pattern.finditer(text):
+        clock, pid, thread, context, action, activity, date, title = match.groups()
+        stamp = dt.datetime.fromisoformat(date + "T" + clock + "+00:00").timestamp()
+        activities.append((stamp, pid, thread, context, action, activity, title))
+    starts = [a for a in activities if a[4] == "started" and a[6] == tap]
+    if len(starts) != 1:
+        raise ValueError("Ambiguous exact native tap activity")
+    start = starts[0]
+    stamp, pid, thread, context = start[:4]
+    marker = "region-" + observation["state"] + "-" + request["operation"]
+    marker_lines = re.findall(r'^(\d\d:\d\d:\d\d\.\d+) OquTurboUITests-Runner\[' + pid + ':' + thread +
+                             r'\] Activity [^\n]*added attachment with name \x27' + re.escape(marker) + r'\x27', text, re.M)
+    if len(marker_lines) != 1:
+        raise ValueError("Missing fresh marker from the dispatching runner/thread")
+    marker_time = scoped_clock(marker_lines[0], request["created"])
+    if not request["created"] <= observation["observed"] <= marker_time <= stamp <= request["created"] + 720:
+        raise ValueError("Marker and native dispatch timestamps disagree")
+    deaths = re.findall(r'^(\d\d:\d\d:\d\d\.\d+) xcodebuild\[(\d+):\d+\][^\n]*' + re.escape(request["udid"]) +
+                        r'[^\n]*got death notice for pid ' + pid + r' \(exit code: \(null\), signal: 9\)', text, re.M)
+    if len(deaths) != 1:
+        raise ValueError("Missing unique matching simulator/runner SIGKILL")
+    death = scoped_clock(deaths[0][0], request["created"])
+    syntheses = [a for a in activities if a[1:4] == (pid, thread, context) and a[4] == "started" and
+                 a[6] == "Synthesize event" and stamp < a[0] < death]
+    if len(syntheses) != 1:
+        raise ValueError("Missing unique synthesis nested in the exact native tap")
+    synthesis = syntheses[0]
+    finishes = [a for a in activities if a[1:4] == (pid, thread, context) and a[4] == "finished" and
+                a[5] == synthesis[5] and a[6].startswith("Synthesize event (") and synthesis[0] < a[0] < death]
+    if len(finishes) != 1:
+        raise ValueError("Native synthesis did not complete before SIGKILL")
+    finish = finishes[0][0]
+    other_gestures = [a for a in activities if a[1] == pid and a[4] == "started" and stamp < a[0] <= finish and
+                      a[6].startswith(("Tap ", "Swipe ", "Press ", "Type "))]
+    if other_gestures:
+        raise ValueError("Intervening gesture makes dispatch provenance ambiguous")
+    return death, deaths[0][1]
+
+
+RUNNER_BUNDLE = "com.alad1nks.oquturbo.OquTurbo.UITests.xctrunner"
+KILL_ISSUE = "Test crashed with signal kill."
+
+
+def validate_setup_issues(request, issues, build_issues, issue_times, sessions, death, host_pid):
+    if issues == [KILL_ISSUE] and not build_issues:
+        return
+    # Only the observed automatic relaunch of this same runner after its SIGKILL is recognized.
+    if len(issues) != 2 or issues[0] != KILL_ISSUE or build_issues != ["Simulator device failed to launch " + RUNNER_BUNDLE + "."]:
         raise ValueError("Unrecognized or additional setup failure")
+    prefix = 'Failed to install or launch the test runner. (Underlying Error: Simulator device failed to launch ' + RUNNER_BUNDLE
+    exact = re.fullmatch(re.escape(prefix) + r'\. The system shell \(SpringBoard:(\d+)\) probably crashed\. '
+                         r'\(Underlying Error: The request to terminate "' + re.escape(RUNNER_BUNDLE) +
+                         r'" failed\. The system shell \(SpringBoard:\1\) probably crashed\.\)\)', issues[1])
+    if not exact or not issue_times or len(issue_times) != 2 or not death < issue_times[0] < issue_times[1] <= request["created"] + 720:
+        raise ValueError("Additional issue is not the exact downstream runner relaunch failure")
+    shell = "The system shell (SpringBoard:" + exact[1] + ") probably crashed."
+    matching = []
+    for text in sessions:
+        if request["udid"] not in text:
+            continue
+        for line in text.splitlines():
+            if 'Test operation failure: Error Domain=XCTHTestOperationCoordinatorErrorDomain Code=4 "Failed to install or launch the test runner"' not in line:
+                continue
+            clock = re.match(r'^(\d\d:\d\d:\d\d\.\d+) xcodebuild\[' + host_pid + r':\d+\]', line)
+            if clock and 'Error Domain=NSPOSIXErrorDomain Code=64 "Host is down"' in line and shell in line and \
+                    'NSLocalizedDescription=Simulator device failed to launch ' + RUNNER_BUNDLE + '.' in line:
+                when = scoped_clock(clock[1], request["created"])
+                date = re.search(r"DVTErrorCreationDateKey=(\d{4}-\d\d-\d\d \d\d:\d\d:\d\d \+0000)", line)
+                if date and 0 <= when - dt.datetime.strptime(date[1], "%Y-%m-%d %H:%M:%S %z").timestamp() < 1 and \
+                        issue_times[0] <= when <= issue_times[1]:
+                    matching.append(when)
+    if len(matching) != 1:
+        raise ValueError("Missing exact same-device post-kill automatic relaunch diagnostic")
+
+
+def scope_crashes(paths, created):
+    records, current = [], []
+    for path in paths:
+        record = {"file": str(path), "classification": "CURRENT_OR_UNKNOWN"}
+        try:
+            lines = path.read_text().splitlines()
+            header, payload = json.loads(lines[0]), json.loads("\n".join(lines[1:]))
+            recorded = dt.datetime.strptime(header["timestamp"], "%Y-%m-%d %H:%M:%S.%f %z")
+            captured = dt.datetime.strptime(payload["captureTime"], "%Y-%m-%d %H:%M:%S.%f %z")
+            if recorded.tzinfo is None or captured.tzinfo is None:
+                raise ValueError("Missing crash timezone")
+            if not isinstance(payload["procName"], str):
+                raise ValueError("Unknown crash process")
+            record.update(timestamp=header["timestamp"], captureTime=payload["captureTime"], process=payload["procName"])
+            if recorded.timestamp() < created and captured.timestamp() < created and \
+                    not payload["procName"].startswith("OquTurbo"):
+                record["classification"] = "PREEXISTING_UNRELATED"
+        except (ValueError, KeyError, TypeError, IndexError, OSError) as error:
+            record["parseError"] = repr(error)
+        if record["classification"] != "PREEXISTING_UNRELATED":
+            current.append(path)
+        records.append(record)
+    return records, current
+
+
+def classify_interruption(request, observation, issues, build_issues, diagnostic_text, crash_files,
+                          issue_times=None, sessions=()):
+    validate_observation(request, observation, {"before-confirmation", "before-region-choice"})
+    if crash_files:
+        raise ValueError("Current or unknown crash evidence during setup")
     if observation["state"] == "before-confirmation":
-        if observation.get("confirmation") != "Keep English (US)":
+        restoring = request["step"] == "restore" and request["target"] == "United States"
+        confirmation = "Change to United States" if restoring else "Keep English (US)"
+        if observation.get("confirmation") != confirmation:
             raise ValueError("Unknown confirmation")
-        tap = 'Tap "Keep English (US)" Button'
+        tap = 'Tap "' + confirmation + '" Button'
     else:
         if request["step"] != "restore":
             raise ValueError("Forward transition never accepts a marker before confirmation")
         tap = 'Tap "' + request["target"] + '" StaticText'
-    marker = "region-" + observation["state"] + "-" + request["operation"]
-    marker_position = diagnostic_text.find(marker)
-    # Detailed XCTest diagnostics prove completed dispatch, unlike the wrapper's pre-tap activity line.
-    completed = re.search(r"didFinishActivity:[^\n]*" + re.escape(tap), diagnostic_text)
-    death = re.search(r"got death notice for pid \d+ \(exit code: \(null\), signal: 9\)", diagnostic_text)
-    runner = re.search(r"OquTurboUITests-Runner\[(\d+):", diagnostic_text)
-    if marker_position < 0 or not completed or completed.start() <= marker_position or not death or death.start() <= completed.start() or not runner:
-        raise ValueError("Missing actual scoped completed tap and runner death diagnostics")
-    if "got death notice for pid " + runner[1] + " (exit code: (null), signal: 9)" not in diagnostic_text[completed.end():]:
-        raise ValueError("SIGKILL does not identify the test runner")
-    if re.search(r"Assertion Failure|XCTAssert[^\n]*failed|Test timed out|test execution[^\n]*exceeded|Test Case [^\n]*failed", diagnostic_text[:completed.end()], re.I):
-        raise ValueError("Failure precedes setup transition")
+    death, host_pid = completed_dispatch(request, observation, diagnostic_text, tap)
+    validate_setup_issues(request, issues, build_issues, issue_times, sessions, death, host_pid)
+    if re.search(r"Assertion Failure|XCTAssert[^\n]*failed|Test timed out|test execution[^\n]*exceeded|Test Case [^\n]*failed", diagnostic_text, re.I):
+        raise ValueError("Unexpected failure in setup diagnostics")
     return "SETUP_TRANSITION_INTERRUPTED"
 
 
@@ -195,8 +307,10 @@ def run_locale(runner, directory, snapshots, baseline, boundary, cutoff):
                 runner.run("xcrun", "xcresulttool", "export", "diagnostics", "--path", str(result), "--output-path", str(diagnostic))
                 database = result / "database.sqlite3"
                 with sqlite3.connect("file:" + str(database) + "?mode=ro", uri=True) as connection:
-                    issues = [v[0] for v in connection.execute("SELECT compactDescription FROM TestIssues")]
-                    build_issues = list(connection.execute("SELECT message FROM BuildIssues"))
+                    rows = list(connection.execute("SELECT compactDescription, timestamp FROM TestIssues ORDER BY timestamp"))
+                    issues = [v[0] for v in rows]
+                    issue_times = [v[1] + 978307200 for v in rows]
+                    build_issues = [v[0] for v in connection.execute("SELECT message FROM BuildIssues")]
                 sessions = list(diagnostic.rglob("Session-*.log"))
                 texts = [p.read_text(errors="replace") for p in sessions]
                 matching = [text for text in texts if "region-" + observation.get("state", "") + "-" + request["operation"] in text]
@@ -204,7 +318,10 @@ def run_locale(runner, directory, snapshots, baseline, boundary, cutoff):
                     raise ValueError("Ambiguous setup diagnostic sessions")
                 text = matching[0]
                 crashes = list(diagnostic.rglob("*.ips")) + list(diagnostic.rglob("*.crash"))
-                status = classify_interruption(request, observation, issues, build_issues, text, crashes)
+                crash_records, current_crashes = scope_crashes(crashes, request["created"])
+                (location / "crash-scope.json").write_text(json.dumps(crash_records, indent=2))
+                status = classify_interruption(request, observation, issues, build_issues, text, current_crashes,
+                                               issue_times=issue_times, sessions=texts)
             else:
                 raise RuntimeError("Actual acceptance XCTest failed: " + name)
             if unchanged:

@@ -17,12 +17,88 @@ spec.loader.exec_module(region)
 class RegionEvidenceTest(unittest.TestCase):
     def fixture(self):
         request = {"operation": "fresh", "udid": "device", "source": "source", "build": "build", "step": "change",
-                   "created": 100, "target": "Germany"}
-        observation = dict(request, observed=101, state="before-confirmation", confirmation="Keep English (US)")
-        log = ('OquTurboUITests-Runner[123:456]\nregion-before-confirmation-fresh\n'
-               'didFinishActivity: Tap "Keep English (US)" Button\n'
-               'got death notice for pid 123 (exit code: (null), signal: 9)')
+                   "created": 1791734700, "target": "Germany"}
+        observation = dict(request, observed=1791734701, state="before-confirmation", confirmation="Keep English (US)")
+        log = ("16:05:01.000 OquTurboUITests-Runner[123:456] Activity UUID added attachment with name 'region-before-confirmation-fresh'\n"
+               '16:05:02.000 OquTurboUITests-Runner[123:456] <XCTContext: 0xabc> started activity <XCActivityRecord: 0xaaa> 2026-10-11 16:05:02 +0000: Tap "Keep English (US)" Button\n'
+               '16:05:03.000 OquTurboUITests-Runner[123:456] <XCTContext: 0xabc> started activity <XCActivityRecord: 0xbbb> 2026-10-11 16:05:03 +0000: Synthesize event\n'
+               '16:05:04.000 OquTurboUITests-Runner[123:456] <XCTContext: 0xabc> finished activity <XCActivityRecord: 0xbbb> 2026-10-11 16:05:03 +0000: Synthesize event (1s)\n'
+               '16:05:05.000 xcodebuild[9:8] device got death notice for pid 123 (exit code: (null), signal: 9)')
         return request, observation, ["Test crashed with signal kill."], [], log, []
+
+    def test_buffered_arrival_order_uses_actual_activity_timestamps(self):
+        values = list(self.fixture()); values[4] = "\n".join(reversed(values[4].splitlines()))
+        self.assertEqual("SETUP_TRANSITION_INTERRUPTED", region.classify_interruption(*values))
+
+    def test_dispatch_requires_same_runner_thread_context_and_activity(self):
+        for old, new in (("0xbbb>", "0xfff>"), ("[123:456] <XCTContext: 0xabc> finished", "[123:999] <XCTContext: 0xabc> finished"),
+                         ("<XCTContext: 0xabc> finished", "<XCTContext: 0xfff> finished"),
+                         ("16:05:04.000", "16:05:06.000"), ("2026-10-11 16:05:02", "2026-10-12 16:05:02")):
+            values = list(self.fixture()); values[4] = values[4].replace(old, new, 1)
+            with self.subTest(old=old), self.assertRaises(ValueError): region.classify_interruption(*values)
+        values = list(self.fixture()); values[4] += '\n16:05:03.500 OquTurboUITests-Runner[123:456] <XCTContext: 0xabc> started activity <XCActivityRecord: 0xccc> 2026-10-11 16:05:03 +0000: Tap "Other" Button'
+        with self.assertRaises(ValueError): region.classify_interruption(*values)
+
+    def relaunch_fixture(self):
+        values = list(self.fixture()); bundle = region.RUNNER_BUNDLE
+        issue = ('Failed to install or launch the test runner. (Underlying Error: Simulator device failed to launch ' + bundle +
+                 '. The system shell (SpringBoard:42) probably crashed. (Underlying Error: The request to terminate "' + bundle +
+                 '" failed. The system shell (SpringBoard:42) probably crashed.))')
+        values[2].append(issue); values[3] = ['Simulator device failed to launch ' + bundle + '.']
+        session = ('device\n16:05:07.500 xcodebuild[9:8] Test operation failure: Error Domain=XCTHTestOperationCoordinatorErrorDomain Code=4 "Failed to install or launch the test runner" '
+                   'Error Domain=NSPOSIXErrorDomain Code=64 "Host is down" The system shell (SpringBoard:42) probably crashed. '
+                   'NSLocalizedDescription=Simulator device failed to launch ' + bundle + '. DVTErrorCreationDateKey=2026-10-11 16:05:07 +0000')
+        return values, [1791734706, 1791734708], [session]
+
+    def test_exact_downstream_relaunch_failure_is_setup_interruption_only(self):
+        values, times, sessions = self.relaunch_fixture()
+        self.assertEqual("SETUP_TRANSITION_INTERRUPTED", region.classify_interruption(*values, issue_times=times, sessions=sessions))
+
+    def test_relaunch_cannot_hide_extra_issue_build_error_or_wrong_order(self):
+        for mutation in (lambda v: v[2].append("Assertion failed"), lambda v: v[3].append("Build failed"),
+                         lambda v: v[2].reverse(), lambda v: v[2].__setitem__(1, v[2][1].replace(region.RUNNER_BUNDLE, "other.bundle"))):
+            values, times, sessions = self.relaunch_fixture(); mutation(values)
+            with self.assertRaises(ValueError): region.classify_interruption(*values, issue_times=times, sessions=sessions)
+        for times in (None, [1791734704, 1791734708], [1791734708, 1791734706]):
+            values, _, sessions = self.relaunch_fixture()
+            with self.assertRaises(ValueError): region.classify_interruption(*values, issue_times=times, sessions=sessions)
+
+    def test_relaunch_requires_same_device_host_pid_exact_error_and_date(self):
+        for old, new in (("device", "other"), ("xcodebuild[9:", "xcodebuild[8:"), ("Code=64", "Code=60"),
+                         ("SpringBoard:42", "SpringBoard:43"), ("2026-10-11", "2026-10-12"),
+                         ("16:05:07.500", "16:05:04.500")):
+            values, times, sessions = self.relaunch_fixture(); sessions[0] = sessions[0].replace(old, new)
+            with self.subTest(old=old), self.assertRaises(ValueError): region.classify_interruption(*values, issue_times=times, sessions=sessions)
+        values, times, sessions = self.relaunch_fixture()
+        with self.assertRaises(ValueError): region.classify_interruption(*values, issue_times=times, sessions=sessions * 2)
+
+    def test_restore_confirmation_is_exact_and_restore_only(self):
+        values = list(self.fixture()); values[0].update(step="restore", target="United States")
+        values[1].update(values[0]); values[1]["confirmation"] = "Change to United States"
+        values[4] = values[4].replace("Keep English (US)", "Change to United States")
+        self.assertEqual("SETUP_TRANSITION_INTERRUPTED", region.classify_interruption(*values))
+        values[0]["step"] = values[1]["step"] = "change"
+        with self.assertRaises(ValueError): region.classify_interruption(*values)
+
+    def test_crash_scope_requires_both_zoned_timestamps_before_operation(self):
+        with tempfile.TemporaryDirectory() as folder:
+            path = Path(folder) / "crash.ips"
+            def classify(header="2026-10-11 15:48:54.00 +0000", capture="2026-10-11 15:48:53.6069 +0000", name="TypeToSiriWidgetExtension"):
+                path.write_text(json.dumps({"timestamp": header}) + "\n" + json.dumps({"captureTime": capture, "procName": name}))
+                return region.scope_crashes([path], 1791734700)
+            records, current = classify()
+            self.assertEqual("PREEXISTING_UNRELATED", records[0]["classification"]); self.assertEqual([], current)
+            for kwargs in ({"header": "2026-10-11 16:05:00.00 +0000"}, {"capture": "2026-10-11 16:05:01.00 +0000"},
+                           {"header": "2026-10-11 15:48:54"}, {"capture": "bad"}, {"name": "OquTurbo"}, {"name": "OquTurboUITests-Runner"}):
+                records, current = classify(**kwargs)
+                self.assertEqual([path], current)
+            path.write_text("not a crash schema")
+            self.assertEqual([path], region.scope_crashes([path], 1791734700)[1])
+
+    def test_midnight_clock_is_scoped_to_actual_operation_window(self):
+        created = 1791763199  # 2026-10-11 23:59:59 UTC.
+        self.assertEqual(created + 2, region.scoped_clock("00:00:01.000", created))
+        with self.assertRaises(ValueError): region.scoped_clock("23:59:58.000", created)
 
     def test_exact_transition_is_interrupted_never_pass(self):
         self.assertEqual("SETUP_TRANSITION_INTERRUPTED", region.classify_interruption(*self.fixture()))
@@ -50,7 +126,7 @@ class RegionEvidenceTest(unittest.TestCase):
         for change in (lambda t: "Assertion Failure\n" + t,
                        lambda t: t.replace("pid 123", "pid 456"),
                        lambda t: t.replace("signal: 9", "signal: 6"),
-                       lambda t: t.replace("didFinishActivity", "willStartActivity")):
+                       lambda t: t.replace("finished activity", "started activity")):
             values = list(self.fixture()); values[4] = change(values[4])
             with self.assertRaises(ValueError): region.classify_interruption(*values)
 
@@ -60,7 +136,7 @@ class RegionEvidenceTest(unittest.TestCase):
 
     def test_baseline_requires_observed_time_equal_to_saved(self):
         request = self.fixture()[0]
-        observation = dict(request, state="baseline", observed=101, originalRegion="United States",
+        observation = dict(request, state="baseline", observed=request["created"] + 1, originalRegion="United States",
                            originalLanguage="en-US", wheels=["12", "05", "AM"], minutes=5)
         region.validate_baseline(request, observation, 5)
         for field, value in (("minutes", 725), ("wheels", ["12", "05", "PM"]),

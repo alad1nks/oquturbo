@@ -411,7 +411,8 @@ final class RegionRuntimeControl {
         let sheet = settings.sheets["Would you like to change the iPhone language to English (UK)?"]
         let selection = settings.navigationBars["Select Region"]
         let cleanupDeadline = ProcessInfo.processInfo.systemUptime + 5
-        for overlay in [sheet, selection] where overlay.exists {
+        let restart = settings.sheets["Applying this setting will restart your iPhone."]
+        for overlay in [sheet, restart, selection] where overlay.exists {
             let cancel = overlay.buttons["Cancel"]
             guard cancel.isHittable, ProcessInfo.processInfo.systemUptime < cleanupDeadline else {
                 throw Failure.invalidState
@@ -472,12 +473,20 @@ final class RegionRuntimeControl {
         let result = settings.staticTexts[target]
         guard result.waitForExistence(timeout: 5), result.isHittable else { throw Failure.invalidState }
         result.tap()
-        let sheet = settings.sheets["Would you like to change the iPhone language to English (UK)?"]
+        let restoringUS = request["step"] as? String == "restore" && target == "United States"
+        let sheetLabel = restoringUS ? "Applying this setting will restart your iPhone." :
+            "Would you like to change the iPhone language to English (UK)?"
+        let confirmation = restoringUS ? "Change to United States" : "Keep English (US)"
+        let sheets = settings.sheets.matching(NSPredicate(format: "label == %@", sheetLabel))
+        let sheet = sheets.element(boundBy: 0)
         if sheet.waitForExistence(timeout: 2) {
-            let keep = sheet.buttons["Keep English (US)"]
-            guard keep.exists && keep.isHittable else { throw Failure.invalidState }
+            let buttons = sheet.buttons.matching(NSPredicate(format: "label == %@", confirmation))
+            guard sheets.count == 1, settings.sheets.count == 1, settings.alerts.count == 0,
+                  buttons.count == 1 else { throw Failure.invalidState }
+            let keep = buttons.element(boundBy: 0)
+            guard keep.isHittable else { throw Failure.invalidState }
             capture("system-region-confirmation")
-            try record("before-confirmation", extra: ["fromRegion": current, "confirmation": "Keep English (US)"])
+            try record("before-confirmation", extra: ["fromRegion": current, "confirmation": confirmation, "confirmationSheet": sheetLabel])
             keep.tap()
         }
         capture("system-region-selected-" + target)
