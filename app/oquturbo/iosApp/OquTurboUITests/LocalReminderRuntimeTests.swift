@@ -123,7 +123,7 @@ final class LocalReminderRuntimeTests: XCTestCase {
         ui.capture("revoked-without-reprompt")
     }
 
-    func testLocalizedPendingAndLargeTextPicker() {
+    func testLocalizedPendingAndLargeTextPicker() throws {
         let ui = ReminderRuntimeEvidence(self)
         ui.start(allowLanguageChanges: true)
         XCTAssertLessThanOrEqual(ui.app.frame.width, 390, "Use a genuinely narrow supported iPhone")
@@ -180,7 +180,19 @@ final class LocalReminderRuntimeTests: XCTestCase {
         ui.assertScheduled()
         ui.inspectLocalizedPicker(change: "Change time", title: "Reminder time",
                                   helper: "Uses the device’s current local time.", confirm: "Save time", cancel: "Cancel")
-        ui.inspectSystem24HourTime(original: original)
+        try ui.recordRegionBaseline(original: original)
+    }
+
+    func testSystemRegionTransition() throws {
+        try RegionRuntimeControl(self).transition()
+    }
+
+    func testSystem24HourAcceptance() throws {
+        try ReminderRuntimeEvidence(self).inspectSystem24HourTime()
+    }
+
+    func testSystemRegionRestored() throws {
+        try ReminderRuntimeEvidence(self).inspectRestoredRegion()
     }
 
     func testCalendarControlProbe() {

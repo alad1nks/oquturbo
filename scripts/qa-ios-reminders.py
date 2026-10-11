@@ -17,6 +17,9 @@ from pathlib import Path
 _spec = importlib.util.spec_from_file_location("ios_evidence", Path(__file__).with_name("ios-reminder-evidence.py"))
 evidence = importlib.util.module_from_spec(_spec)
 _spec.loader.exec_module(evidence)
+_region_spec = importlib.util.spec_from_file_location("ios_region", Path(__file__).with_name("ios-region-orchestration.py"))
+region = importlib.util.module_from_spec(_region_spec)
+_region_spec.loader.exec_module(region)
 PACKAGE = "com.alad1nks.oquturbo.OquTurbo"
 PHASES = {
     "cold": "testColdDeliveryAndNativeOptIn",
@@ -33,6 +36,7 @@ class Runner:
         self.output = output.resolve()
         self.output.mkdir(parents=True, exist_ok=False)
         self.clock_probe = clock_probe
+        self.evidence = evidence
         self.udid = None
         self.process = None
         self.deadline = time.monotonic() + 100 * 60
@@ -258,6 +262,8 @@ class Runner:
         evidence.events_since(boundary, boundary)
         (directory / "event-boundary.json").write_text(json.dumps({"bytes": len(boundary),
             "prefixSha256": hashlib.sha256(boundary).hexdigest()}))
+        if name == "locales":
+            return region.run_locale(self, directory, snapshots, baseline, boundary, cutoff)
         observations = []
         started = time.time()
         result = directory / "runtime.xcresult"

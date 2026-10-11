@@ -160,176 +160,36 @@ final class ReminderRuntimeEvidence {
         start.press(forDuration: 0.1, thenDragTo: end)
     }
 
-    // Original N12: one actual alternate system hour cycle, without saving a new reminder time.
-    func inspectSystem24HourTime(original: [String?]) {
-        func numbers(_ text: String) -> [Int] {
-            text.components(separatedBy: CharacterSet.decimalDigits.inverted).compactMap(Int.init)
-        }
-        guard original.count == 3, let hourText = original[0], let minuteText = original[1],
-              let period = original[2], numbers(hourText).count == 1, numbers(minuteText).count == 1,
-              let hour = numbers(hourText).first, let minute = numbers(minuteText).first,
-              (1...12).contains(hour), (0...59).contains(minute), ["AM", "PM"].contains(period) else {
-            XCTFail("Expected an observed English 12-hour baseline"); return
-        }
-        let expectedHour = hour % 12 + (period == "PM" ? 12 : 0)
-        let settings = XCUIApplication(bundleIdentifier: "com.apple.Preferences")
-        func captureSettings(_ name: String) {
-            let image = XCTAttachment(screenshot: XCUIScreen.main.screenshot())
-            image.name = name; image.lifetime = .keepAlways; test.add(image)
-            let tree = XCTAttachment(string: settings.debugDescription)
-            tree.name = name + "-tree"; tree.lifetime = .keepAlways; test.add(tree)
-        }
-        func tapSettingsRow(_ label: String) {
-            let row = settings.staticTexts[label]
-            for _ in 0..<10 {
-                if row.waitForExistence(timeout: 2) && row.isHittable { row.tap(); return }
-                settings.swipeUp()
-            }
-            captureSettings("system-hour-cycle-missing-" + label)
-            XCTFail("Required real Settings row is not hittable: " + label)
-        }
-        settings.launch()
-        XCTAssertTrue(settings.wait(for: .runningForeground, timeout: 15))
-        // Settings may resume the notification page visited earlier in this same simulator.
-        for _ in 0..<5 {
-            if settings.navigationBars["Settings"].exists { break }
-            let back = settings.navigationBars.buttons.element(boundBy: 0)
-            guard back.exists && back.isHittable else {
-                captureSettings("system-hour-cycle-missing-back"); XCTFail("No Settings back navigation"); return
-            }
-            back.tap()
-        }
-        XCTAssertTrue(settings.navigationBars["Settings"].exists)
-        tapSettingsRow("General")
-        // This simulator exposes Language & Region, but no Date & Time page.
-        tapSettingsRow("Language & Region")
-        let regionCells = settings.cells.containing(.staticText, identifier: "Region")
-        let regionSelection = settings.navigationBars["Select Region"]
-        let languageConfirmation = settings.sheets["Would you like to change the iPhone language to English (UK)?"]
-        func readRegion() -> String? {
-            // Underlying Region cells remain accessible while native selection/confirmation is pending.
-            let committed = XCTNSPredicateExpectation(predicate: NSPredicate { _, _ in
-                !regionSelection.exists && settings.sheets.count == 0 && settings.alerts.count == 0 &&
-                    regionCells.count == 1 && regionCells.element(boundBy: 0).exists
-            }, object: settings)
-            guard XCTWaiter.wait(for: [committed], timeout: 5) == .completed else {
-                captureSettings("system-region-readback-pending"); return nil
-            }
-            let values = regionCells.element(boundBy: 0).staticTexts.allElementsBoundByIndex
-                .map { $0.label }.filter { $0 != "Region" && !$0.isEmpty }
-            return values.count == 1 ? values[0] : nil
-        }
-        func selectRegion(_ region: String) {
-            tapSettingsRow("Region")
-            captureSettings("system-region-selection")
-            guard settings.searchFields.count == 1 else { XCTFail("Expected one real region search field"); return }
-            let search = settings.searchFields.element(boundBy: 0)
-            XCTAssertTrue(search.isHittable)
-            search.tap(); search.typeText(region)
-            let result = settings.staticTexts[region]
-            XCTAssertTrue(result.waitForExistence(timeout: 5) && result.isHittable)
-            result.tap()
-            if languageConfirmation.waitForExistence(timeout: 2) {
-                captureSettings("system-region-confirmation")
-                let keepLanguage = languageConfirmation.buttons["Keep English (US)"]
-                XCTAssertTrue(keepLanguage.exists && keepLanguage.isHittable)
-                keepLanguage.tap()
-            }
-            captureSettings("system-region-selected-" + region)
-            XCTAssertEqual(readRegion(), region)
-            XCTAssertTrue(settings.staticTexts["en-US"].exists, "Preserve the observed system language")
-        }
-        captureSettings("system-region-original")
-        XCTAssertTrue(settings.staticTexts["en-US"].exists, "Expected the observed English (US) system baseline")
-        guard let originalRegion = readRegion(), originalRegion != "Germany" else {
-            XCTFail("Expected an observed original region distinct from the documented 24-hour region"); return
-        }
-        // Register before the first region mutation, including its native confirmation.
-        test.addTeardownBlock {
-            settings.activate()
-            let cleanupDeadline = ProcessInfo.processInfo.systemUptime + 5
-            // Cancel pending choices before reading the underlying original value.
-            if languageConfirmation.exists {
-                let cancel = languageConfirmation.buttons["Cancel"]
-                guard cancel.isHittable else {
-                    captureSettings("system-region-restoration-confirmation-blocked")
-                    XCTFail("Cannot cancel pending language confirmation"); return
-                }
-                guard ProcessInfo.processInfo.systemUptime < cleanupDeadline else {
-                    captureSettings("system-region-restoration-cleanup-timeout")
-                    XCTFail("System region cleanup deadline expired before Cancel"); return
-                }
-                cancel.tap()
-                let gone = XCTNSPredicateExpectation(predicate: NSPredicate(format: "exists == false"),
-                                                     object: languageConfirmation)
-                guard XCTWaiter.wait(for: [gone], timeout: max(0, cleanupDeadline - ProcessInfo.processInfo.systemUptime)) == .completed &&
-                    ProcessInfo.processInfo.systemUptime <= cleanupDeadline else {
-                    captureSettings("system-region-restoration-confirmation-pending")
-                    XCTFail("Language confirmation remains pending"); return
-                }
-            }
-            if regionSelection.exists {
-                let cancel = regionSelection.buttons["Cancel"]
-                guard cancel.isHittable else {
-                    captureSettings("system-region-restoration-selection-blocked")
-                    XCTFail("Cannot cancel pending region selection"); return
-                }
-                guard ProcessInfo.processInfo.systemUptime < cleanupDeadline else {
-                    captureSettings("system-region-restoration-cleanup-timeout")
-                    XCTFail("System region cleanup deadline expired before Cancel"); return
-                }
-                cancel.tap()
-                let gone = XCTNSPredicateExpectation(predicate: NSPredicate(format: "exists == false"),
-                                                     object: regionSelection)
-                guard XCTWaiter.wait(for: [gone], timeout: max(0, cleanupDeadline - ProcessInfo.processInfo.systemUptime)) == .completed &&
-                    ProcessInfo.processInfo.systemUptime <= cleanupDeadline else {
-                    captureSettings("system-region-restoration-selection-pending")
-                    XCTFail("Region selection remains pending"); return
-                }
-            }
-            guard ProcessInfo.processInfo.systemUptime <= cleanupDeadline else {
-                captureSettings("system-region-restoration-cleanup-timeout")
-                XCTFail("System region cleanup exceeded its deadline"); return
-            }
-            // A still-open selection must never count as restored by exposing its underlying page.
-            for _ in 0..<5 {
-                if !regionSelection.exists && settings.sheets.count == 0 &&
-                    settings.navigationBars["Language & Region"].exists { break }
-                guard !regionSelection.exists && settings.sheets.count == 0 && settings.alerts.count == 0 else {
-                    captureSettings("system-region-restoration-overlay-pending")
-                    XCTFail("System region selection remains pending"); return
-                }
-                let back = settings.navigationBars.buttons.element(boundBy: 0)
-                guard back.exists && back.isHittable else {
-                    captureSettings("system-region-restoration-navigation-missing")
-                    XCTFail("Cannot return to original system region"); return
-                }
-                back.tap()
-            }
-            guard let current = readRegion() else {
-                captureSettings("system-region-restoration-value-missing")
-                XCTFail("Cannot read system region for restoration"); return
-            }
-            if current != originalRegion { selectRegion(originalRegion) }
-            captureSettings("system-region-teardown-restored")
-            XCTAssertEqual(readRegion(), originalRegion)
-            XCTAssertTrue(settings.staticTexts["en-US"].exists)
-        }
-        selectRegion("Germany")
-        app.activate()
+    // Host-owned Settings transitions may kill XCTest. Only these readback tests claim acceptance.
+    func recordRegionBaseline(original: [String?]) throws {
+        let control = try RegionRuntimeControl(test)
+        let minutes = try control.minutes(original)
+        try control.openRegionPage()
+        let region = try control.readRegion()
+        guard region != "Germany" else { throw RegionRuntimeControl.Failure.invalidState }
+        try control.record("baseline", extra: ["originalRegion": region, "originalLanguage": "en-US",
+                                               "minutes": minutes, "wheels": original.compactMap { $0 }])
+    }
+
+    func inspectSystem24HourTime() throws {
+        let control = try RegionRuntimeControl(test)
+        try control.openRegionPage()
+        XCTAssertEqual(try control.readRegion(), "Germany")
+        let minutes = try control.expectedMinutes()
+        start(allowLanguageChanges: true)
         assertScheduled()
         let summaries = app.staticTexts.matching(NSPredicate(format: "label BEGINSWITH %@", "Chosen time:"))
         XCTAssertEqual(summaries.count, 1)
         let summary = summaries.element(boundBy: 0).label
-        XCTAssertEqual(numbers(summary), [expectedHour, minute])
+        XCTAssertEqual(control.numbers(summary), [minutes / 60, minutes % 60])
         XCTAssertFalse(summary.contains("AM") || summary.contains("PM"))
         capture("system-24-hour-summary")
         tap(app.buttons["Change time"], scrolling: true)
         let picker = app.datePickers["reminder-time-wheel"]
         XCTAssertTrue(picker.waitForExistence(timeout: 5))
         XCTAssertEqual(picker.pickerWheels.count, 2)
-        let values = picker.pickerWheels.allElementsBoundByIndex.map { numbers($0.value as? String ?? "") }
-        XCTAssertEqual(values, [[expectedHour], [minute]])
+        XCTAssertEqual(picker.pickerWheels.allElementsBoundByIndex.map { control.numbers($0.value as? String ?? "") },
+                       [[minutes / 60], [minutes % 60]])
         capture("system-24-hour-unchanged-draft")
         let cancel = app.buttons["reminder-time-cancel"]
         XCTAssertEqual(cancel.label, "Cancel")
@@ -337,13 +197,27 @@ final class ReminderRuntimeEvidence {
         XCTAssertTrue(pickerActionFullyVisible(cancel))
         cancel.tap()
         assertScheduled()
-        settings.activate()
-        selectRegion(originalRegion)
-        captureSettings("system-region-restored")
-        XCTAssertEqual(readRegion(), originalRegion)
-        app.activate()
+        try control.record("accepted-24-hour")
+    }
+
+    func inspectRestoredRegion() throws {
+        let control = try RegionRuntimeControl(test)
+        try control.openRegionPage()
+        XCTAssertEqual(try control.readRegion(), try control.originalRegion())
+        start(allowLanguageChanges: true)
+        assertScheduled()
+        tap(app.buttons["Change time"], scrolling: true)
+        let picker = app.datePickers["reminder-time-wheel"]
+        XCTAssertTrue(picker.waitForExistence(timeout: 5))
+        let values = picker.pickerWheels.allElementsBoundByIndex.map { $0.value as? String }
+        XCTAssertEqual(try control.minutes(values), try control.expectedMinutes())
+        let cancel = app.buttons["reminder-time-cancel"]
+        for _ in 0..<5 { if pickerActionFullyVisible(cancel) { break }; scrollPickerContentUp() }
+        XCTAssertTrue(pickerActionFullyVisible(cancel))
+        cancel.tap()
         assertScheduled()
         capture("system-hour-cycle-restored-app")
+        try control.record("restored")
     }
 
     func allowIfPrompted() {
@@ -447,5 +321,167 @@ final class ReminderRuntimeEvidence {
         // The host still requires one real default response and matching cold/warm launch identity.
         XCTAssertTrue(app.staticTexts["Today’s training"].waitForExistence(timeout: 15))
         capture("home-after-real-card")
+    }
+}
+
+/// This journal belongs only to the XCTest runner sandbox, never to OquTurbo or system preferences.
+final class RegionRuntimeControl {
+    enum Failure: Error { case invalidState }
+    let test: XCTestCase
+    let settings = XCUIApplication(bundleIdentifier: "com.apple.Preferences")
+    let directory: URL
+    let request: [String: Any]
+
+    init(_ test: XCTestCase) throws {
+        self.test = test
+        let folder = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
+        directory = folder
+        let data = try Data(contentsOf: folder.appendingPathComponent("region-operation.json"))
+        guard let value = try JSONSerialization.jsonObject(with: data) as? [String: Any],
+              let operation = value["operation"] as? String, UUID(uuidString: operation) != nil,
+              let udid = value["udid"] as? String, UUID(uuidString: udid) != nil,
+              ProcessInfo.processInfo.environment["SIMULATOR_UDID"] == udid,
+              let source = value["source"] as? String, source.count == 40,
+              let build = value["build"] as? String, build.count == 64,
+              let created = value["created"] as? Double, abs(Date().timeIntervalSince1970 - created) < 720 else {
+            throw Failure.invalidState
+        }
+        request = value
+    }
+
+    func record(_ state: String, extra: [String: Any] = [:]) throws {
+        var value = request
+        value["state"] = state
+        value["observed"] = Date().timeIntervalSince1970
+        for (key, item) in extra { value[key] = item }
+        let data = try JSONSerialization.data(withJSONObject: value, options: [.sortedKeys])
+        try data.write(to: directory.appendingPathComponent("region-observation.json"), options: .atomic)
+        let attachment = XCTAttachment(data: data, uniformTypeIdentifier: "public.json")
+        attachment.name = "region-" + state + "-" + (request["operation"] as! String)
+        attachment.lifetime = .keepAlways
+        test.add(attachment)
+    }
+
+    func numbers(_ text: String) -> [Int] {
+        text.components(separatedBy: CharacterSet.decimalDigits.inverted).compactMap(Int.init)
+    }
+
+    func minutes(_ original: [String?]) throws -> Int {
+        guard original.count == 3, let h = original[0], let m = original[1], let period = original[2],
+              numbers(h).count == 1, numbers(m).count == 1,
+              let hour = numbers(h).first, let minute = numbers(m).first,
+              (1...12).contains(hour), (0...59).contains(minute), ["AM", "PM"].contains(period) else {
+            throw Failure.invalidState
+        }
+        return (hour % 12 + (period == "PM" ? 12 : 0)) * 60 + minute
+    }
+
+    func expectedMinutes() throws -> Int {
+        guard let value = request["minutes"] as? Int, (0..<1440).contains(value) else { throw Failure.invalidState }
+        return value
+    }
+
+    func originalRegion() throws -> String {
+        guard let value = request["originalRegion"] as? String, !value.isEmpty, value != "Germany",
+              request["originalLanguage"] as? String == "en-US" else { throw Failure.invalidState }
+        return value
+    }
+
+    func capture(_ name: String) {
+        let image = XCTAttachment(screenshot: XCUIScreen.main.screenshot())
+        image.name = name; image.lifetime = .keepAlways; test.add(image)
+        let tree = XCTAttachment(string: settings.debugDescription)
+        tree.name = name + "-tree"; tree.lifetime = .keepAlways; test.add(tree)
+    }
+
+    func tapRow(_ name: String) throws {
+        let row = settings.staticTexts[name]
+        for _ in 0..<10 {
+            if row.waitForExistence(timeout: 2) && row.isHittable { row.tap(); return }
+            settings.swipeUp()
+        }
+        capture("system-region-missing-" + name)
+        throw Failure.invalidState
+    }
+
+    func openRegionPage() throws {
+        settings.launch()
+        guard settings.wait(for: .runningForeground, timeout: 15) else { throw Failure.invalidState }
+        // A failed transition can leave its real UI pending. Cancel it before any readback.
+        let sheet = settings.sheets["Would you like to change the iPhone language to English (UK)?"]
+        let selection = settings.navigationBars["Select Region"]
+        let cleanupDeadline = ProcessInfo.processInfo.systemUptime + 5
+        for overlay in [sheet, selection] where overlay.exists {
+            let cancel = overlay.buttons["Cancel"]
+            guard cancel.isHittable, ProcessInfo.processInfo.systemUptime < cleanupDeadline else {
+                throw Failure.invalidState
+            }
+            cancel.tap()
+            let gone = XCTNSPredicateExpectation(predicate: NSPredicate(format: "exists == false"), object: overlay)
+            guard XCTWaiter.wait(for: [gone], timeout: max(0, cleanupDeadline - ProcessInfo.processInfo.systemUptime)) == .completed,
+                  ProcessInfo.processInfo.systemUptime <= cleanupDeadline else { throw Failure.invalidState }
+        }
+        guard ProcessInfo.processInfo.systemUptime <= cleanupDeadline,
+              settings.sheets.count == 0, settings.alerts.count == 0, !selection.exists else {
+            throw Failure.invalidState
+        }
+        for _ in 0..<5 {
+            if settings.navigationBars["Language & Region"].exists { return }
+            if settings.navigationBars["Settings"].exists { break }
+            let back = settings.navigationBars.buttons.element(boundBy: 0)
+            guard back.exists && back.isHittable else { throw Failure.invalidState }
+            back.tap()
+        }
+        guard settings.navigationBars["Settings"].exists else { throw Failure.invalidState }
+        try tapRow("General")
+        try tapRow("Language & Region")
+    }
+
+    func readRegion() throws -> String {
+        let cells = settings.cells.containing(.staticText, identifier: "Region")
+        let committed = XCTNSPredicateExpectation(predicate: NSPredicate { _, _ in
+            !self.settings.navigationBars["Select Region"].exists && self.settings.sheets.count == 0 &&
+                self.settings.alerts.count == 0 && cells.count == 1 && cells.element(boundBy: 0).exists
+        }, object: settings)
+        guard XCTWaiter.wait(for: [committed], timeout: 5) == .completed,
+              settings.staticTexts["en-US"].exists else { throw Failure.invalidState }
+        let values = cells.element(boundBy: 0).staticTexts.allElementsBoundByIndex
+            .map { $0.label }.filter { $0 != "Region" && !$0.isEmpty }
+        guard values.count == 1 else { throw Failure.invalidState }
+        capture("system-region-committed-" + values[0])
+        return values[0]
+    }
+
+    func transition() throws {
+        let original = try originalRegion()
+        guard let target = request["target"] as? String,
+              target == "Germany" || target == original else { throw Failure.invalidState }
+        try openRegionPage()
+        let current = try readRegion()
+        if current == target {
+            // Restoration after a precommit failure may already have its original value.
+            guard request["step"] as? String == "restore" else { throw Failure.invalidState }
+            try record("already-restored"); return
+        }
+        try record("before-region-choice", extra: ["fromRegion": current])
+        try tapRow("Region")
+        guard settings.searchFields.count == 1 else { throw Failure.invalidState }
+        let search = settings.searchFields.element(boundBy: 0)
+        guard search.isHittable else { throw Failure.invalidState }
+        search.tap(); search.typeText(target)
+        let result = settings.staticTexts[target]
+        guard result.waitForExistence(timeout: 5), result.isHittable else { throw Failure.invalidState }
+        result.tap()
+        let sheet = settings.sheets["Would you like to change the iPhone language to English (UK)?"]
+        if sheet.waitForExistence(timeout: 2) {
+            let keep = sheet.buttons["Keep English (US)"]
+            guard keep.exists && keep.isHittable else { throw Failure.invalidState }
+            capture("system-region-confirmation")
+            try record("before-confirmation", extra: ["fromRegion": current, "confirmation": "Keep English (US)"])
+            keep.tap()
+        }
+        capture("system-region-selected-" + target)
+        guard try readRegion() == target else { throw Failure.invalidState }
+        try record("transition-completed")
     }
 }
