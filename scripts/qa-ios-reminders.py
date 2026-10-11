@@ -48,6 +48,7 @@ class Runner:
         remaining = self.deadline - time.monotonic()
         if remaining <= 0:
             raise TimeoutError("Whole native run deadline exceeded")
+        started = time.monotonic()
         try:
             result = subprocess.run(args, cwd=self.root, capture_output=True, text=True,
                                     timeout=min(timeout, remaining))
@@ -57,11 +58,13 @@ class Runner:
             with (self.output / "commands.jsonl").open("a") as log:
                 log.write(json.dumps({"time": time.time(), "args": list(args), "code": None,
                     "error": "TimeoutExpired", "timeout": error.timeout,
+                    "startedMonotonic": started, "finishedMonotonic": time.monotonic(),
                     "stdout": output(error.stdout), "stderr": output(error.stderr)}) + "\n")
             raise
         with (self.output / "commands.jsonl").open("a") as log:
             log.write(json.dumps({"time": time.time(), "args": list(args), "code": result.returncode,
-                                  "stdout": result.stdout, "stderr": result.stderr}) + "\n")
+                                  "stdout": result.stdout, "stderr": result.stderr,
+                                  "startedMonotonic": started, "finishedMonotonic": time.monotonic()}) + "\n")
         if check and result.returncode:
             raise RuntimeError(f"Command failed ({result.returncode}): {args}")
         return result.stdout.strip()

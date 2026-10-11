@@ -245,7 +245,9 @@ class LocaleOrchestrationTest(unittest.TestCase):
             def poll(self): return self.returncode
             def kill(self): self.returncode = -9
             def wait(self, timeout): return self.returncode
-        with patch.object(region.subprocess, "Popen", Process), patch.object(region.time, "monotonic", lambda: clock[0]), \
+        binding = SimpleNamespace(state={"specification": "fixture"}, command=lambda *args: ["xcodebuild"])
+        with patch.object(region.generated, "GeneratedTestRun", return_value=binding), \
+                patch.object(region.subprocess, "Popen", Process), patch.object(region.time, "monotonic", lambda: clock[0]), \
                 patch.object(region.time, "sleep", lambda duration: clock.__setitem__(0, clock[0] + duration)):
             error = None
             try: region.run_locale(runner, directory, [copy.deepcopy(snapshot)], {}, b"", cutoff)
@@ -318,6 +320,119 @@ class LocaleOrchestrationTest(unittest.TestCase):
     def test_expired_before_initial_does_not_start_xctest(self):
         error, calls, cleanup, _ = self.exercise(cutoff=100)
         self.assertIsNotNone(error); self.assertNotIn("initial", calls)
+
+
+
+class GeneratedTestRunTest(unittest.TestCase):
+    def setUp(self):
+        temporary = tempfile.TemporaryDirectory(); self.addCleanup(temporary.cleanup)
+        self.root = Path(temporary.name)
+        self.products = self.root / "Products"; self.products.mkdir()
+        self.package = region.generated.PACKAGE
+        for relative, suffix, executable in (
+                ("OquTurbo.app", "", "OquTurbo"),
+                ("OquTurboUITests-Runner.app", ".UITests.xctrunner", "OquTurboUITests-Runner"),
+                ("OquTurboUITests-Runner.app/PlugIns/OquTurboUITests.xctest", ".UITests", "OquTurboUITests")):
+            folder = self.products / "Debug-iphonesimulator" / relative; folder.mkdir(parents=True, exist_ok=True)
+            (folder / "Info.plist").write_bytes(plistlib.dumps({"CFBundleIdentifier": self.package + suffix, "CFBundleExecutable": executable}))
+            (folder / executable).write_bytes(b"payload")
+        (self.products / "Debug-iphonesimulator/OquTurbo.app/OquTurbo.debug.dylib").write_bytes(b"actual debug payload")
+        self.target = {"BlueprintName": "OquTurboUITests", "BlueprintProviderName": "iosApp",
+            "BlueprintProviderRelativePath": "iosApp.xcodeproj", "ProductModuleName": "OquTurboUITests",
+            "IsUITestBundle": True, "IsXCTRunnerHostedTestBundle": True,
+            "TestHostBundleIdentifier": self.package + ".UITests.xctrunner", "DiagnosticCollectionPolicy": 1,
+            "TestLanguage": "", "TestRegion": "", "CommandLineArguments": [], "UITargetAppCommandLineArguments": [],
+            "UITargetAppPath": "__TESTROOT__/Debug-iphonesimulator/OquTurbo.app",
+            "TestHostPath": "__TESTROOT__/Debug-iphonesimulator/OquTurboUITests-Runner.app",
+            "TestBundlePath": "__TESTHOST__/PlugIns/OquTurboUITests.xctest",
+            "DependentProductPaths": ["__TESTROOT__/Debug-iphonesimulator/OquTurbo.app",
+                "__TESTROOT__/Debug-iphonesimulator/OquTurboUITests-Runner.app",
+                "__TESTROOT__/Debug-iphonesimulator/OquTurboUITests-Runner.app/PlugIns/OquTurboUITests.xctest"],
+            "EnvironmentVariables": {"OS_ACTIVITY_DT_MODE": "YES", "PERFC_ENABLE_EXTENDED_DIAGNOSTIC_FORMAT": "1"},
+            "TestingEnvironmentVariables": {}, "UITargetAppEnvironmentVariables": {}}
+        self.path = self.products / "OquTurboRuntime.xctestrun"
+        self.write()
+        self.identity = {"source": "a" * 40, "sha256": region.generated.hashlib.sha256(b"payload").hexdigest()}
+
+    def write(self):
+        self.path.write_bytes(plistlib.dumps({"OquTurboUITests": self.target, "__xctestrun_metadata__": {
+            "FormatVersion": 1, "ContainerInfo": {"ContainerName": "iosApp", "SchemeName": "OquTurboRuntime"}}}))
+
+    def bind(self, cutoff=None):
+        return region.generated.GeneratedTestRun(self.products, self.identity, "a" * 40, self.root / "evidence",
+                                                cutoff if cutoff is not None else region.time.monotonic() + 30)
+
+    def test_original_unmodified_spec_and_exact_command(self):
+        before = self.path.read_bytes(); binding = self.bind()
+        command = binding.command("device", "testSystem24HourAcceptance", self.root / "result")
+        self.assertEqual(command, ["xcodebuild", "test-without-building", "-xctestrun", str(self.path),
+            "-destination", "platform=iOS Simulator,id=device", "-parallel-testing-enabled", "NO",
+            "-maximum-concurrent-test-simulator-destinations", "1", "CODE_SIGNING_ALLOWED=NO",
+            "-only-testing:OquTurboUITests/LocalReminderRuntimeTests/testSystem24HourAcceptance", "-resultBundlePath", str(self.root / "result")])
+        self.assertEqual(self.path.read_bytes(), before)
+        self.assertEqual((self.root / "evidence/generated.xctestrun").read_bytes(), before)
+        self.assertIn("Debug-iphonesimulator/OquTurbo.app/OquTurbo.debug.dylib", binding.state["payloads"])
+
+    def test_missing_or_multiple_specs_fail_without_fallback(self):
+        self.path.unlink()
+        with self.assertRaises(ValueError): self.bind()
+        self.write(); (self.products / "extra.xctestrun").write_bytes(self.path.read_bytes())
+        with self.assertRaises(ValueError): self.bind()
+
+    def test_changed_payload_and_spec_fail_before_invocation(self):
+        binding = self.bind()
+        payload = self.products / "Debug-iphonesimulator/OquTurbo.app/OquTurbo.debug.dylib"
+        payload.write_bytes(b"changed")
+        with self.assertRaisesRegex(ValueError, "changed"): binding.command("device", "testSystem24HourAcceptance", self.root / "result")
+        payload.write_bytes(b"actual debug payload")
+        self.target["EnvironmentVariables"]["OS_ACTIVITY_DT_MODE"] = "NO"; self.write()
+        with self.assertRaises(ValueError): binding.command("device", "testSystem24HourAcceptance", self.root / "result")
+
+    def test_malformed_format_and_changed_valid_spec_fail(self):
+        self.path.write_bytes(b"not a plist")
+        with self.assertRaises(plistlib.InvalidFileException): self.bind()
+        self.write()
+        data = plistlib.loads(self.path.read_bytes()); data["__xctestrun_metadata__"]["FormatVersion"] = 2
+        self.path.write_bytes(plistlib.dumps(data))
+        with self.assertRaises(ValueError): self.bind()
+        self.write(); binding = self.bind()
+        self.target["EnvironmentVariables"]["EXTRA"] = "changed"; self.write()
+        with self.assertRaisesRegex(ValueError, "changed"):
+            binding.command("device", "testSystem24HourAcceptance", self.root / "result")
+
+    def test_wrong_identity_or_source_fails(self):
+        self.identity["source"] = "b" * 40
+        with self.assertRaises(ValueError): self.bind()
+        self.identity["source"] = "a" * 40; self.identity["sha256"] = "bad"
+        with self.assertRaises(ValueError): self.bind()
+
+    def test_wrong_paths_unknown_macros_and_overrides_fail(self):
+        for key, value in [("TestHostPath", "__OTHER__/runner"), ("TestBundlePath", "__TESTHOST__/../escape"),
+                           ("UITargetAppPath", "/tmp/other.app"), ("DiagnosticCollectionPolicy", 0),
+                           ("TestLanguage", "de"), ("UITargetAppCommandLineArguments", ["-AppleLocale", "de_DE"])]:
+            with self.subTest(key=key):
+                original = self.target[key]; self.target[key] = value; self.write()
+                with self.assertRaises(ValueError): self.bind()
+                self.target[key] = original; self.write()
+
+    def test_product_symlink_and_test_bundle_identity_fail(self):
+        payload = self.products / "Debug-iphonesimulator/OquTurbo.app/OquTurbo.debug.dylib"
+        payload.unlink(); payload.symlink_to(self.path)
+        with self.assertRaises(ValueError): self.bind()
+        payload.unlink(); payload.write_bytes(b"actual debug payload")
+        info = self.products / "Debug-iphonesimulator/OquTurboUITests-Runner.app/PlugIns/OquTurboUITests.xctest/Info.plist"
+        info.write_bytes(plistlib.dumps({"CFBundleIdentifier": "wrong", "CFBundleExecutable": "OquTurboUITests"}))
+        with self.assertRaises(ValueError): self.bind()
+
+    def test_same_deadline_is_enforced_on_recheck(self):
+        binding = self.bind()
+        with patch.object(region.generated.time, "monotonic", return_value=binding.cutoff):
+            with self.assertRaises(TimeoutError): binding.command("device", "testSystem24HourAcceptance", self.root / "result")
+
+    def test_reused_result_or_other_phase_rejected(self):
+        binding = self.bind(); result = self.root / "result"; result.mkdir()
+        with self.assertRaises(ValueError): binding.command("device", "testSystem24HourAcceptance", result)
+        with self.assertRaises(ValueError): binding.command("device", "testColdDeliveryAndNativeOptIn", self.root / "fresh")
 
 
 if __name__ == "__main__": unittest.main()
