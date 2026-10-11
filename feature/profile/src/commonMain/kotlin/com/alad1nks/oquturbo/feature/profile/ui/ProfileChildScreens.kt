@@ -57,6 +57,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.LifecycleResumeEffect
 import com.alad1nks.oquturbo.core.data.model.AppLanguage
+import com.alad1nks.oquturbo.core.data.reminders.ReminderActionObserver
 import com.alad1nks.oquturbo.core.data.reminders.ReminderPickerLabels
 import com.alad1nks.oquturbo.core.data.reminders.ReminderState
 import com.alad1nks.oquturbo.core.designsystem.theme.OquTurboLayout
@@ -581,6 +582,7 @@ internal fun ProfileSettingsRouteContent(
         viewModel::allowReminderPermission,
         viewModel::openReminderSettings,
         viewModel::retryReminder,
+        reminderActionObserver = viewModel.reminderActionObserver,
     )
 }
 
@@ -599,6 +601,7 @@ internal fun ProfileSettingsScreen(
     onSystemSettings: () -> Unit = {},
     onRetryReminder: () -> Unit = {},
     listState: LazyListState = rememberLazyListState(),
+    reminderActionObserver: ReminderActionObserver? = null,
 ) {
     var showLanguageDialog by remember { mutableStateOf(false) }
 
@@ -658,6 +661,14 @@ internal fun ProfileSettingsScreen(
                 onAllowPermission,
                 onSystemSettings,
                 onRetryReminder,
+                actionObserver = reminderActionObserver,
+                scrollObservation = {
+                    mapOf(
+                        "scrollIndex" to listState.firstVisibleItemIndex.toString(),
+                        "scrollOffset" to listState.firstVisibleItemScrollOffset.toString(),
+                        "scrolling" to listState.isScrollInProgress.toString(),
+                    )
+                },
             )
         }
         item {

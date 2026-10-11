@@ -3,6 +3,7 @@
 package com.alad1nks.oquturbo.shared.reminders
 
 import com.alad1nks.oquturbo.core.data.model.ReminderContent
+import com.alad1nks.oquturbo.core.data.reminders.ReminderActionObserver
 import com.alad1nks.oquturbo.core.data.reminders.ReminderController
 import com.alad1nks.oquturbo.core.data.repository.SettingsRepository
 import com.alad1nks.oquturbo.resources.reminderResourceContent
@@ -34,6 +35,13 @@ internal object IosReminderRuntime {
             modules(
                 getCommonModules() + getPlatformModules() +
                     module {
+                        if (IosReminderDiagnostics.enabled()) {
+                            single<ReminderActionObserver> {
+                                ReminderActionObserver { event, fields ->
+                                    IosReminderDiagnostics.record(event, *fields.toList().toTypedArray())
+                                }
+                            }
+                        }
                         single {
                             PracticeReminderController(
                                 get(),

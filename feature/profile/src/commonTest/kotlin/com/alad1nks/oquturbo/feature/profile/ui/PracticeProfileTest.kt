@@ -5,6 +5,10 @@ import com.alad1nks.oquturbo.core.data.model.DayHistory
 import com.alad1nks.oquturbo.core.data.model.GameId
 import com.alad1nks.oquturbo.core.data.model.GameModeId
 import com.alad1nks.oquturbo.core.data.practice.calculatePracticeRhythm
+import com.alad1nks.oquturbo.core.data.reminders.ReminderActionObserver
+import com.alad1nks.oquturbo.core.data.reminders.ReminderController
+import com.alad1nks.oquturbo.core.data.reminders.ReminderPickerLabels
+import com.alad1nks.oquturbo.core.data.reminders.UnavailableReminderController
 import com.alad1nks.oquturbo.core.data.repository.DailyTrainingRepository
 import com.alad1nks.oquturbo.core.data.repository.GameActivityRepository
 import com.alad1nks.oquturbo.core.data.repository.ProfileRepository
@@ -12,6 +16,7 @@ import com.alad1nks.oquturbo.core.data.repository.SettingsRepository
 import com.alad1nks.oquturbo.core.storage.common.AppPreferences
 import com.alad1nks.oquturbo.core.storage.common.Storage
 import com.alad1nks.oquturbo.core.storage.common.di.StorageCommonModule
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -34,6 +39,7 @@ import org.koin.dsl.koinApplication
 import org.koin.dsl.module
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFailsWith
 import kotlin.test.assertIs
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
@@ -228,10 +234,36 @@ class PracticeProfileTest {
             assertEquals(4, preferences.activeActivityReaders)
         }
 
-    private fun exercise(block: suspend Fixture.() -> Unit) =
+    @Test fun reminderForwardingIsDirectDespiteObserverFailureAndPreservesActionCancellation() {
+        for (observer in listOf(null, ReminderActionObserver { _, _ -> error("observer failure") })) {
+            var calls = 0
+            var cancel = false
+            val controller =
+                object : ReminderController by UnavailableReminderController() {
+                    override fun chooseTime(labels: ReminderPickerLabels, enable: Boolean) {
+                        calls++
+                        if (cancel) throw CancellationException("real action")
+                    }
+                }
+            exercise(controller, observer) {
+                val labels = ReminderPickerLabels("title", "helper", "save", "cancel")
+                vm.chooseReminderTime(labels, false)
+                assertEquals(1, calls)
+                cancel = true
+                assertFailsWith<CancellationException> { vm.chooseReminderTime(labels, false) }
+                assertEquals(2, calls)
+            }
+        }
+    }
+
+    private fun exercise(
+        reminders: ReminderController = UnavailableReminderController(),
+        observer: ReminderActionObserver? = null,
+        block: suspend Fixture.() -> Unit,
+    ) =
         runTest {
             Dispatchers.setMain(StandardTestDispatcher(testScheduler))
-            val fixture = Fixture(this)
+            val fixture = Fixture(this, reminders, observer)
             try {
                 fixture.block()
             } finally {
@@ -243,7 +275,7 @@ class PracticeProfileTest {
             }
         }
 
-    private class Fixture(val scope: TestScope) {
+    private class Fixture(val scope: TestScope, reminders: ReminderController, observer: ReminderActionObserver?) {
         val preferences = MemoryPreferences()
         val application =
             koinApplication { modules(StorageCommonModule, module { single<AppPreferences> { preferences } }) }
@@ -258,6 +290,8 @@ class PracticeProfileTest {
                 profile,
                 SettingsRepository(storage),
                 clock,
+                reminders,
+                observer,
             )
         var collector = scope.backgroundScope.launch { vm.uiState.collect {} }
 
