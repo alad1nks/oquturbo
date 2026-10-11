@@ -8,9 +8,11 @@ import com.alad1nks.oquturbo.core.data.model.DayHistory
 import com.alad1nks.oquturbo.core.data.model.PlayerProgress
 import com.alad1nks.oquturbo.core.data.model.ProfilePreferences
 import com.alad1nks.oquturbo.core.data.practice.calculatePracticeRhythm
+import com.alad1nks.oquturbo.core.data.reminders.ReminderActionObserver
 import com.alad1nks.oquturbo.core.data.reminders.ReminderController
 import com.alad1nks.oquturbo.core.data.reminders.ReminderPickerLabels
 import com.alad1nks.oquturbo.core.data.reminders.UnavailableReminderController
+import com.alad1nks.oquturbo.core.data.reminders.observeAction
 import com.alad1nks.oquturbo.core.data.repository.DailyTrainingRepository
 import com.alad1nks.oquturbo.core.data.repository.GameActivityRepository
 import com.alad1nks.oquturbo.core.data.repository.ProfileRepository
@@ -41,12 +43,16 @@ internal class ProfileViewModel(
     private val settingsRepository: SettingsRepository,
     private val clock: Clock = Clock.System,
     private val reminders: ReminderController = UnavailableReminderController(),
+    val reminderActionObserver: ReminderActionObserver? = null,
 ) : ViewModel() {
     val reminderState = reminders.state
 
     fun refreshReminders() = reminders.refresh()
 
-    fun chooseReminderTime(labels: ReminderPickerLabels, enable: Boolean) = reminders.chooseTime(labels, enable)
+    fun chooseReminderTime(labels: ReminderPickerLabels, enable: Boolean) {
+        reminderActionObserver.observeAction("picker-viewmodel-entry")
+        reminders.chooseTime(labels, enable)
+    }
 
     fun allowReminderPermission() = reminders.allowPermission()
 

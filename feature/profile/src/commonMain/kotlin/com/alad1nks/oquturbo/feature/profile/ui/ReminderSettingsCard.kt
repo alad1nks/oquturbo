@@ -26,6 +26,7 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import com.alad1nks.oquturbo.core.data.reminders.ReminderActionObserver
 import com.alad1nks.oquturbo.core.data.reminders.ReminderAuthorization
 import com.alad1nks.oquturbo.core.data.reminders.ReminderCapability
 import com.alad1nks.oquturbo.core.data.reminders.ReminderPending
@@ -45,6 +46,8 @@ internal fun ReminderSettingsCard(
     onAllow: () -> Unit,
     onSystemSettings: () -> Unit,
     onRetry: () -> Unit,
+    actionObserver: ReminderActionObserver? = null,
+    scrollObservation: () -> Map<String, String> = { emptyMap() },
 ) {
     val title = stringResource(AppResource.String.profile_settings_reminders)
     val status =
@@ -127,33 +130,53 @@ internal fun ReminderSettingsCard(
             when (state.phase) {
                 ReminderPhase.Off -> {
                     if (state.schedule == null) {
-                        ReminderAction(AppResource.String.reminder_choose_enable) { choose(true) }
+                        ReminderAction(
+                            AppResource.String.reminder_choose_enable,
+                            actionObserver,
+                            scrollObservation,
+                        ) { choose(true) }
                     } else {
-                        ReminderAction(AppResource.String.reminder_change_time) { choose(false) }
+                        ReminderAction(
+                            AppResource.String.reminder_change_time,
+                            actionObserver,
+                            scrollObservation,
+                        ) { choose(false) }
                     }
                 }
                 ReminderPhase.NeedsTime -> {
                     ReminderText(AppResource.String.reminder_not_scheduled)
-                    ReminderAction(AppResource.String.reminder_choose_enable) { choose(true) }
+                    ReminderAction(
+                        AppResource.String.reminder_choose_enable,
+                        actionObserver,
+                        scrollObservation,
+                    ) { choose(true) }
                 }
                 ReminderPhase.Scheduled -> {
                     state.timeText?.let { ReminderText(stringResource(AppResource.String.reminder_around_time, it)) }
                     ReminderText(AppResource.String.reminder_accepted)
                     if (state.native?.limited == true) {
                         ReminderText(AppResource.String.reminder_quiet_hint)
-                        ReminderAction(AppResource.String.reminder_system_settings, onSystemSettings)
+                        ReminderAction(AppResource.String.reminder_system_settings, onClick = onSystemSettings)
                     }
-                    ReminderAction(AppResource.String.reminder_change_time) { choose(false) }
+                    ReminderAction(
+                        AppResource.String.reminder_change_time,
+                        actionObserver,
+                        scrollObservation,
+                    ) { choose(false) }
                 }
                 ReminderPhase.SystemBlocked -> {
                     if (state.native?.authorization == ReminderAuthorization.Requestable) {
                         ReminderAction(
                             AppResource.String.reminder_allow,
-                            onAllow,
+                            onClick = onAllow,
                         )
                     }
-                    ReminderAction(AppResource.String.reminder_system_settings, onSystemSettings)
-                    ReminderAction(AppResource.String.reminder_change_time) { choose(false) }
+                    ReminderAction(AppResource.String.reminder_system_settings, onClick = onSystemSettings)
+                    ReminderAction(
+                        AppResource.String.reminder_change_time,
+                        actionObserver,
+                        scrollObservation,
+                    ) { choose(false) }
                 }
                 ReminderPhase.ScheduleError -> {
                     when (val pending = state.native?.pending) {
@@ -169,19 +192,25 @@ internal fun ReminderSettingsCard(
                             }
                         else -> ReminderText(AppResource.String.reminder_pending_unknown)
                     }
-                    ReminderAction(AppResource.String.reminder_retry, onRetry)
-                    ReminderAction(AppResource.String.reminder_change_time) { choose(false) }
+                    ReminderAction(AppResource.String.reminder_retry, onClick = onRetry)
+                    ReminderAction(
+                        AppResource.String.reminder_change_time,
+                        actionObserver,
+                        scrollObservation,
+                    ) { choose(false) }
                     ReminderAction(AppResource.String.reminder_turn_off) { onEnabled(false) }
                 }
                 ReminderPhase.ReadError, ReminderPhase.Unconfirmed -> {
-                    ReminderAction(AppResource.String.reminder_retry, onRetry)
-                    ReminderAction(AppResource.String.reminder_replace_time) { choose(state.desired != false) }
+                    ReminderAction(AppResource.String.reminder_retry, onClick = onRetry)
+                    ReminderAction(AppResource.String.reminder_replace_time, actionObserver, scrollObservation) {
+                        choose(state.desired != false)
+                    }
                     ReminderAction(AppResource.String.reminder_turn_off) { onEnabled(false) }
                 }
                 ReminderPhase.CancellationIncomplete ->
                     ReminderAction(
                         AppResource.String.reminder_retry_cancel,
-                        onRetry,
+                        onClick = onRetry,
                     )
                 else -> Unit
             }
@@ -207,10 +236,20 @@ private fun ReminderText(
 }
 
 @Composable
-private fun ReminderAction(label: StringResource, onClick: () -> Unit) {
+internal fun ReminderAction(
+    label: StringResource,
+    observer: ReminderActionObserver? = null,
+    scrollObservation: () -> Map<String, String> = { emptyMap() },
+    onClick: () -> Unit,
+) {
+    val observation = rememberReminderActionObservation(observer, scrollObservation)
     TextButton(
-        onClick,
-        Modifier.widthIn(max = 360.dp).fillMaxWidth().heightIn(min = 56.dp),
+        {
+            observation?.record("picker-ui-click")
+            onClick()
+        },
+        Modifier.widthIn(max = 360.dp).fillMaxWidth().heightIn(min = 56.dp).then(observation.actionBounds()),
+        interactionSource = observation?.source,
         shape = MaterialTheme.shapes.medium,
         contentPadding = PaddingValues(horizontal = 16.dp, vertical = 12.dp),
     ) {

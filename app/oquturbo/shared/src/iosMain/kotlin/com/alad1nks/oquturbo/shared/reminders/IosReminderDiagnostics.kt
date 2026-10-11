@@ -27,7 +27,7 @@ internal object IosReminderDiagnostics {
     private val launchId = NSUUID().UUIDString
     private val directory get() = NSHomeDirectory() + "/Documents"
 
-    private fun enabled() =
+    fun enabled() =
         Platform.isDebugBinary &&
             NSFileManager.defaultManager.fileExistsAtPath("$directory/reminder-diagnostics-enabled")
 

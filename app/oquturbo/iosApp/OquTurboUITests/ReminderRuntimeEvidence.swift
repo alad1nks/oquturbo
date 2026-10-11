@@ -112,7 +112,9 @@ final class ReminderRuntimeEvidence {
 
     func inspectLocalizedPicker(change: String, title: String, helper: String, confirm: String, cancel: String) {
         tap(app.buttons[change], scrolling: true)
-        XCTAssertTrue(app.staticTexts[title].waitForExistence(timeout: 5))
+        let titleExists = app.staticTexts[title].waitForExistence(timeout: 5)
+        if !titleExists { capture("localized-picker-missing-title") }
+        XCTAssertTrue(titleExists)
         XCTAssertTrue(app.staticTexts[helper].exists)
         capture("localized-picker-top-" + title)
         let button = app.buttons["reminder-time-confirm"]

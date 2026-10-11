@@ -7,6 +7,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.semantics.SemanticsActions
 import androidx.compose.ui.test.ExperimentalTestApi
@@ -14,6 +15,7 @@ import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.assertIsOff
 import androidx.compose.ui.test.assertIsOn
+import androidx.compose.ui.test.click
 import androidx.compose.ui.test.hasClickAction
 import androidx.compose.ui.test.hasContentDescription
 import androidx.compose.ui.test.hasScrollAction
@@ -24,17 +26,21 @@ import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollToNode
 import androidx.compose.ui.test.performSemanticsAction
+import androidx.compose.ui.test.performTouchInput
 import androidx.compose.ui.test.runDesktopComposeUiTest
 import androidx.compose.ui.text.TextLayoutResult
 import androidx.compose.ui.unit.Density
+import com.alad1nks.oquturbo.core.data.reminders.ReminderActionObserver
 import com.alad1nks.oquturbo.core.data.reminders.ReminderCapability
 import com.alad1nks.oquturbo.core.data.reminders.ReminderPhase
 import com.alad1nks.oquturbo.core.data.reminders.ReminderState
 import com.alad1nks.oquturbo.core.designsystem.theme.OquTurboTheme
+import com.alad1nks.oquturbo.resources.AppResource
 import java.util.Locale
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
+import kotlin.test.assertTrue
 
 @OptIn(ExperimentalTestApi::class)
 class ReminderSettingsUiTest {
@@ -131,6 +137,66 @@ class ReminderSettingsUiTest {
             }
         }
     }
+
+    @Test fun optionalAndThrowingObserversPreserveOneRealClick() =
+        localized("en") {
+            for (observer in listOf(null, ReminderActionObserver { _, _ -> error("observer failure") })) {
+                runDesktopComposeUiTest(width = 390, height = 800) {
+                    var clicks = 0
+                    setContent {
+                        OquTurboTheme {
+                            ReminderAction(AppResource.String.reminder_change_time, observer) { clicks++ }
+                        }
+                    }
+                    onNodeWithText("Change time").performTouchInput { click() }
+                    runOnIdle { assertEquals(1, clicks) }
+                }
+            }
+        }
+
+    @Test fun canceledPressDoesNotForwardAndObserverSurvivesRecompositionDuringPress() =
+        localized("en") {
+            runDesktopComposeUiTest(width = 390, height = 800) {
+                val first = mutableListOf<Pair<String, Map<String, String>>>()
+                val second = mutableListOf<Pair<String, Map<String, String>>>()
+                val observer = mutableStateOf(ReminderActionObserver { event, fields -> first.add(event to fields) })
+                val label = mutableStateOf(AppResource.String.reminder_change_time)
+                var clicks = 0
+                setContent {
+                    OquTurboTheme {
+                        ReminderAction(label.value, observer.value) { clicks++ }
+                    }
+                }
+                onNodeWithText("Change time").performTouchInput { down(center) }
+                runOnIdle {
+                    assertEquals(1, first.count { it.first == "picker-ui-press" })
+                    observer.value = ReminderActionObserver { event, fields -> second.add(event to fields) }
+                    label.value = AppResource.String.reminder_replace_time
+                }
+                onNodeWithText("Choose a new time").performTouchInput { up() }
+                runOnIdle {
+                    assertEquals(1, clicks)
+                    assertEquals(1, second.count { it.first == "picker-ui-click" })
+                    assertEquals(
+                        first.single().second["press"],
+                        second.single { it.first == "picker-ui-release" }.second["press"],
+                    )
+                }
+                onNodeWithText("Choose a new time").performTouchInput { down(center) }
+                runOnIdle { assertEquals(1, second.count { it.first == "picker-ui-press" }) }
+                onNodeWithText("Choose a new time").performTouchInput {
+                    moveTo(Offset(center.x, height.toFloat() + 40f))
+                    up()
+                }
+                runOnIdle {
+                    assertEquals(1, clicks)
+                    assertEquals(1, second.count { it.first == "picker-ui-cancel" })
+                    val lastPress = second.last { it.first == "picker-ui-press" }.second["press"]
+                    assertEquals(lastPress, second.single { it.first == "picker-ui-cancel" }.second["press"])
+                    assertTrue(second.all { it.second.containsKey("left") })
+                }
+            }
+        }
 
     private fun localized(code: String, block: () -> Unit) {
         val old = Locale.getDefault()
