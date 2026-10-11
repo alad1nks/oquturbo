@@ -1,0 +1,58 @@
+name: Archive iOS probe result extraction (not acceptance)
+
+on:
+  push:
+    branches: [ diagnostic/ios-collection-probe ]
+    paths:
+      - '.github/workflows/archive-ios-probe-results.yml'
+      - 'scripts/archive-ios-probe-results.py'
+      - 'scripts/test-archive-ios-probe-results.py'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: read
+
+concurrency:
+  group: archive-ios-probe-results
+  cancel-in-progress: false
+
+jobs:
+  archive-only:
+    if: github.ref == 'refs/heads/diagnostic/ios-collection-probe'
+    runs-on: macos-15
+    timeout-minutes: 20
+    env:
+      DEVELOPER_DIR: /Applications/Xcode_26.3.app/Contents/Developer
+      PYTHONUNBUFFERED: '1'
+    steps:
+      - uses: actions/checkout@v4
+      - name: Focused archive harness tests
+        run: python3 -B scripts/test-archive-ios-probe-results.py
+      - name: Record immutable source metadata
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          mkdir -p build/qa/archive-ios
+          gh api repos/${{ github.repository }}/actions/runs/38169491833 > build/qa/archive-ios/source-run.json
+      - uses: actions/download-artifact@v4
+        with:
+          github-token: ${{ github.token }}
+          run-id: 38169491833
+          name: ios-diagnostic-capability-not-acceptance
+          path: build/qa/archive-ios/input
+      - name: Materialize existing results equally (no native execution)
+        run: >-
+          python3 -B scripts/archive-ios-probe-results.py
+          --input build/qa/archive-ios/input
+          --run-metadata build/qa/archive-ios/source-run.json
+          --output build/qa/archive-ios/analysis
+      - name: Preserve complete or partial analysis
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ios-archive-analysis-not-acceptance
+          path: |
+            build/qa/archive-ios/source-run.json
+            build/qa/archive-ios/analysis
+          if-no-files-found: error
