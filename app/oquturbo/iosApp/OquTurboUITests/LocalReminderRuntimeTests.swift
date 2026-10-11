@@ -183,6 +183,20 @@ final class LocalReminderRuntimeTests: XCTestCase {
         try ui.recordRegionBaseline(original: original)
     }
 
+    // Separately invoked engineering probe; never a product acceptance substitute.
+    func testDiagnosticRegionReadback() throws {
+        let control = try RegionRuntimeControl(self)
+        guard control.request["purpose"] as? String == "diagnostic-capability-only" else {
+            throw RegionRuntimeControl.Failure.invalidState
+        }
+        try control.openRegionPage()
+        let region = try control.readRegion()
+        if let expected = control.request["expectedRegion"] as? String {
+            XCTAssertEqual(region, expected)
+        }
+        try control.record("probe-region", extra: ["observedRegion": region, "observedLanguage": "en-US"])
+    }
+
     func testSystemRegionTransition() throws {
         try RegionRuntimeControl(self).transition()
     }
