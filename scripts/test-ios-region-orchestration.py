@@ -326,7 +326,7 @@ class LocaleOrchestrationTest(unittest.TestCase):
 class GeneratedTestRunTest(unittest.TestCase):
     def setUp(self):
         temporary = tempfile.TemporaryDirectory(); self.addCleanup(temporary.cleanup)
-        self.root = Path(temporary.name)
+        self.root = Path(temporary.name).resolve()
         self.products = self.root / "Products"; self.products.mkdir()
         self.package = region.generated.PACKAGE
         for relative, suffix, executable in (
@@ -361,6 +361,22 @@ class GeneratedTestRunTest(unittest.TestCase):
     def bind(self, cutoff=None):
         return region.generated.GeneratedTestRun(self.products, self.identity, "a" * 40, self.root / "evidence",
                                                 cutoff if cutoff is not None else region.time.monotonic() + 30)
+
+    def test_symlinked_temporary_ancestor_is_canonicalized_by_fixture(self):
+        real = self.root / "real-temporary-root"; real.mkdir()
+        alias = self.root / "temporary-root-alias"; alias.symlink_to(real, target_is_directory=True)
+        nested = GeneratedTestRunTest("test_original_unmodified_spec_and_exact_command")
+        self.addCleanup(nested.doCleanups)
+        with patch.object(tempfile, "tempdir", str(alias)):
+            nested.setUp()
+        self.assertEqual(nested.root, nested.root.resolve())
+        binding = nested.bind()
+        self.assertEqual(binding.products, nested.products)
+        # The production safety guard still rejects noncanonical/symlinked product inputs.
+        aliased_products = alias / nested.root.name / "Products"
+        with self.assertRaisesRegex(ValueError, "symlinked"):
+            region.generated.GeneratedTestRun(aliased_products, nested.identity, "a" * 40,
+                                             nested.root / "other-evidence", region.time.monotonic() + 30)
 
     def test_original_unmodified_spec_and_exact_command(self):
         before = self.path.read_bytes(); binding = self.bind()
