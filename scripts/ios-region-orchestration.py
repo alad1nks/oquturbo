@@ -1,5 +1,6 @@
 """One locale episode with host-owned real Settings transitions and fail-closed readbacks."""
 import json
+import importlib.util
 import datetime as dt
 import plistlib
 import re
@@ -8,6 +9,11 @@ import subprocess
 import time
 import uuid
 from pathlib import Path
+
+
+_generated_spec = importlib.util.spec_from_file_location("ios_generated", Path(__file__).with_name("ios-generated-test-run.py"))
+generated = importlib.util.module_from_spec(_generated_spec)
+_generated_spec.loader.exec_module(generated)
 
 
 def validate_observation(request, observation, states):
@@ -198,6 +204,9 @@ def run_locale(runner, directory, snapshots, baseline, boundary, cutoff):
     runner_bundle = plistlib.loads(infos[0].read_bytes())["CFBundleIdentifier"]
     runner.deadline = min(suite_deadline, cutoff)
     try:
+        test_run = generated.GeneratedTestRun(products.parent, identity, runner.run("git", "rev-parse", "HEAD"),
+                                              directory / "generated-test-run", runner.deadline)
+
         def budget():
             if time.monotonic() >= cutoff:
                 raise TimeoutError("Single locale phase deadline exhausted")
@@ -275,15 +284,22 @@ def run_locale(runner, directory, snapshots, baseline, boundary, cutoff):
             if unchanged:
                 (location / "before.preferences_pb").write_bytes(before_preferences)
             result = location / "runtime.xcresult"
-            command = runner.xcode_args() + ["test-without-building", "-only-testing:OquTurboUITests/LocalReminderRuntimeTests/" + method,
-                                           "-resultBundlePath", str(result)]
+            binding_started = time.monotonic()
+            command = test_run.command(runner.udid, method, result)
+            timing = {"bindingStartedMonotonic": binding_started, "command": command, "specification": test_run.state["specification"], "cutoffMonotonic": cutoff,
+                      "startedMonotonic": time.monotonic(), "samples": []}
             with (location / "xcodebuild.log").open("w") as log:
                 runner.process = subprocess.Popen(command, cwd=runner.root, stdout=log, stderr=subprocess.STDOUT)
                 try:
                     while runner.process.poll() is None:
                         budget()
-                        sample()
+                        sample_started = time.monotonic()
+                        try:
+                            sample()
+                        finally:
+                            timing["samples"].append({"startedMonotonic": sample_started, "finishedMonotonic": time.monotonic()})
                         time.sleep(min(2, max(0, cutoff - time.monotonic())))
+                    timing["processCompletionObservedMonotonic"] = time.monotonic()
                     code = runner.process.returncode
                     outcome["code"] = code
                 finally:
@@ -292,6 +308,9 @@ def run_locale(runner, directory, snapshots, baseline, boundary, cutoff):
                         # Reaping an owned failed process cannot turn an expired episode into PASS.
                         runner.process.wait(timeout=1)
                     runner.process = None
+                    timing["finishedMonotonic"] = time.monotonic()
+                    timing["completionMeaning"] = "Host poll observation, not exact OS exit time"
+                    (location / "invocation-timing.json").write_text(json.dumps(timing, indent=2))
             budget()
             observation_path = runner_documents(location, "observation") / "region-observation.json"
             observation = json.loads(observation_path.read_text()) if observation_path.exists() else {}
