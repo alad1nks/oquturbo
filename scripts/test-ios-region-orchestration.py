@@ -54,6 +54,39 @@ class RegionEvidenceTest(unittest.TestCase):
         values, times, sessions = self.relaunch_fixture()
         self.assertEqual("SETUP_TRANSITION_INTERRUPTED", region.classify_interruption(*values, issue_times=times, sessions=sessions))
 
+    def test_distinct_creation_and_logging_events_need_causal_order_not_proximity(self):
+        for logged, secondary in (("16:05:08.002", 1791734709), ("16:05:30.000", 1791734731)):
+            values, times, sessions = self.relaunch_fixture()
+            times[1] = secondary
+            sessions[0] = sessions[0].replace("16:05:07.500", logged)
+            with self.subTest(logged=logged):
+                self.assertEqual("SETUP_TRANSITION_INTERRUPTED", region.classify_interruption(
+                    *values, issue_times=times, sessions=sessions))
+
+    def test_creation_second_can_overlap_causal_boundary_or_equal_log(self):
+        values, times, sessions = self.relaunch_fixture()
+        times[0] = 1791734706.5
+        sessions[0] = sessions[0].replace("DVTErrorCreationDateKey=2026-10-11 16:05:07", "DVTErrorCreationDateKey=2026-10-11 16:05:06")
+        self.assertEqual("SETUP_TRANSITION_INTERRUPTED", region.classify_interruption(*values, issue_times=times, sessions=sessions))
+        values, times, sessions = self.relaunch_fixture()
+        sessions[0] = sessions[0].replace("16:05:07.500", "16:05:07.000")
+        self.assertEqual("SETUP_TRANSITION_INTERRUPTED", region.classify_interruption(*values, issue_times=times, sessions=sessions))
+
+    def test_empty_endpoint_earlier_and_future_creation_are_rejected(self):
+        for creation in ("16:05:06", "16:05:05", "16:05:08"):
+            values, times, sessions = self.relaunch_fixture()
+            times[0] = 1791734707  # C+1 == K for 06 is an empty half-open intersection.
+            sessions[0] = sessions[0].replace("DVTErrorCreationDateKey=2026-10-11 16:05:07", "DVTErrorCreationDateKey=2026-10-11 " + creation)
+            with self.subTest(creation=creation), self.assertRaises(ValueError):
+                region.classify_interruption(*values, issue_times=times, sessions=sessions)
+
+    def test_creation_metadata_requires_actual_full_utc_date(self):
+        for value in ("2026-10-12 16:05:07 +0000", "2026-10-11 16:05:07 +0100", "missing", ""):
+            values, times, sessions = self.relaunch_fixture()
+            sessions[0] = sessions[0].replace("2026-10-11 16:05:07 +0000", value)
+            with self.subTest(value=value), self.assertRaises(ValueError):
+                region.classify_interruption(*values, issue_times=times, sessions=sessions)
+
     def test_relaunch_cannot_hide_extra_issue_build_error_or_wrong_order(self):
         for mutation in (lambda v: v[2].append("Assertion failed"), lambda v: v[3].append("Build failed"),
                          lambda v: v[2].reverse(), lambda v: v[2].__setitem__(1, v[2][1].replace(region.RUNNER_BUNDLE, "other.bundle"))):

@@ -124,9 +124,11 @@ def validate_setup_issues(request, issues, build_issues, issue_times, sessions, 
                     'NSLocalizedDescription=Simulator device failed to launch ' + RUNNER_BUNDLE + '.' in line:
                 when = scoped_clock(clock[1], request["created"])
                 date = re.search(r"DVTErrorCreationDateKey=(\d{4}-\d\d-\d\d \d\d:\d\d:\d\d \+0000)", line)
-                if date and 0 <= when - dt.datetime.strptime(date[1], "%Y-%m-%d %H:%M:%S %z").timestamp() < 1 and \
-                        issue_times[0] <= when <= issue_times[1]:
-                    matching.append(when)
+                if date:
+                    creation = dt.datetime.strptime(date[1], "%Y-%m-%d %H:%M:%S %z").timestamp()
+                    # Creation has second precision: [C,C+1) must intersect causal [kill issue, log].
+                    if creation <= when and creation + 1 > issue_times[0] and issue_times[0] <= when <= issue_times[1]:
+                        matching.append(when)
     if len(matching) != 1:
         raise ValueError("Missing exact same-device post-kill automatic relaunch diagnostic")
 
