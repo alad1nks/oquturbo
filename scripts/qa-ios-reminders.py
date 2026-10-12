@@ -1,16 +1,17 @@
 #!/usr/bin/env python3
 """Actual OquTurbo.app/XCTest runner. macOS arm64 only; no injected notification, grant, clock, or navigation."""
 import argparse
-import datetime as dt
 import hashlib
 import importlib.util
 import json
+import math
 import os
 import platform
 import plistlib
 import re
 import shutil
 import subprocess
+import sys
 import time
 from pathlib import Path
 
@@ -318,6 +319,66 @@ class Runner:
         (directory / "validation.json").write_text(json.dumps(report, indent=2))
         return report
 
+    def prepare_host_clock(self):
+        if platform.system() != "Darwin" or platform.machine() != "arm64" or sys.version_info < (3, 10):
+            raise RuntimeError("Unsupported native host clock coordinates")
+        source = self.root / "scripts/ios-host-clock.c"
+        self.clock_helper = self.output / "ios-host-clock"
+        self.run("xcrun", "--sdk", "macosx", "clang", "-Wall", "-Wextra", "-Werror", "-O2",
+                 str(source), "-o", str(self.clock_helper), timeout=30)
+        before_mono, before_epoch = time.monotonic(), time.time()
+        raw = self.run("sudo", "-n", str(self.clock_helper), "--probe", timeout=10)
+        after_epoch, after_mono = time.time(), time.monotonic()
+        probe = json.loads(raw)
+        (self.output / "host-clock-probe.json").write_text(json.dumps({"probe": probe,
+            "sourceSha256": hashlib.sha256(source.read_bytes()).hexdigest(),
+            "helperSha256": hashlib.sha256(self.clock_helper.read_bytes()).hexdigest(),
+            "parentMonotonic": [before_mono, after_mono], "parentEpoch": [before_epoch, after_epoch],
+            "python": sys.version, "clock": vars(time.get_clock_info("monotonic"))}, indent=2))
+        values = [probe.get(key) for key in ("startedMonotonic", "finishedMonotonic", "epoch")]
+        if any(type(value) not in (int, float) or not math.isfinite(value) for value in values) or \
+                probe.get("mode") != "probe" or probe.get("code") != 0 or probe.get("errno") != 0 or \
+                not before_mono <= values[0] <= values[1] <= after_mono or \
+                not before_epoch <= values[2] <= after_epoch:
+            raise RuntimeError("Native helper clock coordinates do not match this interpreter/host")
+
+    def observe_timezone(self, expected, cutoff, command, record):
+        # Read-only observations after ONE setter. Correct-but-late output never satisfies the gate.
+        while time.monotonic() < cutoff:
+            before = time.monotonic()
+            if before >= cutoff:
+                break
+            item = {"startedMonotonic": before, "expected": "Time Zone: " + expected}
+            try:
+                result = command(cutoff - before)
+                item.update(code=result.returncode, stdout=result.stdout, stderr=result.stderr)
+                matches = result.returncode == 0 and result.stdout.strip() == item["expected"]
+            except Exception as error:
+                item.update(code=None, error=str(error))
+                matches = False
+            finished = time.monotonic()
+            item.update(finishedMonotonic=finished, matches=matches and finished < cutoff)
+            record(item)
+            if item["matches"] and time.monotonic() < cutoff:
+                return True
+            remaining = cutoff - time.monotonic()
+            if remaining > 0:
+                time.sleep(min(0.2, remaining))
+        return False
+
+    def change_timezone(self, zone):
+        self.run("sudo", "-n", "systemsetup", "-settimezone", zone)
+        cutoff = min(self.deadline, time.monotonic() + 10)
+        def command(timeout):
+            # Runner.run retains each getter stdout/stderr and bounded command timing.
+            output = self.run("sudo", "-n", "systemsetup", "-gettimezone", timeout=timeout)
+            return subprocess.CompletedProcess([], 0, output, "")
+        def record(item):
+            with (self.output / "timezone-observations.jsonl").open("a") as log:
+                log.write(json.dumps(item) + "\n")
+        if not self.observe_timezone(zone, cutoff, command, record):
+            raise RuntimeError("BLOCKED N5: system timezone change not verified")
+
     def clock_phases(self):
         if not self.clock_probe:
             raise RuntimeError("BLOCKED N5: dedicated runner clock/zone controls not explicitly enabled")
@@ -325,6 +386,7 @@ class Runner:
         if os.environ.get("CI") != "true":
             raise RuntimeError("BLOCKED N5: clock controls require a disposable CI host")
         self.run("sudo", "-n", "-v")
+        self.prepare_host_clock()  # Compile and verify coordinates before ANY host mutation.
         zone = self.run("sudo", "-n", "systemsetup", "-gettimezone").removeprefix("Time Zone: ").strip()
         network = self.run("sudo", "-n", "systemsetup", "-getusingnetworktime")
         if not zone or network not in ("Network Time: On", "Network Time: Off"):
@@ -333,14 +395,13 @@ class Runner:
         monotonic = time.monotonic()
         reports = []
         primary_error = None
+        clock_attempted = False
         try:
             self.run("sudo", "-n", "systemsetup", "-setusingnetworktime", "off")
             for phase, new_zone in (("travel", "Asia/Almaty"), ("dst", "America/New_York")):
-                self.run("sudo", "-n", "systemsetup", "-settimezone", new_zone)
-                actual = self.run("sudo", "-n", "systemsetup", "-gettimezone")
-                if actual != "Time Zone: " + new_zone:
-                    raise RuntimeError("BLOCKED N5: system timezone change not verified")
+                self.change_timezone(new_zone)
                 if phase == "dst":
+                    clock_attempted = True  # A failed/partial date command also requires restoration.
                     self.run("sudo", "-n", "date", "-u", "030806002026.00")
                     epoch = float(self.run("date", "+%s"))
                     if not 1772949600 <= epoch < 1772949660:
@@ -351,26 +412,34 @@ class Runner:
             raise
         finally:
             try:
-                self.restore_clock(original, monotonic, zone, network)
+                self.restore_clock(original, monotonic, zone, network, clock_attempted)
             except Exception as restoration_error:
                 if primary_error is None:
                     raise
                 primary_error.add_note(str(restoration_error))
         return reports
 
-    def restore_clock(self, original, monotonic, zone, network):
+    def restore_clock(self, original, monotonic, zone, network, clock_attempted=True):
         # Keep the existing maximum cleanup budget (3 * 40s), reserving time for independent readbacks.
         # Every command/getter is attempted despite earlier failures, including after the run deadline.
-        restored = dt.datetime.fromtimestamp(original + time.monotonic() - monotonic, dt.timezone.utc)
         results = []
-        for command in (["sudo", "-n", "date", "-u", restored.strftime("%m%d%H%M%Y.%S")],
+        clock_command = (["sudo", "-n", str(self.clock_helper), "--restore", repr(original), repr(monotonic)]
+                         if clock_attempted else None)
+        for command in (clock_command,
                         ["sudo", "-n", "systemsetup", "-settimezone", zone],
                         ["sudo", "-n", "systemsetup", "-setusingnetworktime", "on" if network.endswith("On") else "off"]):
+            if command is None:
+                results.append({"command": None, "status": "NOT_REQUIRED", "reason": "No wall-clock mutation attempted"})
+                continue
+            started = time.monotonic()
+            record = {"command": command, "startedMonotonic": started}
             try:
                 result = subprocess.run(command, capture_output=True, text=True, timeout=30)
-                results.append({"command": command, "code": result.returncode, "stdout": result.stdout, "stderr": result.stderr})
+                record.update(code=result.returncode, stdout=result.stdout, stderr=result.stderr)
             except Exception as error:
-                results.append({"command": command, "code": -1, "error": str(error)})
+                record.update(code=-1, error=str(error))
+            record["finishedMonotonic"] = time.monotonic()
+            results.append(record)
         (self.output / "clock-restoration.json").write_text(json.dumps(results, indent=2))
         readbacks = []
         for name, command, expected in (
@@ -379,6 +448,13 @@ class Runner:
                 ("network", ["sudo", "-n", "systemsetup", "-getusingnetworktime"], network)):
             observation = {"name": name, "command": command, "matches": False, "expected": expected}
             before = time.monotonic()
+            if name == "timezone":
+                samples = []
+                observation["matches"] = self.observe_timezone(zone, before + 10,
+                    lambda timeout: subprocess.run(command, capture_output=True, text=True, timeout=timeout), samples.append)
+                observation.update(samples=samples, startedMonotonic=before, finishedMonotonic=time.monotonic())
+                readbacks.append(observation)
+                continue
             try:
                 result = subprocess.run(command, capture_output=True, text=True, timeout=10)
                 after = time.monotonic()
@@ -397,7 +473,8 @@ class Runner:
                 observation.update(code=-1, error=str(error))
             readbacks.append(observation)
         (self.output / "clock-restoration-readback.json").write_text(json.dumps(readbacks, indent=2))
-        if any(r["code"] != 0 for r in results) or not all(r["matches"] for r in readbacks):
+        if any(r.get("code") != 0 for r in results if r.get("status") != "NOT_REQUIRED") or \
+                not all(r["matches"] for r in readbacks):
             raise RuntimeError("System clock/zone restoration failed or unverified; inspect clock-restoration*.json")
 
     def close(self):
