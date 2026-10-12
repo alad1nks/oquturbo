@@ -9,10 +9,18 @@ import kotlinx.cinterop.cstr
 import kotlinx.cinterop.memScoped
 import kotlinx.cinterop.ptr
 import kotlinx.cinterop.value
+import platform.Foundation.NSCalendar
+import platform.Foundation.NSCalendarUnitHour
+import platform.Foundation.NSCalendarUnitMinute
+import platform.Foundation.NSDateComponents
 import platform.Foundation.NSInvocation
 import platform.Foundation.NSMethodSignature
 import platform.Foundation.NSSelectorFromString
 import platform.Foundation.NSThread
+import platform.Foundation.NSTimeZone
+import platform.Foundation.defaultTimeZone
+import platform.Foundation.setDefaultTimeZone
+import platform.Foundation.timeZoneWithName
 import platform.Foundation.valueForKey
 import platform.UIKit.UIApplication
 import platform.UIKit.UIButton
@@ -68,6 +76,57 @@ class IosReminderPickerTest {
         sheet.confirm()
         sheet.cancel()
         assertEquals(listOf<Int?>(150), results)
+    }
+
+    @Test
+    fun nonUtcDeviceKeepsDisplayedAndConfirmedTimeInTheSameCoordinateSystem() {
+        assertTrue(NSThread.isMainThread, "UIKit construction requires the main thread")
+        val originalZone = NSTimeZone.defaultTimeZone
+        try {
+            for (zone in listOf("Asia/Almaty", "America/New_York")) {
+                NSTimeZone.setDefaultTimeZone(requireNotNull(NSTimeZone.timeZoneWithName(zone)))
+                assertEquals(zone, NSTimeZone.defaultTimeZone.name)
+                for (edit in listOf(false, true)) {
+                    val results = mutableListOf<Int?>()
+                    val sheet = IosReminderPicker(478, labels, results::add)
+                    sheet.loadViewIfNeeded()
+                    val views = descendants(sheet.view)
+                    val picker = views.filterIsInstance<UIDatePicker>().single()
+                    val displayed =
+                        (picker.calendar.copy() as NSCalendar).apply {
+                            timeZone = requireNotNull(picker.timeZone)
+                        }
+                    assertEquals(0L, displayed.timeZone.secondsFromGMTForDate(picker.date))
+                    val initial = displayed.components(NSCalendarUnitHour or NSCalendarUnitMinute, picker.date)
+                    assertEquals(478L, initial.hour * 60 + initial.minute)
+                    if (edit) {
+                        // Build the edited date from the ACTUAL displayed calendar/zone, not the UTC helper.
+                        val fields =
+                            NSDateComponents().apply {
+                                year = 1970
+                                month = 1
+                                day = 1
+                                hour = 2
+                                minute = 30
+                            }
+                        picker.setDate(requireNotNull(displayed.dateFromComponents(fields)), animated = false)
+                        val selected = displayed.components(NSCalendarUnitHour or NSCalendarUnitMinute, picker.date)
+                        assertEquals(150L, selected.hour * 60 + selected.minute)
+                    }
+                    val confirm =
+                        views.filterIsInstance<UIButton>().single {
+                            identifier(it) == "reminder-time-confirm"
+                        }
+                    invokeRegisteredAction(confirm, sheet, "confirm")
+                    assertEquals(listOf<Int?>(if (edit) 150 else 478), results)
+                    sheet.cancel()
+                    assertEquals(1, results.size)
+                }
+            }
+        } finally {
+            NSTimeZone.setDefaultTimeZone(originalZone)
+            assertEquals(originalZone.name, NSTimeZone.defaultTimeZone.name)
+        }
     }
 
     private fun invokeRegisteredAction(button: UIButton, sheet: IosReminderPicker, expected: String) {

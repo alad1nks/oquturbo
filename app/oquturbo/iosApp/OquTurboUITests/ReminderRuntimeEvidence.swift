@@ -123,6 +123,33 @@ final class ReminderRuntimeEvidence {
         }
     }
 
+    // The clock fixture uses English system UI; read what UIKit actually exposes before confirming.
+    func pickerMinutes(_ picker: XCUIElement) -> Int? {
+        let wheels = picker.pickerWheels.allElementsBoundByIndex
+        guard wheels.count == 2 || wheels.count == 3 else { return nil }
+        let values = wheels.compactMap { $0.value as? String }
+        guard values.count == wheels.count else { return nil }
+        return englishClockMinutes(values.joined(separator: " "))
+    }
+
+    func reminderSummaryMinutes() -> Int? {
+        let summaries = app.staticTexts.matching(NSPredicate(format: "label BEGINSWITH %@", "Chosen time:"))
+        guard summaries.count == 1 else { return nil }
+        return englishClockMinutes(summaries.element(boundBy: 0).label)
+    }
+
+    private func englishClockMinutes(_ text: String) -> Int? {
+        let numbers = text.components(separatedBy: CharacterSet.decimalDigits.inverted).compactMap(Int.init)
+        guard numbers.count == 2, (0...59).contains(numbers[1]) else { return nil }
+        let am = text.contains("AM"), pm = text.contains("PM")
+        if am || pm {
+            guard am != pm, (1...12).contains(numbers[0]) else { return nil }
+            return (numbers[0] % 12 + (pm ? 12 : 0)) * 60 + numbers[1]
+        }
+        guard (0...23).contains(numbers[0]) else { return nil }
+        return numbers[0] * 60 + numbers[1]
+    }
+
     func scrollTop() { for _ in 0..<10 { app.swipeDown() } }
 
     func language(_ row: String, option: String) {
