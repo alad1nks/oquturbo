@@ -252,7 +252,8 @@ class Runner:
         directory = self.output / name
         directory.mkdir()
         snapshots = []
-        cutoff = min(self.deadline, time.monotonic() + 12 * 60)
+        stages = region.StageBudget(self.deadline) if name == "locales" else None
+        cutoff = stages.enter("initial") if stages else min(self.deadline, time.monotonic() + 12 * 60)
         self.await_preferences(directory, snapshots, cutoff)
         if setup is not None and snapshots[-1] != setup["snapshot"]:
             raise ValueError("Fresh fixture changed after bootstrap and before reminder interaction")
@@ -266,7 +267,7 @@ class Runner:
         (directory / "event-boundary.json").write_text(json.dumps({"bytes": len(boundary),
             "prefixSha256": hashlib.sha256(boundary).hexdigest()}))
         if name == "locales":
-            return region.run_locale(self, directory, snapshots, baseline, boundary, cutoff)
+            return region.run_locale(self, directory, snapshots, baseline, boundary, cutoff, stages)
         observations = []
         started = time.time()
         result = directory / "runtime.xcresult"

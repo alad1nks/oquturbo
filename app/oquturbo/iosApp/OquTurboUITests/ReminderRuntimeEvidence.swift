@@ -199,7 +199,7 @@ final class ReminderRuntimeEvidence {
         XCTAssertTrue(pickerActionFullyVisible(cancel))
         cancel.tap()
         assertScheduled()
-        try control.record("accepted-24-hour")
+        try control.record("accepted-24-hour", extra: ["verifiedRegion": "Germany", "verifiedLanguage": "en-US"])
     }
 
     func inspectRestoredRegion() throws {
@@ -219,7 +219,7 @@ final class ReminderRuntimeEvidence {
         cancel.tap()
         assertScheduled()
         capture("system-hour-cycle-restored-app")
-        try control.record("restored")
+        try control.record("restored", extra: ["verifiedRegion": try control.originalRegion(), "verifiedLanguage": "en-US"])
     }
 
     func allowIfPrompted() {
@@ -355,6 +355,7 @@ final class RegionRuntimeControl {
         var value = request
         value["state"] = state
         value["observed"] = Date().timeIntervalSince1970
+        value["runnerPID"] = Int(ProcessInfo.processInfo.processIdentifier)
         for (key, item) in extra { value[key] = item }
         let data = try JSONSerialization.data(withJSONObject: value, options: [.sortedKeys])
         try data.write(to: directory.appendingPathComponent("region-observation.json"), options: .atomic)
