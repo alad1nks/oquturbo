@@ -5,6 +5,7 @@ package com.alad1nks.oquturbo.shared.reminders
 import platform.Foundation.NSDate
 import platform.Foundation.NSFileManager
 import platform.Foundation.NSHomeDirectory
+import platform.Foundation.NSProcessInfo
 import platform.Foundation.NSTimeZone
 import platform.Foundation.NSUUID
 import platform.Foundation.localTimeZone
@@ -36,6 +37,7 @@ internal object IosReminderDiagnostics {
         val fields =
             listOf(
                 "time" to NSDate().timeIntervalSince1970.toString(),
+                "uptime" to NSProcessInfo.processInfo.systemUptime.toString(),
                 "launch" to launchId,
                 "event" to event,
             ) + values
