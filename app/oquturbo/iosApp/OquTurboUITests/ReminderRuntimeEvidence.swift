@@ -276,11 +276,45 @@ final class ReminderRuntimeEvidence {
     }
 
     func assertScheduled() {
-        let scheduled = app.staticTexts["Scheduled"]
-        for _ in 0..<10 {
-            if scheduled.waitForExistence(timeout: 2) && scheduled.isHittable { capture("scheduled"); return }
-            app.swipeUp()
+        var observations: [String] = []
+        func attachObservations() {
+            let trace = XCTAttachment(string: observations.joined(separator: "\n"))
+            trace.name = "scheduled-navigation"
+            trace.lifetime = .keepAlways
+            test.add(trace)
         }
+        for attempt in 0..<10 {
+            let matches = app.staticTexts.matching(NSPredicate(format: "label == %@", "Scheduled"))
+            let exists = matches.element(boundBy: 0).waitForExistence(timeout: 2)
+            let count = matches.count
+            let viewport = app.frame
+            if count > 1 {
+                let frames = matches.allElementsBoundByIndex.map { $0.frame }
+                observations.append("attempt=\(attempt + 1) count=\(count) frames=\(frames) viewport=\(viewport) action=fail-ambiguous")
+                break
+            }
+            let scheduled = matches.element(boundBy: 0)
+            let frame = exists && count == 1 ? scheduled.frame : CGRect.zero
+            let hittable = exists && count == 1 && scheduled.isHittable
+            let usableFrame = !frame.isEmpty && !frame.isNull && !frame.isInfinite
+            let usableViewport = !viewport.isEmpty && !viewport.isNull && !viewport.isInfinite
+            let observation = "attempt=\(attempt + 1) count=\(count) frame=\(frame) viewport=\(viewport) hittable=\(hittable)"
+            if hittable && usableFrame && usableViewport && viewport.contains(frame) {
+                observations.append(observation + " action=accept-visible")
+                attachObservations()
+                capture("scheduled")
+                return
+            }
+            if attempt == 9 {
+                observations.append(observation + " action=fail-exhausted")
+                break
+            }
+            // Move the observed status toward the viewport center; an unavailable frame retains upward search.
+            let swipeDown = usableFrame && usableViewport && frame.midY < viewport.midY
+            observations.append(observation + (swipeDown ? " action=swipe-down" : " action=swipe-up"))
+            if swipeDown { app.swipeDown() } else { app.swipeUp() }
+        }
+        attachObservations()
         capture("not-scheduled"); XCTFail("No actual Scheduled state")
     }
 
