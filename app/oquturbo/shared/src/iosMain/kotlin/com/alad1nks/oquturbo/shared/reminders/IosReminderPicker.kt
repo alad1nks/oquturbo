@@ -80,7 +80,8 @@ internal class IosReminderPicker(
         val localNow = NSCalendar.currentCalendar.components(NSCalendarUnitHour or NSCalendarUnitMinute, NSDate())
         val draft = initialMinutes ?: (localNow.hour * 60 + localNow.minute).toInt()
         time.calendar = iosReminderTimeCalendar()
-        time.timeZone = time.calendar.timeZone
+        // Read the coordinate zone independently: UIKit may normalize its calendar getter to the local zone.
+        time.timeZone = iosReminderTimeCalendar().timeZone
         time.setDate(iosReminderTimeDate(draft), animated = false)
 
         val confirm = button(labels.confirm, "confirm", "reminder-time-confirm")

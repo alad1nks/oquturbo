@@ -191,7 +191,10 @@ class EvidenceTest(unittest.TestCase):
             with patch.dict(module.os.environ, {"CI": "true"}), patch.object(module.subprocess, "run", restore):
                 with self.assertRaisesRegex(RuntimeError, "XCTest failed"):
                     runner.clock_phases()
-            self.assertEqual(3, len(restored))
+            self.assertEqual(6, len(restored))
+            self.assertEqual(["date", "+%s"], restored[3])
+            self.assertEqual("-gettimezone", restored[4][-1])
+            self.assertEqual("-getusingnetworktime", restored[5][-1])
             self.assertEqual(["sudo", "-n", "date", "-u"], restored[0][:4])
             self.assertEqual(["sudo", "-n", "systemsetup", "-settimezone", "UTC"], restored[1])
             self.assertEqual("on", restored[2][-1])
@@ -574,6 +577,104 @@ class BootstrapTest(unittest.TestCase):
             decode.assert_called_once_with(b"synthetic bytes")
             self.assertEqual(self.fixture()[1], snapshots)
             self.assertEqual(2, clock[0])
+
+
+class ClockRestorationTest(unittest.TestCase):
+    def setUp(self):
+        spec = importlib.util.spec_from_file_location("ios_runner", Path(__file__).with_name("qa-ios-reminders.py"))
+        self.module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(self.module)
+
+    def restoration(self, overrides=None):
+        """Command simulation only; never evidence that this Linux host changed an Apple clock."""
+        from unittest.mock import Mock
+        module = self.module
+        overrides = overrides or {}
+        replies = ["restored", "Set TimeZone: GMT", "Network Time is already off.",
+                   "1005", "Time Zone: GMT", "Network Time: Off"]
+        calls = []
+        def command(args, **kwargs):
+            index = len(calls)
+            calls.append(args)
+            self.assertEqual(30 if index < 3 else 10, kwargs["timeout"])
+            reply = overrides.get(index, replies[index])
+            if isinstance(reply, Exception): raise reply
+            # The observed systemsetup warning is not itself a failed postcondition.
+            return Mock(returncode=0, stdout=reply, stderr="Error:-99" if index == 1 else "")
+        with tempfile.TemporaryDirectory() as directory:
+            runner = module.Runner(Path(directory) / "evidence")
+            error = None
+            with patch.object(module.subprocess, "run", side_effect=command), \
+                    patch.object(module.time, "monotonic", return_value=15):
+                try: runner.restore_clock(1000, 10, "GMT", "Network Time: Off")
+                except RuntimeError as failure: error = failure
+            writes = json.loads((runner.output / "clock-restoration.json").read_text())
+            reads = json.loads((runner.output / "clock-restoration-readback.json").read_text())
+            self.assertEqual(6, len(calls))
+            self.assertEqual(["epoch", "timezone", "network"], [r["name"] for r in reads])
+            return error, writes, reads
+
+    def test_actual_readbacks_required_even_with_successful_restore_commands(self):
+        for index, wrong in ((3, "900"), (3, "not-an-epoch"), (4, "Time Zone: Asia/Almaty"),
+                             (5, "Network Time: On")):
+            with self.subTest(index=index, wrong=wrong):
+                error, writes, reads = self.restoration({index: wrong})
+                self.assertIsInstance(error, RuntimeError)
+                self.assertTrue(all(r["code"] == 0 for r in writes))
+                self.assertFalse(reads[index - 3]["matches"])
+
+    def test_matching_readbacks_accept_warning_but_preserve_it_as_evidence(self):
+        error, writes, reads = self.restoration()
+        self.assertIsNone(error)
+        self.assertEqual("Error:-99", writes[1]["stderr"])
+        self.assertTrue(all(r["matches"] for r in reads))
+        self.assertEqual([1003, 1007], reads[0]["expectedEpochRange"])
+
+    def test_each_timeout_still_attempts_all_remaining_restores_and_readbacks(self):
+        for index in range(6):
+            with self.subTest(index=index):
+                error, writes, reads = self.restoration({index: self.module.subprocess.TimeoutExpired("control", 10)})
+                self.assertIsInstance(error, RuntimeError)
+                self.assertEqual(-1, (writes + reads)[index]["code"])
+
+    def test_passed_phases_cannot_hide_restoration_failure(self):
+        module = self.module
+        with tempfile.TemporaryDirectory() as directory:
+            runner = module.Runner(Path(directory) / "evidence", clock_probe=True)
+            zone = ["GMT"]
+            def run(*args, **kwargs):
+                if "-getusingnetworktime" in args: return "Network Time: Off"
+                if "-gettimezone" in args: return "Time Zone: " + zone[0]
+                if "-settimezone" in args: zone[0] = args[-1]
+                if args == ("date", "+%s"): return "1772949600"
+                return ""
+            with patch.dict(module.os.environ, {"CI": "true"}), patch.object(runner, "run", side_effect=run), \
+                    patch.object(runner, "phase", return_value={"status": "PASS"}) as phase, \
+                    patch.object(runner, "restore_clock", side_effect=RuntimeError("restoration unverified")):
+                with self.assertRaisesRegex(RuntimeError, "restoration unverified"): runner.clock_phases()
+                self.assertEqual(["travel", "dst"], [call.args[0] for call in phase.call_args_list])
+
+    def test_phase_failure_preserved_with_successful_or_failed_restoration(self):
+        module = self.module
+        for restore_fails in (False, True):
+            with self.subTest(restore_fails=restore_fails), tempfile.TemporaryDirectory() as directory:
+                runner = module.Runner(Path(directory) / "evidence", clock_probe=True)
+                primary = ValueError("actual calendar mismatch")
+                restoration = RuntimeError("restoration readback mismatch") if restore_fails else None
+                def run(*args, **kwargs):
+                    if "-getusingnetworktime" in args: return "Network Time: Off"
+                    if "-gettimezone" in args:
+                        return "Time Zone: GMT" if not getattr(run, "changed", False) else "Time Zone: Asia/Almaty"
+                    if "-settimezone" in args: run.changed = True
+                    return ""
+                with patch.dict(module.os.environ, {"CI": "true"}), patch.object(runner, "run", side_effect=run), \
+                        patch.object(runner, "phase", side_effect=primary), \
+                        patch.object(runner, "restore_clock", side_effect=restoration) as restore:
+                    with self.assertRaises(ValueError) as caught: runner.clock_phases()
+                    self.assertIs(primary, caught.exception)
+                    restore.assert_called_once()
+                    self.assertEqual("GMT", restore.call_args.args[2])
+                    if restore_fails: self.assertIn(str(restoration), primary.__notes__)
 
 
 if __name__ == "__main__":

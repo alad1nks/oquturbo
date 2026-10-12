@@ -203,12 +203,21 @@ final class LocalReminderRuntimeTests: XCTestCase {
         // This phase follows verified host/system clock controls. The app receives no clock override.
         ui.tap(ui.app.switches["Reminders"], scrolling: true)
         ui.assertScheduled()
+        ui.capture("calendar-saved-time-before-picker")
+        let savedMinutes = ui.reminderSummaryMinutes()
+        XCTAssertNotNil(savedMinutes)
         ui.tap(ui.app.buttons["Change time"], scrolling: true)
         let picker = ui.app.datePickers["reminder-time-wheel"]
         XCTAssertTrue(picker.waitForExistence(timeout: 5))
+        ui.capture("calendar-initial-displayed-draft")
+        XCTAssertEqual(ui.pickerMinutes(picker), savedMinutes)
         ui.setWheels(picker, minutes: 150)
+        ui.capture("calendar-edited-displayed-draft")
+        XCTAssertEqual(ui.pickerMinutes(picker), 150)
         ui.tap(ui.app.buttons["reminder-time-confirm"])
         ui.assertScheduled()
+        ui.capture("calendar-saved-time-after-confirm")
+        XCTAssertEqual(ui.reminderSummaryMinutes(), 150)
         RunLoop.current.run(until: Date().addingTimeInterval(3))
         ui.capture("real-calendar-next-date")
         // Remove the real request before the host restores its original wall clock.

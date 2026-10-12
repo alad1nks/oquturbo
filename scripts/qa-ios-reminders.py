@@ -332,6 +332,7 @@ class Runner:
         original = time.time()
         monotonic = time.monotonic()
         reports = []
+        primary_error = None
         try:
             self.run("sudo", "-n", "systemsetup", "-setusingnetworktime", "off")
             for phase, new_zone in (("travel", "Asia/Almaty"), ("dst", "America/New_York")):
@@ -345,23 +346,59 @@ class Runner:
                     if not 1772949600 <= epoch < 1772949660:
                         raise RuntimeError("BLOCKED N5: system clock change not verified")
                 reports.append(self.phase(phase, "testCalendarControlProbe"))
+        except BaseException as error:
+            primary_error = error
+            raise
         finally:
-            # Restore even if an assertion, capability probe or XCTest fails. Use monotonic elapsed time.
-            restored = dt.datetime.fromtimestamp(original + time.monotonic() - monotonic, dt.timezone.utc)
-            results = []
-            for command in (["sudo", "-n", "date", "-u", restored.strftime("%m%d%H%M%Y.%S")],
-                            ["sudo", "-n", "systemsetup", "-settimezone", zone],
-                            ["sudo", "-n", "systemsetup", "-setusingnetworktime", "on" if network.endswith("On") else "off"]):
-                try:
-                    result = subprocess.run(command, capture_output=True, text=True, timeout=40)
-                    results.append({"command": command, "code": result.returncode, "stdout": result.stdout, "stderr": result.stderr})
-                except Exception as error:
-                    # A failed clock restore must not prevent attempts to restore zone and network time too.
-                    results.append({"command": command, "code": -1, "error": str(error)})
-            (self.output / "clock-restoration.json").write_text(json.dumps(results, indent=2))
-            if any(r["code"] != 0 for r in results):
-                raise RuntimeError("System clock/zone restoration failed; inspect clock-restoration.json")
+            try:
+                self.restore_clock(original, monotonic, zone, network)
+            except Exception as restoration_error:
+                if primary_error is None:
+                    raise
+                primary_error.add_note(str(restoration_error))
         return reports
+
+    def restore_clock(self, original, monotonic, zone, network):
+        # Keep the existing maximum cleanup budget (3 * 40s), reserving time for independent readbacks.
+        # Every command/getter is attempted despite earlier failures, including after the run deadline.
+        restored = dt.datetime.fromtimestamp(original + time.monotonic() - monotonic, dt.timezone.utc)
+        results = []
+        for command in (["sudo", "-n", "date", "-u", restored.strftime("%m%d%H%M%Y.%S")],
+                        ["sudo", "-n", "systemsetup", "-settimezone", zone],
+                        ["sudo", "-n", "systemsetup", "-setusingnetworktime", "on" if network.endswith("On") else "off"]):
+            try:
+                result = subprocess.run(command, capture_output=True, text=True, timeout=30)
+                results.append({"command": command, "code": result.returncode, "stdout": result.stdout, "stderr": result.stderr})
+            except Exception as error:
+                results.append({"command": command, "code": -1, "error": str(error)})
+        (self.output / "clock-restoration.json").write_text(json.dumps(results, indent=2))
+        readbacks = []
+        for name, command, expected in (
+                ("epoch", ["date", "+%s"], None),
+                ("timezone", ["sudo", "-n", "systemsetup", "-gettimezone"], "Time Zone: " + zone),
+                ("network", ["sudo", "-n", "systemsetup", "-getusingnetworktime"], network)):
+            observation = {"name": name, "command": command, "matches": False, "expected": expected}
+            before = time.monotonic()
+            try:
+                result = subprocess.run(command, capture_output=True, text=True, timeout=10)
+                after = time.monotonic()
+                actual = result.stdout.strip()
+                observation.update(code=result.returncode, stdout=result.stdout, stderr=result.stderr,
+                                   startedMonotonic=before, finishedMonotonic=after)
+                if name == "epoch":
+                    # date reports whole seconds; allow 2s rounding/scheduling tolerance, not a clock jump.
+                    lower, upper = original + before - monotonic - 2, original + after - monotonic + 2
+                    observation["expectedEpochRange"] = [lower, upper]
+                    matches = bool(re.fullmatch(r"[0-9]+", actual)) and lower <= int(actual) <= upper
+                else:
+                    matches = actual == expected
+                observation["matches"] = result.returncode == 0 and matches
+            except Exception as error:
+                observation.update(code=-1, error=str(error))
+            readbacks.append(observation)
+        (self.output / "clock-restoration-readback.json").write_text(json.dumps(readbacks, indent=2))
+        if any(r["code"] != 0 for r in results) or not all(r["matches"] for r in readbacks):
+            raise RuntimeError("System clock/zone restoration failed or unverified; inspect clock-restoration*.json")
 
     def close(self):
         if self.process and self.process.poll() is None:
