@@ -187,17 +187,18 @@ class EvidenceTest(unittest.TestCase):
             restored = []
             def restore(args, **kwargs):
                 restored.append(args)
-                return type("Result", (), {"returncode": 0, "stdout": "", "stderr": ""})()
-            with patch.dict(module.os.environ, {"CI": "true"}), patch.object(module.subprocess, "run", restore):
+                output = "Time Zone: UTC" if "-gettimezone" in args else "Network Time: On" if "-getusingnetworktime" in args else str(int(module.time.time()))
+                return type("Result", (), {"returncode": 0, "stdout": output, "stderr": ""})()
+            with patch.dict(module.os.environ, {"CI": "true"}), patch.object(runner, "prepare_host_clock"), \
+                    patch.object(module.subprocess, "run", restore):
                 with self.assertRaisesRegex(RuntimeError, "XCTest failed"):
                     runner.clock_phases()
-            self.assertEqual(6, len(restored))
-            self.assertEqual(["date", "+%s"], restored[3])
-            self.assertEqual("-gettimezone", restored[4][-1])
-            self.assertEqual("-getusingnetworktime", restored[5][-1])
-            self.assertEqual(["sudo", "-n", "date", "-u"], restored[0][:4])
-            self.assertEqual(["sudo", "-n", "systemsetup", "-settimezone", "UTC"], restored[1])
-            self.assertEqual("on", restored[2][-1])
+            self.assertEqual(5, len(restored))
+            self.assertEqual(["sudo", "-n", "systemsetup", "-settimezone", "UTC"], restored[0])
+            self.assertEqual("on", restored[1][-1])
+            self.assertEqual(["date", "+%s"], restored[2])
+            self.assertEqual("-gettimezone", restored[3][-1])
+            self.assertEqual("-getusingnetworktime", restored[4][-1])
 
     def test_backward_clock_phase_uses_append_boundary_not_prior_future_timestamps(self):
         old = {"event": "system-clock", "time": "1791150000", "zone": "Asia/Almaty"}
@@ -585,34 +586,147 @@ class ClockRestorationTest(unittest.TestCase):
         self.module = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(self.module)
 
-    def restoration(self, overrides=None):
+    def restoration(self, overrides=None, clock_attempted=True, helper_startup=0):
         """Command simulation only; never evidence that this Linux host changed an Apple clock."""
         from unittest.mock import Mock
         module = self.module
         overrides = overrides or {}
         replies = ["restored", "Set TimeZone: GMT", "Network Time is already off.",
                    "1005", "Time Zone: GMT", "Network Time: Off"]
-        calls = []
+        calls, clock = [], [15.0]
         def command(args, **kwargs):
-            index = len(calls)
-            calls.append(args)
-            self.assertEqual(30 if index < 3 else 10, kwargs["timeout"])
+            index = (0 if "--restore" in args else 1 if "-settimezone" in args else
+                     2 if "-setusingnetworktime" in args else 3 if args == ["date", "+%s"] else
+                     4 if "-gettimezone" in args else 5)
+            calls.append(index)
+            if index == 0:
+                self.assertEqual(["1000", "10"], args[-2:])  # Anchors, never a precomputed date string.
+                clock[0] += helper_startup
+            self.assertLessEqual(kwargs["timeout"], 30 if index < 3 else 10)
             reply = overrides.get(index, replies[index])
             if isinstance(reply, Exception): raise reply
-            # The observed systemsetup warning is not itself a failed postcondition.
+            if hasattr(reply, "returncode"): return reply
             return Mock(returncode=0, stdout=reply, stderr="Error:-99" if index == 1 else "")
         with tempfile.TemporaryDirectory() as directory:
-            runner = module.Runner(Path(directory) / "evidence")
+            runner = module.Runner(Path(directory) / "evidence"); runner.clock_helper = Path("/fake/native-clock")
             error = None
             with patch.object(module.subprocess, "run", side_effect=command), \
-                    patch.object(module.time, "monotonic", return_value=15):
-                try: runner.restore_clock(1000, 10, "GMT", "Network Time: Off")
+                    patch.object(module.time, "monotonic", side_effect=lambda: clock[0]), \
+                    patch.object(module.time, "sleep", side_effect=lambda duration: clock.__setitem__(0, clock[0] + duration)):
+                try: runner.restore_clock(1000, 10, "GMT", "Network Time: Off", clock_attempted)
                 except RuntimeError as failure: error = failure
             writes = json.loads((runner.output / "clock-restoration.json").read_text())
             reads = json.loads((runner.output / "clock-restoration-readback.json").read_text())
-            self.assertEqual(6, len(calls))
+            self.assertEqual(set(range(0 if clock_attempted else 1, 6)), set(calls))
             self.assertEqual(["epoch", "timezone", "network"], [r["name"] for r in reads])
+            self.assertLessEqual(clock[0] - 15, 10 + helper_startup)
             return error, writes, reads
+
+    def test_no_dst_attempt_skips_only_clock_write_but_still_verifies_continuity(self):
+        error, writes, reads = self.restoration(clock_attempted=False)
+        self.assertIsNone(error)
+        self.assertEqual("NOT_REQUIRED", writes[0]["status"])
+        self.assertTrue(all(row["matches"] for row in reads))
+        error, _, reads = self.restoration({3: "900"}, clock_attempted=False)
+        self.assertIsInstance(error, RuntimeError)
+        self.assertFalse(reads[0]["matches"])
+
+    def test_delayed_helper_receives_original_anchors_and_requires_current_clock_readback(self):
+        error, writes, reads = self.restoration({3: "1010"}, helper_startup=5)
+        self.assertIsNone(error)
+        self.assertEqual(5, writes[0]["finishedMonotonic"] - writes[0]["startedMonotonic"])
+        self.assertEqual([1008, 1012], reads[0]["expectedEpochRange"])
+        error, _, _ = self.restoration(helper_startup=5)  # The stale pre-startup value cannot pass.
+        self.assertIsInstance(error, RuntimeError)
+
+    def test_native_setter_failure_is_red_even_if_independent_readbacks_match(self):
+        failure = self.module.subprocess.CompletedProcess([], 1, '{"code":-1,"errno":1}', "")
+        error, writes, reads = self.restoration({0: failure})
+        self.assertIsInstance(error, RuntimeError)
+        self.assertEqual(1, writes[0]["code"])
+        self.assertTrue(all(row["matches"] for row in reads))
+
+    def test_timezone_read_only_observation_requires_timely_exact_state_after_one_mutation(self):
+        module = self.module
+        for mode in ("converges", "wrong", "unavailable", "missing-command", "late", "suite-limit"):
+            with self.subTest(mode=mode), tempfile.TemporaryDirectory() as directory:
+                runner = module.Runner(Path(directory) / "evidence")
+                clock, commands, getters = [0.0], [], []
+                runner.deadline = 0.5 if mode == "suite-limit" else 100
+                def run(*args, **kwargs):
+                    commands.append(args)
+                    if "-settimezone" in args: return "Set TimeZone: Asia/Almaty"
+                    getters.append(kwargs["timeout"])
+                    if mode == "late":
+                        clock[0] = 11
+                        return "Time Zone: Asia/Almaty"
+                    if mode == "unavailable": raise module.subprocess.TimeoutExpired(args, kwargs["timeout"])
+                    if mode == "missing-command": raise OSError("getter unavailable")
+                    return "Time Zone: Asia/Almaty" if mode == "converges" and len(getters) == 2 else "Time Zone: GMT"
+                with patch.object(runner, "run", side_effect=run), \
+                        patch.object(module.time, "monotonic", side_effect=lambda: clock[0]), \
+                        patch.object(module.time, "sleep", side_effect=lambda seconds: clock.__setitem__(0, clock[0] + seconds)):
+                    if mode == "converges": runner.change_timezone("Asia/Almaty")
+                    else:
+                        with self.assertRaisesRegex(RuntimeError, "not verified"): runner.change_timezone("Asia/Almaty")
+                self.assertEqual(1, sum("-settimezone" in args for args in commands))
+                self.assertTrue(all(0 < timeout <= min(10, runner.deadline) for timeout in getters))
+                rows = [json.loads(line) for line in (runner.output / "timezone-observations.jsonl").read_text().splitlines()]
+                self.assertEqual(mode == "converges", rows[-1]["matches"])
+                if mode != "late": self.assertLessEqual(clock[0], min(10, runner.deadline))
+
+    def test_partial_dst_date_command_still_requires_clock_restoration(self):
+        module = self.module
+        with tempfile.TemporaryDirectory() as directory:
+            runner = module.Runner(Path(directory) / "evidence", clock_probe=True)
+            def run(*args, **kwargs):
+                if "-gettimezone" in args: return "Time Zone: GMT"
+                if "-getusingnetworktime" in args: return "Network Time: Off"
+                if "date" in args: raise module.subprocess.TimeoutExpired(args, 1)
+                return ""
+            with patch.dict(module.os.environ, {"CI": "true"}), patch.object(runner, "prepare_host_clock"), \
+                    patch.object(runner, "run", side_effect=run), patch.object(runner, "change_timezone"), \
+                    patch.object(runner, "phase", return_value={"status": "PASS"}) as phase, \
+                    patch.object(runner, "restore_clock") as restore:
+                with self.assertRaises(module.subprocess.TimeoutExpired): runner.clock_phases()
+            self.assertTrue(restore.call_args.args[-1])
+            self.assertEqual(["travel"], [call.args[0] for call in phase.call_args_list])
+
+    def test_native_probe_rejects_wrong_clock_coordinates_before_any_mutation(self):
+        module = self.module
+        good = {"mode": "probe", "startedMonotonic": 10.5, "finishedMonotonic": 11,
+                "epoch": 1001, "code": 0, "errno": 0}
+        for changed in ({}, {"epoch": 999}, {"startedMonotonic": 10000}, {"epoch": float("nan")},
+                        {"finishedMonotonic": 9}, {"code": -1}, {"mode": "restore"}):
+            with self.subTest(changed=changed), tempfile.TemporaryDirectory() as directory:
+                runner = module.Runner(Path(directory) / "evidence")
+                commands = []
+                def run(*args, **kwargs):
+                    commands.append(args)
+                    if args[0] == "xcrun":
+                        Path(args[-1]).write_bytes(b"test helper placeholder")
+                        return ""
+                    return json.dumps(good | changed)
+                with patch.object(module.platform, "system", return_value="Darwin"), \
+                        patch.object(module.platform, "machine", return_value="arm64"), \
+                        patch.object(module.time, "monotonic", side_effect=[10, 12]), \
+                        patch.object(module.time, "time", side_effect=[1000, 1002]), \
+                        patch.object(runner, "run", side_effect=run):
+                    if changed:
+                        with self.assertRaisesRegex(RuntimeError, "coordinates"): runner.prepare_host_clock()
+                    else: runner.prepare_host_clock()
+                self.assertEqual(2, len(commands))
+                self.assertEqual("--probe", commands[1][-1])
+
+    def test_unsupported_native_helper_stops_before_controls(self):
+        module = self.module
+        with tempfile.TemporaryDirectory() as directory:
+            runner = module.Runner(Path(directory) / "evidence", clock_probe=True)
+            with patch.dict(module.os.environ, {"CI": "true"}), \
+                    patch.object(module.platform, "system", return_value="Linux"), \
+                    patch.object(runner, "run") as command:
+                with self.assertRaisesRegex(RuntimeError, "Unsupported"): runner.clock_phases()
+            command.assert_called_once_with("sudo", "-n", "-v")
 
     def test_actual_readbacks_required_even_with_successful_restore_commands(self):
         for index, wrong in ((3, "900"), (3, "not-an-epoch"), (4, "Time Zone: Asia/Almaty"),
@@ -635,7 +749,10 @@ class ClockRestorationTest(unittest.TestCase):
             with self.subTest(index=index):
                 error, writes, reads = self.restoration({index: self.module.subprocess.TimeoutExpired("control", 10)})
                 self.assertIsInstance(error, RuntimeError)
-                self.assertEqual(-1, (writes + reads)[index]["code"])
+                if index == 4:
+                    self.assertTrue(all(row["code"] is None for row in reads[1]["samples"]))
+                else:
+                    self.assertEqual(-1, (writes + reads)[index]["code"])
 
     def test_passed_phases_cannot_hide_restoration_failure(self):
         module = self.module
@@ -648,7 +765,8 @@ class ClockRestorationTest(unittest.TestCase):
                 if "-settimezone" in args: zone[0] = args[-1]
                 if args == ("date", "+%s"): return "1772949600"
                 return ""
-            with patch.dict(module.os.environ, {"CI": "true"}), patch.object(runner, "run", side_effect=run), \
+            with patch.dict(module.os.environ, {"CI": "true"}), patch.object(runner, "prepare_host_clock"), \
+                    patch.object(runner, "run", side_effect=run), \
                     patch.object(runner, "phase", return_value={"status": "PASS"}) as phase, \
                     patch.object(runner, "restore_clock", side_effect=RuntimeError("restoration unverified")):
                 with self.assertRaisesRegex(RuntimeError, "restoration unverified"): runner.clock_phases()
@@ -667,7 +785,8 @@ class ClockRestorationTest(unittest.TestCase):
                         return "Time Zone: GMT" if not getattr(run, "changed", False) else "Time Zone: Asia/Almaty"
                     if "-settimezone" in args: run.changed = True
                     return ""
-                with patch.dict(module.os.environ, {"CI": "true"}), patch.object(runner, "run", side_effect=run), \
+                with patch.dict(module.os.environ, {"CI": "true"}), patch.object(runner, "prepare_host_clock"), \
+                    patch.object(runner, "run", side_effect=run), \
                         patch.object(runner, "phase", side_effect=primary), \
                         patch.object(runner, "restore_clock", side_effect=restoration) as restore:
                     with self.assertRaises(ValueError) as caught: runner.clock_phases()
