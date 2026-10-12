@@ -36,7 +36,8 @@ final class ReminderRuntimeEvidence {
                 if scrolling && !waitUntilStill(element, deadline: deadline) { continue }
                 if let name = evidenceName {
                     capture(name)
-                    let state = XCTAttachment(string: "enabled=\(element.isEnabled) frame=\(element.frame) appState=\(app.state.rawValue)")
+                    let state = XCTAttachment(string: "epoch=\(Date().timeIntervalSince1970) uptime=\(ProcessInfo.processInfo.systemUptime) " +
+                        "enabled=\(element.isEnabled) hittable=\(element.isHittable) frame=\(element.frame) appState=\(app.state.rawValue)")
                     state.name = name + "-control-state"; state.lifetime = .keepAlways; test.add(state)
                 }
                 element.tap(); return
@@ -159,8 +160,21 @@ final class ReminderRuntimeEvidence {
     }
 
     func inspectLocalizedPicker(change: String, title: String, helper: String, confirm: String, cancel: String) {
-        tap(app.buttons[change], scrolling: true)
-        let titleExists = app.staticTexts[title].waitForExistence(timeout: 5)
+        let action = app.buttons[change]
+        func captureActionState(_ name: String) {
+            let exists = action.exists
+            let details = exists ? "frame=\(action.frame) enabled=\(action.isEnabled) hittable=\(action.isHittable)" : "exists=false"
+            let state = XCTAttachment(string:
+                "epoch=\(Date().timeIntervalSince1970) uptime=\(ProcessInfo.processInfo.systemUptime) " + details)
+            state.name = name; state.lifetime = .keepAlways; test.add(state)
+        }
+        tap(action, scrolling: true, evidenceName: "localized-picker-before-tap")
+        let titleDeadline = ProcessInfo.processInfo.systemUptime + 5
+        capture("localized-picker-after-tap")
+        captureActionState("localized-picker-after-tap-control")
+        let remaining = titleDeadline - ProcessInfo.processInfo.systemUptime
+        let titleExists = remaining > 0 && app.staticTexts[title].waitForExistence(timeout: remaining) &&
+            ProcessInfo.processInfo.systemUptime < titleDeadline
         if !titleExists { capture("localized-picker-missing-title") }
         XCTAssertTrue(titleExists)
         XCTAssertTrue(app.staticTexts[helper].exists)

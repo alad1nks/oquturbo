@@ -178,7 +178,7 @@ class ReminderSettingsUiTest {
                     assertEquals(1, clicks)
                     assertEquals(1, second.count { it.first == "picker-ui-click" })
                     assertEquals(
-                        first.single().second["press"],
+                        first.single { it.first == "picker-ui-press" }.second["press"],
                         second.single { it.first == "picker-ui-release" }.second["press"],
                     )
                 }
