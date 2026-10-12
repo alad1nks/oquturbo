@@ -1,10 +1,12 @@
 """One locale episode with host-owned real Settings transitions and fail-closed readbacks."""
 import json
+from contextlib import closing
 import importlib.util
 import datetime as dt
 import plistlib
 import re
 import sqlite3
+import sys
 import subprocess
 import time
 import uuid
@@ -186,9 +188,144 @@ def classify_interruption(request, observation, issues, build_issues, diagnostic
     return "SETUP_TRANSITION_INTERRUPTED"
 
 
-def run_locale(runner, directory, snapshots, baseline, boundary, cutoff):
+class StageBudget:
+    CAPS = {"initial": 300, "change": 240, "accept": 180, "restore": 240, "readback": 240}
+
+    def __init__(self, suite, total=None):
+        self.started = time.monotonic()
+        self.total = min(suite, total if total is not None else self.started + 1200)
+        self.suite = suite
+        self.records = {}
+        self.active = None
+
+    def enter(self, name):
+        now = time.monotonic()
+        if name in self.records:
+            raise ValueError("Stage is single-use: " + name)
+        if name == "change" and self.total - now < 900:
+            raise TimeoutError("Insufficient mutation/cleanup reserve")
+        deadline = min(now + self.CAPS[name], self.total, self.suite)
+        if name == "accept":
+            deadline = min(deadline, self.total - 480, self.suite - 480)
+        if now >= deadline:
+            raise TimeoutError("Stage/transaction deadline exhausted: " + name)
+        self.active = name
+        self.records[name] = {"startedMonotonic": now, "deadlineMonotonic": deadline, "capSeconds": self.CAPS[name]}
+        return deadline
+
+    def finish(self, name):
+        record = self.records[name]
+        now = time.monotonic()
+        record["finishedMonotonic"] = now
+        if now >= record["deadlineMonotonic"]:
+            raise TimeoutError("Stage deadline exhausted: " + name)
+
+
+def reap_owned(process, deadline):
+    if process.poll() is None:
+        process.kill()
+        process.wait(timeout=min(1, max(0, deadline - time.monotonic())))
+
+
+def provisional_setup(request, observation, issues, build_issues, text, crashes, issue_times, sessions):
+    """A permitted interrupted setup is pending actual independent state verification, never a proven tap."""
+    validate_observation(request, observation, {"before-confirmation", "before-region-choice"})
+    if crashes:
+        raise ValueError("Current or unknown crash evidence during setup")
+    pid = observation.get("runnerPID")
+    if type(pid) is not int or pid <= 0:
+        raise ValueError("Missing operation-bound runner PID")
+    restoring = request["step"] == "restore"
+    expected = "Change to United States" if restoring else "Keep English (US)"
+    sheet = "Applying this setting will restart your iPhone." if restoring else "Would you like to change the iPhone language to English (UK)?"
+    if observation["state"] == "before-confirmation":
+        if observation.get("confirmation") != expected or observation.get("confirmationSheet") != sheet:
+            raise ValueError("Missing exact scoped setup intent")
+    elif not restoring:
+        raise ValueError("Forward setup requires exact confirmation intent")
+    if observation.get("fromRegion") != ("Germany" if restoring else request.get("originalRegion")):
+        raise ValueError("Unexpected setup source state")
+    if request.get("target") != (request.get("originalRegion") if restoring else "Germany"):
+        raise ValueError("Unexpected setup target state")
+    marker = "region-" + observation["state"] + "-" + request["operation"]
+    if marker not in text or '-only-testing:OquTurboUITests/LocalReminderRuntimeTests/testSystemRegionTransition' not in text:
+        raise ValueError("Missing exact operation/test session")
+    launch = re.findall(r'^(\d\d:\d\d:\d\d\.\d+) xcodebuild\[(\d+):\d+\] ' + re.escape(request["udid"]) +
+                        r': Launched app with identifier: ' + re.escape(RUNNER_BUNDLE) + r' \(pid = (\d+)\)$', text, re.M)
+    if len(launch) != 1 or launch[0][2] != str(pid):
+        raise ValueError("Missing unique same-device runner launch")
+    launched = scoped_clock(launch[0][0], request["created"])
+    host = launch[0][1]
+    deaths = re.findall(r'^(\d\d:\d\d:\d\d\.\d+) xcodebuild\[' + host + r':\d+\][^\n]*' + re.escape(request["udid"]) +
+                        r'[^\n]*got death notice for pid (\d+) \(exit code: \(null\), signal: (\d+)\)', text, re.M)
+    if len(deaths) != 1 or deaths[0][1:] != (str(pid), "9"):
+        raise ValueError("Missing unique matching runner SIGKILL")
+    death = scoped_clock(deaths[0][0], request["created"])
+    if not launched <= observation["observed"] < death or not issue_times or not death < issue_times[0] <= request["created"] + 240:
+        raise ValueError("Setup launch/intent/death/issue order disagrees")
+    validate_setup_issues(request, issues, build_issues, issue_times, sessions, death, host)
+    if re.search(r"Assertion Failure|XCTAssert[^\n]*failed|Test timed out|test execution[^\n]*exceeded|Test Case [^\n]*failed", "\n".join(sessions), re.I):
+        raise ValueError("Unexpected failure in setup diagnostics")
+    # Incomplete debug records are not contradictions and never prove dispatch completion.
+    tap = 'Tap "' + (request["target"] if observation["state"] == "before-region-choice" else expected) + '" ' + ("StaticText" if observation["state"] == "before-region-choice" else "Button")
+    if observation["state"] == "before-region-choice":
+        completed_dispatch(request, observation, text, tap)
+    else:
+        pattern = re.compile(r'^(\d\d:\d\d:\d\d\.\d+) OquTurboUITests-Runner\[(\d+):(\d+)\] '
+                             r'<XCTContext: (0x[0-9a-f]+)> (started|finished) activity '
+                             r'<XCActivityRecord: (0x[0-9a-f]+)> (\d{4}-\d\d-\d\d) \d\d:\d\d:\d\d \+0000: (.+)$', re.M)
+        activities = []
+        for match in pattern.finditer(text):
+            clock, actor, thread, context, action, activity, date, title = match.groups()
+            when = dt.datetime.fromisoformat(date + "T" + clock + "+00:00").timestamp()
+            activities.append((when, actor, thread, context, action, activity, title))
+        starts = [a for a in activities if a[4] == "started" and a[6] == tap]
+        if len(starts) > 1:
+            raise ValueError("Ambiguous observed setup taps")
+        if starts:
+            start = starts[0]
+            if start[1] != str(pid) or not observation["observed"] <= start[0] < death:
+                raise ValueError("Contradictory setup tap identity/time")
+            syntheses = [a for a in activities if a[4] == "started" and a[6] == "Synthesize event" and start[0] < a[0] < death]
+            if len(syntheses) > 1 or any(a[1:4] != start[1:4] for a in syntheses):
+                raise ValueError("Ambiguous observed setup synthesis")
+            if syntheses:
+                synthesis = syntheses[0]
+                finishes = [a for a in activities if a[4] == "finished" and a[5] == synthesis[5]]
+                if len(finishes) > 1 or any(a[1:4] != start[1:4] or not synthesis[0] < a[0] < death for a in finishes):
+                    raise ValueError("Contradictory observed synthesis completion")
+    # An available conflicting post-intent gesture is contradictory, even if the expected activity is missing.
+    for line in text.splitlines():
+        match = re.match(r'^(\d\d:\d\d:\d\d\.\d+) OquTurboUITests-Runner\[(\d+):\d+\].*> started activity .*: ((?:Tap|Swipe|Press|Type) .+)$', line)
+        if match and scoped_clock(match[1], request["created"]) >= observation["observed"] and (match[2] != str(pid) or match[3] != tap):
+            raise ValueError("Contradictory setup gesture evidence")
+    return "SETUP_INTERRUPTED_PENDING_READBACK"
+
+
+def settle_setup(outcomes, setup, verification, request, observation):
+    pending = next((row for row in outcomes if row["step"] == setup), None)
+    if pending is None or pending["status"] not in {"SUCCESS", "SETUP_INTERRUPTED_PENDING_READBACK"}:
+        raise ValueError("No eligible setup operation to verify")
+    if request.get("verifiesOperation") != pending["operation"] or observation.get("verifiesOperation") != pending["operation"]:
+        raise ValueError("Readback does not verify the exact setup operation")
+    actual = next((row for row in outcomes if row["operation"] == request["operation"]), None)
+    if actual is None or actual["step"] != verification or actual["status"] != "SUCCESS":
+        raise ValueError("Verification did not finish normally")
+    validate_observation(request, observation, {"accepted-24-hour" if setup == "change" else "restored"})
+    expected = "Germany" if setup == "change" else request["originalRegion"]
+    if observation.get("verifiedRegion") != expected or observation.get("verifiedLanguage") != "en-US":
+        raise ValueError("Setup postcondition not independently observed")
+    pending["verifiedBy"] = request["operation"]
+    pending["verificationStep"] = verification
+    pending["postcondition"] = "VERIFIED_BY_NORMAL_READBACK"
+
+
+def run_locale(runner, directory, snapshots, baseline, boundary, cutoff, stages=None):
     # Runner.run and all nested simctl/export calls use this same existing phase cutoff.
     suite_deadline = runner.deadline
+    stages = stages or StageBudget(suite_deadline, cutoff)
+    if "initial" not in stages.records:
+        cutoff = stages.enter("initial")
     observations = []
     outcomes = []
     primary = None
@@ -265,6 +402,11 @@ def run_locale(runner, directory, snapshots, baseline, boundary, cutoff):
                     (directory / "dismissal-observations.json").write_text(json.dumps(observations, indent=2))
 
         def step(name, method, extra=None, transition=False):
+            nonlocal cutoff
+            if name != "initial":
+                cutoff = stages.enter(name)
+                runner.deadline = cutoff
+                test_run.cutoff = cutoff
             budget()
             if runner.process is not None:
                 raise RuntimeError("Previous XCTest process has not been reaped")
@@ -288,6 +430,11 @@ def run_locale(runner, directory, snapshots, baseline, boundary, cutoff):
             command = test_run.command(runner.udid, method, result)
             timing = {"bindingStartedMonotonic": binding_started, "command": command, "specification": test_run.state["specification"], "cutoffMonotonic": cutoff,
                       "startedMonotonic": time.monotonic(), "samples": []}
+            stage_cutoff = cutoff
+            cutoff = stage_cutoff - 1  # Reserve bounded owned-process reap inside the stage cap.
+            runner.deadline = cutoff
+            timing["executionDeadlineMonotonic"] = cutoff
+            budget()
             with (location / "xcodebuild.log").open("w") as log:
                 runner.process = subprocess.Popen(command, cwd=runner.root, stdout=log, stderr=subprocess.STDOUT)
                 try:
@@ -303,10 +450,10 @@ def run_locale(runner, directory, snapshots, baseline, boundary, cutoff):
                     code = runner.process.returncode
                     outcome["code"] = code
                 finally:
-                    if runner.process.poll() is None:
-                        runner.process.kill()
-                        # Reaping an owned failed process cannot turn an expired episode into PASS.
-                        runner.process.wait(timeout=1)
+                    cutoff = stage_cutoff
+                    runner.deadline = cutoff
+                    # Failure to reap leaves the pointer intact; another invocation cannot start.
+                    reap_owned(runner.process, cutoff)
                     runner.process = None
                     timing["finishedMonotonic"] = time.monotonic()
                     timing["completionMeaning"] = "Host poll observation, not exact OS exit time"
@@ -320,31 +467,44 @@ def run_locale(runner, directory, snapshots, baseline, boundary, cutoff):
                 summary = json.loads(runner.run("xcrun", "xcresulttool", "get", "test-results", "summary", "--path", str(result)))
                 (location / "summary.json").write_text(json.dumps(summary, indent=2))
                 runner.evidence.validate_summary(summary)
+                with closing(sqlite3.connect("file:" + str(result / "database.sqlite3") + "?mode=ro", uri=True)) as connection:
+                    if list(connection.execute("SELECT compactDescription FROM TestIssues")) or list(connection.execute("SELECT message FROM BuildIssues")):
+                        raise ValueError("Normally successful XCTest contains test/build issues")
                 states = {"baseline"} if name == "initial" else {"accepted-24-hour"} if name == "accept" else {"restored"} if name == "readback" else {"transition-completed", "already-restored"}
                 validate_observation(request, observation, states)
                 status = "SUCCESS"
-            elif transition:
+            elif not transition:
+                raise RuntimeError("Actual acceptance XCTest failed: " + name)
+            if transition:
                 diagnostic = location / "diagnostics"
                 runner.run("xcrun", "xcresulttool", "export", "diagnostics", "--path", str(result), "--output-path", str(diagnostic))
                 database = result / "database.sqlite3"
-                with sqlite3.connect("file:" + str(database) + "?mode=ro", uri=True) as connection:
+                with closing(sqlite3.connect("file:" + str(database) + "?mode=ro", uri=True)) as connection:
                     rows = list(connection.execute("SELECT compactDescription, timestamp FROM TestIssues ORDER BY timestamp"))
                     issues = [v[0] for v in rows]
                     issue_times = [v[1] + 978307200 for v in rows]
                     build_issues = [v[0] for v in connection.execute("SELECT message FROM BuildIssues")]
                 sessions = list(diagnostic.rglob("Session-*.log"))
+                if not sessions:
+                    raise ValueError("Missing exported setup diagnostic sessions")
                 texts = [p.read_text(errors="replace") for p in sessions]
                 matching = [text for text in texts if "region-" + observation.get("state", "") + "-" + request["operation"] in text]
-                if len(matching) != 1:
+                if code != 0 and len(matching) != 1:
                     raise ValueError("Ambiguous setup diagnostic sessions")
-                text = matching[0]
+                text = matching[0] if matching else ""
                 crashes = list(diagnostic.rglob("*.ips")) + list(diagnostic.rglob("*.crash"))
                 crash_records, current_crashes = scope_crashes(crashes, request["created"])
                 (location / "crash-scope.json").write_text(json.dumps(crash_records, indent=2))
-                status = classify_interruption(request, observation, issues, build_issues, text, current_crashes,
-                                               issue_times=issue_times, sessions=texts)
-            else:
-                raise RuntimeError("Actual acceptance XCTest failed: " + name)
+                if current_crashes:
+                    raise ValueError("Current or unknown crash evidence during setup")
+                if code == 0:
+                    if issues or build_issues:
+                        raise ValueError("Normally completed setup contains issues")
+                elif code == 65:
+                    status = provisional_setup(request, observation, issues, build_issues, text, current_crashes,
+                                               issue_times, texts)
+                else:
+                    raise ValueError("Unknown interrupted setup exit code")
             if unchanged:
                 after_preferences = current_preferences(location, "after")
                 (location / "after.preferences_pb").write_bytes(after_preferences)
@@ -352,7 +512,15 @@ def run_locale(runner, directory, snapshots, baseline, boundary, cutoff):
                     raise ValueError("Hour-cycle Cancel/readback changed application preferences")
             budget()
             outcome["status"] = status
-            (directory / "region-substeps.json").write_text(json.dumps(outcomes, indent=2))
+            try:
+                if name in {"accept", "readback"}:
+                    settle_setup(outcomes, "change" if name == "accept" else "restore", name, request, observation)
+                (directory / "region-substeps.json").write_text(json.dumps(outcomes, indent=2))
+                if name in {"change", "accept", "restore"}:
+                    stages.finish(name)
+            except Exception:
+                outcome["status"] = "FAILED_OR_INCOMPLETE"
+                raise
             return request, observation
 
         try:
@@ -364,9 +532,12 @@ def run_locale(runner, directory, snapshots, baseline, boundary, cutoff):
             runner.evidence.validate_dismissal(initial_events, observations)
             runner.evidence.validate_phase("locales", initial_events, snapshots, baseline)
             common = {key: initial[key] for key in ("originalRegion", "originalLanguage", "minutes", "wheels")}
+            stages.finish("initial")
+            if stages.total - time.monotonic() < 900:
+                raise TimeoutError("Insufficient mutation/cleanup reserve")
             restore_needed = True  # Set before dispatch of the first mutating helper.
             step("change", "testSystemRegionTransition", dict(common, target="Germany"), transition=True)
-            step("accept", "testSystem24HourAcceptance", common)
+            step("accept", "testSystem24HourAcceptance", dict(common, verifiesOperation=outcomes[-1]["operation"]))
         except Exception as error:
             primary = repr(error)
         finally:
@@ -374,7 +545,9 @@ def run_locale(runner, directory, snapshots, baseline, boundary, cutoff):
                 try:
                     common = {key: initial[key] for key in ("originalRegion", "originalLanguage", "minutes", "wheels")}
                     step("restore", "testSystemRegionTransition", dict(common, target=initial["originalRegion"]), transition=True)
-                    step("readback", "testSystemRegionRestored", common)
+                    step("readback", "testSystemRegionRestored", dict(common, verifiesOperation=outcomes[-1]["operation"]))
+                    if primary:
+                        stages.finish("readback")
                 except Exception as error:
                     cleanup_error = repr(error)
             (directory / "region-cleanup.json").write_text(json.dumps({"required": restore_needed,
@@ -392,9 +565,16 @@ def run_locale(runner, directory, snapshots, baseline, boundary, cutoff):
         if any(s["enabled"] != snapshots[0]["enabled"] or s["schedule"]["minutesOfDay"] != initial["minutes"] for s in snapshots):
             raise ValueError("Region journey changed reminder preference")
         budget()
+        if any(row.get("status") == "SETUP_INTERRUPTED_PENDING_READBACK" and not row.get("verifiedBy") for row in outcomes):
+            raise ValueError("Unresolved provisional setup")
         (directory / "validation.json").write_text(json.dumps(report, indent=2))
+        stages.finish("readback")
         return report
     finally:
+        (directory / "stage-budgets.json").write_text(json.dumps({"transactionStartedMonotonic": stages.started,
+            "transactionDeadlineMonotonic": stages.total, "stages": stages.records}, indent=2))
         (directory / "snapshots.json").write_text(json.dumps(snapshots, indent=2))
         (directory / "region-substeps.json").write_text(json.dumps(outcomes, indent=2))
         runner.deadline = suite_deadline
+        if sys.exc_info()[0] is None and time.monotonic() >= min(cutoff, stages.total):
+            raise TimeoutError("Final locale evidence exceeded stage/transaction deadline")

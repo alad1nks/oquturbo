@@ -3,6 +3,7 @@ import importlib.util
 import json
 import plistlib
 import shutil
+import sqlite3
 import tempfile
 import unittest
 from pathlib import Path
@@ -180,7 +181,7 @@ class RegionEvidenceTest(unittest.TestCase):
 
 
 class LocaleOrchestrationTest(unittest.TestCase):
-    def exercise(self, fail=None, malformed=None, advance=0, cutoff=200, migration=None):
+    def exercise(self, fail=None, malformed=None, advance=0, cutoff=1300, migration=None, verified_region=None, final_delay=0, export_failure=None):
         temporary = tempfile.TemporaryDirectory(); self.addCleanup(temporary.cleanup)
         root = Path(temporary.name); output = root / "output"; output.mkdir()
         derived = root / "DerivedData"; info = derived / "Build/Products/Debug-iphonesimulator/OquTurboUITests-Runner.app/Info.plist"
@@ -193,11 +194,16 @@ class LocaleOrchestrationTest(unittest.TestCase):
         snapshot = {"enabled": True, "schedule": {"minutesOfDay": 65}, "values": {}}
         calls = []; commands = []; clock = [100]
         current = {"runner": container, "app": appdocs, "step": None, "number": 0}
+        validation_count = [0]
+        def validate_phase(*args):
+            validation_count[0] += 1
+            if validation_count[0] == 2: clock[0] += final_delay
+            return {"status": "PASS"}
         evidence = SimpleNamespace(events_since=lambda *a: [], dismissal_observation=lambda *a: None,
             validate_summary=lambda s: None if s == {"success": True} else (_ for _ in ()).throw(ValueError("Bad summary")),
             validate_dismissal=lambda *a: calls.append("dismissal"),
-            validate_phase=lambda *a: {"status": "PASS"})
-        runner = SimpleNamespace(output=output, derived=derived, deadline=1000, udid="device", root=root,
+            validate_phase=validate_phase)
+        runner = SimpleNamespace(output=output, derived=derived, deadline=2000, udid="device", root=root,
             documents=appdocs, process=None, evidence=evidence, xcode_args=lambda: ["xcodebuild"],
             sample=lambda *a: False, await_sample=lambda *a: None)
         def simctl(*args, **kwargs):
@@ -212,6 +218,10 @@ class LocaleOrchestrationTest(unittest.TestCase):
         runner.await_preferences = await_preferences
         def run(*args):
             commands.append(runner.deadline)
+            if "diagnostics" in args:
+                if current["step"] == export_failure: raise RuntimeError("Missing diagnostic export")
+                target = Path(args[args.index("--output-path") + 1]); target.mkdir()
+                (target / "Session-fixture.log").write_text("normally completed setup")
             if "summary" in args: return json.dumps({"success": True})
             return ""
         runner.run = run
@@ -220,10 +230,18 @@ class LocaleOrchestrationTest(unittest.TestCase):
                 active_docs = current["runner"] / "Documents"
                 request = json.loads((active_docs / "region-operation.json").read_text()); name = request["step"]
                 current["step"] = name
-                calls.append(name); commands.append(runner.deadline); clock[0] += advance
+                calls.append(name); commands.append(runner.deadline); clock[0] += advance.get(name, 0) if isinstance(advance, dict) else advance
                 states = {"initial": "baseline", "change": "transition-completed", "accept": "accepted-24-hour",
                           "restore": "transition-completed", "readback": "restored"}
                 observation = dict(request, observed=request["created"], state=states[name])
+                if name in {"accept", "readback"}:
+                    observation.update(verifiedRegion=(verified_region or "Germany") if name == "accept" else "United States", verifiedLanguage="en-US")
+                result = Path(args[args.index("-resultBundlePath") + 1]) if "-resultBundlePath" in args else directory / name / "runtime.xcresult"
+                result.mkdir()
+                with sqlite3.connect(result / "database.sqlite3") as db:
+                    db.execute("CREATE TABLE TestIssues (compactDescription TEXT, timestamp REAL)")
+                    db.execute("CREATE TABLE BuildIssues (message TEXT)")
+                db.close()
                 if name == "initial": observation.update(originalRegion="United States", originalLanguage="en-US", minutes=65, wheels=["1", "05", "AM"])
                 if name == malformed: observation["operation"] = "stale"
                 (active_docs / "region-observation.json").write_text(json.dumps(observation))
@@ -242,9 +260,12 @@ class LocaleOrchestrationTest(unittest.TestCase):
                     (active_docs / "region-observation.json").write_text(json.dumps(dict(observation, operation="stale-old-sandbox")))
                     current["runner"] = replacement
                 self.returncode = 65 if name in (fail or []) else 0
-            def poll(self): return self.returncode
+                self.unreaped = name == "change" and "unreaped" in (fail or [])
+            def poll(self): return None if self.unreaped else self.returncode
             def kill(self): self.returncode = -9
-            def wait(self, timeout): return self.returncode
+            def wait(self, timeout):
+                if self.unreaped: raise region.subprocess.TimeoutExpired("xcodebuild", timeout)
+                return self.returncode
         binding = SimpleNamespace(state={"specification": "fixture"}, command=lambda *args: ["xcodebuild"])
         with patch.object(region.generated, "GeneratedTestRun", return_value=binding), \
                 patch.object(region.subprocess, "Popen", Process), patch.object(region.time, "monotonic", lambda: clock[0]), \
@@ -253,9 +274,12 @@ class LocaleOrchestrationTest(unittest.TestCase):
             try: region.run_locale(runner, directory, [copy.deepcopy(snapshot)], {}, b"", cutoff)
             except Exception as caught: error = caught
         cleanup = json.loads((directory / "region-cleanup.json").read_text()) if (directory / "region-cleanup.json").exists() else {}
-        outcomes = json.loads((directory / "region-substeps.json").read_text())
-        self.assertEqual(1000, runner.deadline)
-        self.assertTrue(all(value == cutoff for value in commands))
+        outcomes = json.loads((directory / "region-substeps.json").read_text()) if (directory / "region-substeps.json").exists() else []
+        self.assertEqual(2000, runner.deadline)
+        self.assertTrue(all(value <= cutoff for value in commands))
+        for path in directory.rglob("invocation-timing.json"):
+            timing=json.loads(path.read_text())
+            self.assertEqual(timing["cutoffMonotonic"] - 1, timing["executionDeadlineMonotonic"])
         return error, calls, cleanup, outcomes
 
     def test_unavailable_last_poll_recovers_current_preferences_before_readback(self):
@@ -276,11 +300,36 @@ class LocaleOrchestrationTest(unittest.TestCase):
         self.assertEqual(5, len({value["operation"] for value in outcomes}))
 
     def test_rediscovery_exhaustion_does_not_renew_budget_or_use_stale_runner(self):
-        error, calls, cleanup, _ = self.exercise(migration="deadline", cutoff=105)
+        error, calls, cleanup, _ = self.exercise(migration="deadline")
         self.assertIsNotNone(error); self.assertNotIn("accept", calls)
         self.assertIn("deadline", cleanup["primaryError"])
         self.assertIn("deadline", cleanup["restorationError"])
         self.assertFalse(cleanup["restored"])
+
+    def test_unreaped_child_prevents_next_invocation(self):
+        error, calls, cleanup, _ = self.exercise(fail=["unreaped"])
+        self.assertIsNotNone(error); self.assertNotIn("restore", calls)
+        self.assertIn("not been reaped", cleanup["restorationError"])
+
+    def test_missing_setup_export_blocks_acceptance_but_preserves_cleanup(self):
+        error, calls, cleanup, _ = self.exercise(export_failure="change")
+        self.assertIsNotNone(error); self.assertNotIn("accept",calls)
+        self.assertTrue(cleanup["restored"]); self.assertIn("Missing diagnostic export",cleanup["primaryError"])
+
+    def test_short_suite_refuses_mutation_before_reserve_is_spent(self):
+        error, calls, cleanup, _ = self.exercise(cutoff=999)
+        self.assertIsNotNone(error); self.assertNotIn("change", calls)
+        self.assertFalse(cleanup["required"])
+
+    def test_uncommitted_forward_state_fails_even_if_cleanup_succeeds(self):
+        error, calls, cleanup, _ = self.exercise(verified_region="United States")
+        self.assertIsNotNone(error); self.assertTrue(cleanup["restored"])
+        self.assertIn("postcondition", cleanup["primaryError"])
+
+    def test_final_validation_consumes_readback_stage_budget(self):
+        error, calls, cleanup, _ = self.exercise(final_delay=241)
+        self.assertIsNotNone(error); self.assertIn("deadline", str(error))
+        self.assertIn("readback", calls)
 
     def test_all_normally_successful_substeps_preserve_single_phase(self):
         error, calls, cleanup, outcomes = self.exercise()
@@ -313,7 +362,7 @@ class LocaleOrchestrationTest(unittest.TestCase):
             self.assertIsNotNone(error); self.assertNotIn("change", calls); self.assertFalse(cleanup["required"])
 
     def test_exhausted_budget_is_never_renewed_for_readback(self):
-        error, calls, cleanup, _ = self.exercise(advance=1, cutoff=104)
+        error, calls, cleanup, _ = self.exercise(advance={"restore": 241})
         self.assertIsNotNone(error); self.assertNotIn("readback", calls)
         self.assertFalse(cleanup["restored"]); self.assertIn("deadline", cleanup["restorationError"])
 
@@ -449,6 +498,92 @@ class GeneratedTestRunTest(unittest.TestCase):
         binding = self.bind(); result = self.root / "result"; result.mkdir()
         with self.assertRaises(ValueError): binding.command("device", "testSystem24HourAcceptance", result)
         with self.assertRaises(ValueError): binding.command("device", "testColdDeliveryAndNativeOptIn", self.root / "fresh")
+
+
+
+class StagedSetupTest(unittest.TestCase):
+    def fixture(self):
+        request = {"operation": "fresh", "udid": "device", "source": "source", "build": "build", "step": "change",
+                   "created": 1791734700, "target": "Germany", "originalRegion": "United States", "originalLanguage": "en-US"}
+        observation = dict(request, observed=1791734702, state="before-confirmation", confirmation="Keep English (US)",
+            confirmationSheet="Would you like to change the iPhone language to English (UK)?", runnerPID=123, fromRegion="United States")
+        text = ('-only-testing:OquTurboUITests/LocalReminderRuntimeTests/testSystemRegionTransition\n'
+                '16:05:01.000 xcodebuild[9:8] device: Launched app with identifier: ' + region.RUNNER_BUNDLE + ' (pid = 123)\n'
+                "Added attachment named 'region-before-confirmation-fresh'\n"
+                '16:05:05.000 xcodebuild[9:8] device got death notice for pid 123 (exit code: (null), signal: 9)')
+        return [request, observation, [region.KILL_ISSUE], [], text, [], [1791734706], [text]]
+
+    def test_known_interrupt_is_only_pending_readback(self):
+        self.assertEqual("SETUP_INTERRUPTED_PENDING_READBACK", region.provisional_setup(*self.fixture()))
+
+    def test_missing_launch_marker_only_wrong_pid_or_before_marker_kill_rejects(self):
+        for old, new in [("Launched app", "Other app"), ("pid = 123", "pid = 999"), ("16:05:05.000", "16:05:01.500"),
+                         ("device: Launched", "other: Launched"), ("region-before-confirmation-fresh", "region-before-confirmation-stale")]:
+            values = self.fixture(); values[4] = values[4].replace(old,new); values[7]=[values[4]]
+            with self.subTest(old=old), self.assertRaises(ValueError): region.provisional_setup(*values)
+
+    def test_current_unknown_extra_issue_or_unrelated_build_error_rejects(self):
+        for index, value in [(5,[Path("current.ips")]), (2,[region.KILL_ISSUE,"extra"]), (3,["unrelated build failure"])]:
+            values=self.fixture(); values[index]=value
+            with self.subTest(index=index), self.assertRaises(ValueError): region.provisional_setup(*values)
+        values=self.fixture(); values[1]["source"]="wrong"
+        with self.assertRaises(ValueError): region.provisional_setup(*values)
+
+    def test_partial_started_tap_tail_is_pending_not_completed_dispatch(self):
+        values=self.fixture()
+        started='\n16:05:03.000 OquTurboUITests-Runner[123:456] <XCTContext: 0xabc> started activity <XCActivityRecord: 0xaaa> 2026-10-11 16:05:03 +0000: Tap "Keep English (US)" Button'
+        values[4]+=started
+        self.assertEqual("SETUP_INTERRUPTED_PENDING_READBACK",region.provisional_setup(*values))
+        values[4]+='\n16:05:03.500 OquTurboUITests-Runner[123:456] <XCTContext: 0xabc> started activity <XCActivityRecord: 0xbbb> 2026-10-11 16:05:03 +0000: Synthesize event'
+        self.assertEqual("SETUP_INTERRUPTED_PENDING_READBACK",region.provisional_setup(*values))
+        values[4]+='\n16:05:04.000 OquTurboUITests-Runner[123:999] <XCTContext: 0xabc> finished activity <XCActivityRecord: 0xbbb> 2026-10-11 16:05:03 +0000: Synthesize event (0.5s)'
+        with self.assertRaises(ValueError):region.provisional_setup(*values)
+
+    def test_available_contradictory_dispatch_rejects(self):
+        values=self.fixture()
+        values[4]+='\n16:05:03.000 OquTurboUITests-Runner[123:456] <XCTContext: 0xabc> started activity <XCActivityRecord: 0xaaa> 2026-10-11 16:05:03 +0000: Tap "Other" Button'
+        with self.assertRaises(ValueError): region.provisional_setup(*values)
+
+    def test_pending_operation_needs_exact_normally_successful_actual_readback(self):
+        request={"operation":"verify", "verifiesOperation":"setup", "originalRegion":"United States", "created":1}
+        observation=dict(request, observed=2,state="accepted-24-hour",verifiedRegion="Germany",verifiedLanguage="en-US")
+        outcomes=[{"step":"change","operation":"setup","status":"SETUP_INTERRUPTED_PENDING_READBACK"},
+                  {"step":"accept","operation":"verify","status":"SUCCESS"}]
+        for change in [{"verifiesOperation":"stale"},{"verifiedRegion":"United States"},{"state":"partial"}]:
+            with self.subTest(change=change), self.assertRaises(ValueError):
+                region.settle_setup(copy.deepcopy(outcomes),"change","accept",request,dict(observation,**change))
+        failed=copy.deepcopy(outcomes);failed[1]["status"]="FAILED_OR_INCOMPLETE"
+        with self.assertRaises(ValueError):region.settle_setup(failed,"change","accept",request,observation)
+        region.settle_setup(outcomes,"change","accept",request,observation)
+        self.assertEqual("verify",outcomes[0]["verifiedBy"])
+        self.assertEqual("SETUP_INTERRUPTED_PENDING_READBACK",outcomes[0]["status"])
+
+    def test_owned_reap_is_bounded_by_remaining_stage_time(self):
+        calls=[]
+        process=SimpleNamespace(poll=lambda:None,kill=lambda:calls.append("kill"),wait=lambda timeout:calls.append(timeout))
+        with patch.object(region.time,"monotonic",return_value=10.5):
+            region.reap_owned(process,11)
+        self.assertEqual(["kill",.5],calls)
+        with patch.object(region.time,"monotonic",return_value=11):
+            region.reap_owned(process,11)
+        self.assertEqual(0,calls[-1])
+
+    def test_stage_caps_are_single_use_without_transfer_and_preserve_cleanup(self):
+        now=[100.0]
+        with patch.object(region.time,"monotonic",side_effect=lambda:now[0]):
+            budget=region.StageBudget(5000)
+            self.assertEqual(400,budget.enter("initial"))
+            now[0]=200;budget.finish("initial")
+            self.assertEqual(440,budget.enter("change"))
+            now[0]=300;budget.finish("change")
+            self.assertEqual(480,budget.enter("accept"))
+            with self.assertRaises(ValueError):budget.enter("accept")
+            now[0]=481
+            with self.assertRaises(TimeoutError):budget.finish("accept")
+            self.assertEqual(721,budget.enter("restore"))
+            now[0]=600;budget.finish("restore")
+            self.assertEqual(840,budget.enter("readback"))
+            self.assertEqual(1300,budget.total)
 
 
 if __name__ == "__main__": unittest.main()
