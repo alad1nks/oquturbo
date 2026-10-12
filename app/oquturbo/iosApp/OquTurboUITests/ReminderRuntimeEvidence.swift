@@ -47,6 +47,27 @@ final class ReminderRuntimeEvidence {
         XCTFail("Required control is not hittable: \(element)")
     }
 
+    // Observation only: never activate the retained-time action or change reminder state.
+    func revealRetainedTimeAction() -> Bool {
+        for attempt in 0...10 {
+            let deadline = ProcessInfo.processInfo.systemUptime + 2
+            let matches = app.buttons.matching(NSPredicate(format: "label == %@", "Change time"))
+            let action = matches.element(boundBy: 0)
+            let exists = action.waitForExistence(timeout: 2)
+            if matches.count > 1 { return false }
+            if exists && matches.count == 1 && action.isEnabled && action.isHittable {
+                // Observe deceleration without another swipe when the control is already onscreen.
+                if !waitUntilStill(action, deadline: deadline) { continue }
+                let frame = action.frame
+                if matches.count == 1 && action.isEnabled && action.isHittable &&
+                    !frame.isEmpty && app.frame.contains(frame) &&
+                    ProcessInfo.processInfo.systemUptime < deadline { return true }
+            }
+            if attempt < 10 { app.swipeUp() }
+        }
+        return false
+    }
+
     private func waitUntilStill(_ element: XCUIElement, deadline: TimeInterval) -> Bool {
         var lastFrame: CGRect?
         var stableSince = ProcessInfo.processInfo.systemUptime

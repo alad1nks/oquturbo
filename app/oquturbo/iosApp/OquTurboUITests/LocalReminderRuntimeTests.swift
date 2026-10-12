@@ -96,9 +96,11 @@ final class LocalReminderRuntimeTests: XCTestCase {
         for _ in 0..<10 { ui.app.swipeDown() }
         let toggle = ui.app.switches["Reminders"]
         ui.tap(toggle, scrolling: true)
+        ui.capture("immediately-after-off-toggle")
         XCTAssertTrue(ui.app.staticTexts["Off"].waitForExistence(timeout: 5))
-        XCTAssertTrue(ui.app.buttons["Change time"].exists)
+        let retainedTimeActionVisible = ui.revealRetainedTimeAction()
         ui.capture("off-retains-time")
+        XCTAssertTrue(retainedTimeActionVisible, "Retained-time action must be uniquely visible and usable while Off")
         // Host requires actual pending AND delivered owned inventories to be empty after cancellation.
     }
 
