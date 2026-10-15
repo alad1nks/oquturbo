@@ -119,12 +119,17 @@ final class ReminderRuntimeEvidence {
             // Settings' root. Follow the real UI to the app's permission page.
             // Any other unexpected destination remains a failure.
             XCTAssertTrue(settings.navigationBars["Settings"].exists)
-            tapSettingsRow("Notifications")
-            XCTAssertTrue(settings.navigationBars["Notifications"].waitForExistence(timeout: 5))
+            // This simulator exposes app permissions under Apps; it has no
+            // Notifications category at the Settings root.
+            tapSettingsRow("Apps")
+            XCTAssertTrue(settings.navigationBars["Apps"].waitForExistence(timeout: 5))
             tapSettingsRow("OquTurbo")
+            XCTAssertTrue(settings.navigationBars["OquTurbo"].waitForExistence(timeout: 5))
+            captureSettings("owned-app-settings")
+            tapSettingsRow("Notifications")
         }
-        XCTAssertTrue(settings.navigationBars["OquTurbo"].waitForExistence(timeout: 5))
         XCTAssertTrue(allow.waitForExistence(timeout: 10))
+        XCTAssertTrue(settings.navigationBars["OquTurbo"].exists || settings.navigationBars["Notifications"].exists)
         XCTAssertTrue(allow.isHittable)
         captureSettings("owned-notification-permission")
         return allow
