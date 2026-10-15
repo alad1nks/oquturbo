@@ -106,24 +106,27 @@ final class LocalReminderRuntimeTests: XCTestCase {
 
     func testDeniedPermissionAndSettingsRecovery() {
         let ui = ReminderRuntimeEvidence(self)
-        // This episode uses an erased simulator. Finish Settings' first launch before
-        // exercising the app's notification deep link, which otherwise lands at its root.
-        let settings = XCUIApplication(bundleIdentifier: "com.apple.Preferences")
-        settings.launch()
-        XCTAssertTrue(settings.navigationBars["Settings"].waitForExistence(timeout: 15))
         ui.start()
         _ = ui.selectFutureTime(first: true)
         let deny = ui.springboard.alerts.buttons["Don’t Allow"]
         XCTAssertTrue(deny.waitForExistence(timeout: 10)); deny.tap()
         ui.tap(ui.app.buttons["Notification settings"], scrolling: true)
+        let settings = XCUIApplication(bundleIdentifier: "com.apple.Preferences")
         XCTAssertTrue(settings.wait(for: .runningForeground, timeout: 15))
-        let allow = settings.switches["Allow Notifications"]
-        XCTAssertTrue(allow.waitForExistence(timeout: 10)); allow.tap()
+        let allow = ui.notificationPermissionSwitch(in: settings)
+        XCTAssertEqual(allow.value as? String, "0")
+        allow.tap()
+        XCTAssertTrue(allow.waitForExistence(timeout: 5))
+        XCTAssertEqual(allow.value as? String, "1")
         ui.app.activate(); ui.assertScheduled()
         ui.tap(ui.app.buttons["Change time"], scrolling: true)
         ui.tap(ui.app.buttons["reminder-time-cancel"])
         // Revoke through actual system Settings and require truthful blocked state on return.
-        settings.activate(); XCTAssertTrue(allow.waitForExistence(timeout: 10)); allow.tap()
+        settings.activate()
+        let enabled = ui.notificationPermissionSwitch(in: settings)
+        XCTAssertEqual(enabled.value as? String, "1")
+        enabled.tap()
+        XCTAssertEqual(enabled.value as? String, "0")
         ui.app.activate()
         ui.tap(ui.app.staticTexts["Notifications are blocked by the system."], scrolling: true)
         ui.capture("revoked-without-reprompt")
