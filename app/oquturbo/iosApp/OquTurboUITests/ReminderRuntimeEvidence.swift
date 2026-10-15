@@ -93,6 +93,41 @@ final class ReminderRuntimeEvidence {
         return false
     }
 
+    func notificationPermissionSwitch(in settings: XCUIApplication) -> XCUIElement {
+        func captureSettings(_ name: String) {
+            let screenshot = XCTAttachment(screenshot: XCUIScreen.main.screenshot())
+            screenshot.name = name; screenshot.lifetime = .keepAlways; test.add(screenshot)
+            let tree = XCTAttachment(string: settings.debugDescription)
+            tree.name = name + "-tree"; tree.lifetime = .keepAlways; test.add(tree)
+        }
+        func tapSettingsRow(_ name: String) {
+            let row = settings.staticTexts[name]
+            for _ in 0..<10 {
+                if row.waitForExistence(timeout: 2) && row.isHittable { row.tap(); return }
+                settings.swipeUp()
+            }
+            captureSettings("missing-system-settings-" + name)
+            XCTFail("Required system Settings row is not hittable: " + name)
+        }
+
+        let allow = settings.switches["Allow Notifications"]
+        if !allow.waitForExistence(timeout: 5) {
+            captureSettings("notification-settings-link-destination")
+            // On the fresh simulator the public notification Settings URL opens
+            // Settings' root. Follow the real UI to the app's permission page.
+            // Any other unexpected destination remains a failure.
+            XCTAssertTrue(settings.navigationBars["Settings"].exists)
+            tapSettingsRow("Notifications")
+            XCTAssertTrue(settings.navigationBars["Notifications"].waitForExistence(timeout: 5))
+            tapSettingsRow("OquTurbo")
+        }
+        XCTAssertTrue(settings.navigationBars["OquTurbo"].waitForExistence(timeout: 5))
+        XCTAssertTrue(allow.waitForExistence(timeout: 10))
+        XCTAssertTrue(allow.isHittable)
+        captureSettings("owned-notification-permission")
+        return allow
+    }
+
     func selectFutureTime(first: Bool = false) -> Date {
         tap(app.buttons[first ? "Choose time and enable" : "Change time"], scrolling: true,
             evidenceName: "before-native-picker-open")
