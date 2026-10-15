@@ -582,6 +582,27 @@ class StagedSetupTest(unittest.TestCase):
         values[4]+='\n16:05:04.000 OquTurboUITests-Runner[123:999] <XCTContext: 0xabc> finished activity <XCActivityRecord: 0xbbb> 2026-10-11 16:05:03 +0000: Synthesize event (0.5s)'
         with self.assertRaises(ValueError):region.provisional_setup(*values)
 
+    def test_reused_activity_address_does_not_attach_an_older_completion(self):
+        values = self.fixture()
+        prefix = ' OquTurboUITests-Runner[123:456] <XCTContext: 0xabc> '
+        def event(clock, action, address, title):
+            return '\n16:05:' + clock + prefix + action + ' activity <XCActivityRecord: ' + address + '> 2026-10-11 16:05:00 +0000: ' + title
+        values[4] += event('01.100', 'started', '0xbbb', 'Check for interrupting elements')
+        values[4] += event('01.200', 'finished', '0xbbb', 'Check for interrupting elements (0.1s)')
+        values[4] += event('01.300', 'started', '0xbbb', 'Synthesize event')
+        values[4] += event('01.400', 'finished', '0xbbb', 'Synthesize event (0.1s)')
+        values[4] += event('03.000', 'started', '0xaaa', 'Tap "Keep English (US)" Button')
+        values[4] += event('03.500', 'started', '0xbbb', 'Synthesize event')
+        completion = event('04.000', 'finished', '0xbbb', 'Synthesize event (0.5s)')
+        values[4] += completion
+        self.assertEqual("SETUP_INTERRUPTED_PENDING_READBACK", region.provisional_setup(*values))
+        for replacement in (completion + completion, completion.replace('123:456', '123:999'),
+                            completion.replace('16:05:04.000', '16:05:06.000'),
+                            completion.replace('Synthesize event (0.5s)', 'Unrelated activity (0.5s)')):
+            changed = copy.deepcopy(values); changed[4] = changed[4][:-len(completion)] + replacement
+            with self.subTest(replacement=replacement), self.assertRaises(ValueError):
+                region.provisional_setup(*changed)
+
     def test_available_contradictory_dispatch_rejects(self):
         values=self.fixture()
         values[4]+='\n16:05:03.000 OquTurboUITests-Runner[123:456] <XCTContext: 0xabc> started activity <XCActivityRecord: 0xaaa> 2026-10-11 16:05:03 +0000: Tap "Other" Button'

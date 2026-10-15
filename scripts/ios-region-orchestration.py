@@ -335,8 +335,11 @@ def provisional_setup(request, observation, issues, build_issues, text, crashes,
                 raise ValueError("Ambiguous observed setup synthesis")
             if syntheses:
                 synthesis = syntheses[0]
-                finishes = [a for a in activities if a[4] == "finished" and a[5] == synthesis[5]]
-                if len(finishes) > 1 or any(a[1:4] != start[1:4] or not synthesis[0] < a[0] < death for a in finishes):
+                # XCActivityRecord is an object address, not a session-wide ID.
+                # XCTest may reuse it after an earlier activity has finished.
+                finishes = [a for a in activities if a[4] == "finished" and a[5] == synthesis[5] and a[0] >= synthesis[0]]
+                if len(finishes) > 1 or any(a[1:4] != start[1:4] or not synthesis[0] < a[0] < death or
+                                           not a[6].startswith("Synthesize event (") for a in finishes):
                     raise ValueError("Contradictory observed synthesis completion")
     # An available conflicting post-intent gesture is contradictory, even if the expected activity is missing.
     for line in text.splitlines():
