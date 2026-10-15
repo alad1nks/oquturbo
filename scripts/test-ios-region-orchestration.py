@@ -129,6 +129,48 @@ class RegionEvidenceTest(unittest.TestCase):
             path.write_text("not a crash schema")
             self.assertEqual([path], region.scope_crashes([path], 1791734700)[1])
 
+    def test_current_usage_tracking_crash_requires_owned_apple_cloudkit_identity(self):
+        header = {"timestamp": "2026-10-11 16:05:00.00 +0000", "app_name": "UsageTrackingAgent", "is_first_party": 1}
+        payload = {"captureTime": "2026-10-11 16:04:59.0000 +0000", "procName": "UsageTrackingAgent",
+                   "codeSigningID": "com.apple.UsageTrackingAgent", "parentProc": "launchd_sim",
+                   "responsibleProc": "SimulatorTrampoline", "coalitionName": "com.apple.CoreSimulator.SimDevice.owned",
+                   "procPath": "/Volumes/VOLUME/*/UsageTracking.framework/UsageTrackingAgent",
+                   "exception": {"type": "EXC_BREAKPOINT", "signal": "SIGTRAP"}, "faultingThread": 0,
+                   "threads": [{"triggered": True, "frames": [{"imageIndex": 0}]}],
+                   "usedImages": [{"CFBundleIdentifier": "com.apple.cloudkit.CloudKit",
+                                   "path": "/Volumes/VOLUME/*/CloudKit.framework/CloudKit"}]}
+        with tempfile.TemporaryDirectory() as folder:
+            path = Path(folder) / "usage.ips"
+            def classify(h, p, udid="owned"):
+                path.write_text(json.dumps(h) + "\n" + json.dumps(p))
+                return region.scope_crashes([path], 1791734700, udid)
+            records, current = classify(header, payload)
+            self.assertEqual([], current)
+            self.assertEqual("UNRELATED_USAGE_TRACKING_CLOUDKIT", records[0]["classification"])
+            self.assertEqual(payload["codeSigningID"], records[0]["codeSigningID"])
+            for field in header:
+                changed = dict(header); changed.pop(field)
+                with self.subTest(missing_header=field):
+                    self.assertEqual([path], classify(changed, payload)[1])
+            for field in payload:
+                changed = dict(payload); changed.pop(field)
+                with self.subTest(missing_payload=field):
+                    self.assertEqual([path], classify(header, changed)[1])
+            for changes in ({"procName": "OquTurbo"}, {"procName": "OquTurboUITests-Runner"},
+                            {"procName": "SpringBoard"}, {"codeSigningID": "com.alad1nks.oquturbo.OquTurbo"},
+                            {"procPath": "/Applications/OquTurbo.app/OquTurbo"}, {"parentProc": "launchd"},
+                            {"responsibleProc": "OquTurbo"}, {"coalitionName": "com.apple.CoreSimulator.SimDevice.other"},
+                            {"exception": {"type": "EXC_BAD_ACCESS", "signal": "SIGSEGV"}},
+                            {"faultingThread": -1}, {"faultingThread": 1}, {"faultingThread": False},
+                            {"threads": [{"triggered": False, "frames": [{"imageIndex": 0}]}]},
+                            {"threads": [{"triggered": True, "frames": [{"imageIndex": -1}]}]},
+                            {"usedImages": [{"CFBundleIdentifier": "com.alad1nks.oquturbo.OquTurbo"}]},
+                            {"threads": []}, {"usedImages": []}):
+                with self.subTest(changes=changes):
+                    self.assertEqual([path], classify(header, dict(payload, **changes))[1])
+            self.assertEqual([path], classify(dict(header, is_first_party=0), payload)[1])
+            self.assertEqual([path], classify(header, payload, None)[1])
+
     def test_midnight_clock_is_scoped_to_actual_operation_window(self):
         created = 1791763199  # 2026-10-11 23:59:59 UTC.
         self.assertEqual(created + 2, region.scoped_clock("00:00:01.000", created))

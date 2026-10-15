@@ -43,6 +43,13 @@ preference snapshot:
    simulator, reboot/reinstall, real denial, real Settings grant/revoke and truthful state on foreground return.
    No persistence claim crosses that fixture reset.
 
+Region-transition diagnostics retain all crash reports. A current crash normally fails the gate. The known
+Apple `UsageTrackingAgent` CloudKit `EXC_BREAKPOINT`/`SIGTRAP` is recorded separately only when the report proves
+its Apple signing identity, simulator parent, owned simulator coalition, executable path, and faulting CloudKit
+image. This separate system-service crash does not establish a successful region transition: the exact XCTest
+interruption checks and a normally successful independent restoration readback remain mandatory. App, runner,
+SpringBoard, unknown-process, malformed, and unrecognized crash reports still fail the gate.
+
 Native probes observe system authorization, pending/calendar/content/timezone/next occurrence, delivered records,
 actual response and foreground callbacks, process UUID, actual graph Home consumption and actual system clock.
 The host checks byte-preservation of unrelated DataStore values. Only reminder preferences and the normal Home

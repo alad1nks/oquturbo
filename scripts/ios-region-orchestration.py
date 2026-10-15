@@ -141,7 +141,37 @@ def validate_setup_issues(request, issues, build_issues, issue_times, sessions, 
         raise ValueError("Missing exact same-device post-kill automatic relaunch diagnostic")
 
 
-def scope_crashes(paths, created):
+def unrelated_usage_tracking_crash(header, payload, udid):
+    # Two native runs show the simulator's Apple UsageTrackingAgent trapping in
+    # CloudKit during region restoration. This is a separate system process,
+    # not the app, runner, SpringBoard, or notification service. Preserve its
+    # report, but let the existing independent restoration readback decide
+    # whether the region transaction succeeded.
+    if not udid or header.get("app_name") != "UsageTrackingAgent" or header.get("is_first_party") != 1:
+        return False
+    expected = {"procName": "UsageTrackingAgent", "codeSigningID": "com.apple.UsageTrackingAgent",
+                "parentProc": "launchd_sim", "responsibleProc": "SimulatorTrampoline",
+                "coalitionName": "com.apple.CoreSimulator.SimDevice." + udid,
+                "procPath": "/Volumes/VOLUME/*/UsageTracking.framework/UsageTrackingAgent"}
+    if any(payload.get(key) != value for key, value in expected.items()):
+        return False
+    exception = payload.get("exception", {})
+    if exception.get("type") != "EXC_BREAKPOINT" or exception.get("signal") != "SIGTRAP":
+        return False
+    thread_index = payload["faultingThread"]
+    if type(thread_index) is not int or not 0 <= thread_index < len(payload["threads"]):
+        return False
+    thread = payload["threads"][thread_index]
+    frame = thread["frames"][0]
+    image_index = frame["imageIndex"]
+    if type(image_index) is not int or not 0 <= image_index < len(payload["usedImages"]):
+        return False
+    image = payload["usedImages"][image_index]
+    return thread.get("triggered") is True and image.get("CFBundleIdentifier") == "com.apple.cloudkit.CloudKit" and \
+        image.get("path") == "/Volumes/VOLUME/*/CloudKit.framework/CloudKit"
+
+
+def scope_crashes(paths, created, udid=None):
     records, current = [], []
     for path in paths:
         record = {"file": str(path), "classification": "CURRENT_OR_UNKNOWN"}
@@ -158,9 +188,13 @@ def scope_crashes(paths, created):
             if recorded.timestamp() < created and captured.timestamp() < created and \
                     not payload["procName"].startswith("OquTurbo"):
                 record["classification"] = "PREEXISTING_UNRELATED"
-        except (ValueError, KeyError, TypeError, IndexError, OSError) as error:
+            elif unrelated_usage_tracking_crash(header, payload, udid):
+                record["classification"] = "UNRELATED_USAGE_TRACKING_CLOUDKIT"
+                record["codeSigningID"] = payload["codeSigningID"]
+                record["coalitionName"] = payload["coalitionName"]
+        except (ValueError, KeyError, TypeError, IndexError, AttributeError, OSError) as error:
             record["parseError"] = repr(error)
-        if record["classification"] != "PREEXISTING_UNRELATED":
+        if record["classification"] not in {"PREEXISTING_UNRELATED", "UNRELATED_USAGE_TRACKING_CLOUDKIT"}:
             current.append(path)
         records.append(record)
     return records, current
@@ -504,7 +538,7 @@ def run_locale(runner, directory, snapshots, baseline, boundary, cutoff, stages=
                     raise ValueError("Ambiguous setup diagnostic sessions")
                 text = matching[0] if matching else ""
                 crashes = list(diagnostic.rglob("*.ips")) + list(diagnostic.rglob("*.crash"))
-                crash_records, current_crashes = scope_crashes(crashes, request["created"])
+                crash_records, current_crashes = scope_crashes(crashes, request["created"], request["udid"])
                 (location / "crash-scope.json").write_text(json.dumps(crash_records, indent=2))
                 if current_crashes:
                     raise ValueError("Current or unknown crash evidence during setup")
