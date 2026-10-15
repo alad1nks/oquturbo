@@ -29,11 +29,10 @@ final class ReminderRuntimeEvidence {
 
     func tap(_ element: XCUIElement, scrolling: Bool = false, evidenceName: String? = nil) {
         for _ in 0..<(scrolling ? 10 : 1) {
-            let deadline = ProcessInfo.processInfo.systemUptime + 2
             if element.waitForExistence(timeout: 2) && element.isHittable {
                 // Hittable can become true while the preceding swipe is still decelerating.
                 // A moving visible target needs observation, not another swipe or a speculative tap.
-                if scrolling && !waitUntilStill(element, deadline: deadline) { continue }
+                if scrolling && !waitUntilStill(element, deadline: ProcessInfo.processInfo.systemUptime + 3) { continue }
                 if let name = evidenceName {
                     capture(name)
                     let state = XCTAttachment(string: "epoch=\(Date().timeIntervalSince1970) uptime=\(ProcessInfo.processInfo.systemUptime) " +
@@ -51,13 +50,13 @@ final class ReminderRuntimeEvidence {
     // Observation only: never activate the retained-time action or change reminder state.
     func revealRetainedTimeAction() -> Bool {
         for attempt in 0...10 {
-            let deadline = ProcessInfo.processInfo.systemUptime + 2
             let matches = app.buttons.matching(NSPredicate(format: "label == %@", "Change time"))
             let action = matches.element(boundBy: 0)
             let exists = action.waitForExistence(timeout: 2)
             if matches.count > 1 { return false }
             if exists && matches.count == 1 && action.isEnabled && action.isHittable {
                 // Observe deceleration without another swipe when the control is already onscreen.
+                let deadline = ProcessInfo.processInfo.systemUptime + 3
                 if !waitUntilStill(action, deadline: deadline) { continue }
                 let frame = action.frame
                 if matches.count == 1 && action.isEnabled && action.isHittable &&
@@ -87,7 +86,10 @@ final class ReminderRuntimeEvidence {
             if !usable || frame.isEmpty { return false }
             if frame != lastFrame { stableSince = now }
             lastFrame = frame
-            if now - stableSince >= 0.2 { return true }
+            // Native traces show Compose still decelerating for about half a second
+            // after the accessibility frame stops moving. A tap during that interval
+            // only stops scrolling. Require a full second of stable UI observations.
+            if now - stableSince >= 1 { return true }
             RunLoop.current.run(until: Date().addingTimeInterval(min(0.1, deadline - now)))
         }
         return false
