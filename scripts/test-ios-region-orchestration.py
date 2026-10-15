@@ -279,7 +279,8 @@ class LocaleOrchestrationTest(unittest.TestCase):
         self.assertTrue(all(value <= cutoff for value in commands))
         for path in directory.rglob("invocation-timing.json"):
             timing=json.loads(path.read_text())
-            self.assertEqual(timing["cutoffMonotonic"] - 1, timing["executionDeadlineMonotonic"])
+            reserve = 60 if path.parent.name in {"change", "restore"} else 0
+            self.assertEqual(timing["cutoffMonotonic"] - reserve - 1, timing["executionDeadlineMonotonic"])
         return error, calls, cleanup, outcomes
 
     def test_unavailable_last_poll_recovers_current_preferences_before_readback(self):
@@ -568,22 +569,46 @@ class StagedSetupTest(unittest.TestCase):
             region.reap_owned(process,11)
         self.assertEqual(0,calls[-1])
 
+    def test_region_export_reserve_does_not_extend_xctest_execution(self):
+        now = [100.0]
+        with patch.object(region.time, "monotonic", side_effect=lambda: now[0]):
+            budget = region.StageBudget(5000)
+            deadline = budget.enter("change")
+            self.assertEqual(339, budget.execution_deadline("change"))
+            now[0] = 338  # XCTest completes near its original 240s cap.
+            self.assertGreaterEqual(deadline - now[0], 60)
+            now[0] = 390  # Required diagnostic export still fits in this stage.
+            budget.finish("change")
+            now[0] = deadline
+            with self.assertRaises(TimeoutError):
+                budget.finish("change")
+
+    def test_acceptance_reserves_full_restoration_and_readback_budgets(self):
+        with patch.object(region.time, "monotonic", return_value=100):
+            budget = region.StageBudget(800)
+            self.assertEqual(260, budget.enter("accept"))
+            self.assertEqual(259, budget.execution_deadline("accept"))
+            with self.assertRaises(TimeoutError):
+                budget.enter("change")
+
     def test_stage_caps_are_single_use_without_transfer_and_preserve_cleanup(self):
         now=[100.0]
         with patch.object(region.time,"monotonic",side_effect=lambda:now[0]):
             budget=region.StageBudget(5000)
             self.assertEqual(400,budget.enter("initial"))
             now[0]=200;budget.finish("initial")
-            self.assertEqual(440,budget.enter("change"))
+            self.assertEqual(500,budget.enter("change"))
+            self.assertEqual(439,budget.execution_deadline("change"))
             now[0]=300;budget.finish("change")
             self.assertEqual(480,budget.enter("accept"))
             with self.assertRaises(ValueError):budget.enter("accept")
             now[0]=481
             with self.assertRaises(TimeoutError):budget.finish("accept")
-            self.assertEqual(721,budget.enter("restore"))
+            self.assertEqual(781,budget.enter("restore"))
+            self.assertEqual(720,budget.execution_deadline("restore"))
             now[0]=600;budget.finish("restore")
             self.assertEqual(840,budget.enter("readback"))
-            self.assertEqual(1300,budget.total)
+            self.assertEqual(1420,budget.total)
 
 
 if __name__ == "__main__": unittest.main()

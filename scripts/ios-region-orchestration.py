@@ -189,11 +189,17 @@ def classify_interruption(request, observation, issues, build_issues, diagnostic
 
 
 class StageBudget:
-    CAPS = {"initial": 300, "change": 240, "accept": 180, "restore": 240, "readback": 240}
+    # Region changes restart SpringBoard and XCTest spends most of its 240s
+    # execution budget recovering. Reserve separate time to export and validate
+    # the resulting diagnostics, which are required before independent readback.
+    EXPORT_RESERVE = 60
+    CAPS = {"initial": 300, "change": 300, "accept": 180, "restore": 300, "readback": 240}
+    CLEANUP_RESERVE = CAPS["restore"] + CAPS["readback"]
+    MUTATION_RESERVE = CAPS["change"] + CAPS["accept"] + CLEANUP_RESERVE
 
     def __init__(self, suite, total=None):
         self.started = time.monotonic()
-        self.total = min(suite, total if total is not None else self.started + 1200)
+        self.total = min(suite, total if total is not None else self.started + sum(self.CAPS.values()))
         self.suite = suite
         self.records = {}
         self.active = None
@@ -202,16 +208,20 @@ class StageBudget:
         now = time.monotonic()
         if name in self.records:
             raise ValueError("Stage is single-use: " + name)
-        if name == "change" and self.total - now < 900:
+        if name == "change" and self.total - now < self.MUTATION_RESERVE:
             raise TimeoutError("Insufficient mutation/cleanup reserve")
         deadline = min(now + self.CAPS[name], self.total, self.suite)
         if name == "accept":
-            deadline = min(deadline, self.total - 480, self.suite - 480)
+            deadline = min(deadline, self.total - self.CLEANUP_RESERVE, self.suite - self.CLEANUP_RESERVE)
         if now >= deadline:
             raise TimeoutError("Stage/transaction deadline exhausted: " + name)
         self.active = name
         self.records[name] = {"startedMonotonic": now, "deadlineMonotonic": deadline, "capSeconds": self.CAPS[name]}
         return deadline
+
+    def execution_deadline(self, name):
+        reserve = self.EXPORT_RESERVE if name in {"change", "restore"} else 0
+        return self.records[name]["deadlineMonotonic"] - reserve - 1
 
     def finish(self, name):
         record = self.records[name]
@@ -431,7 +441,7 @@ def run_locale(runner, directory, snapshots, baseline, boundary, cutoff, stages=
             timing = {"bindingStartedMonotonic": binding_started, "command": command, "specification": test_run.state["specification"], "cutoffMonotonic": cutoff,
                       "startedMonotonic": time.monotonic(), "samples": []}
             stage_cutoff = cutoff
-            cutoff = stage_cutoff - 1  # Reserve bounded owned-process reap inside the stage cap.
+            cutoff = stages.execution_deadline(name)  # Preserve export and owned-process reap reserves.
             runner.deadline = cutoff
             timing["executionDeadlineMonotonic"] = cutoff
             budget()
@@ -447,6 +457,7 @@ def run_locale(runner, directory, snapshots, baseline, boundary, cutoff, stages=
                             timing["samples"].append({"startedMonotonic": sample_started, "finishedMonotonic": time.monotonic()})
                         time.sleep(min(2, max(0, cutoff - time.monotonic())))
                     timing["processCompletionObservedMonotonic"] = time.monotonic()
+                    budget()
                     code = runner.process.returncode
                     outcome["code"] = code
                 finally:
@@ -533,7 +544,7 @@ def run_locale(runner, directory, snapshots, baseline, boundary, cutoff, stages=
             runner.evidence.validate_phase("locales", initial_events, snapshots, baseline)
             common = {key: initial[key] for key in ("originalRegion", "originalLanguage", "minutes", "wheels")}
             stages.finish("initial")
-            if stages.total - time.monotonic() < 900:
+            if stages.total - time.monotonic() < stages.MUTATION_RESERVE:
                 raise TimeoutError("Insufficient mutation/cleanup reserve")
             restore_needed = True  # Set before dispatch of the first mutating helper.
             step("change", "testSystemRegionTransition", dict(common, target="Germany"), transition=True)
