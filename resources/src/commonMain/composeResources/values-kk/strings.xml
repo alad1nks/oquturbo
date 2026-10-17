@@ -1053,4 +1053,16 @@
     <string name="reminder_pending_unknown">Ағымдағы кестені тексеру мүмкін болмады.</string>
     <string name="reminder_unsupported">Бұл платформада еске салғыштар қолжетімсіз. Олар Android және iOS жүйелерінде қолжетімді.</string>
     <string name="reminder_ios_pending6a">Бұл платформада еске салғыштар әзірге қолжетімсіз.</string>
+    <string name="number_trail_completed_boards">Аяқталған тақталар: %1$d</string>
+    <string name="number_trail_active_time">Белсенді уақыт: %1$s</string>
+    <string name="number_trail_duration_less_than_one_second">1 секундтан аз</string>
+    <string name="number_trail_duration_minutes_seconds">%1$s %2$s</string>
+    <plurals name="number_trail_duration_seconds">
+        <item quantity="one">%1$d секунд</item>
+        <item quantity="other">%1$d секунд</item>
+    </plurals>
+    <plurals name="number_trail_duration_minutes">
+        <item quantity="one">%1$d минут</item>
+        <item quantity="other">%1$d минут</item>
+    </plurals>
 </resources>

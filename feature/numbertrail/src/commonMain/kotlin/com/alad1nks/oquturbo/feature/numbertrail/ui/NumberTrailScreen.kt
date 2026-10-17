@@ -1,6 +1,7 @@
 package com.alad1nks.oquturbo.feature.numbertrail.ui
 
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
@@ -73,6 +74,7 @@ import com.alad1nks.oquturbo.feature.numbertrail.model.NumberTrailFailure
 import com.alad1nks.oquturbo.feature.numbertrail.model.NumberTrailPhase
 import com.alad1nks.oquturbo.feature.numbertrail.model.NumberTrailState
 import com.alad1nks.oquturbo.resources.AppResource
+import org.jetbrains.compose.resources.pluralStringResource
 import org.jetbrains.compose.resources.stringResource
 import kotlin.math.ceil
 
@@ -118,13 +120,14 @@ internal fun NumberTrailScreen(
     onPauseClick: () -> Unit = {},
     onResumeClick: () -> Unit = {},
     onReloadClick: () -> Unit = {},
+    scrollState: ScrollState = rememberScrollState(),
 ) {
     BoxWithConstraints(modifier.fillMaxSize().appBackground()) {
         val horizontal = if (maxWidth < 360.dp) OquTurboLayout.compactGameGutter else OquTurboLayout.pageGutter
         Column(
             Modifier.align(Alignment.TopCenter).widthIn(max = OquTurboLayout.playMaxWidth).fillMaxWidth()
                 .statusBarsPadding().navigationBarsPadding().padding(horizontal = horizontal)
-                .verticalScroll(rememberScrollState()),
+                .verticalScroll(scrollState),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(20.dp),
         ) {
@@ -444,6 +447,27 @@ private fun ResultContent(
         secondaryText = stringResource(AppResource.String.number_trail_record_value, state.record),
         modifier = Modifier.fillMaxWidth(),
     )
+    Column(
+        modifier = Modifier.fillMaxWidth(),
+        verticalArrangement = Arrangement.spacedBy(8.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+    ) {
+        Text(
+            stringResource(AppResource.String.number_trail_completed_boards, game.completedBoards),
+            style = MaterialTheme.typography.bodyLarge,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            textAlign = TextAlign.Center,
+        )
+        Text(
+            stringResource(
+                AppResource.String.number_trail_active_time,
+                numberTrailDurationText(game.activeDurationMillis),
+            ),
+            style = MaterialTheme.typography.bodyLarge,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            textAlign = TextAlign.Center,
+        )
+    }
     when (state.saveStatus) {
         NumberTrailSaveStatus.Pending ->
             Text(
@@ -798,3 +822,34 @@ private fun NumberTrailReviewLargePreview() {
         )
     }
 }
+
+@Composable
+internal fun numberTrailDurationText(durationMillis: Long): String =
+    when (val parts = numberTrailDurationDisplayParts(durationMillis)) {
+        NumberTrailDurationDisplayParts.LessThanOneSecond ->
+            stringResource(AppResource.String.number_trail_duration_less_than_one_second)
+        is NumberTrailDurationDisplayParts.Seconds ->
+            pluralStringResource(
+                AppResource.Plural.number_trail_duration_seconds,
+                parts.seconds.numberTrailPluralQuantity(),
+                parts.seconds,
+            )
+        is NumberTrailDurationDisplayParts.MinutesSeconds -> {
+            val minutes =
+                pluralStringResource(
+                    AppResource.Plural.number_trail_duration_minutes,
+                    parts.minutes.numberTrailPluralQuantity(),
+                    parts.minutes,
+                )
+            val seconds = parts.seconds ?: return minutes
+            stringResource(
+                AppResource.String.number_trail_duration_minutes_seconds,
+                minutes,
+                pluralStringResource(
+                    AppResource.Plural.number_trail_duration_seconds,
+                    seconds.numberTrailPluralQuantity(),
+                    seconds,
+                ),
+            )
+        }
+    }

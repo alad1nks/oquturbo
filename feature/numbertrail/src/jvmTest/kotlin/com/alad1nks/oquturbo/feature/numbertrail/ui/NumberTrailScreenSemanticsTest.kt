@@ -117,6 +117,8 @@ class NumberTrailScreenSemanticsTest {
                 state.value = state.value.copy(saveStatus = save)
                 onNodeWithContentDescription("Number 1, next required number").performScrollTo().assertIsDisplayed()
                 onNodeWithContentDescription("Number 4, your wrong choice").assertExists()
+                onNodeWithText("Completed boards: 0").assertExists()
+                onNodeWithText("Active time: less than 1 second").assertExists()
                 assertEquals(game.state, state.value.game)
             }
             state.value = state.value.copy(recordLoadFailed = true, isRecordLoading = true)
@@ -125,6 +127,8 @@ class NumberTrailScreenSemanticsTest {
             state.value = state.value.copy(recordLoadFailed = false, isRecordLoading = false)
             onNodeWithText("Try again").performScrollTo().performClick()
             assertEquals(1, replays)
+            onNodeWithText("Completed boards:", substring = true).assertDoesNotExist()
+            onNodeWithText("Active time:", substring = true).assertDoesNotExist()
             onNodeWithText("Board review").assertDoesNotExist()
             onNodeWithContentDescription("Number 1, next required number").assertDoesNotExist()
             onNodeWithContentDescription("Number 1").assertExists()
