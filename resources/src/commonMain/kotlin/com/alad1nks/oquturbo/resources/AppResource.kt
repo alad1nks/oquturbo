@@ -272,9 +272,15 @@ import oquturbo.resources.generated.resources.memory_grid_score
 import oquturbo.resources.generated.resources.memory_grid_session_correct_taps
 import oquturbo.resources.generated.resources.memory_grid_start
 import oquturbo.resources.generated.resources.memory_grid_title
+import oquturbo.resources.generated.resources.number_trail_active_time
 import oquturbo.resources.generated.resources.number_trail_back
 import oquturbo.resources.generated.resources.number_trail_board_complete
+import oquturbo.resources.generated.resources.number_trail_completed_boards
 import oquturbo.resources.generated.resources.number_trail_description
+import oquturbo.resources.generated.resources.number_trail_duration_less_than_one_second
+import oquturbo.resources.generated.resources.number_trail_duration_minutes
+import oquturbo.resources.generated.resources.number_trail_duration_minutes_seconds
+import oquturbo.resources.generated.resources.number_trail_duration_seconds
 import oquturbo.resources.generated.resources.number_trail_grid_size
 import oquturbo.resources.generated.resources.number_trail_instructions
 import oquturbo.resources.generated.resources.number_trail_loading_record
@@ -791,6 +797,9 @@ object AppResource {
     }
 
     object Plural {
+        val number_trail_duration_seconds = Res.plurals.number_trail_duration_seconds
+        val number_trail_duration_minutes = Res.plurals.number_trail_duration_minutes
+
         val practice_at_least_days = Res.plurals.practice_at_least_days
         val dual_focus_duration_minutes = Res.plurals.dual_focus_duration_minutes
         val dual_focus_duration_seconds = Res.plurals.dual_focus_duration_seconds
@@ -818,6 +827,11 @@ object AppResource {
     }
 
     object String {
+        val number_trail_completed_boards = Res.string.number_trail_completed_boards
+        val number_trail_active_time = Res.string.number_trail_active_time
+        val number_trail_duration_less_than_one_second = Res.string.number_trail_duration_less_than_one_second
+        val number_trail_duration_minutes_seconds = Res.string.number_trail_duration_minutes_seconds
+
         val reminder_notification_title = Res.string.reminder_notification_title
         val reminder_notification_body = Res.string.reminder_notification_body
         val reminder_channel_name = Res.string.reminder_channel_name
