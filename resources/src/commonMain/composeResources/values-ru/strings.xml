@@ -1100,4 +1100,20 @@
     <string name="reminder_pending_unknown">Текущее назначение не удалось проверить.</string>
     <string name="reminder_unsupported">На этой платформе напоминания недоступны. Они доступны на Android и iOS.</string>
     <string name="reminder_ios_pending6a">На этой платформе напоминания пока недоступны.</string>
+    <string name="number_trail_completed_boards">Завершено полей: %1$d</string>
+    <string name="number_trail_active_time">Активное время: %1$s</string>
+    <string name="number_trail_duration_less_than_one_second">меньше 1 секунды</string>
+    <string name="number_trail_duration_minutes_seconds">%1$s %2$s</string>
+    <plurals name="number_trail_duration_seconds">
+        <item quantity="one">%1$d секунда</item>
+        <item quantity="few">%1$d секунды</item>
+        <item quantity="many">%1$d секунд</item>
+        <item quantity="other">%1$d секунды</item>
+    </plurals>
+    <plurals name="number_trail_duration_minutes">
+        <item quantity="one">%1$d минута</item>
+        <item quantity="few">%1$d минуты</item>
+        <item quantity="many">%1$d минут</item>
+        <item quantity="other">%1$d минуты</item>
+    </plurals>
 </resources>
