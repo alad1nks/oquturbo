@@ -7,6 +7,11 @@ reuse the same feature modules.
 Shared UI and game logic run on Android, iOS, Desktop/JVM, and the browser through Kotlin/JS and Kotlin/Wasm.
 User-facing content is available in English, Russian, and Kazakh.
 
+## Releases
+
+See [release automation](docs/release-ci.md) for per-app Create release / Release workflows, signing secrets,
+Android artifacts, and iOS TestFlight delivery.
+
 ## Products
 
 | Product ID | Display name | Description |

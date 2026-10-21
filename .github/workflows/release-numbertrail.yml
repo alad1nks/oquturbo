@@ -1,0 +1,21 @@
+name: Release numbertrail
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ 'release/numbertrail/**' ]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release-numbertrail-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  release:
+    uses: ./.github/workflows/release-app.yml
+    with:
+      app: numbertrail
+      android-secret-prefix: NUMBERTRAIL_
+    secrets: inherit

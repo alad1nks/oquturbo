@@ -1,0 +1,21 @@
+name: Release wordflow
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ 'release/wordflow/**' ]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release-wordflow-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  release:
+    uses: ./.github/workflows/release-app.yml
+    with:
+      app: wordflow
+      android-secret-prefix: WORDFLOW_
+    secrets: inherit

@@ -1,0 +1,21 @@
+name: Release rotationmatch
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ 'release/rotationmatch/**' ]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release-rotationmatch-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  release:
+    uses: ./.github/workflows/release-app.yml
+    with:
+      app: rotationmatch
+      android-secret-prefix: ROTATIONMATCH_
+    secrets: inherit
