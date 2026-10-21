@@ -1,0 +1,21 @@
+name: Release dualfocus
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ 'release/dualfocus/**' ]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release-dualfocus-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  release:
+    uses: ./.github/workflows/release-app.yml
+    with:
+      app: dualfocus
+      android-secret-prefix: DUALFOCUS_
+    secrets: inherit

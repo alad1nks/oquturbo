@@ -1,0 +1,21 @@
+name: Release symbolcount
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ 'release/symbolcount/**' ]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release-symbolcount-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  release:
+    uses: ./.github/workflows/release-app.yml
+    with:
+      app: symbolcount
+      android-secret-prefix: SYMBOLCOUNT_
+    secrets: inherit

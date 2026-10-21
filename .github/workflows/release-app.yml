@@ -1,0 +1,150 @@
+name: Release (shared)
+
+on:
+  workflow_call:
+    inputs:
+      app:
+        required: true
+        type: string
+      android-secret-prefix:
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    env:
+      RELEASE_APP: ${{ inputs.app }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Require this application's release branch
+        env:
+          SOURCE_REF: ${{ github.ref }}
+        run: |
+          python3 -c 'import os; import sys; sys.path.insert(0, ".github/scripts"); from prepare_release import APPS; assert os.environ["RELEASE_APP"] in APPS'
+          if [[ "$SOURCE_REF" != "refs/heads/release/$RELEASE_APP/"* ]]; then
+            echo '::error::Select a release branch for this application.'
+            exit 1
+          fi
+      - uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: temurin
+      - uses: gradle/actions/setup-gradle@v4
+      - run: chmod +x ./gradlew
+      - run: ./gradlew ":app:$RELEASE_APP:shared:jvmTest" :core:data:jvmTest
+
+  android:
+    needs: verify
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    env:
+      RELEASE_APP: ${{ inputs.app }}
+      SIGNING_KEY_ALIAS: ${{ secrets[format('{0}KEY_ALIAS', inputs.android-secret-prefix)] }}
+      SIGNING_KEY_PASSWORD: ${{ secrets[format('{0}KEY_PASSWORD', inputs.android-secret-prefix)] }}
+      SIGNING_STORE_PASSWORD: ${{ secrets[format('{0}KEYSTORE_PASSWORD', inputs.android-secret-prefix)] }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: temurin
+      - uses: android-actions/setup-android@v3
+      - uses: gradle/actions/setup-gradle@v4
+      - name: Decode keystore
+        env:
+          KEYSTORE_BASE64: ${{ secrets[format('{0}KEYSTORE_BASE64', inputs.android-secret-prefix)] }}
+        run: |
+          for name in KEYSTORE_BASE64 SIGNING_KEY_ALIAS SIGNING_KEY_PASSWORD SIGNING_STORE_PASSWORD; do
+            if [[ -z "${!name}" ]]; then
+              echo "::error::Missing signing secret: $name"
+              exit 1
+            fi
+          done
+          umask 077
+          printf '%s' "$KEYSTORE_BASE64" | base64 --decode > release-key.jks
+      - run: chmod +x ./gradlew
+      - run: ./gradlew ":app:$RELEASE_APP:androidApp:testReleaseUnitTest" ":app:$RELEASE_APP:androidApp:bundleRelease"
+      - name: Rename AAB
+        run: mv "app/$RELEASE_APP/androidApp/build/outputs/bundle/release/androidApp-release.aab" "app/$RELEASE_APP/androidApp/build/outputs/bundle/release/$RELEASE_APP.aab"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ${{ inputs.app }}-release
+          path: app/${{ inputs.app }}/androidApp/build/outputs/bundle/release/${{ inputs.app }}.aab
+          if-no-files-found: error
+      - name: Remove keystore
+        if: always()
+        run: rm -f release-key.jks
+
+  ios:
+    needs: verify
+    runs-on: macos-26
+    timeout-minutes: 90
+    env:
+      RELEASE_APP: ${{ inputs.app }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: temurin
+      - uses: gradle/actions/setup-gradle@v4
+      - run: chmod +x ./gradlew
+      - run: ./gradlew ":app:$RELEASE_APP:shared:iosSimulatorArm64Test"
+      - name: Build, sign and upload to TestFlight
+        run: bash .github/scripts/ios-release.sh
+        env:
+          IOS_DISTRIBUTION_CERTIFICATE_BASE64: ${{ secrets.IOS_DISTRIBUTION_CERTIFICATE_BASE64 }}
+          IOS_DISTRIBUTION_CERTIFICATE_PASSWORD: ${{ secrets.IOS_DISTRIBUTION_CERTIFICATE_PASSWORD }}
+          IOS_PROVISIONING_PROFILE_BASE64: ${{ secrets[format('{0}_IOS_PROVISIONING_PROFILE_BASE64', inputs.app)] }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+          APP_STORE_CONNECT_API_KEY_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY_ID }}
+          APP_STORE_CONNECT_API_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_API_ISSUER_ID }}
+          APP_STORE_CONNECT_API_KEY_BASE64: ${{ secrets.APP_STORE_CONNECT_API_KEY_BASE64 }}
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: ${{ inputs.app }}-ios-release-${{ github.run_number }}-${{ github.run_attempt }}
+          path: |
+            app/${{ inputs.app }}/iosApp/build/release/export/*.ipa
+            app/${{ inputs.app }}/iosApp/build/release/*.log
+            app/${{ inputs.app }}/iosApp/build/release/archive.xcresult/
+            app/${{ inputs.app }}/iosApp/build/release/*.xcarchive/dSYMs/
+            app/${{ inputs.app }}/shared/build/reports/tests/iosSimulatorArm64Test/
+          if-no-files-found: ignore
+          retention-days: 14
+
+  publish-android:
+    needs: android
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    concurrency:
+      group: publish-release-aab
+      cancel-in-progress: false
+    env:
+      RELEASE_APP: ${{ inputs.app }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          repository: alad1nks/alad1nks.github.io
+          token: ${{ secrets.ACCESS_TOKEN }}
+      - uses: actions/download-artifact@v4
+        with:
+          name: ${{ inputs.app }}-release
+          path: oquturbo/${{ inputs.app }}/main
+      - name: Publish AAB
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add "oquturbo/$RELEASE_APP/main/$RELEASE_APP.aab"
+          if git diff --cached --quiet; then exit 0; fi
+          git commit -m "Release $RELEASE_APP AAB"
+          for attempt in 1 2 3; do
+            git pull --rebase
+            if git push; then exit 0; fi
+          done
+          exit 1

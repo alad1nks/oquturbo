@@ -1,0 +1,21 @@
+name: Release ruleswitch
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ 'release/ruleswitch/**' ]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release-ruleswitch-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  release:
+    uses: ./.github/workflows/release-app.yml
+    with:
+      app: ruleswitch
+      android-secret-prefix: RULESWITCH_
+    secrets: inherit
