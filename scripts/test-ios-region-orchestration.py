@@ -157,14 +157,14 @@ class RegionEvidenceTest(unittest.TestCase):
                 with self.subTest(missing_payload=field):
                     self.assertEqual([path], classify(header, changed)[1])
             for changes in ({"procName": "OquTurbo"}, {"procName": "OquTurboUITests-Runner"},
-                            {"procName": "SpringBoard"}, {"codeSigningID": "com.alad1nks.oquturbo.OquTurbo"},
+                            {"procName": "SpringBoard"}, {"codeSigningID": "com.alad1nks.oquturbo"},
                             {"procPath": "/Applications/OquTurbo.app/OquTurbo"}, {"parentProc": "launchd"},
                             {"responsibleProc": "OquTurbo"}, {"coalitionName": "com.apple.CoreSimulator.SimDevice.other"},
                             {"exception": {"type": "EXC_BAD_ACCESS", "signal": "SIGSEGV"}},
                             {"faultingThread": -1}, {"faultingThread": 1}, {"faultingThread": False},
                             {"threads": [{"triggered": False, "frames": [{"imageIndex": 0}]}]},
                             {"threads": [{"triggered": True, "frames": [{"imageIndex": -1}]}]},
-                            {"usedImages": [{"CFBundleIdentifier": "com.alad1nks.oquturbo.OquTurbo"}]},
+                            {"usedImages": [{"CFBundleIdentifier": "com.alad1nks.oquturbo"}]},
                             {"threads": []}, {"usedImages": []}):
                 with self.subTest(changes=changes):
                     self.assertEqual([path], classify(header, dict(payload, **changes))[1])

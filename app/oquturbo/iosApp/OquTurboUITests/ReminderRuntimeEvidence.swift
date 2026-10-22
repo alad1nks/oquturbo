@@ -3,7 +3,7 @@ import XCTest
 /// UI/system evidence only. The host separately validates OquTurbo's own native diagnostic log and preferences.
 final class ReminderRuntimeEvidence {
     let test: XCTestCase
-    let app = XCUIApplication(bundleIdentifier: "com.alad1nks.oquturbo.OquTurbo")
+    let app = XCUIApplication(bundleIdentifier: "com.alad1nks.oquturbo")
     let springboard = XCUIApplication(bundleIdentifier: "com.apple.springboard")
 
     init(_ test: XCTestCase) { self.test = test }

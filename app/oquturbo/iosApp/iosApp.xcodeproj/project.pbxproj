@@ -390,13 +390,13 @@
 		6B0000000000000000000007 = { isa = XCBuildConfiguration; buildSettings = {
                 ARCHS = arm64; GENERATE_INFOPLIST_FILE = YES;
                 PRODUCT_NAME = OquTurboUITests;
-                PRODUCT_BUNDLE_IDENTIFIER = com.alad1nks.oquturbo.OquTurbo.UITests;
+                PRODUCT_BUNDLE_IDENTIFIER = com.alad1nks.oquturboUITests;
                 SWIFT_VERSION = 5.0; TARGETED_DEVICE_FAMILY = "1,2"; TEST_TARGET_NAME = iosApp;
             }; name = Debug; };
 		6B0000000000000000000008 = { isa = XCBuildConfiguration; buildSettings = {
                 ARCHS = arm64; GENERATE_INFOPLIST_FILE = YES;
                 PRODUCT_NAME = OquTurboUITests;
-                PRODUCT_BUNDLE_IDENTIFIER = com.alad1nks.oquturbo.OquTurbo.UITests;
+                PRODUCT_BUNDLE_IDENTIFIER = com.alad1nks.oquturboUITests;
                 SWIFT_VERSION = 5.0; TARGETED_DEVICE_FAMILY = "1,2"; TEST_TARGET_NAME = iosApp;
             }; name = Release; };
 /* End XCBuildConfiguration section */

@@ -103,7 +103,7 @@ def completed_dispatch(request, observation, text, tap):
     return death, deaths[0][1]
 
 
-RUNNER_BUNDLE = "com.alad1nks.oquturbo.OquTurbo.UITests.xctrunner"
+RUNNER_BUNDLE = "com.alad1nks.oquturboUITests.xctrunner"
 KILL_ISSUE = "Test crashed with signal kill."
 
 

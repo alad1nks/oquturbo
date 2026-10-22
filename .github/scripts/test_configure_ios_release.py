@@ -54,7 +54,8 @@ class IosReleaseTests(unittest.TestCase):
             with self.subTest(app=app), tempfile.TemporaryDirectory() as directory:
                 root = Path(directory)
                 config = (ROOT / f'app/{app}/iosApp/Configuration/Config.xcconfig').read_text()
-                bundle = re.search(r'PRODUCT_BUNDLE_IDENTIFIER=(.*)', config)[1].replace('$(TEAM_ID)', '')
+                bundle = re.search(r'PRODUCT_BUNDLE_IDENTIFIER=(.*)', config)[1]
+                self.assertEqual(bundle, f'com.alad1nks.{app}')
                 profile = {'UUID': '11111111-2222-3333-4444-555555555555', 'Name': 'Distribution',
                            'TeamIdentifier': ['TEAM'], 'ApplicationIdentifierPrefix': ['TEAM'],
                            'ExpirationDate': datetime.datetime.now() + datetime.timedelta(days=30),
