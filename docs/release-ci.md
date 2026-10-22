@@ -8,16 +8,16 @@
 
 | App | Создать релиз | Собрать / повторить релиз | Android secrets prefix | iOS bundle ID |
 |---|---|---|---|---|
-| oquturbo | [Create release oquturbo](../.github/workflows/create-release-oquturbo.yml) | [Release oquturbo](../.github/workflows/release-oquturbo.yml) | без префикса | `com.alad1nks.oquturbo.OquTurbo` |
-| baspa | [Create release baspa](../.github/workflows/create-release-baspa.yml) | [Release baspa](../.github/workflows/release-baspa.yml) | `BASPA_` | `com.alad1nks.baspa.Baspa` |
-| kenkoz | [Create release kenkoz](../.github/workflows/create-release-kenkoz.yml) | [Release kenkoz](../.github/workflows/release-kenkoz.yml) | `KENKOZ_` | `com.alad1nks.kenkoz.KenKoz` |
-| sansprint | [Create release sansprint](../.github/workflows/create-release-sansprint.yml) | [Release sansprint](../.github/workflows/release-sansprint.yml) | без префикса | `com.alad1nks.sansprint.SanSprint` |
+| oquturbo | [Create release oquturbo](../.github/workflows/create-release-oquturbo.yml) | [Release oquturbo](../.github/workflows/release-oquturbo.yml) | `OQUTURBO_` | `com.alad1nks.oquturbo` |
+| baspa | [Create release baspa](../.github/workflows/create-release-baspa.yml) | [Release baspa](../.github/workflows/release-baspa.yml) | `BASPA_` | `com.alad1nks.baspa` |
+| kenkoz | [Create release kenkoz](../.github/workflows/create-release-kenkoz.yml) | [Release kenkoz](../.github/workflows/release-kenkoz.yml) | `KENKOZ_` | `com.alad1nks.kenkoz` |
+| sansprint | [Create release sansprint](../.github/workflows/create-release-sansprint.yml) | [Release sansprint](../.github/workflows/release-sansprint.yml) | без префикса | `com.alad1nks.sansprint` |
 | dualfocus | [Create release dualfocus](../.github/workflows/create-release-dualfocus.yml) | [Release dualfocus](../.github/workflows/release-dualfocus.yml) | `DUALFOCUS_` | `com.alad1nks.dualfocus` |
 | numbertrail | [Create release numbertrail](../.github/workflows/create-release-numbertrail.yml) | [Release numbertrail](../.github/workflows/release-numbertrail.yml) | `NUMBERTRAIL_` | `com.alad1nks.numbertrail` |
 | rotationmatch | [Create release rotationmatch](../.github/workflows/create-release-rotationmatch.yml) | [Release rotationmatch](../.github/workflows/release-rotationmatch.yml) | `ROTATIONMATCH_` | `com.alad1nks.rotationmatch` |
 | ruleswitch | [Create release ruleswitch](../.github/workflows/create-release-ruleswitch.yml) | [Release ruleswitch](../.github/workflows/release-ruleswitch.yml) | `RULESWITCH_` | `com.alad1nks.ruleswitch` |
 | symbolcount | [Create release symbolcount](../.github/workflows/create-release-symbolcount.yml) | [Release symbolcount](../.github/workflows/release-symbolcount.yml) | `SYMBOLCOUNT_` | `com.alad1nks.symbolcount` |
-| wordflow | [Create release wordflow](../.github/workflows/create-release-wordflow.yml) | [Release wordflow](../.github/workflows/release-wordflow.yml) | `WORDFLOW_` | `com.alad1nks.wordflow.WordFlow` |
+| wordflow | [Create release wordflow](../.github/workflows/create-release-wordflow.yml) | [Release wordflow](../.github/workflows/release-wordflow.yml) | `WORDFLOW_` | `com.alad1nks.wordflow` |
 
 ## Создание релиза кнопкой
 
@@ -80,13 +80,16 @@ Web/Desktop-деплой остаётся в существующих workflow.
 ## Секреты GitHub Actions
 
 Добавляйте **Repository secrets**: Settings → Secrets and variables → Actions.
-Environment-only secrets не используются. Идентификаторы приложений и существующие ключи не меняются.
+Environment-only secrets не используются. Существующие ключи Android-подписи сохраняются.
 
 ### Android
 
 К каждому имени добавьте префикс из таблицы приложений. Например, для Baspa это
 `BASPA_KEYSTORE_BASE64`, `BASPA_KEY_ALIAS`, `BASPA_KEY_PASSWORD`, `BASPA_KEYSTORE_PASSWORD`.
-OquTurbo и SanSprint сохраняют существующие общие имена без префикса.
+Для OquTurbo создайте `OQUTURBO_KEYSTORE_BASE64`, `OQUTURBO_KEY_ALIAS`,
+`OQUTURBO_KEY_PASSWORD`, `OQUTURBO_KEYSTORE_PASSWORD` с текущими значениями подписи OquTurbo.
+Эти имена используются в release, PR и build-and-deploy workflow OquTurbo.
+SanSprint сохраняет общие имена без префикса; не удаляйте их при переносе OquTurbo.
 
 | Имя без префикса | Значение |
 |---|---|
@@ -113,10 +116,15 @@ OquTurbo и SanSprint сохраняют существующие общие и�
 ID из таблицы в верхнем регистре. GitHub обращается к именам secrets без учёта регистра.
 Сертификат, команда и API-ключ общие. Firebase-секреты из примера здесь не нужны.
 
+Для OquTurbo, Baspa, KenKoz, SanSprint и WordFlow удалены прежние суффиксы имён приложений
+из bundle ID. Перед релизом подготовьте App ID, запись App Store Connect и provisioning profile
+для нового ID из таблицы, затем обновите соответствующий `<APP>_IOS_PROVISIONING_PROFILE_BASE64`.
+Старый профиль не подходит новому ID; сборка с новым ID не является обновлением приложения со старым ID.
+
 Первичная настройка:
 
 1. В действующей Apple Developer Program зарегистрируйте explicit App ID из таблицы и создайте
-   соответствующее приложение в App Store Connect. Таблица отражает текущий пустой `TEAM_ID` в xcconfig;
+   соответствующее приложение в App Store Connect. Все app bundle ID имеют вид `com.alad1nks.<app>`;
    `APPLE_TEAM_ID` задаёт команду подписи, не добавляется к bundle ID.
 2. Экспортируйте Apple Distribution certificate вместе с приватным ключом в `.p12`.
    Для каждого App ID создайте App Store Connect provisioning profile с этим сертификатом.

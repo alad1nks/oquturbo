@@ -21,7 +21,7 @@ _spec.loader.exec_module(evidence)
 _region_spec = importlib.util.spec_from_file_location("ios_region", Path(__file__).with_name("ios-region-orchestration.py"))
 region = importlib.util.module_from_spec(_region_spec)
 _region_spec.loader.exec_module(region)
-PACKAGE = "com.alad1nks.oquturbo.OquTurbo"
+PACKAGE = "com.alad1nks.oquturbo"
 PHASES = {
     "cold": "testColdDeliveryAndNativeOptIn",
     "warm": "testWarmDeliveryFromSettings",

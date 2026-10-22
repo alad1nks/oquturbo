@@ -17,5 +17,5 @@ jobs:
     uses: ./.github/workflows/release-app.yml
     with:
       app: oquturbo
-      android-secret-prefix: ''
+      android-secret-prefix: OQUTURBO_
     secrets: inherit

@@ -5,7 +5,7 @@ import plistlib
 import time
 from pathlib import Path
 
-PACKAGE = "com.alad1nks.oquturbo.OquTurbo"
+PACKAGE = "com.alad1nks.oquturbo"
 METHODS = {"testLocalizedPendingAndLargeTextPicker", "testSystemRegionTransition",
            "testSystem24HourAcceptance", "testSystemRegionRestored"}
 
