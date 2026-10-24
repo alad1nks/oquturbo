@@ -1,8 +1,8 @@
-# OquTurbo product constitution
+# Daily Mind product constitution
 
 ## Purpose
 
-OquTurbo is a multilingual collection of short exercises for memory, attention, reaction, visual perception, and
+Daily Mind is a multilingual collection of short exercises for memory, attention, reaction, visual perception, and
 reading. It combines reusable standalone games in a training hub that makes practice, records, activity, and
 progress visible without turning preview fixtures into product state.
 

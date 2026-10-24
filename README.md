@@ -1,7 +1,7 @@
-# OquTurbo
+# Daily Mind
 
-OquTurbo is a Kotlin Multiplatform and Compose Multiplatform monorepo for short memory, attention, reaction,
-visual-perception, and reading exercises. It contains the OquTurbo training hub and standalone games that
+Daily Mind is a Kotlin Multiplatform and Compose Multiplatform monorepo for short memory, attention, reaction,
+visual-perception, and reading exercises. It contains the Daily Mind training hub and standalone games that
 reuse the same feature modules.
 
 Shared UI and game logic run on Android, iOS, Desktop/JVM, and the browser through Kotlin/JS and Kotlin/Wasm.
@@ -16,19 +16,19 @@ Android artifacts, and iOS TestFlight delivery.
 
 | Product ID | Display name | Description |
 | --- | --- | --- |
-| `oquturbo` | OquTurbo | Hub with Home, Games, Stats, and Profile tabs plus the shared game catalog. |
+| `oquturbo` | Daily Mind | Hub with Home, Games, Stats, and Profile tabs plus the shared game catalog. |
 | `sansprint` | Number Sprint | Number-memory game with Classic, Binary String, and Custom modes. |
 | `kenkoz` | Wide Eye | Attention and peripheral-vision game with four modes. |
 | `baspa` | Don't Tap | Attention, reaction, and reading game with seven modes. |
 | `ruleswitch` | [Rule Switch](app/ruleswitch/README.md) | Alternating parity and magnitude classifications with one Switch mode. |
 
-The standalone products open their own game menus directly. OquTurbo adds a shared catalog and top-level
+The standalone products open their own game menus directly. Daily Mind adds a shared catalog and top-level
 navigation around portable feature implementations. Rule Switch opens directly to Ready in its standalone app,
 uses independent storage, and is excluded from Daily Training.
 
 ## Current implementation status
 
-The playable games, OquTurbo tabs, and profile preferences are connected to persistent storage:
+The playable games, Daily Mind tabs, and profile preferences are connected to persistent storage:
 
 - Every completed Number Sprint, Wide Eye, or Don't Tap session stores its mode, score, correct-answer count,
   duration, completion time, and new-record state.
@@ -86,10 +86,10 @@ app/
 
 feature/
   main/               Koin application, shared theme application, root Scaffold, and NavHost
-  home/               OquTurbo Home tab
-  games/              OquTurbo game catalog
-  stats/              OquTurbo activity, result trends, and game/mode details
-  profile/            OquTurbo progression, identity, achievements, and settings
+  home/               Daily Mind Home tab
+  games/              Daily Mind game catalog
+  stats/              Daily Mind activity, result trends, and game/mode details
+  profile/            Daily Mind progression, identity, achievements, and settings
   remembernumber/     Number Sprint game
   remembernumbermenu/ Number Sprint menu
   kenkozgame/         Wide Eye game
@@ -322,10 +322,10 @@ live in `app/<product>/webApp/src/webMain/resources`.
 GitHub Actions workflows are located in [`.github/workflows`](./.github/workflows):
 
 - Every pull request runs the common ktlint check.
-- OquTurbo product checks run for every pull request; standalone product checks use path filters.
+- Daily Mind product checks run for every pull request; standalone product checks use path filters.
 - Product pull-request workflows build Android and JVM artifacts, build JS and Wasm jars, and invoke the configured
   iOS framework task.
-- Pushes to `main` build signed Android APKs. OquTurbo always runs; standalone products use path filters.
+- Pushes to `main` build signed Android APKs. Daily Mind always runs; standalone products use path filters.
 - Pushes to `release/<product>/*` build signed Android App Bundles.
 - Release artifacts are uploaded to GitHub Actions and then committed to `alad1nks/alad1nks.github.io` by the
   workflow's post-build job.
@@ -357,7 +357,7 @@ Do not commit the keystore. Build an APK or App Bundle with:
   totals remain intact, while old chart and recent-history points eventually roll out.
 - Daily training is not orchestrated yet, so training totals and streaks remain zero even when standalone games are
   played.
-- The OquTurbo Web entry point still uses the legacy package `com.alad1nks.startkmp`.
+- The Daily Mind Web entry point still uses the legacy package `com.alad1nks.startkmp`.
 - Each product keeps a temporary `shared/webpack.config.d/watch.js` workaround for KT-80582.
 
 ## Contributing

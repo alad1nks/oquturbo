@@ -8,6 +8,7 @@ plugins {
 
 dependencies {
     implementation(projects.app.oquturbo.shared)
+    implementation(projects.resources)
 
     implementation(compose.desktop.currentOs)
     implementation(libs.kotlinx.coroutines.swing)

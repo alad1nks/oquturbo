@@ -52,6 +52,7 @@ import oquturbo.resources.generated.resources.baspa_letters
 import oquturbo.resources.generated.resources.baspa_statements
 import oquturbo.resources.generated.resources.baspa_title
 import oquturbo.resources.generated.resources.baspa_word_lengths
+import oquturbo.resources.generated.resources.daily_mind_app_name
 import oquturbo.resources.generated.resources.dual_focus_back
 import oquturbo.resources.generated.resources.dual_focus_back_to_games
 import oquturbo.resources.generated.resources.dual_focus_card_accessibility
@@ -827,6 +828,7 @@ object AppResource {
     }
 
     object String {
+        val daily_mind_app_name = Res.string.daily_mind_app_name
         val number_trail_completed_boards = Res.string.number_trail_completed_boards
         val number_trail_active_time = Res.string.number_trail_active_time
         val number_trail_duration_less_than_one_second = Res.string.number_trail_duration_less_than_one_second

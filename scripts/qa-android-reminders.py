@@ -354,7 +354,7 @@ class Driver:
                 posts = re.findall(r"(?m)^(\d+) posted id=6001$", events)
                 assert posts and int(posts[-1]) >= due * 1000, "Delivered record is not this future occurrence"
                 self.adb("shell", "cmd", "statusbar", "expand-notifications")
-                self.assert_text("Practice in OquTurbo")
+                self.assert_text("Practice in Daily Mind")
                 self.native("delivered")
                 return
             print(json.dumps({"waiting": "foreground dispatch" if foreground else "real local notification", "device_epoch": self.text("shell", "date", "+%s"), "due": due}), flush=True)
@@ -363,7 +363,7 @@ class Driver:
 
     def tap_notification(self):
         before = self.read_diagnostics().count(" open-consumed ")
-        self.tap(text="Practice in OquTurbo")
+        self.tap(text="Practice in Daily Mind")
         deadline = time.monotonic()+30
         while time.monotonic() < deadline:
             events = self.read_diagnostics()
@@ -439,7 +439,7 @@ class Driver:
             message = self.find(root, resource=permission_package + ":id/permission_message")
             buttons = [self.find(root, resource=permission_package + ":id/" + name)
                        for name in ("permission_allow_button", "permission_deny_button")]
-            if message is not None and message.get("package") == permission_package and message.get("text") == "Allow OquTurbo to send you notifications?" and all(
+            if message is not None and message.get("package") == permission_package and message.get("text") == "Allow Daily Mind to send you notifications?" and all(
                 node is not None and node.get("package") == permission_package and
                 node.get("enabled") == "true" and node.get("clickable") == "true" and
                 len(coords := list(map(int, re.findall(r"\d+", node.get("bounds", ""))))) == 4 and
@@ -474,7 +474,7 @@ class Driver:
         bar = self.find(root, resource="com.android.settings:id/main_switch_bar")
         assert bar is not None and bar.get("package") == "com.android.settings", "Missing native notification main switch bar"
         label = self.find(bar, resource="com.android.settings:id/switch_text")
-        expected = "Show notifications" if channel else "All OquTurbo notifications"
+        expected = "Show notifications" if channel else "All Daily Mind notifications"
         assert label is not None and label.get("text") == expected, "Wrong app/channel notification control"
         node = self.find(bar, resource="android:id/switch_widget")
         assert node is not None and node.get("package") == "com.android.settings" and \
