@@ -79,7 +79,7 @@ final class LocalReminderRuntimeTests: XCTestCase {
         // Absence alone is not a pass: host validation also requires the actual willPresent callback.
         while Date() < due.addingTimeInterval(90) {
             XCTAssertEqual(ui.app.state, .runningForeground)
-            XCTAssertFalse(ui.springboard.staticTexts["Practice in OquTurbo"].exists)
+            XCTAssertFalse(ui.springboard.staticTexts["Practice in Daily Mind"].exists)
             RunLoop.current.run(until: Date().addingTimeInterval(5))
         }
         ui.capture("foreground-no-presentation")

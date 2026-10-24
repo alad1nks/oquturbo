@@ -123,13 +123,13 @@ final class ReminderRuntimeEvidence {
             // Notifications category at the Settings root.
             tapSettingsRow("Apps")
             XCTAssertTrue(settings.navigationBars["Apps"].waitForExistence(timeout: 5))
-            tapSettingsRow("OquTurbo")
-            XCTAssertTrue(settings.navigationBars["OquTurbo"].waitForExistence(timeout: 5))
+            tapSettingsRow("Daily Mind")
+            XCTAssertTrue(settings.navigationBars["Daily Mind"].waitForExistence(timeout: 5))
             captureSettings("owned-app-settings")
             tapSettingsRow("Notifications")
         }
         XCTAssertTrue(allow.waitForExistence(timeout: 10))
-        XCTAssertTrue(settings.navigationBars["OquTurbo"].exists || settings.navigationBars["Notifications"].exists)
+        XCTAssertTrue(settings.navigationBars["Daily Mind"].exists || settings.navigationBars["Notifications"].exists)
         XCTAssertTrue(allow.isHittable)
         captureSettings("owned-notification-permission")
         return allow
@@ -380,8 +380,8 @@ final class ReminderRuntimeEvidence {
         // A static title's computed hit point did not open the app in the captured cold run.
         let cards = springboard.buttons.matching(NSPredicate(
             format: "identifier == %@ AND label CONTAINS %@ AND label CONTAINS %@",
-            "ShortLook.Platter.Content.Seamless", "Practice in OquTurbo",
-            "Open OquTurbo to practice when it suits you."))
+            "ShortLook.Platter.Content.Seamless", "Practice in Daily Mind",
+            "Open Daily Mind to practice when it suits you."))
         let deadline = due.addingTimeInterval(180)
         while Date() < deadline {
             if cards.count > 1 {
@@ -423,7 +423,7 @@ final class ReminderRuntimeEvidence {
             if !usedNativeOpen {
                 let cells = springboard.buttons.matching(NSPredicate(
                     format: "identifier == %@ AND label CONTAINS %@ AND label CONTAINS %@",
-                    "ListCell", "Practice in OquTurbo", "Open OquTurbo to practice when it suits you."))
+                    "ListCell", "Practice in Daily Mind", "Open Daily Mind to practice when it suits you."))
                 guard cells.count <= 1 else {
                     capture("ambiguous-owned-open-cell")
                     XCTFail("Multiple owned notification cells for native Open")

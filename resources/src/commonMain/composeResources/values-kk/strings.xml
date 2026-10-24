@@ -1,5 +1,6 @@
 <resources>
-    <string name="home_title">Turbo Reading</string>
+    <string name="daily_mind_app_name">Daily Mind</string>
+    <string name="home_title">Daily Mind</string>
     <string name="home_overall_level">Жалпы деңгей: %1$d</string>
     <string name="home_rank">Дәреже: %1$s</string>
     <string name="home_rank_master">Шебер</string>
@@ -1008,8 +1009,8 @@
     <string name="focus_reset_explanation">Қалпына келтіру тек бағыт баптауын өшіреді. Ойындар, тарих және жасалған жоспар сақталады.</string>
     <string name="focus_reset">Бағытты қалпына келтіру</string>
     <string name="focus_home_recovery">Бағытты баптау және қалпына келтіру «7 күннің қорытындысында» қолжетімді.</string>
-    <string name="reminder_notification_title">OquTurbo-да жаттығу</string>
-    <string name="reminder_notification_body">Ыңғайлы кезде жаттығу үшін OquTurbo-ны ашыңыз.</string>
+    <string name="reminder_notification_title">Daily Mind-да жаттығу</string>
+    <string name="reminder_notification_body">Ыңғайлы кезде жаттығу үшін Daily Mind-ны ашыңыз.</string>
     <string name="reminder_channel_name">Жаттығу туралы еске салғыштар</string>
     <string name="reminder_channel_description">Күнделікті жаттығу туралы ерікті еске салғыштар</string>
     <string name="reminder_experimental">Сынақ нұсқасы</string>
