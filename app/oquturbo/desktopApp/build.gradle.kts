@@ -11,6 +11,7 @@ dependencies {
     implementation(projects.resources)
 
     implementation(compose.desktop.currentOs)
+    implementation(compose.components.resources)
     implementation(libs.kotlinx.coroutines.swing)
 
     implementation(libs.compose.ui.tooling.preview)
