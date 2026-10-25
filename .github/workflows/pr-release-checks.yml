@@ -9,6 +9,7 @@ on:
       - 'app/**/build.gradle.kts'
       - 'app/**/Config.xcconfig'
       - 'app/**/project.pbxproj'
+      - 'app/**/*.xcscheme'
 
 permissions:
   contents: read
