@@ -62,12 +62,15 @@ class PrepareReleaseTests(unittest.TestCase):
             with self.subTest(app=app):
                 self.git('switch', 'main')
                 output = self.run_release(app)
-                self.assertIn(f'branch=release/{app}/1.1\n', output)
+                self.assertIn(f'branch=release/{app}/1.0\n', output)
+                self.assertIn('version=1.0\n', output)
+                self.assertIn('created=true\n', output)
                 changed = self.git('diff', '--name-only', 'origin/main').splitlines()
-                self.assertEqual(changed, [f'app/{app}/androidApp/build.gradle.kts',
-                                          f'app/{app}/iosApp/Configuration/Config.xcconfig'])
+                self.assertEqual(changed, [f'app/{app}/androidApp/build.gradle.kts'])
                 self.assertIn('versionCode = 2', (self.root / changed[0]).read_text())
-                self.assertIn('MARKETING_VERSION=1.1', (self.root / changed[1]).read_text())
+                self.assertIn('versionName = "1.0"', (self.root / changed[0]).read_text())
+                self.assertEqual((self.root / f'app/{app}/iosApp/Configuration/Config.xcconfig').read_text(),
+                                 'MARKETING_VERSION=1.0\n')
                 self.assertEqual(self.git('rev-parse', 'HEAD^'), main)
                 self.assertEqual(self.git('rev-parse', 'main'), main)
 
@@ -81,14 +84,32 @@ class PrepareReleaseTests(unittest.TestCase):
 
     def test_retry_reuses_pushed_branch_but_rejects_advanced_branch(self):
         self.run_release()
-        self.git('update-ref', 'refs/remotes/origin/release/oquturbo/1.1', 'HEAD')
+        self.git('update-ref', 'refs/remotes/origin/release/oquturbo/1.0', 'HEAD')
         self.git('switch', 'main')
         self.assertIn('created=false', self.run_release())
-        self.git('switch', 'release/oquturbo/1.1')
+        self.git('switch', 'release/oquturbo/1.0')
         self.git('commit', '--allow-empty', '-m', 'Later change')
-        self.git('update-ref', 'refs/remotes/origin/release/oquturbo/1.1', 'HEAD')
+        self.git('update-ref', 'refs/remotes/origin/release/oquturbo/1.0', 'HEAD')
         self.git('switch', 'main')
         self.assertIn('advanced', self.run_release(success=False))
+
+    def test_second_release_increments_minor(self):
+        self.remote_release('oquturbo', '1.0', 2)
+        self.assertIn('branch=release/oquturbo/1.1\n', self.run_release())
+
+    def test_first_release_ignores_other_apps_and_non_release_refs(self):
+        self.remote_release('baspa', '9.99', 999)
+        self.remote_release('oquturbo', '2.0-beta', 999)
+        self.remote_release('oquturbo', '2.0.1', 999)
+        self.assertIn('branch=release/oquturbo/1.0\n', self.run_release())
+
+    def test_first_release_rejects_downgrade_from_main(self):
+        path = self.root / 'app/oquturbo/iosApp/Configuration/Config.xcconfig'
+        path.write_text('MARKETING_VERSION=2.0\n')
+        self.git('add', '.')
+        self.git('commit', '-m', 'Newer main version')
+        self.git('update-ref', 'refs/remotes/origin/main', 'HEAD')
+        self.assertIn('below main', self.run_release(success=False))
 
     def test_rejects_downgrade_overflow_dirty_checkout_and_invalid_app(self):
         ref = self.remote_release('oquturbo', '0.1')
