@@ -9,6 +9,7 @@ import subprocess
 import sys
 import tempfile
 import unittest
+import xml.etree.ElementTree as ET
 from unittest.mock import patch
 import datetime
 
@@ -30,6 +31,21 @@ def fixture():
 
 
 class IosReleaseTests(unittest.TestCase):
+    def test_oquturbo_release_scheme_archives_only_the_app(self):
+        scheme = ET.parse(ROOT / 'app/oquturbo/iosApp/iosApp.xcodeproj/xcshareddata/xcschemes/iosApp.xcscheme')
+        self.assertEqual(scheme.find('ArchiveAction').get('buildConfiguration'), 'Release')
+        archived = scheme.findall('./BuildAction/BuildActionEntries/BuildActionEntry[@buildForArchiving="YES"]/BuildableReference')
+        self.assertEqual([item.get('BlueprintIdentifier') for item in archived], ['14FC70DB18C9FA407C6E2803'])
+
+    @unittest.skipUnless(sys.platform == 'darwin', 'Scheme discovery needs macOS Xcode')
+    def test_release_scheme_is_available_for_all_apps(self):
+        for app in APPS:
+            with self.subTest(app=app):
+                project = ROOT / f'app/{app}/iosApp/iosApp.xcodeproj'
+                listing = json.loads(subprocess.check_output(
+                    ['xcodebuild', '-list', '-json', '-project', str(project)], timeout=60))
+                self.assertIn('iosApp', listing['project']['schemes'])
+
     def test_only_release_app_settings_change(self):
         project = fixture()
         before = copy.deepcopy(project)
