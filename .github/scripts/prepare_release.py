@@ -65,8 +65,11 @@ def prepare(run_id):
     android = git("show", f"origin/main:{ANDROID}", strip=False)
     ios = git("show", f"origin/main:{IOS}", strip=False)
     main_version = max(version_tuple(value(android, VERSION_NAME)), version_tuple(value(ios, MARKETING_VERSION)))
-    latest = releases[-1][0] if releases else main_version
-    next_version = (latest[0], latest[1] + 1, 0)
+    if releases:
+        latest = releases[-1][0]
+        next_version = (latest[0], latest[1] + 1, 0)
+    else:
+        next_version = (1, 0, 0)
     if next_version < main_version:
         raise ValueError("Next release version would be below main; reconcile release branches and main first")
     version = ".".join(map(str, next_version[:2]))
