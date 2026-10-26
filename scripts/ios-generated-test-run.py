@@ -6,6 +6,7 @@ import time
 from pathlib import Path
 
 PACKAGE = "com.alad1nks.oquturbo"
+TEST_PACKAGE = "com.alad1nks.oquturboUITests"
 METHODS = {"testLocalizedPendingAndLargeTextPicker", "testSystemRegionTransition",
            "testSystem24HourAcceptance", "testSystemRegionRestored"}
 
@@ -60,11 +61,12 @@ class GeneratedTestRun:
         required = {"BlueprintName": "OquTurboUITests", "BlueprintProviderName": "iosApp",
                     "BlueprintProviderRelativePath": "iosApp.xcodeproj", "ProductModuleName": "OquTurboUITests",
                     "IsUITestBundle": True, "IsXCTRunnerHostedTestBundle": True,
-                    "TestHostBundleIdentifier": PACKAGE + ".UITests.xctrunner",
+                    "TestHostBundleIdentifier": TEST_PACKAGE + ".xctrunner",
                     "DiagnosticCollectionPolicy": 1, "TestLanguage": "", "TestRegion": "",
                     "CommandLineArguments": [], "UITargetAppCommandLineArguments": []}
-        if any(target.get(key) != value for key, value in required.items()):
-            raise ValueError("Unsupported generated configuration or diagnostic/locale override")
+        mismatched = [key for key, value in required.items() if target.get(key) != value]
+        if mismatched:
+            raise ValueError("Unsupported generated configuration or diagnostic/locale override: " + ", ".join(mismatched))
         app = "__TESTROOT__/Debug-iphonesimulator/OquTurbo.app"
         host = "__TESTROOT__/Debug-iphonesimulator/OquTurboUITests-Runner.app"
         bundle = host + "/PlugIns/OquTurboUITests.xctest"
@@ -80,8 +82,8 @@ class GeneratedTestRun:
         payloads = {}
         for relative, identifier, executable in (
                 ("Debug-iphonesimulator/OquTurbo.app", PACKAGE, "OquTurbo"),
-                ("Debug-iphonesimulator/OquTurboUITests-Runner.app", PACKAGE + ".UITests.xctrunner", "OquTurboUITests-Runner"),
-                ("Debug-iphonesimulator/OquTurboUITests-Runner.app/PlugIns/OquTurboUITests.xctest", PACKAGE + ".UITests", "OquTurboUITests")):
+                ("Debug-iphonesimulator/OquTurboUITests-Runner.app", TEST_PACKAGE + ".xctrunner", "OquTurboUITests-Runner"),
+                ("Debug-iphonesimulator/OquTurboUITests-Runner.app/PlugIns/OquTurboUITests.xctest", TEST_PACKAGE, "OquTurboUITests")):
             root = self.safe(self.products / relative)
             info = plistlib.loads(self.safe(root / "Info.plist").read_bytes())
             if info.get("CFBundleIdentifier") != identifier or info.get("CFBundleExecutable") != executable:

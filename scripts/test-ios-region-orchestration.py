@@ -2,6 +2,7 @@ import copy
 import importlib.util
 import json
 import plistlib
+import re
 import shutil
 import sqlite3
 import tempfile
@@ -423,8 +424,8 @@ class GeneratedTestRunTest(unittest.TestCase):
         self.package = region.generated.PACKAGE
         for relative, suffix, executable in (
                 ("OquTurbo.app", "", "OquTurbo"),
-                ("OquTurboUITests-Runner.app", ".UITests.xctrunner", "OquTurboUITests-Runner"),
-                ("OquTurboUITests-Runner.app/PlugIns/OquTurboUITests.xctest", ".UITests", "OquTurboUITests")):
+                ("OquTurboUITests-Runner.app", "UITests.xctrunner", "OquTurboUITests-Runner"),
+                ("OquTurboUITests-Runner.app/PlugIns/OquTurboUITests.xctest", "UITests", "OquTurboUITests")):
             folder = self.products / "Debug-iphonesimulator" / relative; folder.mkdir(parents=True, exist_ok=True)
             (folder / "Info.plist").write_bytes(plistlib.dumps({"CFBundleIdentifier": self.package + suffix, "CFBundleExecutable": executable}))
             (folder / executable).write_bytes(b"payload")
@@ -432,7 +433,7 @@ class GeneratedTestRunTest(unittest.TestCase):
         self.target = {"BlueprintName": "OquTurboUITests", "BlueprintProviderName": "iosApp",
             "BlueprintProviderRelativePath": "iosApp.xcodeproj", "ProductModuleName": "OquTurboUITests",
             "IsUITestBundle": True, "IsXCTRunnerHostedTestBundle": True,
-            "TestHostBundleIdentifier": self.package + ".UITests.xctrunner", "DiagnosticCollectionPolicy": 1,
+            "TestHostBundleIdentifier": self.package + "UITests.xctrunner", "DiagnosticCollectionPolicy": 1,
             "TestLanguage": "", "TestRegion": "", "CommandLineArguments": [], "UITargetAppCommandLineArguments": [],
             "UITargetAppPath": "__TESTROOT__/Debug-iphonesimulator/OquTurbo.app",
             "TestHostPath": "__TESTROOT__/Debug-iphonesimulator/OquTurboUITests-Runner.app",
@@ -480,6 +481,20 @@ class GeneratedTestRunTest(unittest.TestCase):
         self.assertEqual(self.path.read_bytes(), before)
         self.assertEqual((self.root / "evidence/generated.xctestrun").read_bytes(), before)
         self.assertIn("Debug-iphonesimulator/OquTurbo.app/OquTurbo.debug.dylib", binding.state["payloads"])
+
+    def test_bundle_ids_match_checked_in_xcode_project(self):
+        project = Path(__file__).resolve().parents[1] / "app/oquturbo/iosApp/iosApp.xcodeproj/project.pbxproj"
+        identifiers = re.findall(r"PRODUCT_BUNDLE_IDENTIFIER\s*=\s*([^;]+);", project.read_text())
+        self.assertEqual(identifiers, ["com.alad1nks.oquturboUITests"] * 2)
+        self.assertEqual(self.target["TestHostBundleIdentifier"], identifiers[0] + ".xctrunner")
+        self.assertEqual(region.RUNNER_BUNDLE, identifiers[0] + ".xctrunner")
+        self.bind()
+
+    def test_stale_runner_bundle_id_is_rejected_with_field_name(self):
+        self.target["TestHostBundleIdentifier"] = "com.alad1nks.oquturbo.UITests.xctrunner"
+        self.write()
+        with self.assertRaisesRegex(ValueError, "TestHostBundleIdentifier"):
+            self.bind()
 
     def test_missing_or_multiple_specs_fail_without_fallback(self):
         self.path.unlink()
