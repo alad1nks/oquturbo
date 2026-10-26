@@ -223,11 +223,15 @@ def classify_interruption(request, observation, issues, build_issues, diagnostic
 
 
 class StageBudget:
-    # Region changes restart SpringBoard and XCTest spends most of its 240s
-    # execution budget recovering. Reserve separate time to export and validate
-    # the resulting diagnostics, which are required before independent readback.
+    # Region changes kill the XCTest runner. xcodebuild then recovers and collects
+    # simulator diagnostics before finalizing xcresult. CI exceeded the old 239s
+    # process cutoff while still writing xcresult/Staging, so allow a bounded 10min
+    # for that process, plus a separate minute for export/validation. The native
+    # setup evidence freshness checks and whole-run deadline remain unchanged.
     EXPORT_RESERVE = 60
-    CAPS = {"initial": 300, "change": 300, "accept": 180, "restore": 300, "readback": 240}
+    TRANSITION_PROCESS_BUDGET = 600
+    CAPS = {"initial": 300, "change": TRANSITION_PROCESS_BUDGET + EXPORT_RESERVE,
+            "accept": 180, "restore": TRANSITION_PROCESS_BUDGET + EXPORT_RESERVE, "readback": 240}
     CLEANUP_RESERVE = CAPS["restore"] + CAPS["readback"]
     MUTATION_RESERVE = CAPS["change"] + CAPS["accept"] + CLEANUP_RESERVE
 

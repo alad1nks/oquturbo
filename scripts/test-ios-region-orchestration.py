@@ -224,7 +224,7 @@ class RegionEvidenceTest(unittest.TestCase):
 
 
 class LocaleOrchestrationTest(unittest.TestCase):
-    def exercise(self, fail=None, malformed=None, advance=0, cutoff=1300, migration=None, verified_region=None, final_delay=0, export_failure=None):
+    def exercise(self, fail=None, malformed=None, advance=0, cutoff=2200, migration=None, verified_region=None, final_delay=0, export_failure=None, diagnostic_delay=None):
         temporary = tempfile.TemporaryDirectory(); self.addCleanup(temporary.cleanup)
         root = Path(temporary.name); output = root / "output"; output.mkdir()
         derived = root / "DerivedData"; info = derived / "Build/Products/Debug-iphonesimulator/OquTurboUITests-Runner.app/Info.plist"
@@ -246,7 +246,7 @@ class LocaleOrchestrationTest(unittest.TestCase):
             validate_summary=lambda s: None if s == {"success": True} else (_ for _ in ()).throw(ValueError("Bad summary")),
             validate_dismissal=lambda *a: calls.append("dismissal"),
             validate_phase=validate_phase)
-        runner = SimpleNamespace(output=output, derived=derived, deadline=2000, udid="device", root=root,
+        runner = SimpleNamespace(output=output, derived=derived, deadline=3000, udid="device", root=root,
             documents=appdocs, process=None, evidence=evidence, xcode_args=lambda: ["xcodebuild"],
             sample=lambda *a: False, await_sample=lambda *a: None)
         def simctl(*args, **kwargs):
@@ -302,9 +302,10 @@ class LocaleOrchestrationTest(unittest.TestCase):
                     # Old sandbox survives with a contradictory stale operation; never consume it.
                     (active_docs / "region-observation.json").write_text(json.dumps(dict(observation, operation="stale-old-sandbox")))
                     current["runner"] = replacement
+                self.complete_at = clock[0] + (diagnostic_delay or {}).get(name, 0)
                 self.returncode = 65 if name in (fail or []) else 0
                 self.unreaped = name == "change" and "unreaped" in (fail or [])
-            def poll(self): return None if self.unreaped else self.returncode
+            def poll(self): return None if self.unreaped or clock[0] < self.complete_at else self.returncode
             def kill(self): self.returncode = -9
             def wait(self, timeout):
                 if self.unreaped: raise region.subprocess.TimeoutExpired("xcodebuild", timeout)
@@ -318,13 +319,28 @@ class LocaleOrchestrationTest(unittest.TestCase):
             except Exception as caught: error = caught
         cleanup = json.loads((directory / "region-cleanup.json").read_text()) if (directory / "region-cleanup.json").exists() else {}
         outcomes = json.loads((directory / "region-substeps.json").read_text()) if (directory / "region-substeps.json").exists() else []
-        self.assertEqual(2000, runner.deadline)
+        self.assertEqual(3000, runner.deadline)
         self.assertTrue(all(value <= cutoff for value in commands))
         for path in directory.rglob("invocation-timing.json"):
             timing=json.loads(path.read_text())
             reserve = 60 if path.parent.name in {"change", "restore"} else 0
             self.assertEqual(timing["cutoffMonotonic"] - reserve - 1, timing["executionDeadlineMonotonic"])
         return error, calls, cleanup, outcomes
+
+    def test_slow_xcode_finalization_preserves_diagnostics_and_readback(self):
+        # CI was killed after 239s with simctl diagnostics still in xcresult/Staging.
+        error, calls, cleanup, outcomes = self.exercise(diagnostic_delay={"change": 360, "restore": 360})
+        self.assertIsNone(error)
+        self.assertTrue(cleanup["restored"])
+        self.assertIn("accept", calls); self.assertIn("readback", calls)
+        self.assertTrue(all(row["status"] == "SUCCESS" for row in outcomes))
+
+    def test_stuck_xcode_finalization_still_times_out_and_attempts_cleanup(self):
+        error, calls, cleanup, _ = self.exercise(diagnostic_delay={"change": 600})
+        self.assertIsNotNone(error)
+        self.assertNotIn("accept", calls)
+        self.assertIn("deadline", cleanup["primaryError"])
+        self.assertTrue(cleanup["restored"])
 
     def test_unavailable_last_poll_recovers_current_preferences_before_readback(self):
         error, calls, cleanup, _ = self.exercise(migration="transient")
@@ -406,7 +422,7 @@ class LocaleOrchestrationTest(unittest.TestCase):
             self.assertIsNotNone(error); self.assertNotIn("change", calls); self.assertFalse(cleanup["required"])
 
     def test_exhausted_budget_is_never_renewed_for_readback(self):
-        error, calls, cleanup, _ = self.exercise(advance={"restore": 241})
+        error, calls, cleanup, _ = self.exercise(advance={"restore": 601})
         self.assertIsNotNone(error); self.assertNotIn("readback", calls)
         self.assertFalse(cleanup["restored"]); self.assertIn("deadline", cleanup["restorationError"])
 
@@ -647,15 +663,15 @@ class StagedSetupTest(unittest.TestCase):
             region.reap_owned(process,11)
         self.assertEqual(0,calls[-1])
 
-    def test_region_export_reserve_does_not_extend_xctest_execution(self):
+    def test_region_finalization_and_export_have_separate_bounded_budgets(self):
         now = [100.0]
         with patch.object(region.time, "monotonic", side_effect=lambda: now[0]):
             budget = region.StageBudget(5000)
             deadline = budget.enter("change")
-            self.assertEqual(339, budget.execution_deadline("change"))
-            now[0] = 338  # XCTest completes near its original 240s cap.
+            self.assertEqual(699, budget.execution_deadline("change"))
+            now[0] = 698  # xcodebuild includes automatic simulator diagnostics/finalization.
             self.assertGreaterEqual(deadline - now[0], 60)
-            now[0] = 390  # Required diagnostic export still fits in this stage.
+            now[0] = 750  # Required diagnostic export still fits in this stage.
             budget.finish("change")
             now[0] = deadline
             with self.assertRaises(TimeoutError):
@@ -663,7 +679,7 @@ class StagedSetupTest(unittest.TestCase):
 
     def test_acceptance_reserves_full_restoration_and_readback_budgets(self):
         with patch.object(region.time, "monotonic", return_value=100):
-            budget = region.StageBudget(800)
+            budget = region.StageBudget(1160)
             self.assertEqual(260, budget.enter("accept"))
             self.assertEqual(259, budget.execution_deadline("accept"))
             with self.assertRaises(TimeoutError):
@@ -675,18 +691,18 @@ class StagedSetupTest(unittest.TestCase):
             budget=region.StageBudget(5000)
             self.assertEqual(400,budget.enter("initial"))
             now[0]=200;budget.finish("initial")
-            self.assertEqual(500,budget.enter("change"))
-            self.assertEqual(439,budget.execution_deadline("change"))
+            self.assertEqual(860,budget.enter("change"))
+            self.assertEqual(799,budget.execution_deadline("change"))
             now[0]=300;budget.finish("change")
             self.assertEqual(480,budget.enter("accept"))
             with self.assertRaises(ValueError):budget.enter("accept")
             now[0]=481
             with self.assertRaises(TimeoutError):budget.finish("accept")
-            self.assertEqual(781,budget.enter("restore"))
-            self.assertEqual(720,budget.execution_deadline("restore"))
+            self.assertEqual(1141,budget.enter("restore"))
+            self.assertEqual(1080,budget.execution_deadline("restore"))
             now[0]=600;budget.finish("restore")
             self.assertEqual(840,budget.enter("readback"))
-            self.assertEqual(1420,budget.total)
+            self.assertEqual(2140,budget.total)
 
 
 if __name__ == "__main__": unittest.main()
