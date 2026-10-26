@@ -63,7 +63,7 @@ Release также запускается при обычном push в `release
 ## Этапы и результат
 
 - `verify`: JVM-тесты выбранного shared-модуля и `core:data`.
-- `android`: Android release unit-тесты и подписанный `bundleRelease`; артефакт `<app>-release`
+- `android`: Android unit-тесты всех доступных вариантов через `test` и подписанный `bundleRelease`; артефакт `<app>-release`
   содержит `<app>.aab`. Отсутствующие секреты подписи приводят к ошибке, а не к публикации unsigned AAB.
 - `publish-android`: сохраняет AAB в `alad1nks/alad1nks.github.io`, путь
   `oquturbo/<app>/main/<app>.aab`. Это существующая схема доставки, не автоматическая загрузка в Google Play.
