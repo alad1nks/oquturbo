@@ -24,7 +24,8 @@
   [Number Sprint dark: показ](https://www.figma.com/design/kElntn3nRWIQuFjyxUJNBM?node-id=119-4801).
 
 Новые stress-specimens — редактируемые копии существующих экранов с instances и переменными
-Foundations; шрифт Noto Sans. Новых компонентов, палитры и растров UI нет. Ready использует
+Foundations; шрифт Noto Sans. Палитра и растры UI не добавлялись; последующая доработка
+Number Sprint добавляет DigitCell (см. ниже). Ready использует
 варианты TextScale=1.5 и соответствующие стили, а не масштаб всего изображения. Его content
 792 px после доработки Number Sprint доступен через вертикальный viewport. На широком игровом экране колонка 560 px;
 поле сохраняет три ряда по три клетки, механика не расширена.
