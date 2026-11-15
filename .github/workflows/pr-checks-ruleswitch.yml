@@ -9,13 +9,17 @@ on:
       - 'feature/main/**'
       - 'core/**'
       - 'resources/**'
-      - '.github/workflows/**'
+      - '.github/workflows/pr-checks-ruleswitch.yml'
       - 'build.gradle.kts'
       - 'settings.gradle.kts'
       - 'gradle.properties'
       - 'gradle/**'
       - 'gradlew'
       - 'gradlew.bat'
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   build-android:

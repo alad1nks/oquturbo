@@ -1,0 +1,40 @@
+name: PR native iOS release checks
+
+on:
+  pull_request:
+    branches: [ main ]
+    paths:
+      - '.github/scripts/configure_ios_release.py'
+      - '.github/scripts/test_configure_ios_release.py'
+      - '.github/scripts/prepare_release.py'
+      - '.github/workflows/pr-ios-release-checks.yml'
+      - 'app/**/shared/build.gradle.kts'
+      - 'app/**/Config.xcconfig'
+      - 'app/**/project.pbxproj'
+      - 'app/**/*.xcscheme'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  xcode-project-tests:
+    # These two tests invoke Xcode and Apple's plutil; portable tests run on Linux.
+    runs-on: macos-26
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Verify native Xcode projects and schemes
+        working-directory: .github/scripts
+        run: >-
+          python3 -m unittest -v
+          test_configure_ios_release.IosReleaseTests.test_release_scheme_is_available_for_all_apps
+          test_configure_ios_release.IosReleaseTests.test_real_xcode_projects
+        env:
+          PYTHONDONTWRITEBYTECODE: '1'

@@ -3,10 +3,27 @@ name: PR iOS reminder runtime
 on:
   pull_request:
     branches: [ main, master ]
+    paths:
+      - 'app/oquturbo/**'
+      - 'feature/**'
+      - 'core/**'
+      - 'resources/**'
+      - 'scripts/**'
+      - '.github/workflows/pr-reminders-ios-runtime.yml'
+      - 'build.gradle.kts'
+      - 'settings.gradle.kts'
+      - 'gradle.properties'
+      - 'gradle/**'
+      - 'gradlew'
+      - 'gradlew.bat'
   workflow_dispatch:
 
 permissions:
   contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   ios-reminder-runtime:
